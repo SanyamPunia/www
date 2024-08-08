@@ -26,7 +26,7 @@ const Music = (props: Props) => {
       <p className="mb-3 text-sm lowercase px-3 py-2 -mx-3 text-muted-foreground">
         I usually release music on{" "}
         <a
-          href="#"
+          href="https://soundcloud.com/prodmxle"
           target="_blank"
           className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
@@ -35,7 +35,7 @@ const Music = (props: Props) => {
         </a>
         ,{" "}
         <a
-          href="#"
+          href="https://open.spotify.com/artist/2QbtOIjb8mUIsnCNqvyWAW?nd=1&dlsi=d5f341b22e524b63"
           target="_blank"
           className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
@@ -44,7 +44,7 @@ const Music = (props: Props) => {
         </a>
         , and type beats on{" "}
         <a
-          href="#"
+          href="https://www.youtube.com/@prodmxle"
           target="_blank"
           className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
