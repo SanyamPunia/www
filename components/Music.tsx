@@ -15,7 +15,7 @@ const Music = (props: Props) => {
 
       {/* border-l-4  */}
       <p className="mb-3 text-sm lowercase px-3 py-2 -mx-3 text-muted-foreground">
-        In 2020, I released my <span className="text-[#2dd367]">music</span>{" "}
+        In 2020, I released my <span className="text-[#3df17c]">music</span>{" "}
         online, reaching over{" "}
         <span className="text-white font-semibold">150,000</span> plays across
         platforms, including{" "}

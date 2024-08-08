@@ -45,7 +45,7 @@ const Work = (props: Props) => {
             <h1 className="font-medium">Zenduty</h1>
             <div className="lowercase text-muted-foreground flex justify-between items-center">
               <p>Frontend Engineer Intern</p>
-              <p>s'23 - s'24</p>
+              <p>s&apos;23 - s&apos;24</p>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ const Work = (props: Props) => {
             <h1 className="font-medium">Buildfast</h1>
             <div className="lowercase text-muted-foreground flex justify-between items-center">
               <p>Frontend Developer Intern</p>
-              <p>Feb'23 - Mar'23</p>
+              <p>Feb&apos;23 - Mar&apos;23</p>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ const Work = (props: Props) => {
             <h1 className="font-medium">Google Code-In</h1>
             <div className="lowercase text-muted-foreground flex justify-between items-center">
               <p>Finalist | Score Lab</p>
-              <p>Oct'18 - Dec'18</p>
+              <p>Oct&apos;18 - Dec&apos;18</p>
             </div>
           </div>
         </div>
