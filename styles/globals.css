@@ -67,3 +67,21 @@
     @apply bg-neutral-950 text-foreground;
   }
 }
+
+.progress-bar {
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    #1368a8,
+    #0e68c6,
+    #4462de,
+    #7c53ed,
+    #b52df0
+  );
+  transform-origin: 0%;
+}

@@ -17,7 +17,7 @@ const MaxWidthWrapper = ({ children }: { children: React.ReactNode }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ delay: 0.15 }}
-        className="px-2 max-w-md mx-auto"
+        className="px-3 max-w-md mx-auto overflow-x-hidden"
       >
         {children}
       </motion.div>

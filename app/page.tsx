@@ -15,7 +15,7 @@ import GetInTouch from "@/components/GetInTouch";
 export default function Home() {
   return (
     <MaxWidthWrapper>
-      <div className="my-52">
+      <div className="my-32 sm:my-52">
         <Image
           src="/logo.png"
           height={30}
