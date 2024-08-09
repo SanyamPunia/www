@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     title: "Sanyam Punia",
     card: "summary_large_image",
   },
+  verification: {
+    google: "1UfWpmVsXpdgCvfTaMNEt5ck10YnDgRbqBR2c5HkAuQ",
+  },
 };
 
 export default function RootLayout({
