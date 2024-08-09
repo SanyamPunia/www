@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
       <head />
       <body className={cn("min-h-screen antialiased dark", inter.className)}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
