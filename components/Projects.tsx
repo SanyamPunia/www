@@ -52,7 +52,7 @@ const Projects = (props: Props) => {
           <div className="w-full pb-4 border-b border-secondary/40">
             <h1 className="font-medium">flib.store</h1>
             <div className="mt-px lowercase text-muted-foreground flex justify-between gap-2 items-center">
-              <p>Built Flib&apos;s app with Next.js, TypeScript, Jotai.</p>
+              <p>Built Flib&apos;s app with Next.js, TypeScript, Zustand.</p>
               <span className="px-2 py-px rounded-lg bg-secondary">web</span>
             </div>
           </div>
