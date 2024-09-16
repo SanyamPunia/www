@@ -11,6 +11,7 @@ import Work from "@/components/Work";
 import Projects from "@/components/Projects";
 import Music from "@/components/Music";
 import GetInTouch from "@/components/GetInTouch";
+import { Link } from "next-view-transitions";
 
 export default function Home() {
   return (
@@ -27,7 +28,7 @@ export default function Home() {
 
         <div className="mt-6 space-y-4">
           <h1 className="font-medium text-sm lowercase">
-            sanyam is a full-stack web developer from india
+            Sanyam is a full-stack web developer from india
           </h1>
 
           <p className="text-muted-foreground text-sm lowercase">
@@ -65,12 +66,30 @@ export default function Home() {
                 className="rounded-md inline-block select-none"
                 height={17}
                 width={17}
-                alt="flib -logo"
+                alt="flib-logo"
                 draggable="false"
               />
             </a>
             .
           </p>
+
+          <p className="text-muted-foreground text-sm lowercase">
+            I also write technical blogs sharing insights from my projects.
+            Check them out{" "}
+            <Link href="/blogs" className="underline underline-offset-2">
+              here
+            </Link>
+            .
+          </p>
+
+          <div className="bg-border/20 rounded-md py-4 px-4 flex items-center text-neutral-400 mt-8 mb-4">
+            <div className="rounded-full bg-green-400 h-[8px] w-[8px] inline-block mr-2"></div>
+            <div className="absolute animate-ping rounded-full bg-green-400 h-[8px] w-[8px] mr-2 "></div>
+
+            <p className="text-muted-foreground text-xs lowercase">
+              Actively seeking full-time front-end dev roles.
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 flex items-center -ml-2 gap-0.5">
@@ -130,7 +149,7 @@ export default function Home() {
         <Projects />
         <Music />
 
-        <GetInTouch />
+        {/* <GetInTouch /> */}
       </div>
     </MaxWidthWrapper>
   );

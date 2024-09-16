@@ -1901,6 +1901,11 @@ next-sitemap@^4.2.3:
     fast-glob "^3.2.12"
     minimist "^1.2.8"
 
+next-view-transitions@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/next-view-transitions/-/next-view-transitions-0.3.0.tgz#8ec740928a2d74d8c5301f8a9383195f25e3c1ce"
+  integrity sha512-EfMG4sQR48Q40apCl0rWqTvpDNk4TcdlFjcsGd2ZOBJMNlwfuB8lnwhOL5A0kKWnZwXlMgDPFXY7qwoOY+NhtQ==
+
 next@14.2.5:
   version "14.2.5"
   resolved "https://registry.yarnpkg.com/next/-/next-14.2.5.tgz#afe4022bb0b752962e2205836587a289270efbea"

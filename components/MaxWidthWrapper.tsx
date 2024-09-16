@@ -12,15 +12,12 @@ const MaxWidthWrapper = ({ children }: { children: React.ReactNode }) => {
         className="progress-bar relative"
         style={{ scaleX: scrollYProgress }}
       />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      {/* motion. */}
+      {/* initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        transition={{ delay: 0.15 }}
-        className="px-3 max-w-md mx-auto overflow-x-hidden"
-      >
-        {children}
-      </motion.div>
+        transition={{ delay: 0.15 }} */}
+      <div className="px-3 max-w-md mx-auto overflow-x-hidden">{children}</div>
     </>
   );
 };

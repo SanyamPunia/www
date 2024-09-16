@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
+import { ViewTransitions } from "next-view-transitions";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sanyam.xyz"),
   title: {
     default: "Sanyam Punia",
-    template: "Sanyam | %s",
+    template: "%s - Sanyam",
   },
   description: "sanyam is a full-stack web developer from india",
   openGraph: {
@@ -50,12 +51,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
-      <body className={cn("min-h-screen antialiased dark", inter.className)}>
-        {children}
-        <Analytics />
-      </body>
-    </html>
+    <ViewTransitions>
+      <html lang="en" suppressHydrationWarning>
+        <head />
+        <body className={cn("min-h-screen antialiased dark", inter.className)}>
+          {children}
+          <Analytics />
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }
