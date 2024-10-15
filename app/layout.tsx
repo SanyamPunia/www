@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     default: "Sanyam Punia",
     template: "%s - Sanyam",
   },
+
   description: "sanyam is a full-stack web developer from india",
   openGraph: {
     title: "Sanyam Punia",
@@ -24,6 +25,12 @@ export const metadata: Metadata = {
     siteName: "Sanyam Punia",
     locale: "en-US",
     type: "website",
+    images: [
+      { url: "https://sanyam.xyz/opengraph-image.jpg" },
+      {
+        url: "https://sanyam.xyz/twitter-image.jpg",
+      },
+    ],
   },
   robots: {
     index: true,
