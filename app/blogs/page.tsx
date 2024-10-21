@@ -31,31 +31,32 @@ const page = async (props: Props) => {
 
           <hr className="my-6" />
 
-          <div className="lowercase bg-border/20 text-center p-4 rounded-lg text-xs text-muted-foreground">
+          {/* <div className="lowercase bg-border/20 text-center p-4 rounded-lg text-xs text-muted-foreground">
             <p>Coming Soon - check back in a day or two</p>
-          </div>
+          </div> */}
 
-          {/* <Link href={`#`}>
+          <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
             <div className="lowercase border border-gray-400/15 rounded-md p-3">
               <div className="space-y-3">
                 <h1 className="text-sm lowercase">
-                  some random title that is of certain length
+                  Integrating hygraph CMS with Next.js (v13)
                 </h1>
                 <p className="text-xs text-muted-foreground lowercase">
-                  Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                  Officiis, saepe dicta deleniti animi perspiciatis repellendus
-                  perferendis ut eveniet sint consequuntur omnis laboriosam
+                  In this article, we will set up hygraph CMS with Next.js 13
+                  along with creating a schema model & its respective content.
+                  We will also implement a few basic APIs to render data on our
+                  front end.
                 </p>
               </div>
               <div className="mt-3 text-muted-foreground flex gap-6 items-center">
                 <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
                   <CalendarIcon width={13} height={13} />
-                  2024-04-05
+                  2023-02-02
                 </p>
 
                 <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
                   <EyeClosedIcon width={13} height={13} />
-                  100 views
+                  50 views
                 </p>
 
                 <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
@@ -63,7 +64,44 @@ const page = async (props: Props) => {
                 </p>
               </div>
             </div>
-          </Link> */}
+          </Link>
+
+          {/* <ul className="space-y-4 my-12">
+            <li className="border-b pb-4">
+              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
+                <h1 className="text-sm lowercase">
+                  Integrating hygraph CMS with Next.js (v13)
+                </h1>
+              </Link>
+            </li>
+
+            <li className="border-b pb-4">
+              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
+                <h1 className="text-sm lowercase mb-2">
+                  Integrating hygraph CMS with Next.js (v13)
+                </h1>
+                <p className="text-xs text-muted-foreground flex gap-1 items-center">
+                  <ClockIcon height={13} width={13} />2 min read
+                </p>
+              </Link>
+            </li>
+
+            <li className="border-b pb-4">
+              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
+                <h1 className="text-sm lowercase">
+                  Integrating hygraph CMS with Next.js (v13)
+                </h1>
+              </Link>
+            </li>
+
+            <li className="">
+              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
+                <h1 className="text-sm lowercase">
+                  Integrating hygraph CMS with Next.js (v13)
+                </h1>
+              </Link>
+            </li>
+          </ul> */}
         </div>
       </div>
     </MaxWidthWrapper>

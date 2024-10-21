@@ -56,6 +56,15 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sh-identifier: #ffffff;
+    --sh-keyword: #f47067;
+    --sh-string: #00a99a;
+    --sh-class: #8d85ff;
+    --sh-property: #4e8fdf;
+    --sh-entity: #6eafad;
+    --sh-jsxliterals: #bf7db6;
+    --sh-sign: #8996a3;
+    --sh-comment: #a19595;
   }
 }
 
@@ -84,4 +93,18 @@
     #b52df0
   );
   transform-origin: 0%;
+}
+
+@theme {
+  --font-family-sans: "Inter", sans-serif;
+}
+
+pre {
+  background-color: #171717;
+  border-radius: 0.3rem;
+  overflow-x: auto;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  line-height: 1;
+  font-size: 0.8em;
 }

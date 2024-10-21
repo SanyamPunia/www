@@ -1,0 +1,124 @@
+import MaxWidthWrapper from "@/components/MaxWidthWrapper"
+import { Link } from "next-view-transitions";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
+
+export const metadata = {
+  title: 'Integrating hygraph CMS with Next.js (v13)',
+  alternates: {
+    canonical: '/blogs/integrating-hygraph-cms-with-nextjs-v13',
+  },
+};
+
+<MaxWidthWrapper>
+ 
+<Link href="/blogs" className="text-xs flex items-center text-white -ml-1">
+    <ChevronLeftIcon width={13} height={13} />
+    back
+</Link>
+
+## Setting up hygraph
+The first thing is to create our hygraph account. Go to their <a className="underline underline-offset-2 text-primary" target="_blank" href="https://hygraph.com/">website</a> and create one using any provider of your choice. Once you complete the process, select Add project & create your new project. Give your project a title and description & choose the region which is the nearest to your place.
+
+![1.png](https://media.graphassets.com/BiC4hVQP6fq26r903RSA)
+
+## Creating a Schema Model
+Now, head over to the *Schema* tab which is present on the left sidebar, and create a model.
+
+![2.png](https://media.graphassets.com/2dRy1tgLQO6yHHMXnLlF)
+
+Give a name to your model and then click Add Model. Now we need to add fields to our model. For Example, a blog might contain a *title*, *description*, *tags*, *cover image*, etc. So we can add the required fields to our model.
+
+From the sidebar on right, select *Single line text*. Give it a name and select the required options as per your preferences. For example - Use as title field, Validations such as Make field required.
+
+![3.png](https://media.graphassets.com/hZuG0OALSbWobe5PhP1N)
+
+Add the fields of your choice and save the changes. This is what my field structure looks like. Yours might look different than this, just choose your preferences accordingly.
+
+![4.png](https://media.graphassets.com/3UA508t6R02boPWRe9zM)
+
+## Adding Content to the Schema Model
+Let's now move on to adding custom data inside the fields we added to our data model. Click on the *Content* tab on the sidebar and then on *Add entry* in the top right corner of the website.
+Fill in the fields accordingly. Your final content should look something similar
+
+![5.png](https://media.graphassets.com/Mxsh10hnRqCJHR7pWvR0) 
+
+AND note, that the *slug* will be an auto-generated value extracted from the *title*. So it's advisable to set its attribute to *unique* in the schema model settings.
+Now, after adding the desired content, click on Save & publish on the top left along with setting the cover image to the published stage as well (asked when you click Save & publish).
+
+## API Playground
+Heading over to the API playground (under the Assets tab on the right sidebar), here you can test your *GraphQL* queries to get the required data. Here is a sample query to get data from your content schema
+
+```bash
+query TestModels {
+  testModels {
+    createdAt
+    description
+    id
+    publishDate
+    publishedAt
+    slug
+    tags
+    title
+    updatedAt
+  }
+}
+```
+
+The query for getting particular data based on *slug*
+
+```bash
+query TestModels ($slug:String) {
+  testModels (where:{slug: $slug}) {
+    createdAt
+    description
+    id
+    publishDate
+    publishedAt
+    slug
+    tags
+    title
+    updatedAt
+  }
+}
+```
+
+You can set the Query Variables on the tab located at the bottom.
+
+![6.png](https://media.graphassets.com/IijYRSsToOsk7qFABPrW) 
+
+## Next.js Setup with hygraph & GraphQL
+After playing with the API Playground, head over to your terminal and create a Next.js application & install the following dependencies
+
+```bash
+npm install graphql graphql-request
+```
+
+Now, instantiate a new GraphQL client in one of the routes
+
+```js
+import { GraphQLClient } from 'graphql-request';
+const hygraph = new GraphQLClient(
+  'hygraph-endpoint'
+); 
+```
+
+You can get your *hygraph* endpoint by navigating to *Project settings* > *Endpoints* & copy the Content API. Now, send in your query request to hygraph using the client you just created, as follows
+
+```js
+import { gql } from 'graphql-request';
+const QUERY = gql`
+  {
+    posts {
+      id
+      title
+    }
+  }`
+const { posts } = await hygraph.request(QUERY)
+```
+
+We don't need to use any specific functions (like *getServerSideProps*, *getStaticProps*, etc) provided by Next.js in v13 as the whole route is rendered on the server side (unless you use the *use client* directive). Just use the *posts* in any components/routes depending upon your use case.
+
+And that is how you integrate hygraph CMS + GraphQL with Next.js (v13).
+
+</MaxWidthWrapper>
+
