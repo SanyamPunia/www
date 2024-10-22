@@ -97,6 +97,7 @@ Now, instantiate a new GraphQL client in one of the routes
 
 ```js
 import { GraphQLClient } from 'graphql-request';
+
 const hygraph = new GraphQLClient(
   'hygraph-endpoint'
 ); 
@@ -106,6 +107,7 @@ You can get your *hygraph* endpoint by navigating to *Project settings* > *Endpo
 
 ```js
 import { gql } from 'graphql-request';
+
 const QUERY = gql`
   {
     posts {
@@ -113,6 +115,7 @@ const QUERY = gql`
       title
     }
   }`
+  
 const { posts } = await hygraph.request(QUERY)
 ```
 

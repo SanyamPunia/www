@@ -54,7 +54,7 @@ const components: MDXComponents = {
       style={{
         fontStyle: "normal",
         borderStyle: "solid",
-        border: "2px solid rgb(156 163 175 / 0.15)",
+        border: "1px solid rgb(156 163 175 / 0.15)",
         background: "hsl(var(--border))",
         paddingTop: "2px",
         paddingBottom: "2px",
