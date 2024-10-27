@@ -56,6 +56,7 @@ const components: MDXComponents = {
         paddingLeft: "4px",
         paddingRight: "4px",
         borderRadius: "calc(var(--radius) - 2px)",
+        textWrap: "nowrap"
       }}
       {...props}
     />
