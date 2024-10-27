@@ -29,6 +29,15 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --sh-class: #ffffff;
+    --sh-identifier: #ffffff;
+    --sh-sign: #8996a3;
+    --sh-string: #a7a7a7;
+    --sh-keyword: #a7a7a7;
+    --sh-comment: #a19595;
+    --sh-jsxliterals: #ffffff;
+    --sh-property: #a7a7a7;
+    --sh-entity: #a7a7a7;
   }
 
   .dark {
@@ -56,15 +65,15 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sh-class: #ffffff;
     --sh-identifier: #ffffff;
-    --sh-keyword: #f47067;
-    --sh-string: #00a99a;
-    --sh-class: #8d85ff;
-    --sh-property: #4e8fdf;
-    --sh-entity: #6eafad;
-    --sh-jsxliterals: #bf7db6;
     --sh-sign: #8996a3;
+    --sh-string: #a7a7a7;
+    --sh-keyword: #a7a7a7;
     --sh-comment: #a19595;
+    --sh-jsxliterals: #ffffff;
+    --sh-property: #a7a7a7;
+    --sh-entity: #a7a7a7;
   }
 }
 
@@ -100,11 +109,22 @@
 }
 
 pre {
-  background-color: #171717;
-  border-radius: 0.3rem;
-  overflow-x: auto;
-  padding: 1rem;
-  margin: 1.5rem 0;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  padding: 20px;
+  border: 1px solid;
   line-height: 1.5;
-  font-size: 0.8em;
+  border-color: hsl(var(--border));
+  border-radius: 0.3rem;
+  background-color: #0c0c0c;
+  overflow-x: auto;
+}
+
+pre code {
+  font-size: 13px;
+  font-weight: 500 !important;
+}
+
+pre::-webkit-scrollbar {
+  display: none;
 }

@@ -2,8 +2,8 @@ import React, { ComponentPropsWithoutRef } from "react";
 import { Link } from "next-view-transitions";
 import type { MDXComponents } from "mdx/types";
 import { highlight } from "sugar-high";
-import MaxWidthWrapper from "./components/MaxWidthWrapper";
 import Image, { ImageProps } from "next/image";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 
 type HeadingProps = ComponentPropsWithoutRef<"h1">;
 type ParagraphProps = ComponentPropsWithoutRef<"p">;
@@ -13,20 +13,15 @@ type AnchorProps = ComponentPropsWithoutRef<"a">;
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">;
 
 const components: MDXComponents = {
-  div: (props: ComponentPropsWithoutRef<"div">) => (
-    <MaxWidthWrapper className="my-44" {...props} />
-  ),
-  h1: (props: HeadingProps) => (
-    <h1 className="font-medium pt-12 mb-0 fade-in" {...props} />
-  ),
   h2: (props: HeadingProps) => (
-    <h2 className="text-gray-800 font-medium mt-8 mb-3" {...props} />
-  ),
-  h3: (props: HeadingProps) => (
-    <h3 className="text-gray-800 font-medium mt-8 mb-3 text-sm" {...props} />
-  ),
-  h4: (props: HeadingProps) => (
-    <h4 className="font-medium text-sm" {...props} />
+    <h2
+      style={{
+        marginTop: "1.5rem",
+        marginBottom: "1.5rem",
+      }}
+      className="font-medium"
+      {...props}
+    />
   ),
   p: (props: ParagraphProps) => (
     <p
@@ -34,7 +29,7 @@ const components: MDXComponents = {
         marginTop: "1.5rem",
         marginBottom: "1.5rem",
       }}
-      className="text-gray-800 text-sm text-muted-foreground"
+      className="text-sm text-muted-foreground"
       {...props}
     />
   ),
@@ -69,10 +64,15 @@ const components: MDXComponents = {
     <strong className="font-medium" {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
-    const className = "text-blue-500 hover:text-blue-700";
+    const className = "text-xs text-white";
     if (href?.startsWith("/")) {
       return (
-        <Link href={href} className={className} {...props}>
+        <Link
+          href={href}
+          className={`${className} flex items-center -ml-1`}
+          {...props}
+        >
+          <ChevronLeftIcon width={13} height={13} />
           {children}
         </Link>
       );
@@ -84,6 +84,7 @@ const components: MDXComponents = {
         </a>
       );
     }
+
     return (
       <a
         href={href}

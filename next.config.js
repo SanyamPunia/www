@@ -12,8 +12,11 @@ const nextConfig = {
       },
     ],
   },
+  reactStrictMode: true,
 };
 
-const withMDX = createMDX({});
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
 
 module.exports = withMDX(nextConfig);

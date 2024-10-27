@@ -1,14 +1,8 @@
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { Button } from "@/components/ui/button";
 import {
   CalendarIcon,
   ChevronLeftIcon,
   ClockIcon,
-  DotFilledIcon,
-  EyeClosedIcon,
-  EyeNoneIcon,
-  EyeOpenIcon,
-  TimerIcon,
 } from "@radix-ui/react-icons";
 import { Link } from "next-view-transitions";
 import React from "react";
@@ -31,10 +25,6 @@ const page = async (props: Props) => {
 
           <hr className="my-6" />
 
-          {/* <div className="lowercase bg-border/20 text-center p-4 rounded-lg text-xs text-muted-foreground">
-            <p>Coming Soon - check back in a day or two</p>
-          </div> */}
-
           <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
             <div className="lowercase border border-gray-400/15 rounded-md p-3">
               <div className="space-y-3">
@@ -55,53 +45,11 @@ const page = async (props: Props) => {
                 </p>
 
                 <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
-                  <EyeClosedIcon width={13} height={13} />
-                  50 views
-                </p>
-
-                <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
                   <ClockIcon width={13} height={13} />5 min read
                 </p>
               </div>
             </div>
           </Link>
-
-          {/* <ul className="space-y-4 my-12">
-            <li className="border-b pb-4">
-              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
-                <h1 className="text-sm lowercase">
-                  Integrating hygraph CMS with Next.js (v13)
-                </h1>
-              </Link>
-            </li>
-
-            <li className="border-b pb-4">
-              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
-                <h1 className="text-sm lowercase mb-2">
-                  Integrating hygraph CMS with Next.js (v13)
-                </h1>
-                <p className="text-xs text-muted-foreground flex gap-1 items-center">
-                  <ClockIcon height={13} width={13} />2 min read
-                </p>
-              </Link>
-            </li>
-
-            <li className="border-b pb-4">
-              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
-                <h1 className="text-sm lowercase">
-                  Integrating hygraph CMS with Next.js (v13)
-                </h1>
-              </Link>
-            </li>
-
-            <li className="">
-              <Link href={`/blogs/integrating-hygraph-cms-with-nextjs-v13`}>
-                <h1 className="text-sm lowercase">
-                  Integrating hygraph CMS with Next.js (v13)
-                </h1>
-              </Link>
-            </li>
-          </ul> */}
         </div>
       </div>
     </MaxWidthWrapper>
