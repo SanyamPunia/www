@@ -19,10 +19,10 @@ const MaxWidthWrapper = ({
 
   return (
     <>
-      <motion.div
+      {/* <motion.div
         className="progress-bar relative"
         style={{ scaleX: scrollYProgress }}
-      />
+      /> */}
       {/* motion. */}
       {/* initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
