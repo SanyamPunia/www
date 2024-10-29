@@ -16,7 +16,8 @@ const components: MDXComponents = {
   h1: (props: HeadingProps) => (
     <h1
       style={{
-        margin: "2rem 0",
+        marginTop: "3rem",
+        marginBottom: "2rem",
       }}
       {...props}
     />
