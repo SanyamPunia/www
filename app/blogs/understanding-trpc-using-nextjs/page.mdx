@@ -6,10 +6,10 @@ import ClientSideResponse from "@/public/blogs/client-side-response.jpg"
 import DirectoryStr from "@/public/blogs/directory-str.jpg"
 
 export const metadata = {
-    title: 'Understanding tRPC using Next.js',
-    alternates: {
-        canonical: '/blogs/understanding-trpc-using-nextjs',
-    },
+  title: 'Understanding tRPC using Next.js',
+  alternates: {
+    canonical: '/blogs/understanding-trpc-using-nextjs',
+  },
 };
 
 <MaxWidthWrapper>
@@ -168,11 +168,13 @@ Now, start your Next.js application and you can see the output being displayed.
 
 If you head over to the network tab inside the dev tool, you can notice the HTTP *GET* request with query parameters *batch* & *input*
 
-<Image className="w-full select-none" draggable="false" src={ClientSideResponse} alt="client-side-response" />
+<Image className="w-full select-none rounded-md" draggable="false" src={ClientSideResponse} alt="client-side-response" />
 
 ## Directory Structure
 Here is the final directory structure for reference purposes. This is the one recommended by tRPC itself.
 
-<Image className="w-full select-none" draggable="false" src={DirectoryStr} alt="directory-str" />
+<Image className="w-full select-none rounded-md" style={{
+  marginBottom: '1.3rem'
+}} draggable="false" src={DirectoryStr} alt="directory-str" />
 
 </MaxWidthWrapper>
