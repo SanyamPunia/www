@@ -11,7 +11,7 @@ const Work = (props: Props) => {
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div>
             <Image
-              src="/flib.png"
+              src="/org/flib.png"
               height={37}
               width={37}
               className="rounded-full select-none"
@@ -33,7 +33,7 @@ const Work = (props: Props) => {
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div>
             <Image
-              src="/zenduty.png"
+              src="/org/zenduty.png"
               height={37}
               width={37}
               className="rounded-full select-none"
@@ -55,7 +55,7 @@ const Work = (props: Props) => {
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div>
             <Image
-              src="/buildfast.jpeg"
+              src="/org/buildfast.jpeg"
               height={37}
               width={37}
               className="rounded-full select-none"
@@ -77,7 +77,7 @@ const Work = (props: Props) => {
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div>
             <Image
-              src="/google.jpg"
+              src="/org/google.jpg"
               height={37}
               width={37}
               className="rounded-full select-none"

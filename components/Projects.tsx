@@ -13,7 +13,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/onsnip.png"
+                src="/projects/onsnip.png"
                 width={36}
                 height={36}
                 alt="on-snip-logo"
@@ -37,7 +37,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/m.png"
+                src="/projects/m.png"
                 width={36}
                 height={36}
                 alt="next-medium-zoom-logo"
@@ -63,7 +63,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/profanity.jpg"
+                src="/projects/profanity.jpg"
                 width={36}
                 height={36}
                 alt="profanity-logo"
@@ -87,7 +87,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/skillup.png"
+                src="/projects/skillup.png"
                 width={36}
                 height={36}
                 alt="evogym-logo"
@@ -112,7 +112,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/evogym.png"
+                src="/projects/evogym.png"
                 width={36}
                 height={36}
                 alt="evogym-logo"
@@ -138,7 +138,7 @@ const Projects = (props: Props) => {
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
             <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
               <Image
-                src="/flib.png"
+                src="/projects/flib.png"
                 width={36}
                 height={36}
                 alt="flib-logo"

@@ -1,0 +1,175 @@
+import MaxWidthWrapper from "@/components/MaxWidthWrapper"
+import { Link } from "next-view-transitions";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
+
+export const metadata = {
+    title: 'Understanding tRPC using Next.js',
+    alternates: {
+        canonical: '/blogs/understanding-trpc-using-nextjs',
+    },
+};
+
+<MaxWidthWrapper>
+
+[back](/blogs)
+
+# Integrating hygraph CMS with Next.js (v13)
+
+## What is tRPC?
+tRPC stands for TypeScript Remote Procedure Call, which provides end-to-end type safety for your API endpoints.
+
+## Setting up tRPC & Next.js
+Create a new brand new Next.js app using the following command. And make sure to use the  *pages* directory instead of *app*.
+
+```bash
+npx create-next-app@latest
+```
+
+And, now install the following dependencies
+
+```bash
+npm install @trpc/server @trpc/client @trpc/react-query @trpc/next @tanstack/react-query zod
+```
+
+Here, *zod* is used for validating the inputs we give to our endpoints/procedures.
+
+## Initialize tRPC
+Inside the Next.js *api* routes, create a folder named *trpc* and a dynamic route inside it *[trpc].ts*
+
+It is best suggested to export *router* & *procedure* together in a separate file (*server/trpc.ts*), but for this example, it's completely fine to proceed without exporting and importing the entire *iniTRPC* object to the *[trpc].ts* file itself.
+
+Inside this file, you create your root router (*appRouter*) and defined the endpoints, similar to *REST* endpoints.
+
+```ts
+import { initTRPC } from "@trpc/server";
+import * as trpcNext from "@trpc/server/adapters/next";
+import { z } from "zod";
+
+const t = initTRPC.create();
+
+const appRouter = t.router({
+  greeting: t.procedure
+    .input(
+      z
+        .object({
+          name: z.string().nullish(),
+        })
+        .nullish() // allows `null` / `undefined` values in the schema
+    )
+    .query(({ input }) => {
+      return {
+        text: `hello ${input?.name ?? "world"}`,
+      };
+    }),
+});
+```
+The endpoint will look like */api/trpc/greeting*.
+
+We are using *zod* for the input validation. By first creating the object schema, & setting *name* to the *string* schema.
+
+The *query* is basically an HTTP *GET* request which takes a resolve function with *input* that we defined in the procedure above (*greeting*). We can use this resolve function to return some stuff, a string in this case.
+
+Now below the *appRouter*, we now export its type and an API handler.
+
+```ts
+export type AppRouter = typeof appRouter;
+
+export default trpcNext.createNextApiHandler({
+  router: appRouter,
+  createContext: () => ({}),
+});
+```
+
+## Create tRPC hooks & Batching
+Create a *utils* folder on the same level as *pages* and a file inside it *trpc.ts*. Inside this file, we are creating a *getBaseUrl* which returns the base URL based on the specific *env*.
+
+We will use trpc's *createTRPCNext* function to create type-safe hooks.
+
+```ts
+import { httpBatchLink } from "@trpc/client";
+import { createTRPCNext } from "@trpc/next";
+import type { AppRouter } from "@/pages/api/trpc/[trpc]";
+
+function getBaseUrl() {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return `http://localhost:${process.env.PORT ?? 3000}`;
+}
+
+export const trpc = createTRPCNext<AppRouter>({
+  config({ ctx }) {
+    return {
+      links: [
+        httpBatchLink({
+          url: getBaseUrl() + "/api/trpc",
+        }),
+      ],
+    };
+  },
+  // ssr: true,
+});
+```
+
+Here, *httpBatchLink* can take multiple URLs as an object parameter & grip them into one request. It is generally a good practice to handle multiple queries in this way.
+
+We can now use this exported *trpc* to call procedures & queries on the client-side. But before that, we need to configure the *_app.tsx* file.
+
+## Configure *_app.tsx*
+Export *MyApp* and wrap it in *trpc.withTRPC*
+
+```tsx
+import { trpc } from "@/utils/trpc";
+import type { AppProps, AppType } from "next/app";
+
+const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
+  return <Component {...pageProps} />;
+};
+
+export default trpc.withTRPC(MyApp);
+```
+
+## Client Side API consumption
+Now, inside *index.tsx*, you can import *trpc* from util directory and make a call to the *greeting* procedure, providing the input *name*, as show below
+
+```tsx
+import { trpc } from "@/utils/trpc";
+
+export default function Home() {
+  /* The `name` destructure is typesafe.
+   * If we change the `name` in `[trpc].ts`, it will hightlight
+   * the error here
+   */
+  const result = trpc.greeting.useQuery({ name: "sanyam" });
+
+  if (!result?.data) {
+    <div>
+      <h1>Loading...</h1>
+    </div>;
+  }
+
+  return (
+    <div>
+      <h1>{result?.data?.text}</h1>
+    </div>
+  );
+}
+```
+
+Now, start your Next.js application and you can see the output being displayed.
+
+If you head over to the network tab inside the dev tool, you can notice the HTTP *GET* request with query parameters *batch* & *input*
+
+![client-side-response.png](/public//blogs/client-side-response.jpg)
+
+## Directory Structure
+Here is the final directory structure for reference purposes. This is the one recommended by tRPC itself.
+
+![directory-str.png](/public/blogs/directory-str.jpg)
+
+</MaxWidthWrapper>

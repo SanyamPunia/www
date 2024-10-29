@@ -45,7 +45,7 @@ export default function Home() {
             >
               <code>Zenduty</code>
               <Image
-                src="/zenduty.png"
+                src="/org/zenduty.png"
                 className="rounded-full inline-block select-none"
                 height={17}
                 width={17}
@@ -62,7 +62,7 @@ export default function Home() {
             >
               <code>Flib</code>
               <Image
-                src="/flib.png"
+                src="/org/flib.png"
                 className="rounded-md inline-block select-none"
                 height={17}
                 width={17}
@@ -76,7 +76,10 @@ export default function Home() {
           <p className="text-muted-foreground text-sm lowercase">
             I also write technical blogs sharing insights from my projects.
             Check them out{" "}
-            <Link href="/blogs" className="underline underline-offset-2">
+            <Link
+              href="/blogs"
+              className="underline underline-offset-2 text-white"
+            >
               here
             </Link>
             .

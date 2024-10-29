@@ -13,21 +13,29 @@ type AnchorProps = ComponentPropsWithoutRef<"a">;
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">;
 
 const components: MDXComponents = {
+  h1: (props: HeadingProps) => (
+    <h1
+      style={{
+        margin: "2rem 0",
+      }}
+      {...props}
+    />
+  ),
   h2: (props: HeadingProps) => (
     <h2
       style={{
-        marginTop: "1.5rem",
-        marginBottom: "1.5rem",
+        marginTop: "1.3rem",
+        marginBottom: "1.3rem",
       }}
-      className="font-medium"
+      className="font-medium text-sm"
       {...props}
     />
   ),
   p: (props: ParagraphProps) => (
     <p
       style={{
-        marginTop: "1.5rem",
-        marginBottom: "1.5rem",
+        marginTop: "1.3rem",
+        marginBottom: "1.3rem",
       }}
       className="text-sm text-muted-foreground"
       {...props}
@@ -47,16 +55,12 @@ const components: MDXComponents = {
     <code
       className="font-medium"
       style={{
-        fontStyle: "normal",
         borderStyle: "solid",
         border: "1px solid rgb(156 163 175 / 0.15)",
         background: "hsl(var(--border))",
-        paddingTop: "2px",
-        paddingBottom: "2px",
-        paddingLeft: "4px",
-        paddingRight: "4px",
+        padding: "1px 3px",
         borderRadius: "calc(var(--radius) - 2px)",
-        textWrap: "nowrap"
+        textWrap: "nowrap",
       }}
       {...props}
     />
