@@ -1,0 +1,279 @@
+import MaxWidthWrapper from "@/components/MaxWidthWrapper"
+import AnimatedTextDemo from "@/components/blogs/AnimatedTextDemo"
+
+export const metadata = {
+  title: 'Recreating Stream Text Animation Hook',
+  alternates: {
+    canonical: '/blogs/recreating-stream-text-animation-hook',
+  },
+};
+
+<MaxWidthWrapper>
+
+[back](/blogs)
+
+# Recreating Stream Text Animation Hook
+
+I recently re-created the popular one-liner hook to add a text reveal animation to streams of incoming strings, which could come from an external LLM source or a backend API response.
+
+## Live Demo
+
+<AnimatedTextDemo />
+
+## The Hook: useAnimatedText
+
+The *useAnimatedText* hook takes a string as input and returns an animated version of that string.
+
+The core idea is straightforward: we slice the incoming text stream from **0** to the current **cursor** (which we’ll increment with framer-motion).
+
+We set the *delimiter* to either *" "* (for word-by-word animation) or *""* (for letter-by-letter animation) to split the text accordingly.
+
+To make this happen, we’ll use *animate()* to drive the animation from the starting value up to the text length, and you can experiment with various *animate()* attributes to customize the effect.
+
+```typescript
+import { animate, useMotionValue } from "framer-motion"
+import { useEffect, useState } from "react"
+
+let delimiter = " " // or "" for letter/letter
+
+function useAnimatedText(text: string) {
+  const [cursor, setCursor] = useState(0)
+
+  useEffect(() => {
+    let controls = animate(0, text.split(delimiter).length, {
+      duration: 5,
+      ease: "easeOut",
+      onUpdate(latest) {
+        setCursor(Math.floor(latest))
+      },
+    })
+
+    return () => controls.stop() // cleanup. similar to clearTimeout()
+  }, [text.length])
+
+  return text.split(delimiter).slice(0, cursor).join(delimiter)
+}
+```
+
+As the *cursor* updates, the text reveal animation progresses in real-time.
+
+To efficiently track the current cursor position, we use framer's motion value. This approach ensures that even if the text stream pauses or the hook re-renders, the motion value will preserve the last cursor position, keeping the animation seamless.
+
+```typescript
+import { animate, useMotionValue } from "framer-motion"
+import { useEffect, useState } from "react"
+
+let delimiter = " " // or "" for letter/letter
+
+function useAnimatedText(text: string) {
+  const animatedCursor = useMotionValue(0)
+  const [cursor, setCursor] = useState(0)
+
+  useEffect(() => {
+    let controls = animate(animatedCursor, text.split(delimiter).length, {
+      duration: 5,
+      ease: "easeOut",
+      onUpdate(latest) {
+        setCursor(Math.floor(latest))
+      },
+    })
+
+    return () => controls.stop()
+  }, [animatedCursor, text.length])
+
+  return text.split(delimiter).slice(0, cursor).join(delimiter)
+}
+```
+
+If the text response is reset, whether from a client-side action or a change in the text stream source, the current motion value should jump to **0** to properly reset the UI for the reveal of the new text stream.
+
+To handle this, we keep track of the previous text and check if the new text is a continuation of the old one. This allows us to detect resets and adjust the cursor position accordingly.
+
+```typescript
+import { animate, useMotionValue } from "framer-motion"
+import { useEffect, useState } from "react"
+
+let delimiter = " "
+
+function useAnimatedText(text: string) {
+  const animatedCursor = useMotionValue(0)
+  const [cursor, setCursor] = useState(0)
+  const [prevText, setPrevText] = useState(text)
+  const [isSameText, setIsSameText] = useState(true)
+
+  if (prevText !== text) {
+    setPrevText(text)
+    setIsSameText(text.startsWith(prevText))
+
+    if (!text.startsWith(prevText)) {
+      setCursor(0)
+    }
+  }
+
+  useEffect(() => {
+    if (!isSameText) {
+      animatedCursor.jump(0)
+    }
+    let controls = animate(animatedCursor, text.split(delimiter).length, {
+      duration: 5,
+      ease: "easeOut",
+      onUpdate(latest) {
+        setCursor(Math.floor(latest))
+      },
+    })
+
+    return () => controls.stop()
+  }, [animatedCursor, isSameText, text.length])
+
+  return text.split(delimiter).slice(0, cursor).join(delimiter)
+}
+```
+
+If the text changes, we update our state accordingly.
+
+## Using the Hook in a Component
+
+To demonstrate how to use this hook, I've created a simple component that compares the regular text display with the animated text display. Here's the component:
+
+```tsx
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { animate, useMotionValue } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const delay = 300;
+const characters = 20;
+
+export default function AnimatedTextDemo() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [text, setText] = useState("hello world");
+  const animatedText = useAnimatedText(text);
+
+  useInterval(
+    () => {
+      let newText = getNextChars(characters);
+      setText((text) => text + newText);
+    },
+    isPlaying ? delay : null
+  );
+
+  return (
+    <div className="w-full max-w-3xl space-y-4">
+      <div className="flex justify-center space-x-2">
+        <Button
+          onClick={() => setIsPlaying(!isPlaying)}
+          variant="outline"
+          size="sm"
+          className="w-20 text-xs"
+        >
+          {isPlaying ? "Pause" : "Play"}
+        </Button>
+        <Button
+          onClick={() => {
+            setText("");
+            setIsPlaying(false);
+            position = 0;
+          }}
+          variant="outline"
+          size="sm"
+          className="w-20 text-xs"
+        >
+          Reset
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <TextDisplay title="Without Hook" content={text} />
+        <TextDisplay title="With useAnimatedText Hook" content={animatedText} />
+      </div>
+    </div>
+  );
+}
+
+function TextDisplay({ title, content }: { title: string; content: string }) {
+  return (
+    <div className="space-y-1 border border-border pt-2 rounded-md">
+      <h2 className="text-xs font-medium text-neutral-400 px-2">{title}</h2>
+      <div className="h-[300px] overflow-auto bg-neutral-900 p-3 rounded-b-md">
+        <p className="whitespace-pre-wrap text-xs leading-relaxed">{content}</p>
+      </div>
+    </div>
+  );
+}
+
+let delimiter = "";
+function useAnimatedText(text: string) {
+  const animatedCursor = useMotionValue(0);
+  const [cursor, setCursor] = useState(0);
+  const [prevText, setPrevText] = useState(text);
+  const [isSameText, setIsSameText] = useState(true);
+
+  if (prevText !== text) {
+    setPrevText(text);
+    setIsSameText(text.startsWith(prevText));
+
+    if (!text.startsWith(prevText)) {
+      setCursor(0);
+    }
+  }
+
+  useEffect(() => {
+    if (!isSameText) {
+      animatedCursor.jump(0);
+    }
+    let controls = animate(animatedCursor, text.split(delimiter).length, {
+      duration: 3,
+      ease: "easeOut",
+      onUpdate(latest) {
+        setCursor(Math.floor(latest));
+      },
+    });
+
+    return () => controls.stop();
+  }, [animatedCursor, isSameText, text.length]);
+
+  return text.split(delimiter).slice(0, cursor).join(delimiter);
+}
+
+// mock interval
+function useInterval(callback: () => void, delay: number | null) {
+  const savedCallback = useRef<() => void>(null);
+
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    if (delay === null) {
+      return;
+    }
+
+    savedCallback.current?.();
+
+    function tick() {
+      savedCallback.current?.();
+    }
+
+    const id = setInterval(tick, delay);
+    return () => clearInterval(id);
+  }, [delay]);
+}
+
+// stream of chunks (string)
+let position = 0;
+function getNextChars(n: number) {
+  const result = greatGatsbyFull.slice(position, position + n);
+  position += n;
+  return result;
+}
+
+const greatGatsbyFull = "...";
+
+```
+
+This component demonstrates the difference between regular text display and the animated text display using our *useAnimatedText* hook.
+
+## Conclusion
+
+A big thanks to [@Sam Selikoff](https://www.youtube.com/watch?v=vgICBsz5Qtc) for his tutorial, which simplified this hook and its core logic!
+</MaxWidthWrapper>

@@ -25,6 +25,32 @@ const page = async (props: Props) => {
 
           <hr className="my-6" />
 
+          <Link href={`/blogs/recreating-stream-text-animation-hook`}>
+            <div className="lowercase border border-gray-400/15 rounded-md p-3 mb-3">
+              <div className="space-y-3">
+                <h1 className="text-sm lowercase">
+                  Recreating Stream Text Animation Hook
+                </h1>
+                <p className="text-xs text-muted-foreground lowercase">
+                  I recently re-created the popular one-liner hook to add a text
+                  reveal animation to streams of incoming strings, which could
+                  come from an external LLM source or a backend API response.
+                </p>
+              </div>
+              <div className="mt-3 text-muted-foreground flex gap-6 items-center">
+                <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
+                  <CalendarIcon width={13} height={13} />
+                  2024-10-31
+                </p>
+
+                <p className="text-[0.70em] rounded-md w-fit flex items-center gap-1.5">
+                  <ClockIcon width={13} height={13} />
+                  10 min read
+                </p>
+              </div>
+            </div>
+          </Link>
+
           <Link href={`/blogs/understanding-trpc-using-nextjs`}>
             <div className="lowercase border border-gray-400/15 rounded-md p-3">
               <div className="space-y-3">

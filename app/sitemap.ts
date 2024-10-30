@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // add more routes
-  const routes = [""].map((route) => ({
+  const routes = ["", "/blogs"].map((route) => ({
     url: `https://sanyam.xyz${route}`,
     lastModified: new Date().toISOString(),
   }));
