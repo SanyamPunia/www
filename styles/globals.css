@@ -132,7 +132,7 @@ pre::-webkit-scrollbar {
 
 @layer utilities {
   .scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   .scrollbar::-webkit-scrollbar-track {
