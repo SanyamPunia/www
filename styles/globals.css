@@ -81,6 +81,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-neutral-950 text-foreground;
   }
@@ -93,14 +94,12 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(
-    to right,
-    #1368a8,
-    #0e68c6,
-    #4462de,
-    #7c53ed,
-    #b52df0
-  );
+  background: linear-gradient(to right,
+      #1368a8,
+      #0e68c6,
+      #4462de,
+      #7c53ed,
+      #b52df0);
   transform-origin: 0%;
 }
 
@@ -109,8 +108,10 @@
 }
 
 pre {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
   padding: 20px;
   border: 1px solid;
   line-height: 1.5;
@@ -127,4 +128,20 @@ pre code {
 
 pre::-webkit-scrollbar {
   display: none;
+}
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: hsl(var(--muted));
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 100vh;
+  }
 }
