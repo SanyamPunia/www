@@ -6,6 +6,7 @@
 - **Deployment**: [Vercel](https://vercel.com)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **Analytics**: [Vercel Analytics](https://vercel.com/analytics)
+- **Blogs**: [MDX (@next/mdx)](https://www.npmjs.com/package/@next/mdx)
 
 ### Local Set-Up
 
