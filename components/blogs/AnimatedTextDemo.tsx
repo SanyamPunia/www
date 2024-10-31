@@ -56,7 +56,7 @@ function TextDisplay({ title, content }: { title: string; content: string }) {
   return (
     <div className="space-y-1 border border-border pt-2 rounded-md">
       <h2 className="text-xs font-medium text-neutral-400 px-2">{title}</h2>
-      <div className="h-[300px] overflow-auto bg-neutral-900 p-3 rounded-b-md">
+      <div className="h-[300px] overflow-auto bg-neutral-900 p-3 rounded-b-md scrollbar">
         <p className="whitespace-pre-wrap text-xs leading-relaxed">{content}</p>
       </div>
     </div>

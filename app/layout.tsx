@@ -61,7 +61,12 @@ export default function RootLayout({
     <ViewTransitions>
       <html lang="en" suppressHydrationWarning>
         <head />
-        <body className={cn("min-h-screen antialiased dark", inter.className)}>
+        <body
+          className={cn(
+            "min-h-screen antialiased dark scrollbar",
+            inter.className
+          )}
+        >
           {children}
           <Analytics />
         </body>
