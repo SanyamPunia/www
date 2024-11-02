@@ -92,7 +92,7 @@ function useAnimatedText(text: string) {
     });
 
     return () => controls.stop();
-  }, [animatedCursor, isSameText, text.length]);
+  }, [animatedCursor, isSameText, text.length, text]);
 
   return text.split(delimiter).slice(0, cursor).join(delimiter);
 }

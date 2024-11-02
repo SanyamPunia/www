@@ -32,7 +32,7 @@ const page = async (props: Props) => {
                   Creating blinking dot effect using tailwind
                 </h1>
                 <p className="text-xs text-muted-foreground lowercase">
-                  Let's create a simple blinking dot indicator can be a great
+                  Let&apos;s create a simple blinking dot indicator can be a great
                   way to show users that a service is live on your website.
                 </p>
               </div>
