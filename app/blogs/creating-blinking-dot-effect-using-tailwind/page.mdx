@@ -1,0 +1,44 @@
+import MaxWidthWrapper from "@/components/MaxWidthWrapper"
+import BlinkingDot from "@/components/blogs/BlinkingDot"
+
+export const metadata = {
+    title: 'Creating Blinking Dot effect using Tailwind',
+    alternates: {
+        canonical: '/blogs/creating-blinking-dot-effect-using-tailwind',
+    },
+};
+
+<MaxWidthWrapper>
+
+[back](/blogs)
+
+# Creating Blinking Dot effect using Tailwind
+
+Let's create a simple blinking dot indicator can be a great way to show users that a service is live on your website.
+
+To start things off, we'll be creating a dot with a green background to signal "live" status. The *inline-block* class ensures it sits inline with text or other elements.
+
+```jsx
+<div className="rounded-full bg-green-400 h-[8px] w-[8px] inline-block mr-2"></div>
+```
+
+To create the blinking or pulsing effect, we'll use *animate-ping*, a Tailwind CSS utility class. This class adds a soft "ping" animation around the dot.
+
+```jsx
+<div className="absolute animate-ping rounded-full bg-green-400 h-[8px] w-[8px] mr-2"></div>
+```
+
+Now, place the dot with a ping effect inside the same container, so the ping appears behind the main dot, creating the desired blinking effect.
+
+```jsx
+<div className="relative inline-flex">
+  <div className="rounded-full bg-green-400 h-[8px] w-[8px] inline-block mr-2"></div>
+  <div className="absolute animate-ping rounded-full bg-green-400 h-[8px] w-[8px] mr-2"></div>
+</div>
+```
+
+Below is a simple example:
+
+<BlinkingDot />
+
+</MaxWidthWrapper>
