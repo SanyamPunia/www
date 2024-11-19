@@ -10,7 +10,6 @@ import Image from "next/image";
 import Work from "@/components/Work";
 import Projects from "@/components/Projects";
 import Music from "@/components/Music";
-import GetInTouch from "@/components/GetInTouch";
 import { Link } from "next-view-transitions";
 
 export default function Home() {
