@@ -58,6 +58,32 @@ const Projects = (props: Props) => {
         </div>
       </a>
 
+      <a href="https://www.npmjs.com/package/unique-forge" target="_blank">
+        <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
+          <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">
+            <div className="text-sm text-neutral-400 font-semibold flex justify-center items-center h-full">
+              <Image
+                src="/projects/uf.png"
+                width={36}
+                height={36}
+                alt="unique-forge"
+                draggable="false"
+                className="select-none"
+              />
+            </div>
+          </div>
+          <div className="w-full pb-4 border-b border-secondary/40">
+            <h1 className="font-medium">unique-forge</h1>
+            <div className="mt-px lowercase text-muted-foreground flex justify-between gap-2 items-center">
+              <p>type-safe nanoid alternative to generate secure IDs</p>
+              <span className="px-2 py-px rounded-lg bg-secondary">
+                package
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+
       <a href="https://github.com/SanyamPunia/profanity-api" target="_blank">
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div className="bg-neutral-100 dark:bg-neutral-800 w-[36px] h-[36px] rounded-full mt-[2px] flex-shrink-0 shadow-shorter overflow-hidden">

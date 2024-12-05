@@ -27,7 +27,7 @@ const Music = (props: Props) => {
         <a
           href="https://soundcloud.com/prodmxle"
           target="_blank"
-          className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
+          className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
           <code>SoundCloud</code>
           <FaSoundcloud className="inline-block" size={17} color="#ff7700" />
@@ -36,7 +36,7 @@ const Music = (props: Props) => {
         <a
           href="https://open.spotify.com/artist/2QbtOIjb8mUIsnCNqvyWAW?nd=1&dlsi=d5f341b22e524b63"
           target="_blank"
-          className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
+          className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
           <code>Spotify</code>
           <FaSpotify className="inline-block" size={17} color="#1DB954" />
@@ -45,7 +45,7 @@ const Music = (props: Props) => {
         <a
           href="https://www.youtube.com/@prodmxle"
           target="_blank"
-          className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
+          className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-2 transition-all hover:text-primary"
         >
           <code>YouTube</code>
           <FaYoutube className="inline-block" size={17} color="#FF0000" />

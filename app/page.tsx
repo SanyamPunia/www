@@ -40,7 +40,7 @@ export default function Home() {
             <a
               href="https://zenduty.com"
               target="_blank"
-              className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
+              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
             >
               <code>Zenduty</code>
               <Image
@@ -57,7 +57,7 @@ export default function Home() {
             <a
               href="https://flib.store"
               target="_blank"
-              className="border border-gray-400/15 rounded-md bg-border py-[2px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
+              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
             >
               <code>Flib</code>
               <Image
