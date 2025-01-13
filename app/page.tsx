@@ -11,6 +11,7 @@ import Work from "@/components/Work";
 import Projects from "@/components/Projects";
 import Music from "@/components/Music";
 import { Link } from "next-view-transitions";
+import XLogoIcon from "@/components/icons/X";
 
 export default function Home() {
   return (
@@ -116,6 +117,26 @@ export default function Home() {
             />
           </a>
           <a
+            href="https://www.x.com/@prodmxle"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <XLogoIcon
+              className="transition-all rounded-lg hover:bg-secondary p-2 fill-white"
+              size={31}
+            />
+          </a>
+          <a
+            href="https://medium.com/@sanyamm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <LuBookOpenCheck
+              className="transition-all rounded-lg hover:bg-secondary p-2 fil-white"
+              size={33}
+            />
+          </a>
+          <a
             href="mailto:lewarends@gmail.com"
             target="_blank"
             rel="noopener noreferrer"
@@ -125,16 +146,7 @@ export default function Home() {
               size={33}
             />
           </a>
-          <a
-            href="https://medium.com/@sanyamm"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <LuBookOpenCheck
-              className="transition-all rounded-lg hover:bg-secondary p-2"
-              size={33}
-            />
-          </a>
+
           <a
             href="/files/sanyam_cv.pdf"
             target="_blank"
