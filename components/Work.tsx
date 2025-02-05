@@ -7,6 +7,29 @@ const Work = (props: Props) => {
   return (
     <div className="mt-16 sm:-mx-2 text-xs">
       <h1 className="text-xs text-muted-foreground mb-3">/work</h1>
+
+      <a href="https://bitscale.ai/" target="_blank">
+        <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
+          <div>
+            <Image
+              src="/org/bitscale.png"
+              height={37}
+              width={37}
+              className="rounded-full select-none"
+              alt="bitscale-logo"
+              draggable="false"
+            />
+          </div>
+          <div className="w-full pb-4 border-b border-secondary/40">
+            <h1 className="font-medium">Bitscale</h1>
+            <div className="lowercase text-muted-foreground flex justify-between items-center">
+              <p>Frontend Engineer</p>
+              <p>feb'25 - Now</p>
+            </div>
+          </div>
+        </div>
+      </a>
+
       <a href="https://flib.store" target="_blank">
         <div className="flex gap-4 transition-all hover:bg-secondary/40 rounded-xl px-4 -mx-4 pt-3">
           <div>
