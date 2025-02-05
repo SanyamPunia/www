@@ -37,24 +37,24 @@ export default function Home() {
           </p>
 
           <p className="text-muted-foreground text-sm lowercase">
-            This summer, I interned at{" "}
+            This year, I joined{" "}
             <a
-              href="https://zenduty.com"
+              href="https://bitscale.ai"
               target="_blank"
               className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
             >
-              <code>Zenduty</code>
+              <code>Bitscale</code>
               <Image
-                src="/org/zenduty.png"
+                src="/org/bitscale.png"
                 className="rounded-full inline-block select-none"
                 height={17}
                 width={17}
-                alt="zenduty-logo"
+                alt="bitscale-logo"
                 draggable="false"
               />
             </a>{" "}
-            as a front-end engineer, where I developed user interfaces. I&apos;m
-            also leading development at my startup,{" "}
+            where I&apos;m developing and leading the frontend. I&apos;m also
+            leading development at my startup,{" "}
             <a
               href="https://flib.store"
               target="_blank"
