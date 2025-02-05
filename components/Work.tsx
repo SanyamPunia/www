@@ -24,7 +24,7 @@ const Work = (props: Props) => {
             <h1 className="font-medium">Bitscale</h1>
             <div className="lowercase text-muted-foreground flex justify-between items-center">
               <p>Frontend Engineer</p>
-              <p>feb'25 - Now</p>
+              <p>feb&apos;25 - Now</p>
             </div>
           </div>
         </div>
