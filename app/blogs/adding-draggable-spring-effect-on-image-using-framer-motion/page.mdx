@@ -1,0 +1,179 @@
+import MaxWidthWrapper from "@/components/MaxWidthWrapper"
+import SpringImage from "@/components/blogs/SpringImage"
+
+export const metadata = {
+    title: 'Adding draggable-spring effect on image using framer motion',
+    alternates: {
+        canonical: '/blogs/adding-draggable-spring-effect-on-image-using-framer-motion',
+    },
+};
+
+<MaxWidthWrapper>
+
+[back](/blogs)
+
+# Adding draggable-spring effect on image using framer motion
+
+Start with a simple component structure: an image (in this case, a profile pic) wrapped in a *motion.div* for animation, alongside some text. 
+
+The goal is to make the image draggable with a smooth, springy return to its original position when released.
+
+## Live Demo (try dragging the image)
+
+<SpringImage />
+
+Set up the state to track the draggging and animation. Also define the motion values for image's position and apply the spring physics:
+
+```jsx
+const [isDragging, setIsDragging] = useState(false);
+const [isAnimatingBack, setIsAnimatingBack] = useState(false);
+
+const x = useMotionValue(0);
+const y = useMotionValue(0);
+const springConfig = { damping: 20, stiffness: 300 };
+const springX = useSpring(x, springConfig);
+const springY = useSpring(y, springConfig);
+const profileControls = useAnimationControls();
+```
+
+* *x* & *y* are the base motion values for the animation.
+* *springConfig* defines the damping for bounce and stiffness for speed.
+* *springX* and *springY* wraps the base motion values with spring physics for smooth transitions
+* *profileControls* allows programmatic control over animations (completely optional)
+
+## Building the UI
+
+While the image is being dragged, you probably want some placeholder to be in that position, in-place of image. For this, we have this below section
+
+```jsx
+{(isDragging || isAnimatingBack) && (
+    <motion.div
+        initial={{ opacity: 0.5 }}
+        animate={{ opacity: 1 }}
+        className="w-[36px] h-[36px] rounded-full border-2 border-dashed border-zinc-800 -ml-1 mr-1"
+    />
+)}
+```
+
+Now, add the draggable image:
+
+```jsx
+<motion.div
+     style={{
+        x: springX,
+        y: springY,
+        position: isDragging || isAnimatingBack ? "absolute" : "relative",
+        zIndex: isDragging ? 50 : 1,
+    }}
+    drag
+    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+    onDragStart={() => setIsDragging(true)}
+    onDragEnd={() => {
+        setIsDragging(false);
+        setIsAnimatingBack(true);
+        x.set(0);
+        y.set(0);
+        setTimeout(() => setIsAnimatingBack(false), 1000);
+    }}
+    whileDrag={{ scale: 1.1 }}
+    animate={profileControls}
+    transition={{
+        type: "spring",
+        damping: 25,
+        stiffness: 300,
+        mass: 0.8,
+    }}
+>
+    <Image
+        src="/blogs/sanyam.png"
+        alt="logo"
+        width={40}
+        height={40}
+        className="rounded-full select-none -ml-1 cursor-grab active:cursor-grabbing border-2"
+        draggable="false"
+    />
+</motion.div>
+```
+
+Bind *springX* and *springY* to the respective axis (x, y), while switching the position to absolute on dragging the image.
+
+We've used a *setTimeout* to track how long the placeholder remains visible. The placeholder is shown only when the drag/animate state is active and hidden once the spring animation finishes. A 1000ms delay is set as a safe duration to remove the placeholder after the images complete their bounce-back motion following the drag release.
+
+## Completing the UI:
+
+```jsx
+<section className="bg-zinc-900 border border-zinc-800 rounded-md p-4 relative">
+    <div className="flex items-center gap-2 mb-6">
+        {(isDragging || isAnimatingBack) && (
+            <motion.div
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity: 1 }}
+                className="w-[36px] h-[36px] rounded-full border-2 border-dashed border-zinc-800 -ml-1 mr-1"
+            />
+        )}
+        <motion.div
+            style={{
+                x: springX,
+                y: springY,
+                position: isDragging || isAnimatingBack ? "absolute" : "relative",
+                zIndex: isDragging ? 50 : 1,
+            }}
+            drag
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => {
+                setIsDragging(false);
+                setIsAnimatingBack(true);
+
+                x.set(0);
+                y.set(0);
+
+                setTimeout(() => {
+                    setIsAnimatingBack(false);
+                }, 1000);
+            }}
+            whileDrag={{
+                scale: 1.1,
+            }}
+            animate={profileControls}
+            transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 300,
+                mass: 0.8,
+            }}
+        >
+            <Image
+                src="/blogs/sanyam.png"
+                alt="logo"
+                width={40}
+                height={40}
+                className="rounded-full select-none -ml-1 cursor-grab active:cursor-grabbing border-2"
+                draggable="false"
+            />
+        </motion.div>
+
+        <div>
+            <h1 className="text-sm font-medium flex items-center gap-1">
+                <span>Sanyam</span>
+                <VerifiedIcon className="size-4 text-white [&>path:first-child]:fill-blue-500" />
+            </h1>
+            <p className="text-xs">Frontend Engineer</p>
+        </div>
+    </div>
+
+    <div className="space-y-3">
+        <p className="text-sm mx-auto leading-relaxed text-zinc-200">
+          Design-driven developer focused on making React products{" "}
+          <span className="text-zinc-400">
+            and empowering users through web applications.
+          </span>
+        </p>
+    </div>
+</section>
+```
+
+## Conclusion
+
+Try changing the spring's configuration you can get a better understanding of how the internal physics work with framer motion.
+</MaxWidthWrapper>

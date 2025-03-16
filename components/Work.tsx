@@ -23,7 +23,7 @@ const Work = (props: Props) => {
           <div className="w-full pb-4 border-b border-secondary/40">
             <h1 className="font-medium">Bitscale</h1>
             <div className="lowercase text-muted-foreground flex justify-between items-center">
-              <p>Frontend Engineer</p>
+              <p>Founding Engineer</p>
               <p>feb&apos;25 - Now</p>
             </div>
           </div>
