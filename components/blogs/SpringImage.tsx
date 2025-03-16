@@ -28,9 +28,12 @@ const SpringImage = (props: Props) => {
       <div className="flex items-center gap-2 mb-6">
         {(isDragging || isAnimatingBack) && (
           <motion.div
-            initial={{ opacity: 0.5 }}
-            animate={{ opacity: 1 }}
-            className="w-[36px] h-[36px] rounded-full border-2 border-dashed border-zinc-800 -ml-1 mr-1"
+            {...({
+              initial: { opacity: 0.5 },
+              animate: { opacity: 1 },
+              className:
+                "w-[36px] h-[36px] rounded-full border-2 border-dashed border-zinc-800 -ml-1 mr-1",
+            } as any)}
           />
         )}
         <motion.div
