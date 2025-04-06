@@ -41,12 +41,12 @@ export default function Home() {
             <a
               href="https://bitscale.ai"
               target="_blank"
-              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
+              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-1 inline-block space-x-1 transition-all hover:text-primary"
             >
               <code>Bitscale</code>
               <Image
                 src="/org/bitscale.png"
-                className="rounded-full inline-block select-none"
+                className="rounded-full inline-block select-none mb-0.5"
                 height={17}
                 width={17}
                 alt="bitscale-logo"
@@ -58,12 +58,12 @@ export default function Home() {
             <a
               href="https://flib.store"
               target="_blank"
-              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-[4px] inline-block space-x-1 transition-all hover:text-primary"
+              className="border border-gray-400/15 rounded-md bg-border py-[1px] px-1 inline-block space-x-1 transition-all hover:text-primary"
             >
               <code>Flib</code>
               <Image
                 src="/org/flib.png"
-                className="rounded-md inline-block select-none"
+                className="rounded-md inline-block select-none mb-0.5"
                 height={17}
                 width={17}
                 alt="flib-logo"
