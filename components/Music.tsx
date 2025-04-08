@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { JSX, useRef } from "react";
+import { useAnimationInView } from "@/hooks/use-animation";
 import { FaSoundcloud, FaSpotify, FaYoutube } from "react-icons/fa";
-import React from "react";
+import React, { JSX } from "react";
 
 type MusicPlatform = {
   name: string;
@@ -17,47 +16,32 @@ const musicPlatforms: MusicPlatform[] = [
   {
     name: "SoundCloud",
     url: "https://soundcloud.com/prodmxle",
-    icon: <FaSoundcloud className="inline-block" size={17} color="#ff7700" />,
+    icon: (
+      <FaSoundcloud className="inline-block mb-0.5" size={17} color="#ff7700" />
+    ),
     color: "#ff7700",
   },
   {
     name: "Spotify",
     url: "https://open.spotify.com/artist/2QbtOIjb8mUIsnCNqvyWAW?nd=1&dlsi=d5f341b22e524b63",
-    icon: <FaSpotify className="inline-block" size={17} color="#1DB954" />,
+    icon: (
+      <FaSpotify className="inline-block mb-0.5" size={17} color="#1DB954" />
+    ),
     color: "#1DB954",
   },
   {
     name: "YouTube",
     url: "https://www.youtube.com/@prodmxle",
-    icon: <FaYoutube className="inline-block" size={17} color="#FF0000" />,
+    icon: (
+      <FaYoutube className="inline-block mb-0.5" size={17} color="#FF0000" />
+    ),
     color: "#FF0000",
   },
 ];
 
 const Music = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15, filter: "blur(5px)" },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
+  const { ref, isInView, containerVariants, itemVariants } =
+    useAnimationInView(0.2);
 
   return (
     <motion.div

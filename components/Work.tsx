@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useAnimationInView } from "@/hooks/use-animation";
 
 type WorkExperience = {
   company: string;
@@ -53,29 +52,8 @@ const workExperiences: WorkExperience[] = [
 ];
 
 const Work = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20, filter: "blur(5px)" },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
+  const { ref, isInView, containerVariants, itemVariants } =
+    useAnimationInView(0.2);
 
   return (
     <motion.div
