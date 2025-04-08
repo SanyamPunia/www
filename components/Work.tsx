@@ -51,7 +51,7 @@ const workExperiences: WorkExperience[] = [
   },
 ];
 
-const Work = () => {
+export const Work = () => {
   const { ref, isInView, containerVariants, itemVariants } =
     useAnimationInView(0.2);
 
@@ -84,9 +84,8 @@ const Work = () => {
                 src={experience.logo || "/placeholder.svg"}
                 height={37}
                 width={37}
-                className={`${
-                  experience.logoRounded !== false ? "rounded-full" : ""
-                } select-none`}
+                className={`${experience.logoRounded !== false ? "rounded-full" : ""
+                  } select-none`}
                 alt={`${experience.company.toLowerCase()}-logo`}
                 draggable="false"
               />
@@ -104,5 +103,3 @@ const Work = () => {
     </motion.div>
   );
 };
-
-export default Work;

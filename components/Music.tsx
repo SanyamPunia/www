@@ -39,7 +39,7 @@ const musicPlatforms: MusicPlatform[] = [
   },
 ];
 
-const Music = () => {
+export const Music = () => {
   const { ref, isInView, containerVariants, itemVariants } =
     useAnimationInView(0.2);
 
@@ -98,5 +98,3 @@ const Music = () => {
     </motion.div>
   );
 };
-
-export default Music;

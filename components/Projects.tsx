@@ -71,7 +71,7 @@ const projects: Project[] = [
   },
 ];
 
-const Projects = () => {
+export const Projects = () => {
   const { ref, isInView, containerVariants, itemVariants } =
     useAnimationInView(0.1);
 
@@ -126,5 +126,3 @@ const Projects = () => {
     </motion.div>
   );
 };
-
-export default Projects;
