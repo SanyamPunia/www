@@ -1,10 +1,10 @@
 "use client";
 
-import XLogoIcon from "@/components/icons/x";
-import MaxWidthWrapper from "@/components/max-width-wrapper";
-import Music from "@/components/music";
-import Projects from "@/components/projects";
-import Work from "@/components/work";
+import XLogoIcon from "../components/icons/x";
+import MaxWidthWrapper from "../components/max-width-wrapper";
+import Music from "../components/music";
+import Projects from "../components/projects";
+import Work from "../components/work";
 import { motion } from "framer-motion";
 import { Link } from "next-view-transitions";
 import Image from "next/image";
