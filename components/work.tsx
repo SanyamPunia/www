@@ -52,7 +52,7 @@ const workExperiences: WorkExperience[] = [
 ];
 
 export const Work = () => {
-  const { ref, isInView, containerVariants, itemVariants } =
+  const { ref, isInView, itemVariants } =
     useAnimationInView(0.2);
 
   return (
@@ -61,7 +61,7 @@ export const Work = () => {
       ref={ref}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      variants={containerVariants}
+      variants={itemVariants}
     >
       <motion.h1
         className="text-xs text-muted-foreground mb-3"

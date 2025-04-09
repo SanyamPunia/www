@@ -72,7 +72,7 @@ const projects: Project[] = [
 ];
 
 export const Projects = () => {
-  const { ref, isInView, containerVariants, itemVariants } =
+  const { ref, isInView, itemVariants } =
     useAnimationInView(0.1);
 
   return (
@@ -81,7 +81,7 @@ export const Projects = () => {
       ref={ref}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      variants={containerVariants}
+      variants={itemVariants}
     >
       <motion.h1
         className="text-xs text-muted-foreground mb-3"

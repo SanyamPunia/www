@@ -40,7 +40,7 @@ const musicPlatforms: MusicPlatform[] = [
 ];
 
 export const Music = () => {
-  const { ref, isInView, containerVariants, itemVariants } =
+  const { ref, isInView, itemVariants } =
     useAnimationInView(0.2);
 
   return (
@@ -49,7 +49,7 @@ export const Music = () => {
       ref={ref}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      variants={containerVariants}
+      variants={itemVariants}
     >
       <motion.h1
         className="text-xs text-muted-foreground mb-3"
@@ -65,7 +65,7 @@ export const Music = () => {
         In 2020, I released my music online, reaching over{" "}
         <span className="text-white font-semibold">150,000</span> plays across
         platforms, including{" "}
-        <span className="text-white font-semibold">75,000+</span> on SoundCloud
+        <span className="text-white font-semibold">100,000+</span> on SoundCloud
         in 1.5 years.
       </motion.p>
 
@@ -86,11 +86,11 @@ export const Music = () => {
               {platform.icon}
             </a>
             {index < musicPlatforms.length - 1 &&
-            index === musicPlatforms.length - 2
+              index === musicPlatforms.length - 2
               ? ", and "
               : index < musicPlatforms.length - 1
-              ? ", "
-              : ""}
+                ? ", "
+                : ""}
           </React.Fragment>
         ))}
         . Feel free to check them out.
