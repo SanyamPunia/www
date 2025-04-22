@@ -35,6 +35,13 @@ const projects: Project[] = [
     url: "https://www.npmjs.com/package/unique-forge",
   },
   {
+    name: "clyp",
+    logo: "/projects/clyp.png",
+    description: "create better screenshots",
+    category: "web",
+    url: "https://clyp-omega.vercel.app/",
+  },
+  {
     name: "on-snip.org",
     logo: "/projects/onsnip.png",
     description: "Real-time Collaborative Messaging Rooms",
@@ -44,14 +51,14 @@ const projects: Project[] = [
   {
     name: "flib.store",
     logo: "/projects/flib.png",
-    description: "Built Flib's app with Next.js, TypeScript, Zustand.",
+    description: "Built Flib's app with Next.js, TypeScript, Zustand",
     category: "web",
     url: "https://flib.store",
   },
   {
     name: "better-gist",
     logo: "/projects/bg.png",
-    description: "generate `shareable` code snippets.",
+    description: "generate `shareable` code snippets",
     category: "web",
     url: "https://better-gist.vercel.app/",
   },
@@ -62,18 +69,10 @@ const projects: Project[] = [
     category: "web",
     url: "https://stick-it-olive.vercel.app/",
   },
-  {
-    name: "Skill Up NCU",
-    logo: "/projects/skillup.png",
-    description: "Quick Q&A for university students.",
-    category: "web",
-    url: "https://skillup-ncu.vercel.app",
-  },
 ];
 
 export const Projects = () => {
-  const { ref, isInView, itemVariants } =
-    useAnimationInView(0.1);
+  const { ref, isInView, itemVariants } = useAnimationInView(0);
 
   return (
     <motion.div

@@ -53,7 +53,7 @@ const workExperiences: WorkExperience[] = [
 
 export const Work = () => {
   const { ref, isInView, itemVariants } =
-    useAnimationInView(0.2);
+    useAnimationInView(0);
 
   return (
     <motion.div
