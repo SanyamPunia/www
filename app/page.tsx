@@ -16,6 +16,7 @@ import {
 } from "react-icons/lu";
 import { Projects } from "@/components/projects";
 import { Music } from "@/components/music";
+import MediumIcon from "@/components/icons/medium";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -203,8 +204,8 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <LuBookOpenCheck
-              className="transition-all rounded-lg hover:bg-secondary p-2 fil-white"
+            <MediumIcon
+              className="transition-all rounded-lg hover:bg-secondary p-2 fill-white"
               size={33}
             />
           </a>
