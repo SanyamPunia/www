@@ -1,22 +1,16 @@
 "use client";
 
+import MediumIcon from "@/components/icons/medium";
+import { Music } from "@/components/music";
+import { Projects } from "@/components/projects";
 import { Work } from "@/components/work";
-import XLogoIcon from "../components/icons/x";
-import MaxWidthWrapper from "../components/max-width-wrapper";
 import { motion } from "framer-motion";
 import { Link } from "next-view-transitions";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import {
-  LuBookOpenCheck,
-  LuFile,
-  LuGithub,
-  LuLinkedin,
-  LuMail,
-} from "react-icons/lu";
-import { Projects } from "@/components/projects";
-import { Music } from "@/components/music";
-import MediumIcon from "@/components/icons/medium";
+import { LuFile, LuGithub, LuLinkedin, LuMail } from "react-icons/lu";
+import XLogoIcon from "../components/icons/x";
+import MaxWidthWrapper from "../components/max-width-wrapper";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -190,7 +184,7 @@ export default function Home() {
             />
           </a>
           <a
-            href="https://www.x.com/@prodmxle"
+            href="https://www.x.com/sanyampunia"
             target="_blank"
             rel="noopener noreferrer"
           >
