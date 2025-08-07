@@ -1,14 +1,12 @@
-import React, { ComponentPropsWithoutRef } from "react";
-import { Link } from "next-view-transitions";
-import type { MDXComponents } from "mdx/types";
-import { highlight } from "sugar-high";
-import Image, { ImageProps } from "next/image";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import type { MDXComponents } from "mdx/types";
+import { Link } from "next-view-transitions";
+import Image, { ImageProps } from "next/image";
+import { ComponentPropsWithoutRef } from "react";
+import { highlight } from "sugar-high";
 
 type HeadingProps = ComponentPropsWithoutRef<"h1">;
 type ParagraphProps = ComponentPropsWithoutRef<"p">;
-type ListProps = ComponentPropsWithoutRef<"ul">;
-type ListItemProps = ComponentPropsWithoutRef<"li">;
 type AnchorProps = ComponentPropsWithoutRef<"a">;
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">;
 
