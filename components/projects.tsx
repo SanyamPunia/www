@@ -21,18 +21,18 @@ const projects: Project[] = [
     url: "https://github.com/SanyamPunia/profanity-api",
   },
   {
-    name: "next-comp-cli",
-    logo: "/projects/gnc.png",
-    description: "generate next.js components (typescript) using cli",
-    category: "package",
-    url: "https://www.npmjs.com/package/next-comp-cli",
-  },
-  {
     name: "unique-forge",
     logo: "/projects/uf.png",
     description: "type-safe nanoid alternative to generate secure IDs",
     category: "package",
     url: "https://www.npmjs.com/package/unique-forge",
+  },
+  {
+    name: "pageo.me",
+    logo: "/projects/pageo.png",
+    description: "simplest way to share all your links",
+    category: "web",
+    url: "https://pageo.me",
   },
   {
     name: "clyp",

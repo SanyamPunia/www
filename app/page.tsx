@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { LuFile, LuGithub, LuLinkedin, LuMail } from "react-icons/lu";
 import XLogoIcon from "../components/icons/x";
 import MaxWidthWrapper from "../components/max-width-wrapper";
+import PageoIcon from "@/components/icons/pageo";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -163,6 +164,13 @@ export default function Home() {
           className="mt-6 flex items-center -ml-2 gap-0.5"
           variants={itemVariants}
         >
+          <a href="https://pageo.me" target="_blank" rel="noopener noreferrer">
+            <PageoIcon
+              className="transition-all rounded-lg hover:bg-secondary p-2"
+              size={33}
+            />
+          </a>
+
           <a
             href="https://github.com/SanyamPunia"
             target="_blank"
