@@ -164,7 +164,11 @@ export default function Home() {
           className="mt-6 flex items-center -ml-2 gap-0.5"
           variants={itemVariants}
         >
-          <a href="https://pageo.me" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://pageo.me/sanyam"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <PageoIcon
               className="transition-all rounded-lg hover:bg-secondary p-2"
               size={33}
