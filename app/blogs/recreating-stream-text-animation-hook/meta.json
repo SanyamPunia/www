@@ -1,0 +1,6 @@
+{
+  "title": "Recreating Stream Text Animation Hook",
+  "description": "re-creating the popular one-liner hook to add text reveal animation to streams of incoming strings from external LLM sources or backend API responses.",
+  "date": "Dec 15, 2024",
+  "readTime": "5 min read"
+}

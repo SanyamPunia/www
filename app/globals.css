@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --primary-bg: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a1;
+  --text-muted: #6b7280;
+
+  /* sugar-high token colors */
+  --sh-class: #ffffff;
+  --sh-identifier: #ffffff;
+  --sh-sign: #8996a3;
+  --sh-string: #a7a7a7;
+  --sh-keyword: #a7a7a7;
+  --sh-comment: #a19595;
+  --sh-jsxliterals: #ffffff;
+  --sh-property: #a7a7a7;
+  --sh-entity: #a7a7a7;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-primary-bg: var(--primary-bg);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+pre {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding: 13px;
+  border: 1px solid;
+  line-height: 1.5;
+  border-color: #252525;
+  border-radius: 0.3rem;
+  background-color: #0c0c0c;
+  overflow-x: auto;
+  margin-bottom: 10px;
+}
+
+pre code {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+pre::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background-color: rgb(32, 115, 61);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background-color: rgba(32, 115, 61);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121212;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #282828;
+  border-radius: 9999px;
+}
+
+pre code .sh__class {
+  color: var(--sh-class);
+}
+pre code .sh__identifier {
+  color: var(--sh-identifier);
+}
+pre code .sh__sign {
+  color: var(--sh-sign);
+}
+pre code .sh__string {
+  color: var(--sh-string);
+}
+pre code .sh__keyword {
+  color: var(--sh-keyword);
+}
+pre code .sh__comment {
+  color: var(--sh-comment);
+  font-style: italic;
+}
+pre code .sh__jsxliterals {
+  color: var(--sh-jsxliterals);
+}
+pre code .sh__property {
+  color: var(--sh-property);
+}
+pre code .sh__entity {
+  color: var(--sh-entity);
+}
+pre code .sh__number {
+  color: var(--sh-number, var(--sh-entity));
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
 }
