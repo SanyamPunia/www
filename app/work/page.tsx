@@ -15,7 +15,7 @@ const page = () => {
         showTerminalHeader={true}
         animated={true}
       >
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}

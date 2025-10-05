@@ -13,7 +13,7 @@ export default function LabNotFound() {
         animated={true}
         showTerminalHeader={true}
       >
-        <div className="flex flex-col gap-6 py-32 px-8">
+        <div className="flex flex-col gap-6 py-32 sm:px-8 px-0">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}

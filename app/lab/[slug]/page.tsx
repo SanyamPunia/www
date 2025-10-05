@@ -52,7 +52,7 @@ const page = ({ params }: LabPageProps) => {
         animated={true}
         showTerminalHeader={true}
       >
-        <div className="flex flex-col gap-6 py-20 px-8">
+        <div className="flex flex-col gap-6 py-20 sm:px-8 px-0">
           <motion.div
             initial="hidden"
             animate="show"
