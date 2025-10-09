@@ -11,7 +11,7 @@ export default function LabNotFound() {
         size="screen-md"
         className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden"
         animated={true}
-        showTerminalHeader={true}
+        // showTerminalHeader={true}
       >
         <div className="flex flex-col gap-6 py-32 sm:px-8 px-0">
           <motion.div

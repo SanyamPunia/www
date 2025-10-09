@@ -19,7 +19,7 @@ import Tooltip from "@/components/ui/tooltip";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null,
+    null
   );
 
   const clearTooltipTimeout = () => {
@@ -58,12 +58,23 @@ const page = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+        className="fixed -left-96 -bottom-96 w-[48rem] h-[48rem] rounded-full pointer-events-none -z-10"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, rgba(20, 184, 166, 0.08) 35%, transparent 65%)",
+          filter: "blur(80px)",
+        }}
+      />
       <MaxWidthWrapper
         size="screen-md"
         className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden"
         animated={true}
-        showTerminalHeader={true}
+        // showTerminalHeader={true}
       >
         <div className="flex flex-col gap-6 sm:py-28 py-12 px-0 sm:px-8">
           <motion.div

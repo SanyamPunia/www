@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
+  --background: #040404;
   --primary-bg: #0d0d0d;
   --text-primary: #ffffff;
   --text-secondary: #a1a1a1;
@@ -129,4 +129,8 @@ pre code .sh__number {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
 }

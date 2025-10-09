@@ -13,7 +13,7 @@ const page = () => {
         size="screen-md"
         className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden max-h-[90vh] flex flex-col"
         animated={true}
-        showTerminalHeader={true}
+        // showTerminalHeader={true}
       >
         <div className="flex flex-col gap-6 sm:py-16 py-12 sm:px-8 px-0 overflow-y-auto flex-1">
           <motion.div

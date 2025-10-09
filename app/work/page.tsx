@@ -12,7 +12,7 @@ const page = () => {
       <MaxWidthWrapper
         size="screen-md"
         className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden max-h-[90vh] flex flex-col"
-        showTerminalHeader={true}
+        // showTerminalHeader={true}
         animated={true}
       >
         <div className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">

@@ -15,19 +15,19 @@ type LabComponent = React.ComponentType<Record<string, never>>;
 const dynamicComponents: Record<string, LabComponent> = {
   "cursor-origin-button": dynamic(
     () => import("@/components/labs/cursor-origin-button/index"),
-    { ssr: false },
+    { ssr: false }
   ),
   "phrase-transition": dynamic(
     () => import("@/components/labs/phrase-transition/index"),
-    { ssr: false },
+    { ssr: false }
   ),
   "split-to-edit": dynamic(
     () => import("@/components/labs/split-to-edit/index"),
-    { ssr: false },
+    { ssr: false }
   ),
   "spring-image": dynamic(
     () => import("@/components/labs/spring-image/index"),
-    { ssr: false },
+    { ssr: false }
   ),
 };
 
@@ -50,7 +50,7 @@ const page = ({ params }: LabPageProps) => {
         size="screen-md"
         className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden"
         animated={true}
-        showTerminalHeader={true}
+        // showTerminalHeader={true}
       >
         <div className="flex flex-col gap-6 sm:py-20 py-12 sm:px-8 px-0">
           <motion.div
