@@ -29,6 +29,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/spring-image/index"),
     { ssr: false }
   ),
+  "discount-code-input": dynamic(
+    () => import("@/components/labs/discount-code-input/index"),
+    { ssr: false }
+  ),
 };
 
 interface LabPageProps {

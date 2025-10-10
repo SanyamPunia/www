@@ -54,6 +54,18 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "aug 11, 2025",
     source: "https://x.com/sanyampunia/status/1954901980180254787",
   },
+  {
+    slug: "discount-code-input",
+    title: "Discount Code Input",
+    description: [
+      "stripe-inspired button-to-input morph built with framer motion. implements a single state machine driving four distinct UI states: idle, editing, loading, and applied.",
+      "key insight: measuring DOM nodes with `offsetWidth` in `useLayoutEffect` before paint, then animating between measured values. this prevents text scaling artifacts during width transitions.",
+      "progressive width morphs using cubic-bezier easing `[0.2, 0, 0.38, 0.9]`. each state transition maintains pixel-perfect layout by pre-calculating target widths rather than relying on content reflow.",
+    ],
+    image: "/lab/discount-code-input.png",
+    createdAt: "oct 10, 2025",
+    source: "https://x.com/sanyampunia/status/1976531889226695106",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
