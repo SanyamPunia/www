@@ -15,23 +15,23 @@ type LabComponent = React.ComponentType<Record<string, never>>;
 const dynamicComponents: Record<string, LabComponent> = {
   "cursor-origin-button": dynamic(
     () => import("@/components/labs/cursor-origin-button/index"),
-    { ssr: false }
+    { ssr: false },
   ),
   "phrase-transition": dynamic(
     () => import("@/components/labs/phrase-transition/index"),
-    { ssr: false }
+    { ssr: false },
   ),
   "split-to-edit": dynamic(
     () => import("@/components/labs/split-to-edit/index"),
-    { ssr: false }
+    { ssr: false },
   ),
   "spring-image": dynamic(
     () => import("@/components/labs/spring-image/index"),
-    { ssr: false }
+    { ssr: false },
   ),
   "discount-code-input": dynamic(
     () => import("@/components/labs/discount-code-input/index"),
-    { ssr: false }
+    { ssr: false },
   ),
 };
 

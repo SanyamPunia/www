@@ -13,13 +13,14 @@ import MediumIcon from "@/components/icons/medium";
 import PageoIcon from "@/components/icons/pageo";
 import { XformerlyTwitter } from "@/components/icons/x";
 import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
+import NowPlaying from "@/components/ui/now-playing";
 import Signature from "@/components/ui/signature";
 import Tooltip from "@/components/ui/tooltip";
 
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
 
   const clearTooltipTimeout = () => {
@@ -217,7 +218,7 @@ const page = () => {
               </motion.p>
 
               <motion.p
-                className="text-sm text-text-secondary lowercase leading-5"
+                className="text-sm text-text-secondary lowercase leading-5 mb-6"
                 variants={{
                   hidden: { opacity: 0, y: 4, filter: "blur(6px)" },
                   show: {
@@ -241,6 +242,8 @@ const page = () => {
                 . feel free to reach out if you want to talk about startups,
                 have a cool idea, or anything in general.
               </motion.p>
+
+              <NowPlaying />
 
               <motion.div
                 className="mt-6 flex items-center -ml-1 gap-1"
