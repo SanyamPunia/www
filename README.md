@@ -9,7 +9,6 @@
 - **analytics**: [onedollarstats by drizzle](https://onedollarstats.com/)
 - **blogs**: [(@next/mdx)](https://www.npmjs.com/package/@next/mdx)
 - **env validation**: [`envt`](npmjs.com/package/envt)
--
 
 ### local set-up
 
