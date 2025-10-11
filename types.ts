@@ -3,8 +3,5 @@ export type NowPlaying = {
   title?: string;
   artist?: string;
   album?: string;
-  albumImageUrl?: string;
   songUrl?: string;
-  progressMs?: number;
-  durationMs?: number;
 };

@@ -2,15 +2,16 @@
 
 ### 👋 www
 
-- **Framework**: [Next.js](https://nextjs.org/)
-- **Deployment**: [Vercel](https://vercel.com)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com)
-- **Animation**: [Framer Motion]("https://motion.dev/")
-- **Analytics**: [Vercel Analytics](https://vercel.com/analytics)
-- **Blogs**: [MDX (@next/mdx)](https://www.npmjs.com/package/@next/mdx)
-- **ENV Validation**: [`envt`](npmjs.com/package/envt)
+- **framework**: [next.js](https://nextjs.org/)
+- **deployment**: [vercel](https://vercel.com)
+- **styling**: [tailwind css](https://tailwindcss.com)
+- **animation**: [framer motion](https://motion.dev/)
+- **analytics**: [onedollarstats by drizzle](https://onedollarstats.com/)
+- **blogs**: [(@next/mdx)](https://www.npmjs.com/package/@next/mdx)
+- **env validation**: [`envt`](npmjs.com/package/envt)
+-
 
-### Local Set-Up
+### local set-up
 
 ```bash
 $ git clone https://github.com/SanyamPunia/www.git
@@ -18,3 +19,5 @@ $ cd www
 $ yarn
 $ yarn dev # Remove all of my personal information
 ```
+
+> checkout `.env.example` for reference
