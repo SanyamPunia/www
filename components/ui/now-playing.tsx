@@ -46,7 +46,7 @@ export default function NowPlaying() {
       initial="hidden"
       animate="show"
     >
-      p.s. i'm currently listening to{" "}
+      p.s. currently listening to{" "}
       <a
         href={data.songUrl}
         target="_blank"
