@@ -1,0 +1,6 @@
+{
+  "title": "modeling link navigation state with useTransition + useOptimistic",
+  "description": "a tiny, production-ready pattern to model link pending state using React transitions and optimistic updates — no timers or cleanup",
+  "date": "Nov 1, 2025",
+  "readTime": "7 min read"
+}

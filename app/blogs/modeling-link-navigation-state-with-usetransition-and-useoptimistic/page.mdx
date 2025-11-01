@@ -1,0 +1,238 @@
+import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
+import BackButton from "@/components/ui/back-button";
+
+<main className="min-h-screen flex items-center justify-center p-4">
+  <MaxWidthWrapper
+    size="screen-md"
+    className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden max-h-[90vh] flex flex-col"
+    showTerminalHeader={false}
+  >
+    <div className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">
+
+<BackButton href="/blogs">back to blogs</BackButton>
+
+# modeling link navigation state with `useTransition` + `useOptimistic`
+
+> nerd snipe: poking through next.js internals showed a clean pattern for modeling link “pending” state without timers, effects, or bespoke cleanup. this post distills that pattern into a tiny, production-friendly api.
+
+---
+
+## tl;dr
+
+- react 18 gives you `useTransition`; react 19 adds `useOptimistic`.
+- start a transition on click, flip an **optimistic** link status to `pending: true`, navigate, and let react roll it back to idle when suspense/data settles.
+- no imperative cleanup. no router event juggling. status is scoped, precise, and aligns with suspense boundaries.
+- **bonus:** this mirrors how next.js implements its internal `<link>` + `useLinkStatus` hook (see “how this maps to next.js internals”).
+
+---
+
+## the two primitives
+
+- **`useTransition()`** → `[isPending, startTransition]`. `isPending` flips to `true` when `startTransition(fn)` runs and returns to `false` when the transition’s async work (including suspense/data) finishes.
+
+- **`useOptimistic(base, reducer)`** → `[state, setOptimistic]`. enqueue optimistic updates during a transition; when the transition completes, react clears them and the state **reverts to the base**.
+
+put together:
+
+> when a navigation starts, **optimistically** set `{ pending: true }`; when the transition completes, **automatically** fall back to `{ pending: false }`. no effect cleanup required.
+
+---
+
+## minimal surface area
+
+we expose a tiny context + hook so descendants can read the current link status:
+
+```ts
+// lib/link-status-constants.ts
+export const IDLE_LINK_STATUS = { pending: false } as const;
+export const PENDING_LINK_STATUS = { pending: true } as const;
+export type LinkStatus = typeof IDLE_LINK_STATUS | typeof PENDING_LINK_STATUS;
+```
+
+```tsx
+// context/link-status-context.tsx
+"use client";
+
+import { createContext, useContext } from "react";
+import { IDLE_LINK_STATUS } from "@/lib/link-status-constants";
+
+export const LinkStatusContext = createContext(IDLE_LINK_STATUS);
+export function useLinkStatus() {
+  return useContext(LinkStatusContext);
+}
+```
+
+---
+
+## the custom `<link>` (the core idea in ~20 lines)
+
+wrap the click in a transition and flip optimistic state:
+
+```tsx
+// components/link.tsx
+"use client";
+
+import {
+  startTransition,
+  useOptimistic,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { LinkStatusContext } from "@/context/link-status-context";
+import {
+  IDLE_LINK_STATUS,
+  PENDING_LINK_STATUS,
+} from "@/lib/link-status-constants";
+
+export function Link({
+  href,
+  replace = false,
+  scroll = true,
+  prefetch = true,
+  children,
+  className,
+  onClick,
+}: {
+  href: string;
+  replace?: boolean;
+  scroll?: boolean;
+  prefetch?: boolean;
+  children: ReactNode;
+  className?: string;
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [linkStatus, setOptimisticLinkStatus] = useOptimistic(
+    IDLE_LINK_STATUS,
+    (_current, optimistic) => optimistic // pass-through reducer
+  );
+
+  const isModifiedEvent = (e: MouseEvent<HTMLAnchorElement>) =>
+    e.metaKey ||
+    e.ctrlKey ||
+    e.shiftKey ||
+    e.altKey ||
+    ((e.currentTarget.getAttribute("target") ?? "") !== "" &&
+      e.currentTarget.getAttribute("target") !== "_self") ||
+    (e.nativeEvent as any)?.which === 2;
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(e);
+    if (
+      e.defaultPrevented ||
+      isModifiedEvent(e) ||
+      e.currentTarget.hasAttribute("download")
+    )
+      return;
+    e.preventDefault();
+    if (pathname === href) return;
+
+    startTransition(() => {
+      setOptimisticLinkStatus(PENDING_LINK_STATUS);
+      replace
+        ? router.replace(href, { scroll })
+        : router.push(href, { scroll });
+    });
+  };
+
+  return (
+    <LinkStatusContext.Provider value={linkStatus}>
+      <a
+        href={href}
+        onClick={handleClick}
+        onMouseEnter={() => {
+          if (prefetch && typeof window !== "undefined") router.prefetch(href);
+        }}
+        className={className}
+        aria-busy={linkStatus.pending || undefined}
+        data-pending={linkStatus.pending ? "" : undefined}
+      >
+        {children}
+      </a>
+    </LinkStatusContext.Provider>
+  );
+}
+```
+
+**notes**
+
+- modified clicks (ctrl/cmd/shift, middle-click, `target` ≠ `_self`) fall back to native navigation — progressive enhancement preserved.
+- hover prefetch is opt-in and happens only on the client.
+- the provider scope is **per-link**, so sibling links don’t leak state into each other.
+
+---
+
+## consuming the status
+
+because the status is in context, any descendant can react to it:
+
+```tsx
+// components/loading-indicator.tsx
+"use client";
+
+import { useLinkStatus } from "@/context/link-status-context";
+
+export function LoadingIndicator() {
+  const { pending } = useLinkStatus();
+  return pending ? <span>⏳</span> : null;
+}
+```
+
+usage:
+
+```tsx
+// page.tsx
+"use client";
+
+import { Link } from "@/components/link";
+import { LoadingIndicator } from "@/components/loading-indicator";
+
+export default function Home() {
+  return (
+    <div className="flex flex-col gap-3 max-w-md mx-auto p-4">
+      <Link
+        href="/dashboard"
+        className="flex items-center justify-between rounded-lg px-4 py-3 bg-blue-500 text-white transition-colors hover:bg-blue-600"
+      >
+        <span>go to dashboard</span>
+        <LoadingIndicator />
+      </Link>
+    </div>
+  );
+}
+```
+
+---
+
+## how this maps to next.js internals
+
+this implementation intentionally mirrors how next.js wires its `<link>` and **internal** `useLinkStatus`:
+
+- **transition-driven pending**: next wraps navigation in a react transition and drives a boolean “pending” bit from that lifecycle.
+- **optimistic flip + automatic rollback**: `useOptimistic` sets `{ pending: true }` at transition start and lets react clear it when suspense/data resolves (no cleanup path).
+- **scoped context**: `<link>` provides a context so any descendant (badges, spinners, aria hints) can read `pending` via `useLinkStatus()` without prop drilling.
+- **event hygiene**: modified clicks and `download` are respected; default browser behavior is preserved. client-side prefetch triggers on hover.
+- **semantics parity**: when the transition finishes (success or handled error), pending clears. consumers should pair this with error boundaries for failure ui.
+
+### migration notes
+
+- if/when the `useLinkStatus` api is exposed publicly, you can:
+  - keep your component tree, but import `useLinkStatus` from next and drop your local context; or
+  - swap your custom `<link>` back to `next/link` while keeping consumers unchanged (since they just read `{ pending }` from context).
+- this post keeps the surface minimal; next’s production `<link>` also deals with additional props (`prefetch` strategies, locales, `rel`, etc.). integrate those as needed.
+
+---
+
+## edge cases & gotchas
+
+- **same-route clicks**: bail early on `pathname === href` to avoid a phantom pending blip.
+- **global indicators**: for a header-level spinner, either lift the provider to a layout boundary or mirror the optimistic flag into a global store **inside** the transition.
+- **a11y**: pair `aria-busy`/`data-pending` with an `aria-live="polite"` region if you want announcements.
+
+</div>
+
+  </MaxWidthWrapper>
+</main>

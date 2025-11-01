@@ -144,7 +144,7 @@ const components: MDXComponents = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className="border-l-4 border-neutral-700 pl-4 py-2 my-6 bg-neutral-900/30 rounded-r-sm"
+      className="border-l-4 border-neutral-700 pl-4 py-2 my-6 bg-neutral-900/30 rounded-r-sm [&>*]:mb-0"
       {...props}
     />
   ),

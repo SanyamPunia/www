@@ -6,6 +6,12 @@ import Link from "next/link";
 import type { BlogMeta } from "@/lib/blogs";
 
 export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
+  const sortedBlogs = [...blogs].sort((a, b) => {
+    const ad = new Date(a.date).getTime();
+    const bd = new Date(b.date).getTime();
+    return bd - ad;
+  });
+
   return (
     <div className="flex flex-col gap-6 sm:py-16 py-12 sm:px-8 px-0 overflow-y-auto">
       <motion.div
@@ -76,7 +82,7 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
             coming soon...
           </p>
         ) : (
-          blogs.map((post, index) => (
+          sortedBlogs.map((post, index) => (
             <motion.div
               key={post.slug}
               initial={{ opacity: 0, y: 8 }}
@@ -90,7 +96,7 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
                     <h2 className="text-sm text-text-primary pr-6 group-hover:underline underline-offset-4 decoration-neutral-700">
                       {post.title}
                     </h2>
-                    <ArrowUpRight className="size-3 text-text-secondary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    <ArrowUpRight className="size-3 shrink-0 text-text-secondary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </div>
                   <p className="text-xs text-text-secondary mt-1 leading-5 flex-1">
                     {post.description}
