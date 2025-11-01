@@ -33,7 +33,7 @@ export default function NowPlaying() {
 
   return (
     <motion.p
-      className="text-sm text-text-secondary lowercase leading-5"
+      className="text-sm text-text-secondary lowercase leading-5 mb-6"
       variants={{
         hidden: { opacity: 0, y: 4, filter: "blur(6px)" },
         show: {
@@ -43,8 +43,6 @@ export default function NowPlaying() {
           transition: { duration: 0.4, ease: "easeOut" },
         },
       }}
-      initial="hidden"
-      animate="show"
     >
       p.s. currently listening to{" "}
       <a
