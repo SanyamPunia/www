@@ -12,7 +12,7 @@ export default function Signature({ className = "" }: { className?: string }) {
     let killed = false;
     (async () => {
       const svgText = await fetch("/assets/signature.svg").then((r) =>
-        r.text()
+        r.text(),
       );
       if (killed || !ref.current) return;
       ref.current.innerHTML = svgText;
