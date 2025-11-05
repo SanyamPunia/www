@@ -27,6 +27,7 @@ const page = () => {
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const clearTooltipTimeout = () => {
     if (tooltipTimeout) {
@@ -132,14 +133,27 @@ const page = () => {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-3 border-[#1e1e1e]">
-                    <Image
-                      src="/assets/location.png"
-                      alt="Location"
-                      width={200}
-                      height={200}
-                      className="rounded-md select-none"
-                      draggable="false"
-                    />
+                    <div className="relative">
+                      {!imageLoaded && (
+                        <div
+                          className="w-[200px] h-[200px] rounded-md bg-primary-bg border border-[#121212] animate-pulse"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <Image
+                        src="/assets/location.png"
+                        alt="Location"
+                        width={200}
+                        height={200}
+                        className={`rounded-md select-none ${
+                          imageLoaded
+                            ? "opacity-100"
+                            : "opacity-0 absolute inset-0"
+                        } transition-opacity`}
+                        draggable="false"
+                        onLoad={() => setImageLoaded(true)}
+                      />
+                    </div>
                     <p className="text-xs text-right mt-2 text-text-secondary">
                       Gurugram, India
                     </p>
