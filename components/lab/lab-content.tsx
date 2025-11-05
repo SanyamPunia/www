@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import CodeParser from "@/components/ui/code-parser";
+import { playTapSound } from "@/lib/utils";
 
 interface LabContentProps {
   description?: string[];
@@ -66,6 +67,7 @@ export default function LabContent({ description, source }: LabContentProps) {
             href={source}
             target="_blank"
             className="text-sm text-text-secondary lowercase leading-5 hover:text-text-primary transition-colors group"
+            onClick={playTapSound}
           >
             source{" "}
             <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

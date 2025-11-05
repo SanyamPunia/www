@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ComponentType } from "react";
 import { highlight } from "sugar-high";
 import CodeBlock from "@/components/ui/code-block";
+import { playTapSound } from "@/lib/utils";
 
 type HeadingProps = ComponentPropsWithoutRef<"h1">;
 type ParagraphProps = ComponentPropsWithoutRef<"p">;
@@ -69,6 +70,7 @@ const components: MDXComponents = {
         <Link
           href={href}
           className={`${baseClassName} inline-flex items-center gap-1`}
+          onClick={playTapSound}
           {...(props as Record<string, unknown>)}
         >
           {children}
@@ -77,7 +79,12 @@ const components: MDXComponents = {
     }
     if (href?.startsWith("#")) {
       return (
-        <a href={href} className={baseClassName} {...props}>
+        <a
+          href={href}
+          className={baseClassName}
+          onClick={playTapSound}
+          {...props}
+        >
           {children}
         </a>
       );
@@ -88,6 +95,7 @@ const components: MDXComponents = {
         target="_blank"
         rel="noopener noreferrer"
         className={`${baseClassName} inline-flex items-center gap-1`}
+        onClick={playTapSound}
         {...props}
       >
         {children}

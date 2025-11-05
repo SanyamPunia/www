@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import type { BlogMeta } from "@/lib/blogs";
+import { playTapSound } from "@/lib/utils";
 
 export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
   const sortedBlogs = [...blogs].sort((a, b) => {
@@ -20,13 +21,14 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
         transition={{ duration: 0.4, delay: 0.2 }}
         className="mb-4"
       >
-        <a
+        <Link
           href="/"
           className="inline-flex items-center gap-2 text-xs text-text-secondary hover:text-text-primary transition-colors group"
+          onClick={playTapSound}
         >
           <ArrowLeft className="size-3 transition-all group-hover:-translate-x-0.5" />
           back to home
-        </a>
+        </Link>
       </motion.div>
 
       <motion.div
@@ -90,7 +92,11 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
               transition={{ delay: 0.8 + index * 0.08, duration: 0.4 }}
               className="flex-1"
             >
-              <Link href={`/blogs/${post.slug}`} className="group block h-full">
+              <Link
+                href={`/blogs/${post.slug}`}
+                className="group block h-full"
+                onClick={playTapSound}
+              >
                 <div className="lowercase rounded-md p-4 border border-[#1e1e1e] hover:border-[#282828] transition-colors bg-neutral-900/30 h-full flex flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="text-sm text-text-primary pr-6 group-hover:underline underline-offset-4 decoration-neutral-700">

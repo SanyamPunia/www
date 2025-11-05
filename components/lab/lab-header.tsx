@@ -2,7 +2,9 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Check, Clock, Copy, Dot } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
+import { playTapSound } from "@/lib/utils";
 
 interface LabHeaderProps {
   title: string;
@@ -27,13 +29,14 @@ export default function LabHeader({ title, createdAt }: LabHeaderProps) {
         transition={{ duration: 0.4 }}
         className="mb-4"
       >
-        <a
+        <Link
           href="/lab"
           className="inline-flex items-center gap-2 text-xs text-text-secondary hover:text-text-primary transition-colors group"
+          onClick={playTapSound}
         >
           <ArrowLeft className="size-3 transition-all group-hover:-translate-x-0.5" />
           back to lab
-        </a>
+        </Link>
       </motion.div>
 
       <motion.div
@@ -81,7 +84,10 @@ export default function LabHeader({ title, createdAt }: LabHeaderProps) {
             <Dot className="size-3.5 text-text-secondary" />
             <button
               type="button"
-              onClick={copyPageLink}
+              onClick={() => {
+                playTapSound();
+                copyPageLink();
+              }}
               className="text-text-secondary hover:text-text-primary transition-colors group cursor-pointer"
             >
               <div className="relative w-3 h-3 flex items-center justify-center">

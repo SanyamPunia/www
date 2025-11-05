@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { playTapSound } from "@/lib/utils";
 
 const projects = [
   {
@@ -73,6 +75,8 @@ const projects = [
 ];
 
 export default function Projects() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
     <motion.div
       initial="hidden"
@@ -131,58 +135,79 @@ export default function Projects() {
         }}
         className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-8"
       >
-        {projects.map((p, idx) => (
-          <motion.div
-            key={`${p.title}-${idx}`}
-            variants={{
-              hidden: { opacity: 0, y: 6, filter: "blur(6px)" },
-              show: {
-                opacity: 1,
-                y: 0,
-                filter: "blur(0px)",
-                transition: { duration: 0.35, ease: "easeOut" },
-              },
-            }}
-            className={`lowercase ${
-              idx < projects.length - 1
-                ? "border-b border-neutral-900 border-dashed"
-                : ""
-            }`}
-          >
-            <Link href={p.href} target="_blank" className="group block">
+        {projects.map((p, idx) => {
+          const isHovered = hoveredIndex === idx;
+          const isDimmed = hoveredIndex !== null && hoveredIndex !== idx;
+
+          return (
+            <motion.div
+              key={`${p.title}-${idx}`}
+              variants={{
+                hidden: { opacity: 0, y: 6, filter: "blur(6px)" },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  transition: { duration: 0.35, ease: "easeOut" },
+                },
+              }}
+              className={`lowercase ${
+                idx < projects.length - 1
+                  ? "border-b border-neutral-900 border-dashed"
+                  : ""
+              }`}
+              onMouseEnter={() => setHoveredIndex(idx)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
               <div
-                className={`px-4 py-3.5 transition-colors hover:bg-neutral-900/50 flex items-center gap-3 ${
-                  idx === 0
-                    ? "hover:rounded-t-sm"
-                    : idx === projects.length - 1
-                      ? "hover:rounded-b-sm"
-                      : ""
-                }`}
+                className="transition-opacity duration-200"
+                style={{ opacity: isDimmed ? 0.3 : 1 }}
               >
-                <Image
-                  src={p.image}
-                  alt={p.title}
-                  width={28}
-                  height={28}
-                  className="rounded-full select-none border border-[#1e1e1e] bg-black"
-                  draggable={false}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-text-primary truncate flex items-center gap-1">
-                    {p.title}
-                    <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  </p>
-                  <p className="text-xs text-text-secondary truncate">
-                    {p.description}
-                  </p>
-                </div>
-                <span className="text-xs text-text-secondary whitespace-nowrap">
-                  {p.category}
-                </span>
+                <Link
+                  href={p.href}
+                  target="_blank"
+                  className="group block"
+                  onMouseEnter={() => setHoveredIndex(idx)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  onClick={playTapSound}
+                >
+                  <div
+                    className={`px-4 py-3.5 transition-colors duration-200 ${
+                      isHovered ? "bg-neutral-900/50" : ""
+                    } flex items-center gap-3 ${
+                      idx === 0 && isHovered
+                        ? "rounded-t-sm"
+                        : idx === projects.length - 1 && isHovered
+                          ? "rounded-b-sm"
+                          : ""
+                    }`}
+                  >
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      width={28}
+                      height={28}
+                      className="rounded-full select-none border border-[#1e1e1e] bg-black"
+                      draggable={false}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-text-primary truncate flex items-center gap-1">
+                        {p.title}
+                        <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      </p>
+                      <p className="text-xs text-text-secondary truncate">
+                        {p.description}
+                      </p>
+                    </div>
+                    <span className="text-xs text-text-secondary whitespace-nowrap">
+                      {p.category}
+                    </span>
+                  </div>
+                </Link>
               </div>
-            </Link>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </motion.div>
     </motion.div>
   );

@@ -135,3 +135,11 @@ pre code .sh__number {
 .bg-gradient-radial {
   background: radial-gradient(circle, var(--tw-gradient-stops));
 }
+
+.dragging {
+  cursor: grabbing;
+}
+
+.dragging * {
+  pointer-events: none;
+}

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { playTapSound } from "@/lib/utils";
 
 interface BackButtonProps {
   href: string;
@@ -25,6 +26,7 @@ export default function BackButton({
       <Link
         href={href}
         className="inline-flex items-center gap-2 text-xs text-text-secondary hover:text-text-primary transition-colors group"
+        onClick={playTapSound}
       >
         <ArrowLeft className="size-3 transition-all group-hover:-translate-x-0.5" />
         {children}

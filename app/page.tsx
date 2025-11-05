@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import Signature from "@/components/ui/signature";
 import Tooltip from "@/components/ui/tooltip";
+import { playTapSound } from "@/lib/utils";
 
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
@@ -181,6 +182,7 @@ const page = () => {
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
                   rel="noopener"
+                  onClick={playTapSound}
                 >
                   Bitscale
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -191,6 +193,7 @@ const page = () => {
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
                   rel="noopener"
+                  onClick={playTapSound}
                 >
                   Flib
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -199,6 +202,7 @@ const page = () => {
                 <Link
                   href="/work"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
+                  onClick={playTapSound}
                 >
                   here
                 </Link>
@@ -221,6 +225,7 @@ const page = () => {
                 <Link
                   href="/blogs"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
+                  onClick={playTapSound}
                 >
                   here
                 </Link>
@@ -228,6 +233,7 @@ const page = () => {
                 <Link
                   href="/lab"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
+                  onClick={playTapSound}
                 >
                   lab
                 </Link>{" "}
@@ -253,6 +259,7 @@ const page = () => {
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
                   rel="noopener"
+                  onClick={playTapSound}
                 >
                   envt
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -278,6 +285,7 @@ const page = () => {
                   target="_blank"
                   className="underline underline-offset-4 transition-all group hover:text-text-primary"
                   rel="noopener"
+                  onClick={playTapSound}
                 >
                   music
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -304,6 +312,7 @@ const page = () => {
                   href="https://www.pageo.me/sanyam"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={playTapSound}
                 >
                   <PageoIcon className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </a>
@@ -312,6 +321,7 @@ const page = () => {
                   href="https://github.com/SanyamPunia"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={playTapSound}
                 >
                   <GitHub className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </a>
@@ -320,6 +330,7 @@ const page = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-all rounded-lg hover:bg-neutral-800/50 p-2"
+                  onClick={playTapSound}
                 >
                   <LinkedIn />
                 </a>
@@ -327,6 +338,7 @@ const page = () => {
                   href="https://x.com/sanyampunia"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={playTapSound}
                 >
                   <XformerlyTwitter className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </a>
@@ -334,10 +346,16 @@ const page = () => {
                   href="https://medium.com/@sanyamm"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={playTapSound}
                 >
                   <MediumIcon className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </a>
-                <Link href="/cv" target="_blank" rel="noopener noreferrer">
+                <Link
+                  href="/cv"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={playTapSound}
+                >
                   <File className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </Link>
 
@@ -351,7 +369,10 @@ const page = () => {
                     href="mailto:lewarends@gmail.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handleEmailClick}
+                    onClick={(e) => {
+                      handleEmailClick(e);
+                      playTapSound();
+                    }}
                     className="relative"
                   >
                     <AnimatePresence mode="wait">
