@@ -15,8 +15,8 @@
 ```bash
 $ git clone https://github.com/SanyamPunia/www.git
 $ cd www
-$ yarn
-$ yarn dev # Remove all of my personal information
+$ pnpm install
+$ pnpm dev # Remove all of my personal information
 ```
 
 > checkout `.env.example` for reference

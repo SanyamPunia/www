@@ -14,6 +14,11 @@ import PageoIcon from "@/components/icons/pageo";
 import { XformerlyTwitter } from "@/components/icons/x";
 import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
 import NowPlaying from "@/components/ui/now-playing";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import Signature from "@/components/ui/signature";
 import Tooltip from "@/components/ui/tooltip";
 
@@ -116,7 +121,31 @@ const page = () => {
                 }}
               >
                 Sanyam is a full-stack web developer from{" "}
-                <India className="inline -mt-0.5" /> india
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline -mt-0.5 cursor-pointer hover:opacity-80 transition-opacity"
+                      aria-label="India flag"
+                    >
+                      <India className="inline" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3 border-[#1e1e1e]">
+                    <Image
+                      src="/assets/location.png"
+                      alt="Location"
+                      width={200}
+                      height={200}
+                      className="rounded-md select-none"
+                      draggable="false"
+                    />
+                    <p className="text-xs text-right mt-2 text-text-secondary">
+                      Gurugram, India
+                    </p>
+                  </PopoverContent>
+                </Popover>{" "}
+                india
               </motion.h1>
               <motion.p
                 className="text-sm text-text-secondary lowercase leading-5 mb-6"
