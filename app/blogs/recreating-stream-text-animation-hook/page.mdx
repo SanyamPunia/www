@@ -8,9 +8,11 @@ import AnimatedTextDemo from "@/components/blogs/animated-text-demo";
     className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden max-h-[90vh] flex flex-col"
     showTerminalHeader={false}
   >
+    <div className="sticky top-0 z-10 bg-primary-bg/70 backdrop-blur-xl border-b border-[#121212] sm:px-6 px-4 py-4 flex items-center justify-between">
+      <BackButton href="/blogs">back to blogs</BackButton>
+      <BlogLikeButton />
+    </div>
     <div className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">
-
-<BackButton href="/blogs">back to blogs</BackButton>
 
 # Recreating Stream Text Animation Hook
 

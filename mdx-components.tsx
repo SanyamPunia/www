@@ -3,6 +3,7 @@ import type { ComponentPropsWithoutRef, ComponentType } from "react";
 import { highlight } from "sugar-high";
 import CodeBlock from "@/components/ui/code-block";
 import { MDXLink } from "@/components/ui/mdx-link";
+import { BlogLikeButton } from "@/components/blogs/blog-like-button";
 
 type HeadingProps = ComponentPropsWithoutRef<"h1">;
 type ParagraphProps = ComponentPropsWithoutRef<"p">;
@@ -103,6 +104,7 @@ const components: MDXComponents = {
   hr: (props: ComponentPropsWithoutRef<"hr">) => (
     <hr className="my-8 border-neutral-800" {...props} />
   ),
+  BlogLikeButton: () => <BlogLikeButton />,
 };
 
 export function useMDXComponents(
