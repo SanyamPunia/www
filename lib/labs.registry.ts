@@ -66,6 +66,17 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "oct 10, 2025",
     source: "https://x.com/sanyampunia/status/1976531889226695106",
   },
+  {
+    slug: "file-tree-explorer",
+    title: "File Tree Explorer",
+    description: [
+      "framer-motion powered tree view with animated expand/collapse interactions and subtle hover reactions.",
+      "focuses on readability and polish: depth-aware indentation, animated chevrons, and smooth height transitions for nested folders.",
+    ],
+    image: "/lab/file-tree-explorer.svg",
+    createdAt: "nov 07, 2025",
+    // source: "https://github.com/SanyamPunia",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {

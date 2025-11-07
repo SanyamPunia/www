@@ -33,6 +33,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/discount-code-input/index"),
     { ssr: false },
   ),
+  "file-tree-explorer": dynamic(
+    () => import("@/components/labs/file-tree/index"),
+    { ssr: false },
+  ),
 };
 
 interface LabPageProps {
