@@ -142,6 +142,12 @@ export default function Projects() {
           return (
             <motion.div
               key={`${p.title}-${idx}`}
+              animate={{
+                ...(isHovered ? { scale: 1.01 } : { scale: 1 }),
+                opacity: 1,
+                y: 0,
+                filter: "blur(0px)",
+              }}
               variants={{
                 hidden: { opacity: 0, y: 6, filter: "blur(6px)" },
                 show: {
@@ -151,6 +157,7 @@ export default function Projects() {
                   transition: { duration: 0.35, ease: "easeOut" },
                 },
               }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className={`lowercase ${
                 idx < projects.length - 1
                   ? "border-b border-neutral-900 border-dashed"

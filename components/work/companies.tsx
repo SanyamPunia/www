@@ -116,7 +116,12 @@ export default function Companies() {
             <motion.div
               key={`${c.name}-${idx}`}
               initial="hidden"
-              animate="show"
+              animate={{
+                ...(isHovered ? { scale: 1.01 } : { scale: 1 }),
+                opacity: 1,
+                y: 0,
+                filter: "blur(0px)",
+              }}
               variants={{
                 hidden: { opacity: 0, y: 6, filter: "blur(6px)" },
                 show: {
@@ -126,6 +131,7 @@ export default function Companies() {
                   transition: { duration: 0.35, ease: "easeOut" },
                 },
               }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className={`lowercase ${
                 idx < companies.length - 1
                   ? "border-b border-neutral-900 border-dashed"
