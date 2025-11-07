@@ -73,7 +73,7 @@ export const labsRegistry: LabMetadata[] = [
       "framer-motion powered tree view with animated expand/collapse interactions and subtle hover reactions.",
       "focuses on readability and polish: depth-aware indentation, animated chevrons, and smooth height transitions for nested folders.",
     ],
-    image: "/lab/file-tree-explorer.svg",
+    image: "/lab/file-tree-explorer.png",
     createdAt: "nov 07, 2025",
     // source: "https://github.com/SanyamPunia",
   },
