@@ -3,20 +3,17 @@
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ProgressiveHeart } from "@/components/ui/progressive-heart";
+import { useBlogLike } from "@/hooks/use-blog-likes";
 import { cn, playTapSound } from "@/lib/utils";
 
 const STORAGE_KEY_PREFIX = "blog-liked-";
-const REQUEST_TIMEOUT = 10000; // 10 seconds
 
 export function BlogLikeButton() {
   const pathname = usePathname();
-  const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   const slug = pathname?.replace("/blogs/", "") || "";
   const storageKey = `${STORAGE_KEY_PREFIX}${slug}`;
@@ -25,112 +22,73 @@ export function BlogLikeButton() {
   useEffect(() => {
     if (!isBlogPage) return;
 
-    // cleanup
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [isBlogPage]);
+    if (typeof window === "undefined") return;
 
-  useEffect(() => {
-    if (!isBlogPage) return;
+    const stored = localStorage.getItem(storageKey);
+    setIsLiked(stored === "true");
+  }, [storageKey, isBlogPage]);
 
-    async function fetchLikes() {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/blogs/${slug}/likes`, {
-          signal: AbortSignal.timeout(REQUEST_TIMEOUT),
-        });
+  const { data, isLoading, mutate } = useBlogLike(isBlogPage ? slug : null, {
+    revalidateOnMount: true,
+  });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.count !== undefined) {
-          setLikeCount(data.count);
-          if (typeof window !== "undefined") {
-            const stored = localStorage.getItem(storageKey);
-            setIsLiked(stored === "true");
-          }
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name !== "AbortError") {
-          console.error("Error fetching likes:", err);
-        }
-        if (typeof window !== "undefined") {
-          const stored = localStorage.getItem(storageKey);
-          setIsLiked(stored === "true");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchLikes();
-  }, [slug, storageKey, isBlogPage]);
+  const likeCount = data?.count ?? 0;
 
   const handleLike = async () => {
+    if (!slug || !isBlogPage) return;
     if (isLiked || isSubmitting || isLoading) return;
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
     setIsSubmitting(true);
-    const previousCount = likeCount;
-    const previousLiked = isLiked;
-
-    // optimistic update
     setIsLiked(true);
-    setLikeCount(previousCount + 1);
     playTapSound();
 
+    const optimisticCount = likeCount + 1;
+
     try {
-      const timeoutId = setTimeout(
-        () => abortController.abort(),
-        REQUEST_TIMEOUT,
-      );
+      await mutate(
+        async () => {
+          const response = await fetch(`/api/blogs/${slug}/likes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
 
-      const response = await fetch(`/api/blogs/${slug}/likes`, {
-        method: "POST",
-        signal: abortController.signal,
-        headers: {
-          "Content-Type": "application/json",
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const payload = await response.json();
+          const nextCount =
+            typeof payload?.count === "number"
+              ? payload.count
+              : optimisticCount;
+
+          if (typeof window !== "undefined") {
+            localStorage.setItem(storageKey, "true");
+          }
+
+          return { count: nextCount };
         },
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success && typeof data.count === "number") {
-        setLikeCount(data.count);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(storageKey, "true");
-        }
-      } else {
-        throw new Error("Invalid response from server");
-      }
+        {
+          optimisticData: { count: optimisticCount },
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: false,
+        },
+      );
     } catch (err) {
-      setIsLiked(previousLiked);
-      setLikeCount(previousCount);
+      setIsLiked(false);
 
-      if (err instanceof Error && err.name !== "AbortError") {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(storageKey);
+      }
+
+      if (err instanceof Error) {
         console.error("Error liking blog:", err);
       }
     } finally {
       setIsSubmitting(false);
-      abortControllerRef.current = null;
     }
   };
 

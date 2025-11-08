@@ -1,17 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Heart } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
+import { useBlogLikes } from "@/hooks/use-blog-likes";
 import type { BlogMeta } from "@/lib/blogs";
 import { playTapSound } from "@/lib/utils";
 
 export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
-  const sortedBlogs = [...blogs].sort((a, b) => {
-    const ad = new Date(a.date).getTime();
-    const bd = new Date(b.date).getTime();
-    return bd - ad;
-  });
+  const sortedBlogs = useMemo(() => {
+    return [...blogs].sort((a, b) => {
+      const ad = new Date(a.date).getTime();
+      const bd = new Date(b.date).getTime();
+      return bd - ad;
+    });
+  }, [blogs]);
+
+  const slugs = useMemo(
+    () => sortedBlogs.map((post) => post.slug),
+    [sortedBlogs],
+  );
+  const { data: likesData, isLoading: likesLoading } = useBlogLikes(slugs);
+  const likesMap = likesData?.likes ?? {};
 
   return (
     <div className="flex flex-col gap-6 sm:py-16 py-12 sm:px-8 px-0 overflow-y-auto">
@@ -113,6 +124,14 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
                     </span>
                     <span className="text-[0.70em] px-2 py-0.5 rounded-sm border border-[#1e1e1e]">
                       {post.readTime}
+                    </span>
+                    <span className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-[#1e1e1e] px-2 py-0.5 text-[0.70em] lowercase">
+                      <Heart className="size-3" aria-hidden="true" />
+                      {typeof likesMap[post.slug] === "number"
+                        ? likesMap[post.slug]
+                        : likesLoading
+                          ? "—"
+                          : 0}
                     </span>
                   </div>
                 </div>

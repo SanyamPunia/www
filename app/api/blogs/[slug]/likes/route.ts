@@ -7,13 +7,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { NextResponse } from "next/server";
+import { BLOG_LIKES_COLLECTION, isValidBlogSlug } from "@/lib/blog-likes";
 import { db } from "@/lib/firebase";
-
-const COLLECTION_NAME = "blog-likes";
-
-function isValidSlug(slug: string): boolean {
-  return /^[a-zA-Z0-9_-]+$/.test(slug) && slug.length > 0 && slug.length <= 200;
-}
 
 export async function GET(
   _request: unknown,
@@ -22,14 +17,14 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    if (!isValidSlug(slug)) {
+    if (!isValidBlogSlug(slug)) {
       return NextResponse.json(
         { error: "Invalid slug format", count: 0 },
         { status: 400 },
       );
     }
 
-    const docRef = doc(db, COLLECTION_NAME, slug);
+    const docRef = doc(db, BLOG_LIKES_COLLECTION, slug);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -69,14 +64,14 @@ export async function POST(
   try {
     const { slug } = await params;
 
-    if (!isValidSlug(slug)) {
+    if (!isValidBlogSlug(slug)) {
       return NextResponse.json(
         { error: "Invalid slug format", success: false },
         { status: 400 },
       );
     }
 
-    const docRef = doc(db, COLLECTION_NAME, slug);
+    const docRef = doc(db, BLOG_LIKES_COLLECTION, slug);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
