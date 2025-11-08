@@ -71,7 +71,7 @@ const page = () => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
-        className="fixed -left-96 -bottom-96 w-[48rem] h-[48rem] rounded-full pointer-events-none -z-10"
+        className="fixed -left-96 -bottom-96 size-192 rounded-full pointer-events-none -z-10"
         style={{
           background:
             "radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, rgba(20, 184, 166, 0.08) 35%, transparent 65%)",
@@ -91,7 +91,7 @@ const page = () => {
             transition={{ duration: 0.4, delay: 0.2 }}
           >
             <Image
-              src="/assets/logo.png"
+              src="/assets/logo.webp"
               alt="Sanyam"
               width={25}
               height={25}
@@ -142,7 +142,7 @@ const page = () => {
                         />
                       )}
                       <Image
-                        src="/assets/location.png"
+                        src="/assets/location.webp"
                         alt="Location"
                         width={200}
                         height={200}
