@@ -83,6 +83,7 @@ const page = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {labsRegistry.map((lab, index) => {
+              // card's column index to choose its hover nudge direction.
               const column = index % 3;
               const hoverTransform =
                 column === 0

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Heart } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
+import { ibmPlexSerif } from "@/app/fonts";
 import { useBlogLikes } from "@/hooks/use-blog-likes";
 import type { BlogMeta } from "@/lib/blogs";
 import { playTapSound } from "@/lib/utils";
@@ -53,7 +54,7 @@ export default function BlogsIndex({ blogs }: { blogs: BlogMeta[] }) {
         }}
       >
         <motion.h1
-          className="text-sm lowercase font-medium mb-2 text-text-primary"
+          className={`text-sm lowercase font-medium mb-2 text-text-primary ${ibmPlexSerif.className} italic`}
           variants={{
             hidden: { opacity: 0, y: 4, filter: "blur(6px)" },
             show: {
