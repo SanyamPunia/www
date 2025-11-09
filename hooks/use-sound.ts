@@ -12,7 +12,7 @@ function getInitialMutedState(): boolean {
 }
 
 export function useSound() {
-  const [isMuted, setIsMuted] = useState<boolean>(getInitialMutedState);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const toggleMute = () => {
     setIsMuted((prev) => {

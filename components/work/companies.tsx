@@ -5,6 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { ibmPlexSerif } from "@/app/fonts";
 import { playTapSound } from "@/lib/utils";
 
 const companies = [
@@ -61,7 +62,7 @@ export default function Companies() {
       className="mb-8"
     >
       <motion.h1
-        className="text-sm lowercase font-medium mb-2 text-text-primary"
+        className={`text-sm lowercase font-medium mb-2 text-text-primary ${ibmPlexSerif.className} italic`}
         variants={{
           hidden: { opacity: 0, y: 4, filter: "blur(6px)" },
           show: {
