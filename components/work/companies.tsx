@@ -10,10 +10,17 @@ import { playTapSound } from "@/lib/utils";
 
 const companies = [
   {
+    name: "Enclave",
+    logo: "/org/enclave.webp",
+    title: "Frontend engineer",
+    duration: "nov'25 - now",
+    href: "https://www.enclave.money/",
+  },
+  {
     name: "Bitscale",
     logo: "/org/bitscale.webp",
     title: "Founding Engineer",
-    duration: "feb'25 - Now",
+    duration: "feb'25 - nov'25",
     href: "https://bitscale.ai/",
   },
   {
@@ -29,13 +36,6 @@ const companies = [
     title: "Frontend Engineer Intern",
     duration: "summer'23 + summer'24",
     href: "https://www.zenduty.com/",
-  },
-  {
-    name: "Buildfast",
-    logo: "/org/buildfast.webp",
-    title: "Frontend Developer Intern",
-    duration: "Feb'23 - Mar'23",
-    href: "https://www.buildfast.co.in/",
   },
   {
     name: "Google Code-In",
@@ -160,8 +160,8 @@ export default function Companies() {
                       idx === 0 && isHovered
                         ? "rounded-t-sm"
                         : idx === companies.length - 1 && isHovered
-                          ? "rounded-b-sm"
-                          : ""
+                        ? "rounded-b-sm"
+                        : ""
                     }`}
                   >
                     <Image

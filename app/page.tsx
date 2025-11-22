@@ -26,7 +26,7 @@ import { playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null,
+    null
   );
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -156,7 +156,7 @@ const page = () => {
                       />
                     </div>
                     <p className="text-xs text-right mt-2 text-text-secondary">
-                      Gurugram, India
+                      Bangalore, India
                     </p>
                   </PopoverContent>
                 </Popover>{" "}
@@ -176,26 +176,26 @@ const page = () => {
               >
                 As a developer, I believe simplicity is essential for a great
                 user experience. Clean design and efficient code make a big
-                difference. I'm currently leading frontend at{" "}
+                difference. I'm currently working as a frontend engineer at{" "}
                 <a
-                  href="https://bitscale.ai"
+                  href="https://www.enclave.money/"
+                  target="_blank"
+                  className="underline underline-offset-4 transition-all hover:text-text-primary group"
+                  rel="noopener"
+                  onClick={playTapSound}
+                >
+                  Enclave
+                  <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+                . Previously, I also led engineering at{" "}
+                <a
+                  href="https://bitscale.ai/"
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
                   rel="noopener"
                   onClick={playTapSound}
                 >
                   Bitscale
-                  <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
-                . Previously, I also led engineering at{" "}
-                <a
-                  href="https://flib.store"
-                  target="_blank"
-                  className="underline underline-offset-4 transition-all hover:text-text-primary group"
-                  rel="noopener"
-                  onClick={playTapSound}
-                >
-                  Flib
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
                 . You can find more of my work and project experience{" "}
