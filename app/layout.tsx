@@ -3,7 +3,6 @@ import Script from "next/script";
 import { SoundControl } from "@/components/ui/sound-control";
 import { ibmPlexSerif, inter } from "./fonts";
 import "./globals.css";
-import { LastVisit } from "@/components/ui/last-visit";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sanyam.xyz"),
@@ -59,7 +58,6 @@ export default function RootLayout({
       >
         {children}
         <SoundControl />
-        <LastVisit />
         <Script
           src="https://assets.onedollarstats.com/stonks.js"
           strategy="lazyOnload"
