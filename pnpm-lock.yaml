@@ -23,6 +23,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      country-list:
+        specifier: ^2.4.1
+        version: 2.4.1
       envt:
         specifier: ^1.1.19
         version: 1.1.21(@types/node@20.19.24)(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
@@ -66,6 +69,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.16
+      '@types/country-list':
+        specifier: ^2.1.4
+        version: 2.1.4
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -1303,6 +1309,9 @@ packages:
   '@tailwindcss/postcss@4.1.16':
     resolution: {integrity: sha512-Qn3SFGPXYQMKR/UtqS+dqvPrzEeBZHrFA92maT4zijCVggdsXnDBMsPFJo1eArX3J+O+Gi+8pV4PkqjLCNBk3A==}
 
+  '@types/country-list@2.1.4':
+    resolution: {integrity: sha512-c4orjm0wT+BRt6Ynf2/QRRL+iMX4SdLT11jAjKqkJ7mQr/DLOmdz7qR8i04j9Y7wFSoP70cXJc18FN4YGNgGaA==}
+
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
 
@@ -1529,6 +1538,9 @@ packages:
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
+
+  country-list@2.4.1:
+    resolution: {integrity: sha512-KhVV/UfUV3dSNpsWIqHTQxLpYDKPKz1UwkRjadt+YbX2PRhyCEihEoS5XgB7J7AMXpkicvl+tRHvkNI5wbji/g==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -3816,6 +3828,8 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.16
 
+  '@types/country-list@2.1.4': {}
+
   '@types/debug@4.1.12':
     dependencies:
       '@types/ms': 2.1.0
@@ -4024,6 +4038,8 @@ snapshots:
   commander@14.0.2: {}
 
   concat-map@0.0.1: {}
+
+  country-list@2.4.1: {}
 
   cross-spawn@7.0.6:
     dependencies:

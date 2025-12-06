@@ -1,7 +1,30 @@
 import { get } from "@vercel/edge-config";
+import { getName } from "country-list";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+function decodeString(str: string | null): string | null {
+  if (!str) return null;
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+}
+
+function getCountryName(countryCode: string | null): string | null {
+  if (!countryCode) return null;
+
+  if (countryCode.length > 2) {
+    return countryCode;
+  }
+
+  const code = countryCode.toUpperCase();
+  const countryName = getName(code);
+
+  return countryName || countryCode;
+}
 
 async function getPublicIP(): Promise<string | null> {
   try {
@@ -136,10 +159,13 @@ export async function GET() {
       timestamp?: number;
     };
 
+    const city = decodeString(visitData.city || null);
+    const country = getCountryName(visitData.country || null);
+
     return NextResponse.json(
       {
-        city: visitData.city || null,
-        country: visitData.country || null,
+        city,
+        country,
         timestamp: visitData.timestamp || null,
       },
       {
@@ -166,8 +192,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     // get location from vercel's geo-location headers
-    const city = request.headers.get("x-vercel-ip-city");
-    const country = request.headers.get("x-vercel-ip-country");
+    let city = request.headers.get("x-vercel-ip-city");
+    let country = request.headers.get("x-vercel-ip-country");
+
+    city = decodeString(city);
+
+    country = getCountryName(country);
 
     // fallback - get from request body
     let cityFromBody: string | null = null;
@@ -178,8 +208,8 @@ export async function POST(request: NextRequest) {
       try {
         const body = await request.json();
         if (body && typeof body === "object") {
-          cityFromBody = body.city || null;
-          countryFromBody = body.country || null;
+          cityFromBody = decodeString(body.city || null);
+          countryFromBody = getCountryName(body.country || null);
         }
       } catch {
         // no-op
