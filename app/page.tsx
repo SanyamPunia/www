@@ -26,7 +26,7 @@ import { playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -146,6 +146,7 @@ const page = () => {
                         alt="Location"
                         width={200}
                         height={200}
+                        loading="eager"
                         className={`rounded-md select-none ${
                           imageLoaded
                             ? "opacity-100"

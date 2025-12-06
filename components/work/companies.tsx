@@ -160,8 +160,8 @@ export default function Companies() {
                       idx === 0 && isHovered
                         ? "rounded-t-sm"
                         : idx === companies.length - 1 && isHovered
-                        ? "rounded-b-sm"
-                        : ""
+                          ? "rounded-b-sm"
+                          : ""
                     }`}
                   >
                     <Image
