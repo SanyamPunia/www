@@ -75,7 +75,19 @@ export const labsRegistry: LabMetadata[] = [
     ],
     image: "/lab/file-tree-explorer.webp",
     createdAt: "nov 07, 2025",
-    // source: "https://github.com/SanyamPunia",
+    source: "https://x.com/sanyampunia/status/1987472200174346528",
+  },
+  {
+    slug: "sonner-extended-toast",
+    title: "Extended Sonner Toast",
+    description: [
+      "custom sonner toast layout with animated background fill, icon states, footer, and promise-aware durations.",
+      "gradient glass panel, animated dot rows, and per-state color accents; includes promise demo with loading/success/error.",
+      "extended sonner with shared vs unique toast ids, single-instance updates, bottom-right toaster, no icons, and promise-driven state transitions.",
+    ],
+    image: "/lab/toast.webp",
+    createdAt: "dec 07, 2025",
+    // source: "...",
   },
 ];
 
