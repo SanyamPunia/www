@@ -86,7 +86,7 @@ function AnimatedPattern({ promiseState }: { promiseState?: PromiseState }) {
   const [circleColors, setCircleColors] = useState<Map<number, string>[]>(
     Array(5)
       .fill(null)
-      .map(() => new Map())
+      .map(() => new Map()),
   );
   const [isComplete, setIsComplete] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -241,7 +241,7 @@ const renderCustomToast = (
   options: ExtendedToastOptions | undefined,
   _type: "success" | "error" | "info" | "warning" | null,
   _defaultIcon: ReactNode | null,
-  promiseState?: PromiseState
+  promiseState?: PromiseState,
 ) => {
   const { description, footer, action, showArrow, ...sonnerOptions } =
     options || {};
@@ -252,8 +252,8 @@ const renderCustomToast = (
     promiseState === "pending" || promiseState === "loading"
       ? Infinity
       : sonnerOptions?.duration !== undefined
-      ? sonnerOptions.duration
-      : 5000;
+        ? sonnerOptions.duration
+        : 5000;
 
   return sonnerToast.custom(
     (t) => (
@@ -344,7 +344,7 @@ const renderCustomToast = (
         actionButton: "bg-[#262626] border-[#1f1f1f] text-[#f5f5f5]",
         ...sonnerOptions?.classNames,
       },
-    }
+    },
   );
 };
 
@@ -358,7 +358,7 @@ export const toast = Object.assign(
         options,
         "success",
         <CircleCheckIcon className="size-4" />,
-        "success"
+        "success",
       ),
 
     error: (title: string, options?: ExtendedToastOptions) =>
@@ -366,7 +366,7 @@ export const toast = Object.assign(
         title,
         options,
         "error",
-        <OctagonXIcon className="size-4" />
+        <OctagonXIcon className="size-4" />,
       ),
 
     info: (title: string, options?: ExtendedToastOptions) =>
@@ -374,7 +374,7 @@ export const toast = Object.assign(
         title,
         options,
         "info",
-        <InfoIcon className="size-4" />
+        <InfoIcon className="size-4" />,
       ),
 
     warning: (title: string, options?: ExtendedToastOptions) =>
@@ -382,7 +382,7 @@ export const toast = Object.assign(
         title,
         options,
         "warning",
-        <TriangleAlertIcon className="size-4" />
+        <TriangleAlertIcon className="size-4" />,
       ),
 
     message: sonnerToast.message,
@@ -393,7 +393,7 @@ export const toast = Object.assign(
         loading?: string | ReactNode;
         success?: string | ReactNode | ((data: T) => string | ReactNode);
         error?: string | ReactNode | ((error: unknown) => string | ReactNode);
-      } & ExtendedToastOptions
+      } & ExtendedToastOptions,
     ) => {
       const { loading, success, error, ...options } = data;
 
@@ -402,7 +402,7 @@ export const toast = Object.assign(
         { ...options, footer: options?.footer },
         null,
         null,
-        "pending"
+        "pending",
       );
 
       promise
@@ -417,7 +417,7 @@ export const toast = Object.assign(
             { ...options, footer: options?.footer },
             "success",
             null,
-            "success"
+            "success",
           );
           return result;
         })
@@ -430,7 +430,7 @@ export const toast = Object.assign(
             { ...options, footer: options?.footer },
             "error",
             null,
-            "error"
+            "error",
           );
           throw err;
         });
@@ -443,10 +443,10 @@ export const toast = Object.assign(
         { ...options, footer: options?.footer },
         null,
         null,
-        "pending"
+        "pending",
       ),
     dismiss: sonnerToast.dismiss,
-  }
+  },
 );
 
 function runPromiseDemo({
