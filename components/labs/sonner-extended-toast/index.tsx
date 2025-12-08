@@ -550,8 +550,8 @@ export default function SonnerExtendedToastLab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex h-64 w-full items-center justify-center border border-[#131313] rounded-sm bg-[#0b0b0b]">
-        <div className="flex flex-wrap gap-3 justify-center">
+      <div className="flex min-h-48 sm:h-64 w-full items-center justify-center border border-[#131313] rounded-sm bg-[#0b0b0b] p-4">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-full sm:w-auto">
           <button
             type="button"
             className="cursor-pointer px-4 py-2 rounded border border-[#1f1f1f] bg-[#0f0f0f] text-[#f5f5f5] text-xs hover:bg-[#141414] transition-colors"
@@ -570,8 +570,8 @@ export default function SonnerExtendedToastLab() {
         </div>
       </div>
 
-      <div className="flex h-64 w-full items-center justify-center border border-[#131313] rounded-sm bg-[#0b0b0b]">
-        <div className="flex flex-wrap gap-3 justify-center">
+      <div className="flex min-h-48 sm:h-64 w-full items-center justify-center border border-[#131313] rounded-sm bg-[#0b0b0b] p-4">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-full sm:w-auto">
           <button
             type="button"
             className="cursor-pointer px-4 py-2 rounded border border-[#1f1f1f] bg-[#0f0f0f] text-[#f5f5f5] text-xs hover:bg-[#141414] transition-colors"
