@@ -100,7 +100,7 @@ async function getLocationFromIP(ip: string): Promise<{
     } catch (fallbackError) {
       console.error(
         "Error fetching location from fallback service:",
-        fallbackError,
+        fallbackError
       );
       return { city: null, country: null };
     }
@@ -149,7 +149,7 @@ export async function GET() {
           headers: {
             "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
           },
-        },
+        }
       );
     }
 
@@ -172,7 +172,7 @@ export async function GET() {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
         },
-      },
+      }
     );
   } catch (error: unknown) {
     console.error("Error fetching last visit:", error as Error);
@@ -184,70 +184,45 @@ export async function GET() {
       },
       {
         status: 500,
-      },
+      }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // get location from vercel's geo-location headers
-    let city = request.headers.get("x-vercel-ip-city");
-    let country = request.headers.get("x-vercel-ip-country");
+    let clientIP = getClientIP(request);
 
-    city = decodeString(city);
-
-    country = getCountryName(country);
-
-    // fallback - get from request body
-    let cityFromBody: string | null = null;
-    let countryFromBody: string | null = null;
-
-    const contentType = request.headers.get("content-type");
-    if (contentType?.includes("application/json")) {
-      try {
-        const body = await request.json();
-        if (body && typeof body === "object") {
-          cityFromBody = decodeString(body.city || null);
-          countryFromBody = getCountryName(body.country || null);
-        }
-      } catch {
-        // no-op
+    if (isLocalhostIP(clientIP)) {
+      // best-effort: grab the caller's public IP when developing locally
+      const publicIP = await getPublicIP();
+      if (publicIP) {
+        clientIP = publicIP;
       }
     }
 
-    let finalCity = city || cityFromBody;
-    let finalCountry = country || countryFromBody;
-
-    if (!finalCity || !finalCountry) {
-      let clientIP = getClientIP(request);
-
-      if (isLocalhostIP(clientIP)) {
-        const publicIP = await getPublicIP();
-        if (publicIP) {
-          clientIP = publicIP;
-        }
-      }
-
-      if (clientIP && !isLocalhostIP(clientIP)) {
-        const ipLocation = await getLocationFromIP(clientIP);
-        finalCity = finalCity || ipLocation.city;
-        finalCountry = finalCountry || ipLocation.country;
-      }
+    if (!clientIP || isLocalhostIP(clientIP)) {
+      return NextResponse.json(
+        {
+          error: "Client IP not available",
+        },
+        { status: 400 }
+      );
     }
+
+    const ipLocation = await getLocationFromIP(clientIP);
+    const finalCity = decodeString(ipLocation.city);
+    const finalCountry = getCountryName(ipLocation.country);
 
     if (!finalCity || !finalCountry) {
       return NextResponse.json(
         {
           error: "Location data not available",
           debug: {
-            vercelCity: city,
-            vercelCountry: country,
-            bodyCity: cityFromBody,
-            bodyCountry: countryFromBody,
+            ip: clientIP,
           },
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -260,7 +235,7 @@ export async function POST(request: NextRequest) {
         {
           error: "Server configuration error: EDGE_CONFIG not found",
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -270,7 +245,7 @@ export async function POST(request: NextRequest) {
         {
           error: "Server configuration error: VERCEL_ACCESS_TOKEN not found",
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -290,7 +265,7 @@ export async function POST(request: NextRequest) {
         {
           error: "Server configuration error: Invalid EDGE_CONFIG format",
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -318,7 +293,7 @@ export async function POST(request: NextRequest) {
             },
           ],
         }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -327,7 +302,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         { error: "Failed to update location", details: errorText },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -341,13 +316,13 @@ export async function POST(request: NextRequest) {
         headers: {
           "Cache-Control": "no-store",
         },
-      },
+      }
     );
   } catch (error: unknown) {
     console.error("Error updating last visit:", error as Error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
