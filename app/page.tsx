@@ -12,7 +12,7 @@ import { LinkedIn } from "@/components/icons/linkedin";
 import MediumIcon from "@/components/icons/medium";
 import PageoIcon from "@/components/icons/pageo";
 import { XformerlyTwitter } from "@/components/icons/x";
-import { LastVisit } from "@/components/ui/last-visit";
+// import { LastVisit } from "@/components/ui/last-visit";
 import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
 import NowPlaying from "@/components/ui/now-playing";
 import {
@@ -27,7 +27,7 @@ import { playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null,
+    null
   );
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -408,7 +408,7 @@ const page = () => {
           </div>
         </div>
       </MaxWidthWrapper>
-      <LastVisit />
+      {/* <LastVisit /> */}
     </div>
   );
 };

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "typecheck": "tsc --noEmit"
+    "tc": "tsc --noEmit"
   },
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
