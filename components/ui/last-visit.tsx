@@ -16,36 +16,37 @@ export function LastVisit() {
   const [displayText, setDisplayText] = useState<string>("");
 
   useEffect(() => {
-    const fetchLastVisit = async () => {
-      try {
-        const response = await fetch("/api/last-visit");
-        const data = (await response.json()) as LastVisitData;
+    // const fetchLastVisit = async () => {
+    //   try {
+    //     const response = await fetch("/api/last-visit");
+    //     const data = (await response.json()) as LastVisitData;
 
-        setLastVisit(data);
-      } catch (error) {
-        console.error("Error fetching last visit:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    //     setLastVisit(data);
+    //   } catch (error) {
+    //     console.error("Error fetching last visit:", error);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
 
-    const updateLocation = async () => {
-      try {
-        await fetch("/api/last-visit", {
-          method: "POST",
-        });
+    // const updateLocation = async () => {
+    //   try {
+    //     await fetch("/api/last-visit", {
+    //       method: "POST",
+    //     });
 
-        // refetch after update
-        await fetchLastVisit();
-      } catch (error) {
-        console.error("Error updating location:", error);
+    //     // refetch after update
+    //     await fetchLastVisit();
+    //   } catch (error) {
+    //     console.error("Error updating location:", error);
 
-        // try to refetch after error
-        await fetchLastVisit();
-      }
-    };
+    //     // try to refetch after error
+    //     await fetchLastVisit();
+    //   }
+    // };
 
-    updateLocation();
+    // updateLocation();
+    setIsLoading(false);
   }, []);
 
   // Update display text when lastVisit changes

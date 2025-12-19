@@ -1,0 +1,111 @@
+## About This Site
+This is the personal portfolio website of Sanyam Punia, a full-stack web developer from Bangalore, India.
+
+## About Sanyam Punia
+
+### Professional Background
+- Currently working as a Frontend Engineer at Enclave (Nov 2025 - Present)
+- Previously served as Founding Engineer at Bitscale (Feb 2025 - Nov 2025)
+- Founder/CEO of Flib (2023 - Present)
+- Former Frontend Engineer Intern at Xurrent/Zenduty (Summer 2023 & Summer 2024)
+- Google Code-In Finalist at Score Lab (Oct 2018 - Dec 2018)
+
+### Technical Expertise
+- Full-stack web development with focus on frontend engineering
+- Specializes in React, Next.js, TypeScript
+- Strong advocate for simplicity in design and code
+- Passionate about dev tooling and npm package development
+- Experience building scalable APIs and web applications
+
+### Notable Projects & Packages
+- **envt**: Type-safe client-side environment variables with runtime validation (npm package)
+- **unique-forge**: Type-safe nanoid alternative to generate secure IDs (npm package)
+- **Profanity API**: Profanity check at scale using Hono, Upstash & Cloudflare
+- **pageo.me**: Simplest way to share all your links
+- **clyp**: Create better screenshots
+- **on-snip.org**: Real-time collaborative messaging rooms
+- **flib.store**: E-commerce platform built with Next.js, TypeScript, Zustand
+- **better-gist**: Generate shareable code snippets
+- **stick_it**: Generate priority to-do wallpapers on the go
+
+### Interests & Philosophy
+- Believes simplicity is essential for great user experience
+- Focuses on clean design and efficient code
+- Actively writes technical blogs sharing insights from projects
+- Creates UI experiments and interactive components in personal lab
+- Makes music (available on SoundCloud as prodmxle)
+- Interested in startups, dev tooling, and npm package building
+
+### Social Links
+- GitHub: https://github.com/SanyamPunia
+- LinkedIn: https://www.linkedin.com/in/sanyampunia/
+- Twitter/X: https://x.com/sanyampunia
+- Medium: https://medium.com/@sanyamm
+- Pageo: https://www.pageo.me/sanyam
+- SoundCloud: https://soundcloud.com/prodmxle
+- Email: lewarends@gmail.com
+
+## Site Structure
+- Homepage (/): Personal introduction, professional background, and social links
+- Blogs (/blogs): Technical blog posts about web development, React, Next.js, and other technologies
+- Lab (/lab): UI experiments and interactive components
+- Work (/work): Portfolio showcasing projects and work experience
+
+## Content Access Policy
+
+User-agent: GPTBot
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: CCBot
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+User-agent: *
+Allow: /
+Allow: /blogs/
+Allow: /lab/
+Allow: /work/
+Disallow: /api/
+
+## Content Usage
+- Public blog posts and lab experiments are available for AI training and summarization
+- Please provide attribution when referencing content from this site
+- API endpoints are private and should not be accessed
+
+## Contact
+For questions about content usage or permissions, contact: lewarends@gmail.com
