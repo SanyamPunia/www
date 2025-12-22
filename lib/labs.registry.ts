@@ -87,7 +87,21 @@ export const labsRegistry: LabMetadata[] = [
     ],
     image: "/lab/toast.webp",
     createdAt: "dec 07, 2025",
-    // source: "...",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/sonner-extended-toast/index.tsx",
+  },
+  {
+    slug: "number-counter",
+    title: "Number Counter",
+    description: [
+      "animated number counter with directional slide transitions using Framer Motion's AnimatePresence.",
+      "key insight: using `useRef` to track direction (1 for increment, -1 for decrement) and passing it as `custom` prop to control enter/exit animations. the `mode='popLayout'` prevents layout shift during transitions.",
+      "variants handle y-axis movement based on direction - numbers slide up when incrementing and down when decrementing. `tabular-nums` ensures consistent width for smooth transitions.",
+    ],
+    image: "/lab/number-counter.webp",
+    createdAt: "dec 22, 2025",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/number-counter/index.tsx",
   },
 ];
 

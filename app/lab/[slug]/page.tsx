@@ -41,6 +41,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/sonner-extended-toast/index"),
     { ssr: false },
   ),
+  "number-counter": dynamic(
+    () => import("@/components/labs/number-counter/index"),
+    { ssr: false },
+  ),
 };
 
 interface LabPageProps {

@@ -46,7 +46,6 @@ async function getLocationFromIP(ip: string): Promise<{
   country: string | null;
 }> {
   try {
-    // GeoJS API format: https://get.geojs.io/v1/ip/geo/{ip_address}.json
     const response = await fetch(
       `https://get.geojs.io/v1/ip/geo/${encodeURIComponent(ip)}.json`,
       {
@@ -67,7 +66,6 @@ async function getLocationFromIP(ip: string): Promise<{
       ip?: string;
     };
 
-    // GeoJS returns city and country directly
     return {
       city: data.city || null,
       country: data.country || null,

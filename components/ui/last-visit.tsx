@@ -2,51 +2,48 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
+import {
+  isLocalEnv,
+  type LastVisitData,
+  lastVisitFetcher,
+} from "@/lib/last-visit";
 import { TextEncrypted } from "./text-encrypted";
 
-interface LastVisitData {
-  city: string | null;
-  country: string | null;
-  timestamp?: number | null;
-}
-
 export function LastVisit() {
-  const [lastVisit, setLastVisit] = useState<LastVisitData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [displayText, setDisplayText] = useState<string>("");
+  const [shouldUpdate, setShouldUpdate] = useState(false);
+
+  const {
+    data: lastVisit,
+    isLoading,
+    mutate,
+  } = useSWR<LastVisitData>(
+    isLocalEnv ? null : "/api/last-visit",
+    lastVisitFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30_000,
+    },
+  );
 
   useEffect(() => {
-    const fetchLastVisit = async () => {
-      try {
-        const response = await fetch("/api/last-visit");
-        const data = (await response.json()) as LastVisitData;
-
-        setLastVisit(data);
-      } catch (error) {
-        console.error("Error fetching last visit:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (isLocalEnv || shouldUpdate) return;
 
     const updateLocation = async () => {
       try {
         await fetch("/api/last-visit", {
           method: "POST",
         });
-
-        // refetch after update
-        await fetchLastVisit();
+        setShouldUpdate(true);
+        await mutate();
       } catch (error) {
         console.error("Error updating location:", error);
-
-        // try to refetch after error
-        await fetchLastVisit();
       }
     };
 
     updateLocation();
-  }, []);
+  }, [mutate, shouldUpdate]);
 
   useEffect(() => {
     if (lastVisit?.city && lastVisit?.country) {
@@ -54,7 +51,7 @@ export function LastVisit() {
     }
   }, [lastVisit]);
 
-  if (isLoading || !lastVisit?.city || !lastVisit?.country) {
+  if (isLocalEnv || isLoading || !lastVisit?.city || !lastVisit?.country) {
     return null;
   }
 
