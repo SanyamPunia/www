@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Check, File } from "lucide-react";
+import { ArrowUpRight, BotMessageSquare, Check, File } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,6 +15,7 @@ import { XformerlyTwitter } from "@/components/icons/x";
 import { LastVisit } from "@/components/ui/last-visit";
 import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
 import NowPlaying from "@/components/ui/now-playing";
+import { NpmStats } from "@/components/ui/npm-stats";
 import {
   Popover,
   PopoverContent,
@@ -254,19 +255,18 @@ const page = () => {
                   },
                 }}
               >
-                Lately I've been interested in dev tooling and npm package
-                building. I recently published{" "}
+                Lately I've been interested in dev tooling. I recently published{" "}
                 <a
-                  href="https://www.npmjs.com/package/envt"
+                  href="https://www.npmjs.com/package/unique-forge"
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
                   rel="noopener"
                   onClick={playTapSound}
                 >
-                  envt
+                  unique-forge
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
-                .
+                </a>{" "}
+                <NpmStats packageName="unique-forge" />.
               </motion.p>
 
               <motion.p
@@ -359,6 +359,14 @@ const page = () => {
                   onClick={playTapSound}
                 >
                   <File className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
+                </Link>
+                <Link
+                  href="/llms.txt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={playTapSound}
+                >
+                  <BotMessageSquare className="transition-all rounded-lg hover:bg-neutral-800/50 p-2 size-7" />
                 </Link>
 
                 <Tooltip

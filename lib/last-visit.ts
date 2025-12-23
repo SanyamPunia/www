@@ -1,20 +1,12 @@
+import { fetcher } from "./fetcher";
+
 export interface LastVisitData {
   city: string | null;
   country: string | null;
   timestamp?: number | null;
 }
 
-export const lastVisitFetcher = async (url: string): Promise<LastVisitData> => {
-  const response = await fetch(url, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch last visit");
-  }
-
-  return (await response.json()) as LastVisitData;
-};
+export const lastVisitFetcher = (url: string) => fetcher<LastVisitData>(url);
 
 export const isLocalEnv =
   typeof window !== "undefined" &&
