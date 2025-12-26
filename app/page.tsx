@@ -28,7 +28,7 @@ import { playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
 
   const clearTooltipTimeout = () => {
