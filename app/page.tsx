@@ -28,7 +28,7 @@ import { playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null,
+    null
   );
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -223,16 +223,15 @@ const page = () => {
                   },
                 }}
               >
-                I write technical blogs sharing insights from my projects. You
-                can check them out{" "}
+                I write technical{" "}
                 <Link
                   href="/blogs"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
                   onClick={playTapSound}
                 >
-                  here
-                </Link>
-                . You can also visit my{" "}
+                  blogs
+                </Link>{" "}
+                sharing insights from my projects. You can also visit my{" "}
                 <Link
                   href="/lab"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
@@ -255,7 +254,7 @@ const page = () => {
                   },
                 }}
               >
-                Lately I've been interested in dev tooling. I recently published{" "}
+                Lately I've been into dev tooling. I recently published{" "}
                 <a
                   href="https://www.npmjs.com/package/unique-forge"
                   target="_blank"
