@@ -103,6 +103,18 @@ export const labsRegistry: LabMetadata[] = [
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/number-counter/index.tsx",
   },
+  {
+    slug: "multi-step-form",
+    title: "Multi Step Form",
+    description: [
+      "a sequential multi-step form with a smooth height transition between steps (no layout jump).",
+      'key insight: observe the active step content with `ResizeObserver`, store its `offsetHeight`, and animate a wrapper `motion.div` height with a spring. `AnimatePresence` (mode="wait") keeps enter/exit clean while the height animates to the next step.',
+    ],
+    image: "/lab/multi-step-form.webp",
+    createdAt: "dec 27, 2025",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/multi-step-form/index.tsx",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {

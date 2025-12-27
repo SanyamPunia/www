@@ -45,6 +45,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/number-counter/index"),
     { ssr: false },
   ),
+  "multi-step-form": dynamic(
+    () => import("@/components/labs/multi-step-form/index"),
+    { ssr: false },
+  ),
 };
 
 interface LabPageProps {
