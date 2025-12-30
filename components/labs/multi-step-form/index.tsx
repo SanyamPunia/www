@@ -109,7 +109,7 @@ function MultiStepForm() {
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: keyof FormData
+    field: keyof FormData,
   ) => {
     setFormData((prev) => ({
       ...prev,

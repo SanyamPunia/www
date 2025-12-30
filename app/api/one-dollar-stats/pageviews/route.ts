@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     if (!apiKey) {
       return NextResponse.json(
         { error: "Missing ONE_DOLLAR_STATS" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     if (!body.site_id) {
       return NextResponse.json(
         { error: "site_id is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
           status: res.status,
           details: upstreamBody,
         },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error", details: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

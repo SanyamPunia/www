@@ -12,7 +12,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
 
 export const postFetcher = async <T>(
   url: string,
-  body: unknown
+  body: unknown,
 ): Promise<T> => {
   const response = await fetch(url, {
     method: "POST",

@@ -29,11 +29,11 @@ import { ordinal, playTapSound } from "@/lib/utils";
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
   const { count, isLoading: isLoadingPageviews } = usePageviews(
     "sanyam.xyz",
-    "all"
+    "all",
   );
   const visitorLabel = count !== null ? ordinal(count) : null;
 

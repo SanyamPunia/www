@@ -26,7 +26,7 @@ export function usePageviews(siteId: string, dateRange: string = "all") {
           {
             site_id: siteId,
             date_range: dateRange,
-          }
+          },
         );
 
         const first = data.results?.[0]?.metrics?.[0];
