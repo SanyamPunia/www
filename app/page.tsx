@@ -31,7 +31,10 @@ const page = () => {
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
-  const { count } = usePageviews("sanyam.xyz", "all");
+  const { count, isLoading: isLoadingPageviews } = usePageviews(
+    "sanyam.xyz",
+    "all"
+  );
   const visitorLabel = count !== null ? ordinal(count) : null;
 
   const clearTooltipTimeout = () => {
@@ -284,13 +287,17 @@ const page = () => {
                 </a>
                 . feel free to reach out if you want to talk about startups,
                 have a cool idea, or anything in general.
-                {visitorLabel ? (
+                {isLoadingPageviews || visitorLabel ? (
                   <>
                     {" "}
                     also, congrats! you are the{" "}
-                    <span className="text-text-primary">
-                      {visitorLabel}
-                    </span>{" "}
+                    {isLoadingPageviews ? (
+                      <span className="inline-block h-4 w-8 rounded bg-neutral-800 animate-pulse" />
+                    ) : (
+                      <span className="text-text-primary text-sm">
+                        {visitorLabel}
+                      </span>
+                    )}{" "}
                     visitor.
                   </>
                 ) : null}
