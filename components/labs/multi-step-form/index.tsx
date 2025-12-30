@@ -109,7 +109,7 @@ function MultiStepForm() {
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: keyof FormData,
+    field: keyof FormData
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -148,7 +148,7 @@ function MultiStepForm() {
           </div>
           <button
             onClick={() => setShowBorder((prev) => !prev)}
-            className="text-xs px-2 py-1 rounded-sm border border-[#1e1e1e] bg-neutral-900/30 text-text-secondary hover:text-text-primary hover:bg-neutral-800/30 transition-colors"
+            className="cursor-pointer text-xs px-2 py-1 rounded-sm border border-[#1e1e1e] bg-neutral-900/30 text-text-secondary hover:text-text-primary hover:bg-neutral-800/30 transition-colors"
             type="button"
           >
             {showBorder ? "Hide Border" : "Show Border"}
@@ -174,7 +174,7 @@ function MultiStepForm() {
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
           className={`mb-6 ${
             showBorder
-              ? "border border-[#1e1e1e] rounded-sm p-3 bg-neutral-900/20 overflow-y-scroll"
+              ? "border border-[#1e1e1e] rounded-sm p-3 bg-neutral-900/20 overflow-y-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               : "overflow-hidden"
           }`}
         >
