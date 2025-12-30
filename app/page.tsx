@@ -23,13 +23,16 @@ import {
 } from "@/components/ui/popover";
 import Signature from "@/components/ui/signature";
 import Tooltip from "@/components/ui/tooltip";
-import { playTapSound } from "@/lib/utils";
+import { usePageviews } from "@/hooks/use-pageviews";
+import { ordinal, playTapSound } from "@/lib/utils";
 
 const page = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
-    null,
+    null
   );
+  const { count } = usePageviews("sanyam.xyz", "all");
+  const visitorLabel = count !== null ? ordinal(count) : null;
 
   const clearTooltipTimeout = () => {
     if (tooltipTimeout) {
@@ -268,7 +271,7 @@ const page = () => {
                   },
                 }}
               >
-                i also make{" "}
+                i make{" "}
                 <a
                   href="https://soundcloud.com/prodmxle"
                   target="_blank"
@@ -281,6 +284,16 @@ const page = () => {
                 </a>
                 . feel free to reach out if you want to talk about startups,
                 have a cool idea, or anything in general.
+                {visitorLabel ? (
+                  <>
+                    {" "}
+                    also, congrats! you are the{" "}
+                    <span className="text-text-primary">
+                      {visitorLabel}
+                    </span>{" "}
+                    visitor.
+                  </>
+                ) : null}
               </motion.p>
 
               <NowPlaying />
