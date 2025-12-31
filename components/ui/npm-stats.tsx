@@ -17,7 +17,7 @@ interface NpmStatsProps {
 }
 
 export function NpmStats({ packageName }: NpmStatsProps) {
-  const { data, error } = useSWR<PackageStats>(
+  const { data, error, isLoading } = useSWR<PackageStats>(
     `/api/packages/${packageName}`,
     (url) => fetcher<PackageStats>(url),
     {
@@ -26,7 +26,17 @@ export function NpmStats({ packageName }: NpmStatsProps) {
     },
   );
 
-  if (error || !data || data.total === 0) {
+  if (error || (!data && !isLoading)) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <span className="inline-block h-4 w-8 rounded bg-neutral-800 animate-pulse relative top-1" />
+    );
+  }
+
+  if (!data || data.total === 0) {
     return null;
   }
 

@@ -35,7 +35,10 @@ const page = () => {
     "sanyam.xyz",
     "all",
   );
-  const visitorLabel = count !== null ? ordinal(count) : null;
+  const visitorLabel =
+    count !== null
+      ? `${count.toLocaleString("en-US")}${ordinal(count).replace(/^\d+/, "")}`
+      : null;
 
   const clearTooltipTimeout = () => {
     if (tooltipTimeout) {
@@ -142,13 +145,17 @@ const page = () => {
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-3 border-[#1e1e1e]">
                     <div className="relative">
+                      <div
+                        className="rounded-md bg-neutral-800/50 animate-pulse"
+                        style={{ width: 200, height: 158 }}
+                      />
                       <Image
                         src="/assets/location.webp"
                         alt="Location"
                         width={200}
-                        height={200}
+                        height={158}
                         priority
-                        className="rounded-md select-none"
+                        className="rounded-md select-none absolute inset-0"
                         draggable="false"
                       />
                     </div>
@@ -292,11 +299,11 @@ const page = () => {
                     {" "}
                     also, congrats! you are the{" "}
                     {isLoadingPageviews ? (
-                      <span className="inline-block h-4 w-8 rounded bg-neutral-800 animate-pulse" />
+                      <span className="inline-block h-4 w-8 rounded bg-neutral-800 animate-pulse relative top-1" />
                     ) : (
-                      <span className="text-text-primary text-sm">
+                      <code className="text-xs px-1.5 py-0.5 rounded-sm bg-neutral-900 text-neutral-200">
                         {visitorLabel}
-                      </span>
+                      </code>
                     )}{" "}
                     visitor.
                   </>
