@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { playTapSound } from "@/lib/utils";
 
-interface BackButtonProps {
+export interface BackButtonProps {
   href: string;
   children: React.ReactNode;
   className?: string;

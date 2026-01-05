@@ -3,6 +3,8 @@ import type { ComponentPropsWithoutRef, ComponentType } from "react";
 import { highlight } from "sugar-high";
 import CodeBlock from "@/components/ui/code-block";
 import { MDXLink } from "@/components/ui/mdx-link";
+import BackButton from "@/components/ui/back-button";
+import type { BackButtonProps } from "@/components/ui/back-button";
 import { BlogLikeButton } from "@/components/blogs/blog-like-button";
 
 type HeadingProps = ComponentPropsWithoutRef<"h1">;
@@ -97,7 +99,7 @@ const components: MDXComponents = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className="border-l-4 border-neutral-700 pl-4 py-2 my-6 bg-neutral-900/30 rounded-r-sm [&>*]:mb-0"
+      className="border-l-4 border-neutral-700 pl-4 py-2 my-6 bg-neutral-900/30 rounded-r-sm *:mb-0"
       {...props}
     />
   ),
@@ -105,6 +107,10 @@ const components: MDXComponents = {
     <hr className="my-8 border-neutral-800" {...props} />
   ),
   BlogLikeButton: () => <BlogLikeButton />,
+  BackButton: (props: Record<string, unknown>) => {
+    const backButtonProps = props as unknown as BackButtonProps;
+    return <BackButton {...backButtonProps} />;
+  },
 };
 
 export function useMDXComponents(
