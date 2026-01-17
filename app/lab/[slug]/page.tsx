@@ -49,6 +49,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/multi-step-form/index"),
     { ssr: false },
   ),
+  "morphing-icons": dynamic(
+    () => import("@/components/labs/morphing-icons/index"),
+    { ssr: false },
+  ),
 };
 
 interface LabPageProps {
@@ -90,6 +94,7 @@ const page = ({ params }: LabPageProps) => {
             <LabContent
               description={labMetadata?.description}
               source={labMetadata?.source}
+              reference={labMetadata?.reference}
             />
           </motion.div>
 

@@ -5,6 +5,7 @@ export interface LabMetadata {
   image: string;
   createdAt: string;
   source?: string;
+  reference?: string;
 }
 
 export const labsRegistry: LabMetadata[] = [
@@ -114,6 +115,20 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "dec 27, 2025",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/multi-step-form/index.tsx",
+  },
+  {
+    slug: "morphing-icons",
+    title: "Morphing Icons",
+    description: [
+      "minimal keyboard-like UI for smooth icon morphing using Framer Motion. preview icon at top with dot indicators showing sequence position, keyboard grid below with 21 icons arranged 6 per row.",
+      "key insight: all icons use exactly 3 lines with standardized coordinates (center at 50,50). unused lines collapse to center point. Framer Motion's `motion.line` animates coordinate transitions with 150ms easeOut timing. opacity handles zero-length lines for smooth fade in/out during morphing.",
+      "click icons to toggle selection (highlighted state), click preview to cycle through selected sequence. dot indicators show total count and current position. minimal select all/none controls. each icon button scales to 0.98 on tap for tactile feedback.",
+    ],
+    image: "/lab/morphing-icons.webp",
+    createdAt: "jan 15, 2026",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-icons/morphing-icon-demo.tsx",
+    reference: "https://benji.org/morphing-icons-with-claude",
   },
 ];
 
