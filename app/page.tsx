@@ -202,15 +202,15 @@ const page = () => {
                   Bitscale
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
-                . You can find more of my work and project experience{" "}
+                . You can explore my{" "}
                 <Link
                   href="/work"
                   className="underline underline-offset-2 transition-all text-emerald-400 hover:text-emerald-300"
                   onClick={playTapSound}
                 >
-                  here
-                </Link>
-                .
+                  work
+                </Link>{" "}
+                for more projects and experience.
               </motion.p>
               <motion.p
                 className="text-sm text-text-secondary lowercase leading-5 mb-6"
