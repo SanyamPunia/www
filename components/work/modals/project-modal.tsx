@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/carousel";
 import type { Project } from "@/lib/constant";
 import { playTapSound } from "@/lib/utils";
+import { ImageWithSkeleton } from "../image-with-skeleton";
 import { renderTextWithCode } from "../render-text-with-code";
 
 interface ProjectModalProps {
@@ -77,7 +78,7 @@ export function ProjectModal({
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-neutral-900 border-dashed">
               {isMobile ? (
                 <div className="relative z-10">
-                  <Image
+                  <ImageWithSkeleton
                     src={project.image}
                     alt={project.title}
                     width={28}
@@ -97,7 +98,7 @@ export function ProjectModal({
                   className="relative z-50"
                   style={{ zIndex: 50 }}
                 >
-                  <Image
+                  <ImageWithSkeleton
                     src={project.image}
                     alt={project.title}
                     width={28}

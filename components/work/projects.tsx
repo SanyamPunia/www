@@ -1,13 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ibmPlexSerif } from "@/app/fonts";
 import { useMobile } from "@/hooks/use-mobile";
 import { projects } from "@/lib/constant";
 import { playTapSound } from "@/lib/utils";
+import { ImageWithSkeleton } from "./image-with-skeleton";
 import { ProjectModal } from "./modals/project-modal";
 
 export default function Projects() {
@@ -130,7 +130,7 @@ export default function Projects() {
                     }`}
                   >
                     <div className="relative z-10">
-                      <Image
+                      <ImageWithSkeleton
                         src={p.image}
                         alt={p.title}
                         width={28}
@@ -178,7 +178,7 @@ export default function Projects() {
                       className="relative z-50"
                       style={{ zIndex: 50 }}
                     >
-                      <Image
+                      <ImageWithSkeleton
                         src={p.image}
                         alt={p.title}
                         width={28}

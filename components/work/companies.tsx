@@ -1,13 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ibmPlexSerif } from "@/app/fonts";
 import { useMobile } from "@/hooks/use-mobile";
 import { companies } from "@/lib/constant";
 import { playTapSound } from "@/lib/utils";
+import { ImageWithSkeleton } from "./image-with-skeleton";
 import { CompanyModal } from "./modals/company-modal";
 
 export default function Companies() {
@@ -133,7 +133,7 @@ export default function Companies() {
                     }`}
                   >
                     <div className="relative z-10">
-                      <Image
+                      <ImageWithSkeleton
                         src={c.logo}
                         alt={c.name}
                         width={28}
@@ -181,7 +181,7 @@ export default function Companies() {
                       className="relative z-50"
                       style={{ zIndex: 50 }}
                     >
-                      <Image
+                      <ImageWithSkeleton
                         src={c.logo}
                         alt={c.name}
                         width={28}
