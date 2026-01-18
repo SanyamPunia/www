@@ -1,82 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ibmPlexSerif } from "@/app/fonts";
+import { useMobile } from "@/hooks/use-mobile";
+import { projects } from "@/lib/constant";
 import { playTapSound } from "@/lib/utils";
-
-const projects = [
-  {
-    title: "Profanity API",
-    image: "/projects/profanity.webp",
-    description: "profanity check at scale using hono, upstash & cloudflare",
-    category: "api",
-    href: "https://github.com/SanyamPunia/profanity-api",
-  },
-  {
-    title: "unique-forge",
-    image: "/projects/uf.webp",
-    description: "type-safe nanoid alternative to generate secure IDs",
-    category: "package",
-    href: "https://www.npmjs.com/package/unique-forge",
-  },
-  {
-    title: "envt",
-    image: "/projects/envt.webp",
-    description:
-      "type-safe client-side environment variables with runtime validation",
-    category: "package",
-    href: "https://www.npmjs.com/package/envt",
-  },
-  {
-    title: "pageo.me",
-    image: "/projects/pageo.webp",
-    description: "simplest way to share all your links",
-    category: "web",
-    href: "https://pageo.me",
-  },
-  {
-    title: "clyp",
-    image: "/projects/clyp.webp",
-    description: "create better screenshots",
-    category: "web",
-    href: "https://clyp-omega.vercel.app/",
-  },
-  {
-    title: "on-snip.org",
-    image: "/projects/onsnip.webp",
-    description: "real-time collaborative messaging rooms",
-    category: "web",
-    href: "https://on-snip.org",
-  },
-  {
-    title: "flib.store",
-    image: "/projects/flib.webp",
-    description: "built flib's app with next.js, typescript, zustand",
-    category: "web",
-    href: "https://flib.store",
-  },
-  {
-    title: "better-gist",
-    image: "/projects/bg.webp",
-    description: "generate `shareable` code snippets",
-    category: "web",
-    href: "https://better-gist.vercel.app/",
-  },
-  {
-    title: "stick_it",
-    image: "/projects/stickit.webp",
-    description: "seamlessly generate priority to-do wallpapers on the go",
-    category: "web",
-    href: "https://stick-it-olive.vercel.app/",
-  },
-];
+import { ProjectModal } from "./modals/project-modal";
 
 export default function Projects() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const isMobile = useMobile();
 
   return (
     <motion.div
@@ -134,7 +71,7 @@ export default function Projects() {
             },
           },
         }}
-        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-8"
+        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-8 overflow-hidden"
       >
         {projects.map((p, idx) => {
           const isHovered = hoveredIndex === idx;
@@ -166,17 +103,19 @@ export default function Projects() {
               }`}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => {
+                if (!isMobile) {
+                  setSelectedProject(idx);
+                  playTapSound();
+                }
+              }}
             >
-              <div
-                className="transition-opacity duration-200"
-                style={{ opacity: isDimmed ? 0.3 : 1 }}
-              >
+              {isMobile ? (
                 <Link
                   href={p.href}
                   target="_blank"
-                  className="group block"
-                  onMouseEnter={() => setHoveredIndex(idx)}
-                  onMouseLeave={() => setHoveredIndex(null)}
+                  className="transition-opacity duration-200 cursor-pointer block"
+                  style={{ opacity: isDimmed ? 0.3 : 1 }}
                   onClick={playTapSound}
                 >
                   <div
@@ -190,33 +129,121 @@ export default function Projects() {
                           : ""
                     }`}
                   >
-                    <Image
-                      src={p.image}
-                      alt={p.title}
-                      width={28}
-                      height={28}
-                      className="rounded-full select-none border border-[#1e1e1e] bg-black"
-                      draggable={false}
-                    />
+                    <div className="relative z-10">
+                      <Image
+                        src={p.image}
+                        alt={p.title}
+                        width={28}
+                        height={28}
+                        className="rounded-full select-none border border-[#1e1e1e] bg-black"
+                        draggable={false}
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-text-primary truncate flex items-center gap-1">
+                      <span className="text-xs text-text-primary block truncate">
                         {p.title}
-                        <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                      </p>
-                      <p className="text-xs text-text-secondary truncate">
+                      </span>
+                      <span className="text-xs text-text-secondary block truncate">
                         {p.description}
-                      </p>
+                      </span>
                     </div>
                     <span className="text-xs text-text-secondary whitespace-nowrap">
                       {p.category}
                     </span>
                   </div>
                 </Link>
-              </div>
+              ) : (
+                <div
+                  className="transition-opacity duration-200 cursor-pointer"
+                  style={{ opacity: isDimmed ? 0.3 : 1 }}
+                >
+                  <div
+                    className={`px-4 py-3.5 transition-colors duration-200 ${
+                      isHovered ? "bg-neutral-900/50" : ""
+                    } flex items-center gap-3 ${
+                      idx === 0 && isHovered
+                        ? "rounded-t-sm"
+                        : idx === projects.length - 1 && isHovered
+                          ? "rounded-b-sm"
+                          : ""
+                    }`}
+                  >
+                    <motion.div
+                      layoutId={`project-image-${idx}`}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                      className="relative z-50"
+                      style={{ zIndex: 50 }}
+                    >
+                      <Image
+                        src={p.image}
+                        alt={p.title}
+                        width={28}
+                        height={28}
+                        className="rounded-full select-none border border-[#1e1e1e] bg-black"
+                        draggable={false}
+                      />
+                    </motion.div>
+                    <div className="flex-1 min-w-0">
+                      <motion.span
+                        layoutId={`project-title-${idx}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
+                        className="text-xs text-text-primary block truncate relative z-50"
+                        style={{ zIndex: 50 }}
+                      >
+                        {p.title}
+                      </motion.span>
+                      <motion.span
+                        layoutId={`project-description-${idx}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
+                        className="text-xs text-text-secondary block truncate relative z-50"
+                        style={{ zIndex: 50 }}
+                      >
+                        {p.description}
+                      </motion.span>
+                    </div>
+                    <motion.span
+                      layoutId={`project-category-${idx}`}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                      className="text-xs text-text-secondary whitespace-nowrap relative z-50"
+                      style={{ zIndex: 50 }}
+                    >
+                      {p.category}
+                    </motion.span>
+                  </div>
+                </div>
+              )}
             </motion.div>
           );
         })}
       </motion.div>
+
+      {/* Modal - Desktop Only */}
+      <AnimatePresence>
+        {!isMobile && selectedProject !== null && (
+          <ProjectModal
+            project={projects[selectedProject]}
+            index={selectedProject}
+            onClose={() => setSelectedProject(null)}
+            isMobile={isMobile}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

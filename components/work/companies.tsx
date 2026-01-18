@@ -1,53 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ibmPlexSerif } from "@/app/fonts";
+import { useMobile } from "@/hooks/use-mobile";
+import { companies } from "@/lib/constant";
 import { playTapSound } from "@/lib/utils";
-
-const companies = [
-  {
-    name: "Enclave",
-    logo: "/org/enclave.webp",
-    title: "Frontend engineer",
-    duration: "nov'25 - now",
-    href: "https://www.enclave.money/",
-  },
-  {
-    name: "Bitscale",
-    logo: "/org/bitscale.webp",
-    title: "Founding Engineer",
-    duration: "feb'25 - nov'25",
-    href: "https://bitscale.ai/",
-  },
-  {
-    name: "Flib",
-    logo: "/org/flib.webp",
-    title: "Founder/CEO",
-    duration: "2023 - Now",
-    href: "https://flib.store",
-  },
-  {
-    name: "Xurrent (Zenduty)",
-    logo: "/org/xurrent.webp",
-    title: "Frontend Engineer Intern",
-    duration: "summer'23 + summer'24",
-    href: "https://www.zenduty.com/",
-  },
-  {
-    name: "Google Code-In",
-    logo: "/org/google.webp",
-    title: "Finalist | Score Lab",
-    duration: "Oct'18 - Dec'18",
-    href: "https://codein.withgoogle.com/archive/2018/",
-  },
-];
+import { CompanyModal } from "./modals/company-modal";
 
 export default function Companies() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
+  const isMobile = useMobile();
 
   return (
     <motion.div
@@ -107,7 +73,7 @@ export default function Companies() {
             },
           },
         }}
-        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-3"
+        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-3 overflow-hidden"
       >
         {companies.map((c, idx) => {
           const isHovered = hoveredIndex === idx;
@@ -140,17 +106,19 @@ export default function Companies() {
               }`}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => {
+                if (!isMobile) {
+                  setSelectedCompany(idx);
+                  playTapSound();
+                }
+              }}
             >
-              <div
-                className="transition-opacity duration-200"
-                style={{ opacity: isDimmed ? 0.3 : 1 }}
-              >
+              {isMobile ? (
                 <Link
                   href={c.href}
                   target="_blank"
-                  className="group block"
-                  onMouseEnter={() => setHoveredIndex(idx)}
-                  onMouseLeave={() => setHoveredIndex(null)}
+                  className="transition-opacity duration-200 cursor-pointer block"
+                  style={{ opacity: isDimmed ? 0.3 : 1 }}
                   onClick={playTapSound}
                 >
                   <div
@@ -164,33 +132,121 @@ export default function Companies() {
                           : ""
                     }`}
                   >
-                    <Image
-                      src={c.logo}
-                      alt={c.name}
-                      width={28}
-                      height={28}
-                      className="rounded-full select-none border border-[#1e1e1e] bg-black"
-                      draggable={false}
-                    />
+                    <div className="relative z-10">
+                      <Image
+                        src={c.logo}
+                        alt={c.name}
+                        width={28}
+                        height={28}
+                        className="rounded-full select-none border border-[#1e1e1e] bg-black"
+                        draggable={false}
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-text-primary truncate flex items-center gap-1">
+                      <span className="text-xs text-text-primary block truncate">
                         {c.name}
-                        <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                      </p>
-                      <p className="text-xs text-text-secondary truncate">
+                      </span>
+                      <span className="text-xs text-text-secondary block truncate">
                         {c.title}
-                      </p>
+                      </span>
                     </div>
                     <span className="text-[0.70em] px-2 py-0.5 rounded-sm text-text-secondary whitespace-nowrap">
                       {c.duration}
                     </span>
                   </div>
                 </Link>
-              </div>
+              ) : (
+                <div
+                  className="transition-opacity duration-200 cursor-pointer"
+                  style={{ opacity: isDimmed ? 0.3 : 1 }}
+                >
+                  <div
+                    className={`px-4 py-3.5 transition-colors duration-200 ${
+                      isHovered ? "bg-neutral-900/50" : ""
+                    } flex items-center gap-3 ${
+                      idx === 0 && isHovered
+                        ? "rounded-t-sm"
+                        : idx === companies.length - 1 && isHovered
+                          ? "rounded-b-sm"
+                          : ""
+                    }`}
+                  >
+                    <motion.div
+                      layoutId={`company-logo-${idx}`}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                      className="relative z-50"
+                      style={{ zIndex: 50 }}
+                    >
+                      <Image
+                        src={c.logo}
+                        alt={c.name}
+                        width={28}
+                        height={28}
+                        className="rounded-full select-none border border-[#1e1e1e] bg-black"
+                        draggable={false}
+                      />
+                    </motion.div>
+                    <div className="flex-1 min-w-0">
+                      <motion.span
+                        layoutId={`company-name-${idx}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
+                        className="text-xs text-text-primary block truncate relative z-50"
+                        style={{ zIndex: 50 }}
+                      >
+                        {c.name}
+                      </motion.span>
+                      <motion.span
+                        layoutId={`company-title-${idx}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
+                        className="text-xs text-text-secondary block truncate relative z-50"
+                        style={{ zIndex: 50 }}
+                      >
+                        {c.title}
+                      </motion.span>
+                    </div>
+                    <motion.span
+                      layoutId={`company-duration-${idx}`}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                      className="text-[0.70em] px-2 py-0.5 rounded-sm text-text-secondary whitespace-nowrap relative z-50"
+                      style={{ zIndex: 50 }}
+                    >
+                      {c.duration}
+                    </motion.span>
+                  </div>
+                </div>
+              )}
             </motion.div>
           );
         })}
       </motion.div>
+
+      {/* Modal - Desktop Only */}
+      <AnimatePresence>
+        {!isMobile && selectedCompany !== null && (
+          <CompanyModal
+            company={companies[selectedCompany]}
+            index={selectedCompany}
+            onClose={() => setSelectedCompany(null)}
+            isMobile={isMobile}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
