@@ -16,6 +16,7 @@ export interface Project {
   category: string;
   href: string;
   preview: string[];
+  collaborators?: Array<{ name: string; href: string }>;
 }
 
 export const companies: Company[] = [
@@ -120,6 +121,18 @@ export const projects: Project[] = [
     preview: [],
   },
   {
+    title: "rbac-ui",
+    image: "/projects/rbacui.webp",
+    description:
+      "resource-based access control framework for modern frontend apps",
+    details:
+      "a lightweight, tree-based, zero-dependency RBAC framework for frontend applications. features fast tree-based permission evaluation with intuitive permission grammar (`ui:dashboard:checklist`), nested hierarchical permissions, negation rules, and comprehensive React bindings (`AccessProvider`, `useAccess`, `AccessGate`, `useGuard`, etc.). permissions compile into a static permission tree for ultra-fast access checks. backend-agnostic design that works with any role storage.",
+    category: "package",
+    href: "https://www.npmjs.com/package/@rbac-ui/react",
+    preview: ["/projects/preview/rbacui/1.webp"],
+    collaborators: [{ name: "aviral", href: "https://aviral.xyz" }],
+  },
+  {
     title: "pageo.me",
     image: "/projects/pageo.webp",
     description: "simplest way to share all your links",
@@ -131,6 +144,10 @@ export const projects: Project[] = [
       "/projects/preview/pageo/1.webp",
       "/projects/preview/pageo/2.webp",
       "/projects/preview/pageo/3.webp",
+    ],
+    collaborators: [
+      { name: "aviral", href: "https://aviral.xyz" },
+      { name: "ojus", href: "https://ojus.fyi" },
     ],
   },
   {
@@ -180,18 +197,5 @@ export const projects: Project[] = [
     category: "web",
     href: "https://better-gist.vercel.app/",
     preview: ["/projects/preview/bg/1.webp"],
-  },
-  {
-    title: "stick_it",
-    image: "/projects/stickit.webp",
-    description: "seamlessly generate priority to-do wallpapers on the go",
-    details:
-      "seamlessly generate priority to-do wallpapers. built with next.js, tailwind css, and framer motion. deployed on vercel. allows users to create custom wallpapers with their priority tasks for visual reminders and productivity.",
-    category: "web",
-    href: "https://stick-it-olive.vercel.app/",
-    preview: [
-      "/projects/preview/stickit/1.webp",
-      "/projects/preview/stickit/2.webp",
-    ],
   },
 ];

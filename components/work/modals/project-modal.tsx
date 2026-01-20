@@ -182,6 +182,34 @@ export function ProjectModal({
               <p className="text-xs text-text-secondary leading-5">
                 {renderTextWithCode(project.details)}
               </p>
+              {/* Collaborators */}
+              {project.collaborators && project.collaborators.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap mt-3 pt-3 border-t border-neutral-900/50">
+                  <span className="text-xs text-text-muted">w/</span>
+                  {project.collaborators.map((collaborator, idx) => (
+                    <span
+                      key={`collaborator-${collaborator.href}-${idx}`}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Link
+                        href={collaborator.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer group"
+                        onClick={playTapSound}
+                      >
+                        {collaborator.name}
+                        <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </Link>
+                      {idx < (project.collaborators?.length ?? 0) - 1 && (
+                        <span className="text-sm text-text-muted select-none">
+                          ·
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Preview Carousel */}

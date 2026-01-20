@@ -20,13 +20,13 @@ This is the personal portfolio website of Sanyam Punia, a full-stack web develop
 ### Notable Projects & Packages
 - **envt**: Type-safe client-side environment variables with runtime validation (npm package)
 - **unique-forge**: Type-safe nanoid alternative to generate secure IDs (npm package)
+- **rbac-ui**: Resource-based access control framework for modern frontend apps with tree-based permission evaluation and React bindings (npm package, co-created with aviral)
 - **Profanity API**: Profanity check at scale using Hono, Upstash & Cloudflare
 - **pageo.me**: Simplest way to share all your links
 - **clyp**: Create better screenshots
 - **on-snip.org**: Real-time collaborative messaging rooms
 - **flib.store**: E-commerce platform built with Next.js, TypeScript, Zustand
 - **better-gist**: Generate shareable code snippets
-- **stick_it**: Generate priority to-do wallpapers on the go
 
 ### Interests & Philosophy
 - Believes simplicity is essential for great user experience
