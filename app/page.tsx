@@ -12,7 +12,6 @@ import { LinkedIn } from "@/components/icons/linkedin";
 import MediumIcon from "@/components/icons/medium";
 import PageoIcon from "@/components/icons/pageo";
 import { XformerlyTwitter } from "@/components/icons/x";
-import { LastVisit } from "@/components/ui/last-visit";
 import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
 import NowPlaying from "@/components/ui/now-playing";
 import { NpmStats } from "@/components/ui/npm-stats";
@@ -430,7 +429,6 @@ const page = () => {
           </div>
         </div>
       </MaxWidthWrapper>
-      <LastVisit />
     </div>
   );
 };
