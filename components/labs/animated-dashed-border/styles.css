@@ -1,33 +1,35 @@
 .adb .demo-card {
-    position: relative;
-    background: #0a0a0a;
-    border: 1px solid transparent;
-    transition: background-color 150ms ease, border-radius 220ms ease;
-    cursor: pointer;
-    min-width: 200px;
+  position: relative;
+  background: #0a0a0a;
+  border: 1px solid transparent;
+  transition:
+    background-color 150ms ease,
+    border-radius 220ms ease;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.adb .demo-card:hover {
+  background: #111111;
+}
+
+.adb .animated-border-svg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 1;
+}
+
+.adb .animated-dash-path {
+  stroke-dashoffset: 0;
+  animation: dash-march 0.5s linear infinite;
+}
+
+@keyframes dash-march {
+  to {
+    stroke-dashoffset: -14;
   }
-  
-  .adb .demo-card:hover {
-    background: #111111;
-  }
-  
-  .adb .animated-border-svg {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    opacity: 1;
-  }
-  
-  .adb .animated-dash-path {
-    stroke-dashoffset: 0;
-    animation: dash-march 0.5s linear infinite;
-  }
-  
-  @keyframes dash-march {
-    to {
-      stroke-dashoffset: -14;
-    }
-  }
+}
