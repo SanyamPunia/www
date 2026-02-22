@@ -130,6 +130,19 @@ export const labsRegistry: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-icons/morphing-icon-demo.tsx",
     reference: "https://benji.org/morphing-icons-with-claude",
   },
+  {
+    slug: "animated-dashed-border",
+    title: "Animated Dashed Border",
+    description: [
+      "an SVG-based animated dashed border that appears on hover. the dashes march around the border continuously using `stroke-dashoffset` animation.",
+      "key insight: using an SVG `path` starting from the middle of the top edge instead of a corner hides the animation seam. `vectorEffect='non-scaling-stroke'` keeps stroke width consistent regardless of container size. `preserveAspectRatio='none'` stretches the path to fit any aspect ratio.",
+      "the path is drawn clockwise from center-top, through all four rounded corners using arc commands (`A`). CSS keyframes animate `stroke-dashoffset` from 0 to -14 (dash + gap sum) creating the marching effect. `group-hover` triggers opacity fade-in for smooth appearance.",
+    ],
+    image: "/lab/animated-dashed-border.webp",
+    createdAt: "feb 21, 2026",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/animated-dashed-border/index.tsx",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {

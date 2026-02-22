@@ -53,6 +53,10 @@ const dynamicComponents: Record<string, LabComponent> = {
     () => import("@/components/labs/morphing-icons/index"),
     { ssr: false },
   ),
+  "animated-dashed-border": dynamic(
+    () => import("@/components/labs/animated-dashed-border/index"),
+    { ssr: false },
+  ),
 };
 
 interface LabPageProps {
