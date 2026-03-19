@@ -73,7 +73,7 @@ export default function Companies() {
             },
           },
         }}
-        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-3 overflow-hidden"
+        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-3"
       >
         {companies.map((c, idx) => {
           const isHovered = hoveredIndex === idx;

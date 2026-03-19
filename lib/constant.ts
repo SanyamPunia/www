@@ -21,16 +21,32 @@ export interface Project {
 
 export const companies: Company[] = [
   {
+    name: "Oliv AI",
+    logo: "/org/oliv.webp",
+    title: "Frontend Engineer",
+    duration: "mar'26 - now",
+    href: "https://oliv.ai/",
+    details: [
+      "building ai-powered sales intelligence features using `next.js` and `typescript` on the frontend with `python` and `clojure` backend services",
+      "developing interactive dashboards and data visualizations for real-time sales analytics and pipeline insights",
+      "implementing complex ui workflows for ai agent configuration, meeting analysis, and crm integration surfaces",
+      "working on performance-critical rendering for large datasets across prospect and deal intelligence views",
+    ],
+    preview: ["/org/preview/oliv/1.webp"],
+  },
+  {
     name: "Enclave",
     logo: "/org/enclave.webp",
     title: "Frontend engineer",
-    duration: "nov'25 - now",
+    duration: "nov'25 - mar'26",
     href: "https://www.enclave.money/",
     details: [
-      "building a professional trading terminal for [fireplace.gg](https://fireplace.gg)",
-      "optimizing trade markets for high-frequency socket connections handling massive data throughput",
-      "working with websockets and real-time frontend architecture",
-      "implementing trading terminal ui/ux using `next.js` and `typescript`, occasionally contributing to backend development",
+      "building a professional, high-performance trading terminal for [fireplace.gg](https://fireplace.gg) with massive real-time data throughput",
+      "optimizing prediction markets for high-frequency websocket connections and low-latency client updates",
+      "architecting real-time frontends with websockets, `react query`, and scalable state management",
+      "implementing trading terminal ux in `next.js` and `typescript`, with occasional backend contributions",
+      "shipped product surfaces including wallet tracker, wallet lists (static/dynamic), leaderboards, referrals, deposit flow, user preferences, discovery filters, 15-minute markets, holders, and pnl cards",
+      "instrumented core trade flows with `sentry` and `posthog` to monitor real-time interactions, user behavior, and guide ux/performance improvements",
     ],
     preview: ["/org/preview/enclave/1.webp", "/org/preview/enclave/2.webp"],
   },

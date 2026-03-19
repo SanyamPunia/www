@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover";
 import Signature from "@/components/ui/signature";
 import Tooltip from "@/components/ui/tooltip";
+import { TextEncrypted } from "@/components/ui/text-encrypted";
 import { usePageviews } from "@/hooks/use-pageviews";
 import { ordinal, playTapSound } from "@/lib/utils";
 
@@ -301,7 +302,7 @@ const page = () => {
                       <span className="inline-block h-4 w-8 rounded bg-neutral-800 animate-pulse relative top-1" />
                     ) : (
                       <code className="text-xs px-1.5 py-0.5 rounded-sm bg-neutral-900 text-neutral-200">
-                        {visitorLabel}
+                        <TextEncrypted text={visitorLabel!} />
                       </code>
                     )}{" "}
                     visitor.

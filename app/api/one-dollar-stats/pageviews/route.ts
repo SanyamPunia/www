@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 type DateRange = "year" | "all" | string | [string, string];
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         Accept: "application/json",
       },
       body: JSON.stringify(payload),
-      cache: "no-store",
+      next: { revalidate: 3600 },
     });
 
     const contentType = res.headers.get("content-type") || "";
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(upstreamBody as OneDollarStatsResponse, {
       headers: {
-        "Cache-Control": "no-store",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
       },
     });
   } catch (error) {

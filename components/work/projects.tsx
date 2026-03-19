@@ -71,7 +71,7 @@ export default function Projects() {
             },
           },
         }}
-        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-8 overflow-hidden"
+        className="flex flex-col gap-0 bg-neutral-900/30 ring ring-[#131313] rounded-sm mt-8"
       >
         {projects.map((p, idx) => {
           const isHovered = hoveredIndex === idx;

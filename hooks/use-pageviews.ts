@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { postFetcher } from "@/lib/fetcher";
 
 interface PageviewsResponse {
@@ -8,46 +8,21 @@ interface PageviewsResponse {
 }
 
 export function usePageviews(siteId: string, dateRange: string = "all") {
-  const [count, setCount] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useSWR<PageviewsResponse>(
+    siteId ? ["pageviews", siteId, dateRange] : null,
+    () =>
+      postFetcher<PageviewsResponse>("/api/one-dollar-stats/pageviews", {
+        site_id: siteId,
+        date_range: dateRange,
+      }),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60_000,
+    },
+  );
 
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchPageviews = async () => {
-      if (!siteId) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const data = await postFetcher<PageviewsResponse>(
-          "/api/one-dollar-stats/pageviews",
-          {
-            site_id: siteId,
-            date_range: dateRange,
-          },
-        );
-
-        const first = data.results?.[0]?.metrics?.[0];
-        if (typeof first === "number" && mounted) {
-          setCount(Math.max(1, Math.floor(first)));
-        }
-      } catch {
-        // no-op
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchPageviews();
-
-    return () => {
-      mounted = false;
-    };
-  }, [siteId, dateRange]);
+  const first = data?.results?.[0]?.metrics?.[0];
+  const count = typeof first === "number" ? Math.max(1, Math.floor(first)) : null;
 
   return { count, isLoading };
 }

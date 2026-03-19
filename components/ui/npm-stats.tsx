@@ -2,6 +2,7 @@
 
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
+import { TextEncrypted } from "@/components/ui/text-encrypted";
 
 interface PackageStats {
   name: string;
@@ -42,7 +43,7 @@ export function NpmStats({ packageName }: NpmStatsProps) {
 
   return (
     <code className="text-xs px-1.5 py-0.5 rounded-sm bg-neutral-900 text-neutral-200">
-      {data.total.toLocaleString()} downloads
+      <TextEncrypted text={`${data.total.toLocaleString()} downloads`} />
     </code>
   );
 }

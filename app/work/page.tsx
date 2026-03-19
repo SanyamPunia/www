@@ -11,11 +11,11 @@ const page = () => {
     <main className="min-h-screen flex items-center justify-center p-4">
       <MaxWidthWrapper
         size="screen-md"
-        className="bg-primary-bg border border-[#121212] rounded-sm overflow-hidden max-h-[90vh] flex flex-col"
+        className="bg-primary-bg border border-[#121212] rounded-sm max-h-[90vh] flex flex-col"
         // showTerminalHeader={true}
         animated={true}
       >
-        <div className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">
+        <motion.div layoutScroll className="flex-1 overflow-y-auto sm:px-6 px-0 py-6">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -27,7 +27,7 @@ const page = () => {
 
           <Companies />
           <Projects />
-        </div>
+        </motion.div>
       </MaxWidthWrapper>
     </main>
   );

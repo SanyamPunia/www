@@ -185,7 +185,7 @@ export function CompanyModal({
                     key={detail}
                     className="text-xs text-text-secondary leading-5 flex items-start gap-2"
                   >
-                    <span className="text-text-primary">•</span>
+                    <span className="text-text-primary select-none">•</span>
                     <span>{renderTextWithCode(detail)}</span>
                   </li>
                 ))}

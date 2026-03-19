@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 interface PackageMetadata {
   name: string;
@@ -42,6 +42,7 @@ async function fetchPackageMetadata(
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
+      next: { revalidate: 3600 },
     });
 
     if (!response.ok) {
@@ -78,6 +79,7 @@ async function fetchDownloadCounts(
         headers: {
           "User-Agent": "Mozilla/5.0",
         },
+        next: { revalidate: 3600 },
       },
     );
 
