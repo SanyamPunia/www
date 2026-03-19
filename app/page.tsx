@@ -182,6 +182,17 @@ const page = () => {
                 user experience. Clean design and efficient code make a big
                 difference. I'm currently working as a frontend engineer at{" "}
                 <a
+                  href="https://oliv.ai/"
+                  target="_blank"
+                  className="underline underline-offset-4 transition-all hover:text-text-primary group"
+                  rel="noopener"
+                  onClick={playTapSound}
+                >
+                  Oliv AI
+                  <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+                . Previously, I built a trading terminal at{" "}
+                <a
                   href="https://www.enclave.money/"
                   target="_blank"
                   className="underline underline-offset-4 transition-all hover:text-text-primary group"
@@ -190,8 +201,8 @@ const page = () => {
                 >
                   Enclave
                   <ArrowUpRight className="size-3 inline-block transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
-                . Previously, I also led engineering at{" "}
+                </a>{" "}
+                and led engineering at{" "}
                 <a
                   href="https://bitscale.ai/"
                   target="_blank"
