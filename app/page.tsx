@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NowPlaying } from "@/components/home/now-playing";
+import { Avatar } from "@/components/home/avatar";
 import { SiteFooter } from "@/components/home/site-footer";
 import { InlineLink } from "@/components/ui/inline-link";
 import { JsonLd } from "@/components/ui/json-ld";
@@ -19,34 +19,31 @@ export const metadata: Metadata = {
  * Read top-to-bottom. Each value is ms after mount.
  *
  *    0ms   nothing painted, Reveal holds every block hidden
- *  150ms   lead paragraph rises      (y 4 → 0, blur 6 → 0)
- *  230ms   supporting paragraph      (stagger 80ms)
- *  310ms   closing note
- *  390ms   hairline rule
- *  470ms   footer starts
- *  870ms   footer settles, the page is whole
- *  870ms   "currently" underline sweeps left → right (450ms)
- *  950ms   p.s. line, if Spotify has answered by now
- * 1010ms   "write"                   (stagger 140ms)
- * 1150ms   "lab"
+ *  150ms   avatar rises              (y 4 → 0, blur 6 → 0)
+ *  230ms   lead paragraph            (stagger 80ms)
+ *  310ms   supporting paragraph
+ *  390ms   closing note
+ *  470ms   hairline rule
+ *  550ms   footer starts
+ *  950ms   footer settles, the page is whole
+ *  950ms   "currently" underline sweeps left → right (450ms)
+ * 1090ms   "write"                   (stagger 140ms)
+ * 1230ms   "lab"
+ *
+ * The album cover behind the avatar is outside all of this. It arrives on a
+ * network response, fades itself in, and then loops independently.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
   /**
    * When Reveal's last child finishes. Derived from `components/ui/reveal.tsx`:
-   * delayChildren 150 + (4 staggers x 80) + duration 400. Five RevealItems.
+   * delayChildren 150 + (5 staggers x 80) + duration 400. Six RevealItems.
    * If any of those three change, or a block is added, this moves with them.
+   * Adding the avatar took it from 870 to 950.
    */
-  revealSettled: 870,
+  revealSettled: 950,
   /** between each link's draw, left to right down the paragraph */
   underlineStagger: 140,
-  /**
-   * Reveal's own beat, from the same file. The p.s. line is not a RevealItem
-   * because it waits on the network, so it borrows this to land one beat past
-   * the last block and read as the sixth thing to arrive rather than an
-   * interruption.
-   */
-  revealStagger: 80,
 };
 
 /** nth underline to draw, in document order */
@@ -64,6 +61,10 @@ export default function Page() {
         <h1 className="sr-only">Sanyam Punia</h1>
 
         <Reveal className="flex flex-col gap-12">
+          <RevealItem>
+            <Avatar />
+          </RevealItem>
+
           <RevealItem>
             <p className="text-body text-text-primary text-pretty">
               I&rsquo;m Sanyam, a full-stack developer based in India. I believe
@@ -116,12 +117,6 @@ export default function Page() {
               . reach out about startups, a cool idea, or anything at all.
             </p>
           </RevealItem>
-
-          {/* not a RevealItem, and not counted in the stagger. It renders null
-              until Spotify answers, so `revealSettled` above stays derived from
-              five children and the underline timings do not shift. The cue is
-              what stops a fast response landing mid-sequence. */}
-          <NowPlaying appearAt={TIMING.revealSettled + TIMING.revealStagger} />
 
           <RevealItem>
             <hr className="border-stroke" />
