@@ -16,6 +16,8 @@ export interface NowPlaying {
   title?: string;
   artist?: string;
   songUrl?: string;
+  /** album cover, already narrowed to a sensible size. See `pickCover`. */
+  albumArt?: string;
 }
 
 interface SpotifyCredentials {
@@ -67,7 +69,24 @@ interface CurrentlyPlayingResponse {
     name?: string;
     artists?: Array<{ name?: string }>;
     external_urls?: { spotify?: string };
+    album?: { images?: Array<{ url?: string; width?: number }> };
   };
+}
+
+/**
+ * Spotify returns three covers, largest first: 640, 300 and 64. The disc renders
+ * at 48px, so 64 is the closest fit by pixel count and the wrong choice, since it
+ * is already soft on a 2x display. This takes the smallest cover that still has
+ * headroom for that, which is the 300, and falls back to whatever exists if the
+ * shape ever changes.
+ */
+function pickCover(
+  images: Array<{ url?: string; width?: number }> = [],
+): string | undefined {
+  const usable = images.filter((image) => image.url);
+  const ascending = [...usable].sort((a, b) => (a.width ?? 0) - (b.width ?? 0));
+  const roomy = ascending.find((image) => (image.width ?? 0) >= 128);
+  return (roomy ?? ascending.at(-1))?.url;
 }
 
 export async function getNowPlaying(): Promise<NowPlaying> {
@@ -105,6 +124,7 @@ export async function getNowPlaying(): Promise<NowPlaying> {
         .filter(Boolean)
         .join(", "),
       songUrl: data.item.external_urls?.spotify,
+      albumArt: pickCover(data.item.album?.images),
     };
   } catch {
     return NOT_PLAYING;
