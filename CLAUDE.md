@@ -396,7 +396,8 @@ variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildr
 ## Spotify now-playing
 
 `lib/spotify.ts` is the provider, `app/api/now-playing/` the route the client
-polls, `components/home/now-playing.tsx` the line on the home page.
+polls, `components/home/now-playing.tsx` the album cover stacked behind the
+avatar at the top of the home page.
 
 Environment, all server-only except the last:
 
@@ -408,7 +409,7 @@ Environment, all server-only except the last:
 | `NEXT_PUBLIC_BASE_URL` | only to mint | the origin the OAuth redirect returns to |
 
 - **Missing credentials are not an error.** `lib/spotify.ts` checks for them and
-  reports nothing playing, so the site boots with the line absent. The old
+  reports nothing playing, so the site boots with the cover absent. The old
   version threw from a helper and relied on an outer catch, which meant a typo
   in a variable name looked identical to Spotify being down.
 - **Minting the refresh token is a one-off manual flow.** Set the first two
@@ -419,13 +420,26 @@ Environment, all server-only except the last:
   matches the redirect URI byte for byte, which is the whole reason
   `NEXT_PUBLIC_BASE_URL` exists rather than the flow reading `SITE_URL`.
   Neither auth route is linked from anywhere and neither stores anything.
-- **The line is not a `RevealItem`.** It renders `null` until Spotify answers,
-  which keeps the home page's stagger at five children so `revealSettled`, and
-  the underline timings derived from it, stay correct. It animates itself in
-  with an explicit `initial`/`animate` pair, since a variant label would
-  inherit the container's already-settled `show` state and just appear.
-- The track links through `InlineLink`, so it renders as a pill: `spotify.svg`
-  is registered for `open.spotify.com` in `lib/favicons.ts`.
+- **It renders inside `Avatar`, not as its own block.** It was a "p.s. currently
+  listening to X" paragraph in the column first, and that could not work: a block
+  arriving on a network response cannot join the opening stagger, so it either
+  interrupted the sequence or turned up after it, and it needed a timed cue to
+  look deliberate either way. Living inside a `RevealItem` that already animates
+  means no cue and no extra child. Do not put it back in the column.
+- **The reveal is keyed off the tooltip's `data-state`, not only `:hover`.** The
+  tooltip sits 8px to the right, so moving onto it leaves the anchor and `:hover`
+  drops while Radix keeps the tooltip open, which slid the cover back under an
+  open label. `hover:` stays alongside it, because `data-state` only flips after
+  `delayDuration` and waiting 150ms to start moving reads as lag.
+- **The cover's ring is not `ring-inset`.** Its `<img>` is `size-full` and paints
+  over an inset ring, so there was no visible edge at all. This is the same trap
+  as the number-counter and the dashed border: a child paints over a parent's
+  inset ring.
+- `pickCover` takes the 300px art, not the 64px one. 64 is closest to the 40px
+  disc by pixel count and the wrong choice, since it is already soft at 2x.
+- The mark in the tooltip is `components/icons/spotify.tsx`. `Tooltip`'s `label`
+  takes a `ReactNode` for that, and its content is a flex row so a mark and text
+  align without the call site rebuilding the box.
 
 ## Structured data
 
@@ -483,6 +497,8 @@ promising it would be a claim the ordering cannot support. `MoreLabs` filters on
 
 - `app/` routes. `components/ui/` shared primitives, `components/home/` and
   `components/work/` are per-surface, `components/icons/` holds brand marks.
+  `components/home/avatar.tsx` is the first block on the home page: the photo,
+  with the now-playing cover stacked behind it.
   A per-surface component moves to `components/ui/` the moment a second
   surface needs it, which is how `reveal.tsx` got there.
 - `app/api/` route handlers. Only Spotify lives here, see below. Everything
