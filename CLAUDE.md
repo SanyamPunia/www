@@ -1,0 +1,501 @@
+# CLAUDE.md
+
+@~/.claude/rules/base.md
+
+@~/.claude/rules/frontend.md
+
+@~/.claude/rules/typescript.md
+
+@~/.claude/rules/seo.md
+
+## Project overview
+
+The personal site, rebuilt light. Next.js App Router. The home page is a
+single vertically centered column on white. MDX blog posts live under
+`app/blogs/`, interactive experiments under `app/lab/`.
+
+This project replaces the previous dark version of the same site. It is
+intended to be force-pushed over `github.com/SanyamPunia/www`.
+
+## Commands
+
+```bash
+pnpm dev          # next dev --turbopack
+pnpm build        # next build --turbopack
+pnpm lint         # biome check
+pnpm format       # biome format --write
+pnpm tc           # tsc --noEmit
+pnpm check        # all three, this is the gate
+```
+
+`pnpm check` must be green before any push.
+
+## Stack declaration
+
+| Parameter | This project |
+|---|---|
+| Package manager | `pnpm` |
+| Icon library | `@phosphor-icons/react` v2, see Icons below |
+| Motion library | `motion` (imported from `motion/react`), **not** `framer-motion` |
+| Color system | A fixed **light** theme. Semantic tokens only, see below. |
+| Type scale | Named tokens `text-lead` / `text-body` / `text-action` / `text-meta` |
+| Default radius | `rounded-full` pills and avatars, `rounded-lg` cards, `rounded-md` inputs |
+| Focus pattern | `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2` |
+| Body font | `Inter` variable via `next/font/google`, displayed all lowercase |
+| Class helper | `cn()` from `lib/utils.ts` |
+| Formatter and linter | Biome, not ESLint or Prettier |
+| Page width | `CONTENT_WIDTH` in `lib/constants.ts`, consumed by `PageShell` |
+
+## Color tokens
+
+Defined once in `app/globals.css` under `@theme`. **No raw hex and no palette
+utilities in components.** If a colour is needed that has no token, add the
+token here first.
+
+| Token | Value | Use |
+|---|---|---|
+| `bg` | `#ffffff` | page background |
+| `surface` | `#fafafa` | raised panels |
+| `fill` | `#f4f4f5` | pill background, resting |
+| `fill-hover` | `#ebebec` | pill and list-row hover |
+| `fill-active` | `#e0e0e2` | pressed state, one step past hover |
+| `stroke-soft` | `#f2f2f2` | dividers in long lists, where `stroke` reads as a table |
+| `stroke` | `#ebebeb` | hairline rules, borders |
+| `stroke-strong` | `#dcdcdc` | scrollbar thumb, emphasised edges |
+| `text-primary` | `#1a1a1a` | lead copy, headings |
+| `text-secondary` | `#6b6b6b` | body copy |
+| `text-muted` | `#9b9b9b` | metadata, footer |
+| `accent` | `#3b82f6` | **logo mark only**, never text or links |
+| `danger` | `#b84a41` | invalid input, see below |
+| `inverse-bg` | `#0a0a0a` | dark ground, see below |
+| `inverse-fill` | `#111111` | raised tile on a dark ground |
+| `inverse-stroke` | `#1e1e1e` | hairline on a dark ground |
+| `inverse-text` | `#fafafa` | lead copy on a dark ground |
+| `inverse-text-secondary` | `#8f8f8f` | supporting copy on a dark ground |
+
+**`danger` is the one status tone.** Hue carries meaning here rather than
+decoration, the same exception the brand marks and the syntax colours get, so
+it does not reopen "no accent colour on text or links". It is 4.91:1 on
+`surface` and is the lightest red that still clears 4.5:1 at the 14.4px
+semibold it is used at. `#c2544b` was the first pick and fails at 4.31. There
+is deliberately no success or warning tone, add one only when a surface needs
+it, with the contrast checked the same way.
+
+**The `inverse-*` set is not dark mode.** Nothing switches to it and there is
+still no `dark:` variant anywhere. It is a surface a component opts into when a
+light ground genuinely cannot work, which so far means exactly one case: an
+asset that is white on transparent. `components/labs/spring-image/` renders
+`/assets/logo.webp`, the site's own mark in white, which on `bg` painted as an
+empty ring. Recolouring the mark was not an option, so the ground inverted.
+
+The values are the previous dark build's, so the two versions of the site stay
+recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
+`inverse-text-secondary` is 6.12:1. Check any new pairing: `#6f6f6f` was the
+first choice for the secondary tone and fails at 3.94.
+
+Reach for this only when the alternative is invisible content. A surface that
+is merely *nicer* dark is not a reason, that is the dark build this project
+deliberately replaced.
+
+## Local overrides
+
+- **No dark mode.** One light theme. The shared "every surface works in light
+  and dark" rule does not apply, there is nothing to switch to. This replaces
+  the previous version's inverse override (it was dark-only).
+- **No accent colour on text or links.** Hierarchy comes from tone and weight
+  alone. This is deliberate and is most of why the design reads clean.
+- **Nothing scales on press. There is no `active:scale-[0.98]` in this
+  codebase.** The shared rule mandates it on every tappable element and this
+  project overrides it outright. At this scale a 2% transform shifts an edge by
+  a fraction of a pixel, under the threshold for reading as motion and over the
+  threshold for changing antialiasing, so fine detail smears sideways rather
+  than shrinking. GitHub, X, Bitscale and SoundCloud all showed it plainly.
+  Layer promotion (`transform-gpu`) and whole-pixel box dimensions were both
+  tried and neither helps, because an inline target sits wherever text layout
+  puts it and the transform is sub-pixel by definition.
+
+  Press is a background step instead: `hover:bg-fill` then
+  `active:bg-fill-hover` on unfilled targets, `active:bg-fill-active` where the
+  resting state is already filled. Do not reintroduce the scale.
+- **All lowercase**, via `text-transform` on `body` in `app/globals.css`, not by
+  writing the copy in lowercase. The markup keeps real casing, so crawlers,
+  screen readers and copied text still get "Oliv AI". Write new copy in
+  sentence case and let the stylesheet do it. `code`, `pre`, `kbd` and `samp`
+  are exempt, lowercasing code would corrupt it.
+
+  **Form controls need `text-transform: inherit` spelled out.** They do not
+  inherit it on their own, and Tailwind's preflight `font: inherit` does not
+  cover it, since text-transform is not part of the font shorthand. Without
+  that rule any label inside a `<button>` keeps its source casing while the
+  prose around it lowercases.
+
+## Scale
+
+The design sits at 0.8 of a conventional scale. **That factor is baked into the
+tokens, so every value in `@theme` is the size it actually paints.** There is
+no root override, `html` stays at the browser default.
+
+`--spacing: 0.2rem` is the important one. Tailwind derives every `gap-*`,
+`p-*`, `h-*` and `size-*` from it as `calc(var(--spacing) * n)`, so that single
+token rescales all of them and no call site carries a scale factor. The radius
+tokens and the type scale are set the same way.
+
+Two rules follow:
+
+- **Never reintroduce a global root font-size.** It would multiply on top of
+  these tokens, and it silently catches anything added later, including
+  third-party UI that was never designed against this scale.
+- **Resize the page by changing `--spacing` and the type tokens together**, not
+  by adjusting individual utilities at call sites.
+
+Values in `px` sit outside the scale and stay fixed. That is correct for
+hairlines and focus rings, and it is why new sizes should be `rem` or `em`.
+
+## Type scale
+
+`text-lead` 16.8px/1.5 opening paragraph, primary tone.
+`text-body` 14.4px/1.6 supporting paragraphs, secondary tone.
+`text-action` 12.8px/1.5 weight 500, buttons and inline links.
+`text-meta` 12px/1.6 muted tone, footers, tooltips and quiet notes.
+
+No ad-hoc `text-[15px]`, and no Tailwind default sizes either. `text-xs` and
+friends are not on this scale, so they render out of proportion with everything
+around them. Add a scale token if a genuinely new size is needed.
+
+**Every home page paragraph is `text-body`.** Only tone separates them, primary
+for the opening one and secondary for the two below it. Matching them at
+`text-lead` instead was tried first and looked worse, the larger supporting
+paragraph read as a wall. Do not "fix" any of them back to `text-lead`, and do
+not drop the closing note to `text-meta`, it was deliberately raised to match
+the paragraph above it.
+
+`text-meta` serves the footer, tooltips, section labels and row metadata.
+
+**`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
+post open with a real `<h1>` at `text-lead`, followed by a `text-body`
+`text-secondary` line, grouped at `gap-2` so the two read as one block. No
+weight change, nothing on this site is bold, the step is size and tone.
+
+**On an index the lead line is secondary, never primary.** The list is the
+content and that line is context. At primary it is the same size and the same
+tone as every row title and the page reads as one flat list.
+
+The home page is the exception and keeps its `sr-only` h1: its opening
+paragraph genuinely is the content, not a description of content.
+
+## Icons
+
+Phosphor supplies every UI icon. Social brand marks come from
+[svgl.app](https://svgl.app) and live in `components/icons/`, one file per mark,
+with the source route named in a comment. svgl has no Medium, so that single
+mark stays on Phosphor's `MediumLogoIcon`.
+
+**Brand marks keep their real brand hex.** This is the one sanctioned exception
+to the semantic-tokens-only rule: a brand colour is not a theme colour, it
+belongs to the company, and tinting it makes it a different logo. The hex lives
+in the mark's own component and nowhere else. Do not add these to `@theme`, and
+do not reach for them in any other context.
+
+Because the fill is fixed, a mark does not answer to `currentColor`, so the
+footer's hover on a social link is the background step alone. `MediumLogoIcon`
+is the exception and still tints, since Phosphor draws in `currentColor`.
+
+Marks set `aria-hidden="true"` and `focusable="false"` before the prop spread,
+since the anchor wrapping them carries the label and Biome's
+`a11y/noSvgWithoutTitle` fires otherwise.
+
+- **Import the `*Icon`-suffixed exports only.** `CheckIcon`, not `Check`. The
+  bare names are deprecated in 2.1 and will be removed.
+- **Server components import from `@phosphor-icons/react/dist/ssr`.** The main
+  barrel pulls in `createContext` and throws in RSC. Only a `"use client"` file
+  may import from `@phosphor-icons/react` directly.
+- Sizing is `size-*`, never the `size` prop, so the Tailwind scale stays the one
+  source of truth. Inline-in-text icons use `size-[0.9em]` so they track the
+  copy they sit in.
+- Weight stays at the `regular` default. Do not pass `weight` per call site.
+
+## Inline links
+
+`InlineLink` is the one treatment for a link in prose, and it renders in two
+shapes off a single rule: **a link whose host has a mark becomes a pill, a link
+without one stays underlined text.** Call sites pass nothing extra, the shape
+is derived from the href.
+
+- The pill is the same `rounded-full bg-fill` shape as the primary button, sized
+  entirely in `em` so it tracks the text it sits in. Never give it a fixed
+  height or a per-call-site size.
+- Marks live in `public/assets/favicons`, registered by host in
+  `lib/favicons.ts` with their intrinsic width and height. They are downloaded,
+  never hotlinked and never fetched from Google's favicon service, so a page
+  load makes no third-party request.
+- The registry carries dimensions because not every mark is square. A wide one
+  set to the square height runs twice as long and swamps the line, so wide
+  marks get a smaller height to match the others' visual mass.
+- Adding a link to a new host means adding its mark to the registry, otherwise
+  it silently renders as a plain underlined link.
+
+## Layout
+
+Every page renders inside `PageShell` (`components/ui/page-shell.tsx`), which
+owns the `min-h-svh` centering and the column width. `align="center"` for the
+home page, `align="top"` for the longer index pages. Never set a per-page
+`max-w-*`, change `CONTENT_WIDTH` instead.
+
+## Work page
+
+`app/work/page.tsx` is a server component. `components/work/` holds the client
+pieces, `lib/work.ts` the data.
+
+- **Rows, never cards.** A company and a project render through one `WorkRow`
+  shape, flattened in `lib/work.ts` so the page stays layout only. Nothing on
+  this site is a card, the old build's bordered container did not come across.
+- **No disclosure, no client state.** Each row links straight out, so
+  `WorkList` is a server component and no row data crosses to the browser. An
+  in-place accordion with the open row in `?open=` was built and then removed
+  as unnecessary.
+- **`lib/work.ts` carries only what `WorkRow` reads.** It used to keep
+  `details`, `preview`, `description`, `collaborators` and a job `title` warm
+  for that removed detail view. Nothing read them, and the `preview` paths had
+  gone stale on top of that: every one pointed at an image no longer in
+  `public/`. If a detail view returns it gets content written for it, not fields
+  kept on the chance. `Company`, `Project`, `companies` and `projects` are not
+  exported either, `workSections` is the module's whole surface.
+- **A leader rule, not dividers.** Each row is logo, name, a hairline that
+  absorbs all the slack, then the date. Fifteen dividers on top of that read as
+  a table.
+- **Row logos keep their brand colour**, in one shared `rounded-full` tile with
+  a `ring-stroke` hairline. The source logos are six different silhouettes,
+  some carrying their own square ground and some bare, so an unframed row never
+  settles. `overflow-hidden` on the tile is what unifies them: a logo with its
+  own background gets clipped into the circle, a bare mark sits inside it
+  against `bg-fill`. Greyscale-at-rest was tried and rejected.
+
+## Page transitions
+
+A crossfade between routes, via React's `<ViewTransition>`.
+
+- `components/ui/page-transition.tsx` wraps **each page's content**, not the
+  root layout's children. A layout's children slot keeps its position in the
+  tree across a navigation, so React reconciles it as an update rather than an
+  unmount and a mount, and `enter`/`exit` never fire.
+- **It is propless on purpose.** A bare `<ViewTransition>` uses the browser
+  default, which is a crossfade, so there are no keyframes to maintain and
+  nothing depends on `::view-transition-old(.class)` selectors, which need
+  Chrome 125+ and diverge in Safari. Only the duration is tuned, against
+  `root`, in `app/globals.css`.
+- Directional slides keyed off a Link's `transitionTypes` were built and then
+  removed. They are a bigger effect than these pages need and they cost that
+  class-selector dependency. Re-adding means a types map on the boundary,
+  `transitionTypes` on the links, and keyframes per direction.
+- `experimental.viewTransition` in `next.config.ts` is what makes this work.
+  It does **not** pull in the experimental React channel, Next's
+  `needsExperimentalReact` only gates on `taint`, `transitionIndicator` and
+  `gestureTransition`.
+- **Setting that flag is what makes Next alias `react` to its own bundled
+  copy**, which is the copy exporting `ViewTransition`. The installed
+  `react@19.2.8` does not export it, so `require("react").ViewTransition` is
+  `undefined` in Node and that is expected, it is a bundler alias rather than a
+  package resolution. **Changing the flag needs a dev server restart.**
+- `@types/react` declares it in `canary.d.ts`, opted into by
+  `types/react-canary.d.ts`. A triple-slash reference rather than a
+  `compilerOptions.types` array, which would switch off automatic `@types`
+  discovery for everything else.
+
+## Blogs
+
+`app/blogs/page.tsx` is the index. A post is a directory under it holding three
+files:
+
+- `meta.json`, `{ title, description, date, readTime }`. **`date` is ISO
+  `YYYY-MM-DD`**, formatted for display by `formatBlogDate`. The old site
+  stored display strings like "mar 19, 2023" and sorted them lexically, which
+  put March before November and gave crawlers nothing machine-readable.
+- `page.mdx`, **pure content, no layout**. The old site put the page shell
+  inside every post's MDX, so each carried its own copy and they drifted.
+- `page.tsx`, the route. It exports `metadata` from the json and renders
+  `<BlogPost meta={meta}><Content /></BlogPost>`.
+
+`page.mdx` is not a route on its own, `pageExtensions` excludes md and mdx.
+
+- `mdx-components.tsx` is the one place prose is styled. Everything there sits
+  on the project's type scale and tone tokens, never a Tailwind default size.
+  `strong` renders as a tone step, not bold, since nothing on this site is
+  bold. List bullets are `before:` dots for the same reason as elsewhere: a
+  flex parent blockifies its children and kills a real marker.
+- Content headings start at **h2**. The shell renders the h1, so an h1 in the
+  body would be a second one.
+- Code fences render through `components/ui/code-block.tsx`. `sugar-high`
+  emits `sh__*` classes coloured by the `--sh-*` properties in `globals.css`,
+  which are **greys, not a syntax rainbow**, so a code block stays inside the
+  page's monochrome.
+- A missing `meta.json` hides a directory from the index, so a draft can sit
+  in the tree unpublished.
+- A post's demo component is **colocated** in the post directory when only that
+  post uses it, and lives in `components/blogs/` when it might not be. Its
+  import goes at the top of `page.mdx`.
+
+## Lab
+
+`app/lab/page.tsx` is the index, `app/lab/[slug]/page.tsx` the detail. Each
+experiment is a directory under `components/labs/`.
+
+- **The page is a server component; the dynamic import map is not.**
+  `next/dynamic` rejects `ssr: false` inside a server component, and the
+  experiments are all browser-only, so the map lives in
+  `components/lab/experiment.tsx` behind `"use client"`. The page keeps its
+  metadata, static params and `notFound`.
+- **`IMPLEMENTED_LABS` in `lib/labs.ts` gates the routes** and the map is typed
+  against it, so listing a slug without adding its component is a build error
+  rather than an empty frame. An entry in the registry with no component 404s.
+- `file-tree-explorer` is the one slug whose directory is named differently
+  (`file-tree`), carried over from the old repo.
+- **No preview images.** The old registry pointed at screenshots of the dark
+  build, wrong on a white page and wrong about what the components look like
+  now. The detail page runs the real component.
+- Four experiments still carry a local `styles.css`. That is the one place the
+  one-stylesheet rule bends, they are self-contained demos whose CSS is not
+  part of the design system. Their colours still come from tokens via
+  `var(--color-*)`. `cursor-origin-button` had one and it was folded into
+  Tailwind, including its asymmetric enter/leave timing, so prefer that when
+  touching the others.
+
+## Motion
+
+**Every page opens on the same stagger.** `Reveal` wraps the page column and
+each top-level block is a `RevealItem`. `Reveal` passes children straight
+through, so anything inside it stays a server component, which is why
+`WorkSection` still renders on the server despite sitting inside one. Blocks
+sit at `gap-12`.
+
+`MotionProvider` in the root layout sets `reducedMotion="user"` globally, so
+Motion skips transform and layout animation for anyone with the OS setting on.
+Do not add a blanket CSS `!important` reduced-motion reset, it is redundant and
+fights the library.
+
+Standard variants, reused rather than reinvented:
+
+```ts
+// fade + blur + rise
+initial={{ opacity: 0, y: 4, filter: "blur(6px)" }}
+animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+transition={{ duration: 0.4, ease: "easeOut" }}
+
+// staggered children
+variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.35 } } }}
+```
+
+## Toolchain notes
+
+- **TypeScript 7.** The compiler is the native port, which dropped the JS
+  compiler API Next reads by default. `experimental.useTypeScriptCli` in
+  `next.config.ts` routes Next's typecheck through the `tsc` CLI instead.
+  Removing that flag breaks `next dev` with an unhandled rejection.
+- **Biome 2.5.** `css.parser.tailwindDirectives` must stay on or Biome fails to
+  parse `@theme` in `app/globals.css`.
+
+## Spotify now-playing
+
+`lib/spotify.ts` is the provider, `app/api/now-playing/` the route the client
+polls, `components/home/now-playing.tsx` the line on the home page.
+
+Environment, all server-only except the last:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `SPOTIFY_CLIENT_ID` | yes | from the Spotify developer dashboard |
+| `SPOTIFY_CLIENT_SECRET` | yes | same |
+| `SPOTIFY_REFRESH_TOKEN` | yes | minted once, see below |
+| `NEXT_PUBLIC_BASE_URL` | only to mint | the origin the OAuth redirect returns to |
+
+- **Missing credentials are not an error.** `lib/spotify.ts` checks for them and
+  reports nothing playing, so the site boots with the line absent. The old
+  version threw from a helper and relied on an outer catch, which meant a typo
+  in a variable name looked identical to Spotify being down.
+- **Minting the refresh token is a one-off manual flow.** Set the first two
+  variables plus `NEXT_PUBLIC_BASE_URL=http://localhost:3000`, add
+  `http://localhost:3000/api/spotify/callback` to the app's redirect allow-list
+  in the dashboard, visit `/api/spotify/login`, approve, and the callback
+  returns the token as JSON to paste into `SPOTIFY_REFRESH_TOKEN`. Spotify
+  matches the redirect URI byte for byte, which is the whole reason
+  `NEXT_PUBLIC_BASE_URL` exists rather than the flow reading `SITE_URL`.
+  Neither auth route is linked from anywhere and neither stores anything.
+- **The line is not a `RevealItem`.** It renders `null` until Spotify answers,
+  which keeps the home page's stagger at five children so `revealSettled`, and
+  the underline timings derived from it, stay correct. It animates itself in
+  with an explicit `initial`/`animate` pair, since a variant label would
+  inherit the container's already-settled `show` state and just appear.
+- The track links through `InlineLink`, so it renders as a pill: `spotify.svg`
+  is registered for `open.spotify.com` in `lib/favicons.ts`.
+
+## Structured data
+
+`lib/schema.ts` builds the JSON-LD, `components/ui/json-ld.tsx` renders it. Every
+route emits exactly one block: `Person` + `WebSite` in a `@graph` on the home
+page, `ProfilePage` on `/work`, `CollectionPage` with an `ItemList` on the two
+indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment.
+
+- **Everything is derived, never restated.** Titles, dates and lists come from
+  `meta.json`, `labsRegistry` and `getAllBlogs`, the same data the page renders.
+  The shared rules ban marking up what a page does not visibly show, and a
+  hand-copied title is how that happens by accident.
+- **`dateModified` is deliberately absent.** Nothing records when a post was
+  last edited, so stamping `datePublished` there would assert "never edited
+  since" as fact.
+- **The email is deliberately absent.** It is already public on the page, but
+  machine-readable markup hands it to scrapers for no ranking benefit.
+- The renderer escapes `<` as a unicode escape. A `</script>` inside any string value
+  would otherwise close the tag early, and `JSON.stringify` does not do this.
+
+## Internal linking
+
+`MorePosts` and `MoreLabs` sit at the foot of every post and experiment.
+
+Before them each of those pages was a leaf with exactly one inbound link, its own
+index, and nothing linked between them, so there was no cluster for a crawler to
+follow. They are titled "More posts" / "More experiments", not "Related":
+there is no tag or topic data to compute relatedness from, so a heading
+promising it would be a claim the ordering cannot support. `MoreLabs` filters on
+`isImplemented`, or it would point every lab page at a 404.
+
+## SEO routes
+
+`robots.ts`, `sitemap.ts` and `not-found.tsx`, all reading `SITE_URL`.
+
+- **`sitemap.ts` lists only routes that resolve.** Lab pages are gated on
+  `IMPLEMENTED_LABS`, so a registry entry without a component 404s and must not
+  be advertised. Every entry is implemented today, which is exactly why the
+  filter belongs in the code rather than in someone's memory.
+- **No invented timestamps.** The old sitemap stamped `new Date()` on the four
+  static routes, so every crawl saw them claim they had changed that second.
+  `lastModified` is omitted where nothing real backs it, and `/blogs` and
+  `/lab` borrow the newest date from the content they list.
+- **`robots.ts` allows `/` rather than enumerating routes.** The old version
+  listed every blog and lab path into `allow`, which `allow: "/"` already
+  covers and which went stale on every new post. `/api/` is the one real
+  exclusion, because `/api/spotify/login` redirects to Spotify's authorize
+  screen.
+- **`not-found.tsx` sets `robots: { index: false }`.** An indexed 404 competes
+  with the real pages for the same terms. It centres rather than aligning top,
+  since there is no content to scroll, and it carries no `BackLink` because the
+  copy already names every route worth reaching.
+
+## Directories
+
+- `app/` routes. `components/ui/` shared primitives, `components/home/` and
+  `components/work/` are per-surface, `components/icons/` holds brand marks.
+  A per-surface component moves to `components/ui/` the moment a second
+  surface needs it, which is how `reveal.tsx` got there.
+- `app/api/` route handlers. Only Spotify lives here, see below. Everything
+  under it is `Disallow`ed in `robots.ts`.
+- `lib/` no React. `constants.ts` layout tokens, `site.ts` copy and URLs,
+  `work.ts` work data, `favicons.ts` the host-to-mark registry,
+  `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
+  `utils.ts`.
+- `types/` ambient declarations only. Currently just the React canary
+  reference. Anything untyped from npm gets its `.d.ts` here.
+
+## Keeping this current
+
+Any new top-level directory gets documented here before the task is done. Any
+new colour token gets a row in the token table. Any new type-scale entry gets a
+line in the type scale section.

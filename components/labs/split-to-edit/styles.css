@@ -1,0 +1,27 @@
+/* Split to Edit component styles */
+.split-to-edit-container {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Ensure smooth transitions for layout animations */
+.layout-group {
+  position: relative;
+}
+
+/* Content editable styling */
+[contenteditable] {
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+[contenteditable]:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* Smooth border transitions */
+.border-transition {
+  transition: border-radius 0.15s ease-in-out;
+}

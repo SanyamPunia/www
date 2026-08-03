@@ -1,0 +1,6 @@
+{
+  "title": "Understanding tRPC using Next.js",
+  "description": "End-to-end typesafe APIs with tRPC and Next.js. Initialising the router, creating hooks with batching, wiring _app.tsx and consuming it client side.",
+  "date": "2023-03-19",
+  "readTime": "7 min read"
+}

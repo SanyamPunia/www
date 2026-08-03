@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  /* surfaces */
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-fill: #f4f4f5;
+  --color-fill-hover: #ebebec;
+  --color-fill-active: #e0e0e2;
+  --color-stroke-soft: #f2f2f2;
+  --color-stroke: #ebebeb;
+  --color-stroke-strong: #dcdcdc;
+
+  /* text */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b6b6b;
+  --color-text-muted: #9b9b9b;
+
+  /* reserved for the logo mark only, never for text or links */
+  --color-accent: #3b82f6;
+
+  /*
+   * Invalid input. Hue is carrying meaning here rather than decoration, the
+   * same exception the brand marks and syntax colours get. Muted, so it warns
+   * without shouting on a quiet page. 4.91:1 on `surface`, which is the
+   * lightest red that still clears 4.5:1 at the 14.4px semibold this is used
+   * at. Anything lighter fails: #c2544b lands at 4.31.
+   */
+  --color-danger: #b84a41;
+
+  /*
+   * A dark ground, for the one case a light surface cannot serve: an asset
+   * that is white on transparent and vanishes on `bg`. These are the previous
+   * dark build's values, so the two versions of the site stay recognisably
+   * related. This is not dark mode and nothing switches to it, it is a surface
+   * a component opts into deliberately. See CLAUDE.md.
+   */
+  --color-inverse-bg: #0a0a0a;
+  --color-inverse-fill: #111111;
+  --color-inverse-stroke: #1e1e1e;
+  --color-inverse-text: #fafafa;
+  --color-inverse-text-secondary: #8f8f8f;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * The whole design sits at 0.8 of a conventional scale. That factor is baked
+   * into the tokens below rather than applied once at the root, so every value
+   * here is the size it actually paints. Tailwind derives every `gap-*`,
+   * `p-*`, `h-*` and `size-*` from `--spacing`, so overriding it rescales all
+   * of them without touching a single call site.
+   */
+  --spacing: 0.2rem;
+
+  --radius-xs: 0.1rem;
+  --radius-md: 0.3rem;
+  --radius-lg: 0.4rem;
+
+  /* named type scale, see CLAUDE.md */
+  --text-lead: 1.05rem;
+  --text-lead--line-height: 1.5;
+  --text-body: 0.9rem;
+  --text-body--line-height: 1.6;
+  --text-action: 0.8rem;
+  --text-action--line-height: 1.5;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.6;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /*
+   * Lowercase is presentational only. The markup keeps real casing, so
+   * crawlers, screen readers and anything copied off the page still read
+   * "Oliv AI" rather than "oliv ai", and new copy cannot drift out of style.
+   */
+  text-transform: lowercase;
+}
+
+/* code carries meaning in its casing, lowercasing it would corrupt it */
+code,
+pre,
+kbd,
+samp {
+  text-transform: none;
+}
+
+/*
+ * Form controls do not inherit text-transform from body. Tailwind's preflight
+ * passes `font: inherit`, and text-transform is not part of the font
+ * shorthand, so any label inside a button keeps its source casing while the
+ * prose around it lowercases. Without this the work page rows read "Oliv AI"
+ * while the heading above them reads "companies".
+ */
+button,
+input,
+select,
+textarea {
+  text-transform: inherit;
+}
+
+/* drives components/home/signature.tsx, which sets the dasharray per path */
+@keyframes signature-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Drives the underline on `InlineLink` when it is given a `drawAt`. Paired
+ * with `transform-origin: left` and `animation-fill-mode: both`, so the rule
+ * sits at zero width through its delay and then sweeps out left to right.
+ *
+ * A keyframe rather than a Motion animation because the rule is a `::after`,
+ * and Motion only drives real elements.
+ */
+@keyframes link-underline-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
+ * MotionConfig's reducedMotion only governs Motion's own animations, and the
+ * two above are raw CSS. This is the targeted opt-out, not the blanket
+ * !important reset the shared rules ban: it names the two keyframes and lands
+ * each on its finished state.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [style*="--underline-draw-at"]::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/*
+ * Page transitions are the browser's default crossfade, so there are no
+ * keyframes to maintain. `root` is the name the browser gives the whole-page
+ * snapshot when nothing declares its own, which is why this needs no class
+ * selectors and works wherever view transitions do.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: ease;
+}
+
+/*
+ * MotionConfig cannot reach view-transition pseudo-elements, so they opt out
+ * here. Scoped to those pseudo-elements, so this is not the blanket reset the
+ * shared rules ban.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    /* biome-ignore lint/complexity/noImportantStyles: view transitions set their animation inline on the pseudo-element, so nothing else can win the cascade */
+    animation-duration: 0s !important;
+    /* biome-ignore lint/complexity/noImportantStyles: as above */
+    animation-delay: 0s !important;
+  }
+}
+
+/*
+ * Syntax highlighting.
+ *
+ * The one place the monochrome rule is suspended, and for the same reason the
+ * brand marks are: hue is carrying meaning, not decoration. Grey-on-grey
+ * defeats the entire point of highlighting, you cannot tell an attribute from
+ * a string. Five hues, held at low saturation so a code block still sits
+ * inside a quiet page.
+ *
+ * sugar-high emits `sh__token--<type>` classes and ships no stylesheet, so
+ * these rules are what make it do anything at all.
+ */
+:root {
+  --sh-keyword: #a626a4; /* purple: const, import, return, if */
+  --sh-string: #3f8f3c; /* green: string and template literals */
+  --sh-class: #b07219; /* amber: types and component names */
+  --sh-jsxliterals: #b07219; /* amber: jsx tag names, same family as class */
+  --sh-entity: #3a6fd8; /* blue: function names */
+  --sh-property: #0f7c9c; /* cyan: object keys and jsx attributes */
+  --sh-identifier: #2f3237; /* near-black: plain identifiers */
+  --sh-sign: #9b9b9b; /* grey: punctuation, it should recede */
+  --sh-comment: #9b9b9b; /* grey */
+}
+
+.sh__token--keyword {
+  color: var(--sh-keyword);
+}
+.sh__token--string {
+  color: var(--sh-string);
+}
+.sh__token--class {
+  color: var(--sh-class);
+}
+.sh__token--jsxliterals {
+  color: var(--sh-jsxliterals);
+}
+.sh__token--entity {
+  color: var(--sh-entity);
+}
+.sh__token--property {
+  color: var(--sh-property);
+}
+.sh__token--identifier {
+  color: var(--sh-identifier);
+}
+.sh__token--sign {
+  color: var(--sh-sign);
+}
+.sh__token--comment {
+  color: var(--sh-comment);
+  font-style: italic;
+}
+
+::selection {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  /* horizontal bars too, or a code block gets the browser default height */
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-stroke-strong);
+  border-radius: 9999px;
+}

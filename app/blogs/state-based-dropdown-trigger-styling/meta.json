@@ -1,0 +1,6 @@
+{
+  "title": "state-based dropdown trigger styling",
+  "description": "Why a dropdown trigger should visually reflect its own open state, and how aria-expanded does it in one line of CSS rather than component state.",
+  "date": "2025-12-11",
+  "readTime": "3 min read"
+}

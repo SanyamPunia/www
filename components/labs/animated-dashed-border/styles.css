@@ -1,0 +1,46 @@
+.adb .demo-card {
+  position: relative;
+  /*
+   * At rest the card matches the frame, so the dashed path is the only thing
+   * defining it, which is the point of the demo. Hover shifts it off white.
+   *
+   * The dark build sat flush at #0a0a0a and lightened to #111111. A light
+   * theme cannot go lighter than a white frame, so the hover darkens instead,
+   * which is the convention anyway. This only works because the frame is
+   * white: against a grey frame the hover landed on the frame's own colour and
+   * the card vanished exactly when it should have stood out.
+   */
+  background: var(--color-bg);
+  border: 1px solid transparent;
+  transition:
+    background-color 150ms ease,
+    border-radius 220ms ease;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.adb .demo-card:hover {
+  background: var(--color-surface);
+}
+
+.adb .animated-border-svg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 1;
+}
+
+.adb .animated-dash-path {
+  stroke-dashoffset: 0;
+  animation: dash-march 0.5s linear infinite;
+}
+
+/* -15 is two dash periods at the path's `4 3.5`, so the loop is seamless */
+@keyframes dash-march {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
