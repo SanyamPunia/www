@@ -82,6 +82,33 @@ body {
   text-transform: lowercase;
 }
 
+/*
+ * More leading on `text-body`, below `sm` only.
+ *
+ * This is the second half of the pill fix, and it only works because
+ * `InlineLink` pins its own `leading-none`. While the pill inherited the prose
+ * line-height it grew by exactly as much as the line box did, so raising this
+ * changed nothing at all.
+ *
+ * With the pill fixed at 21.6px: 1.44px between stacked pills at 1.6, and 5.04px
+ * at 1.85. Mobile only, because a narrow column wraps often enough that nearly
+ * every line carries a pill, while a wide one almost never stacks two. 1.6 is
+ * the tighter rhythm the design wants there.
+ *
+ * Redefining the token rather than adding a class to each paragraph means every
+ * `text-body` element picks it up, while anything carrying an explicit
+ * `leading-*` keeps its own value. That is what leaves the index and work rows
+ * (`leading-tight`) untouched, since a utility sets `--tw-leading` and wins.
+ *
+ * 40rem is Tailwind's `sm`. This has to sit after `@theme`, or the generated
+ * `:root` would be the later rule and overwrite it.
+ */
+@media (width < 40rem) {
+  :root {
+    --text-body--line-height: 1.85;
+  }
+}
+
 /* code carries meaning in its casing, lowercasing it would corrupt it */
 code,
 pre,

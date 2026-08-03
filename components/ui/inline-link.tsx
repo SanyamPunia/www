@@ -53,7 +53,25 @@ export function InlineLink({
 
   const classes = favicon
     ? cn(
-        "inline-flex items-center gap-[0.3em] rounded-full bg-fill px-[0.5em] py-[0.15em]",
+        "inline-flex items-center gap-[0.5em] rounded-full bg-fill px-[0.5em] py-[0.25em]",
+        /*
+         * `leading-none` is what stops stacked pills overlapping, and without it
+         * no amount of paragraph leading helps.
+         *
+         * An inline-flex takes the prose line-height for its own text item, so
+         * the pill was the full line box plus its padding: 27.36px inside a
+         * 23.04px line, overlapping the lines above and below by 4.32px. Raising
+         * the paragraph's leading raised the pill by exactly as much, so the
+         * overlap never moved.
+         *
+         * With a fixed internal leading the pill is 21.6px and sits inside its
+         * line. `py-[0.25em]` spends the reclaimed space back on height, so it
+         * paints the same size it always did.
+         *
+         * Safe for descenders: `items-center` centres the em box and the padding
+         * absorbs the overhang, so nothing clips or crosses the rounded edge.
+         */
+        "leading-none",
         // align-middle centres the pill on the text's x-height, which leaves it
         // sitting a touch low against the line as a whole. The small lift is
         // optical, not derived, and it is in em so it holds at any text size.

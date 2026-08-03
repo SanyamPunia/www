@@ -224,6 +224,20 @@ is derived from the href.
 - The pill is the same `rounded-full bg-fill` shape as the primary button, sized
   entirely in `em` so it tracks the text it sits in. Never give it a fixed
   height or a per-call-site size.
+- **`leading-none` on the pill is load-bearing. Do not remove it.** An
+  inline-flex takes the prose line-height for its own text item, so without it
+  the pill is the whole line box plus its padding: 27.36px inside a 23.04px
+  line, overlapping the lines above and below by 4.32px. It is not a style
+  choice, it is what keeps the pill inside its own line.
+
+  The trap is that raising the paragraph's leading looks like the fix and is
+  not. It grows the pill by exactly the same amount, so the overlap never
+  moves. That was tried first and did nothing. `py-[0.25em]` then spends the
+  reclaimed height back, so the pill paints the size it always did.
+- **Prose leading is looser below `sm`**, set on `--text-body--line-height` in
+  `app/globals.css`. A narrow column wraps often enough that nearly every line
+  carries a pill, so 1.44px between them reads as touching, and 1.85 takes it to
+  5.04px. A wide column almost never stacks two, and keeps the tighter 1.6.
 - Marks live in `public/assets/favicons`, registered by host in
   `lib/favicons.ts` with their intrinsic width and height. They are downloaded,
   never hotlinked and never fetched from Google's favicon service, so a page
