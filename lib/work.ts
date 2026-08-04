@@ -122,7 +122,7 @@ const projects: Project[] = [
     slug: "on-snip-org",
     image: "/projects/onsnip.webp",
     category: "web",
-    href: "https://on-snip.org",
+    href: "https://github.com/SanyamPunia/on-snip",
   },
   {
     title: "flib.store",
