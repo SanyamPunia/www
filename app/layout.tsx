@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { Toaster } from "@/components/providers/toaster";
+import { SelectionPins } from "@/components/ui/selection-pins";
 import { SITE_URL } from "@/lib/constants";
 import { inter } from "./fonts";
 import "./globals.css";
@@ -60,6 +61,9 @@ export default function RootLayout({
         <MotionProvider>{children}</MotionProvider>
         {/* mounted once, so a feature only ever calls toast() */}
         <Toaster />
+        {/* here rather than per page: selecting text is a whole-document
+            behaviour, and one listener covers every route */}
+        <SelectionPins />
       </body>
     </html>
   );
