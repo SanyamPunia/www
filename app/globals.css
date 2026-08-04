@@ -191,6 +191,45 @@ textarea {
 }
 
 /*
+ * Slides the now-playing cover out from behind the avatar when Spotify answers,
+ * rather than having it appear at its resting offset.
+ *
+ * `from` only, deliberately. With no `to`, the animation ends on the element's
+ * own computed value, so the resting offset lives in one place, the utility class
+ * on the element, and is not restated here. A `to: 30%` would also have to change
+ * every time that class does.
+ *
+ * No `fill-mode`. The end state already equals the resting state, so nothing
+ * needs holding, and filling forwards would freeze `translate` at the animated
+ * value where an animation outranks a normal declaration, which is exactly what
+ * the hover offset is.
+ */
+@keyframes cover-reveal {
+  from {
+    translate: 0;
+    opacity: 0;
+  }
+}
+
+/*
+ * The same move in reverse, for when the track stops.
+ *
+ * `to` only, so the animation starts from wherever the cover currently is: mid
+ * reveal, at rest, or held out by a hover. Naming a `from` would snap it to the
+ * resting offset first and the slide back would start with a jump.
+ *
+ * This one does need `forwards`, unlike `cover-reveal`. Its end state is not the
+ * element's resting state, so without the fill the cover would slide away and
+ * then flick back to full opacity for the frames before it unmounts.
+ */
+@keyframes cover-conceal {
+  to {
+    translate: 0;
+    opacity: 0;
+  }
+}
+
+/*
  * MotionConfig's reducedMotion only governs Motion's own animations, and the
  * two above are raw CSS. This is the targeted opt-out, not the blanket
  * !important reset the shared rules ban: it names the two keyframes and lands
