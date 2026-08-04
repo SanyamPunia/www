@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Avatar } from "@/components/home/avatar";
 import { SiteFooter } from "@/components/home/site-footer";
+import { DiaText } from "@/components/ui/dia-text";
 import { InlineLink } from "@/components/ui/inline-link";
 import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
  *    0ms   nothing painted, Reveal holds every block hidden
  *  150ms   avatar rises              (y 4 → 0, blur 6 → 0)
  *  230ms   lead paragraph            (stagger 80ms)
+ *  230ms   colour band starts sweeping across "Sanyam" (1.2s)
  *  310ms   supporting paragraph
  *  390ms   closing note
  *  470ms   hairline rule
@@ -44,6 +46,13 @@ const TIMING = {
   revealSettled: 950,
   /** between each link's draw, left to right down the paragraph */
   underlineStagger: 140,
+  /**
+   * When the name's colour sweep starts, in seconds. Matched to the moment the
+   * lead paragraph begins fading in, `delayChildren 150 + 1 stagger`, because the
+   * first frame of a sweep is fully transparent: start it any later and the name
+   * is visibly missing from a paragraph that has already arrived.
+   */
+  nameSweepAt: 0.23,
 };
 
 /** nth underline to draw, in document order */
@@ -67,10 +76,10 @@ export default function Page() {
 
           <RevealItem>
             <p className="text-body text-text-primary text-pretty">
-              I&rsquo;m Sanyam, a full-stack developer based in India. I believe
-              simplicity is what makes a great user experience, and that clean
-              design paired with efficient code is what actually makes the
-              difference.
+              I&rsquo;m <DiaText delay={TIMING.nameSweepAt} text="Sanyam" />, a
+              full-stack developer based in India. I believe simplicity is what
+              makes a great user experience, and that clean design paired with
+              efficient code is what actually makes the difference.
             </p>
           </RevealItem>
 

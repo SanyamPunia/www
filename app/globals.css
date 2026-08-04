@@ -226,6 +226,27 @@ textarea {
  * sugar-high emits `sh__token--<type>` classes and ships no stylesheet, so
  * these rules are what make it do anything at all.
  */
+/*
+ * The colour band that sweeps across the name on the home page once, on load.
+ *
+ * Custom properties rather than `@theme` tokens, the same call as the syntax
+ * colours below: this is a fixed set of hues belonging to one effect, not a
+ * palette anything else should reach for. Keeping them here is also what lets
+ * `components/ui/dia-text.tsx` hold no hex, since a CSS gradient can take
+ * `var()` directly.
+ *
+ * The one place on the site with more than one hue at once, and it is spent on a
+ * single expressive moment that passes and leaves the text at `text-primary`.
+ * Nothing is left tinted afterwards.
+ */
+:root {
+  --sweep-1: #c679c4;
+  --sweep-2: #fa3d1d;
+  --sweep-3: #ffb005;
+  --sweep-4: #e1e1fe;
+  --sweep-5: #0358f7;
+}
+
 :root {
   --sh-keyword: #a626a4; /* purple: const, import, return, if */
   --sh-string: #3f8f3c; /* green: string and template literals */
