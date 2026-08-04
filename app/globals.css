@@ -21,6 +21,23 @@
   --color-accent: #3b82f6;
 
   /*
+   * Text selection. The one place a saturated hue covers a whole run of prose,
+   * and it is user-driven rather than decoration, so it does not reopen "no
+   * accent colour on text or links": nothing renders in this colour until
+   * someone drags across it.
+   *
+   * A light emerald, `text-primary` on it at 9.05:1.
+   *
+   * Only the selected text constrains this now. The carets used to as well, back
+   * when they straddled the highlight, but they sit wholly outside it and are
+   * `stroke-strong`, so this tone is free to move without stranding them.
+   *
+   * The floor is around #0b9160, where dark text drops to 4.34. Past that the
+   * selected text has to go light, which is a bigger change than a token.
+   */
+  --color-selection: #34d399;
+
+  /*
    * Invalid input. Hue is carrying meaning here rather than decoration, the
    * same exception the brand marks and syntax colours get. Muted, so it warns
    * without shouting on a quiet page. 4.91:1 on `surface`, which is the
@@ -288,9 +305,19 @@ textarea {
   font-style: italic;
 }
 
+/*
+ * A mint highlight with the page's own near-black text, rather than the black
+ * fill and white text this used to have.
+ *
+ * `::selection` is severely limited: `color`, `background-color`,
+ * `text-decoration`, `text-shadow` and the text-fill properties, and nothing
+ * else. No `content`, no pseudo-elements of its own. The carets at each end of a
+ * selection are therefore not possible here at all, and live in
+ * `components/ui/selection-pins.tsx`, which measures the live Range.
+ */
 ::selection {
-  background-color: #1a1a1a;
-  color: #ffffff;
+  background-color: var(--color-selection);
+  color: var(--color-text-primary);
 }
 
 ::-webkit-scrollbar {
