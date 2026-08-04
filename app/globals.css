@@ -156,6 +156,24 @@ textarea {
 }
 
 /*
+ * Turns the now-playing cover behind the avatar while it is hovered.
+ *
+ * Declared here rather than reaching for `animate-[spin_...]`. Tailwind only
+ * emits its own `spin` keyframes when `animate-spin` is used, so an arbitrary
+ * value naming `spin` can compile to an animation with nothing to run.
+ *
+ * The element keeps this animation at all times and only toggles
+ * `animation-play-state`, so leaving the pill holds the disc at whatever angle
+ * it reached and the next hover carries on from there. Gating the animation
+ * itself on hover would snap it back to 0deg every time.
+ */
+@keyframes disc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/*
  * MotionConfig's reducedMotion only governs Motion's own animations, and the
  * two above are raw CSS. This is the targeted opt-out, not the blanket
  * !important reset the shared rules ban: it names the two keyframes and lands

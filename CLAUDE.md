@@ -449,6 +449,15 @@ Environment, all server-only except the last:
   over an inset ring, so there was no visible edge at all. This is the same trap
   as the number-counter and the dashed border: a child paints over a parent's
   inset ring.
+- **The disc turns via `paused` / `running`, not by adding the animation on
+  hover.** `disc-spin` is always attached and only its play state toggles, so
+  leaving the pill holds the disc at whatever angle it reached. Gating the
+  animation itself would restart it at `0deg` and snap on every unhover. It is
+  `motion-safe:`, since `MotionProvider` does not govern raw CSS keyframes.
+- **`disc-spin` is declared in `globals.css` rather than using
+  `animate-[spin_…]`.** Tailwind only emits its own `spin` keyframes when
+  `animate-spin` is used, so naming `spin` in an arbitrary value can compile to
+  an animation with nothing to run.
 - `pickCover` takes the 300px art, not the 64px one. 64 is closest to the 40px
   disc by pixel count and the wrong choice, since it is already soft at 2x.
 - The mark in the tooltip is `components/icons/spotify.tsx`. `Tooltip`'s `label`

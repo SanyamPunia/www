@@ -10,10 +10,10 @@ const POLL_MS = 30_000;
 /**
  * The album cover of whatever is playing, stacked behind the avatar.
  *
- * Not rotated on hover, despite "tilt". Both discs are `rounded-full`, and
- * rotating a circle is a no-op: there is no corner to lean. The reveal is
- * horizontal instead, sliding from 30% clear of the avatar to 50%, which is what
- * "tilts further right" actually looks like on a circle.
+ * The reveal is horizontal, sliding from 30% clear of the avatar to 50%. It is
+ * not a rotation: a circle has no corner to lean on, so rotating the anchor
+ * would move nothing. The cover does spin, but that is the image inside turning
+ * on its own axis like a record, which is a separate thing from the reveal.
  *
  * A real link with an `aria-label`, not decoration. At rest 12px of it shows,
  * which is a reachable target, and being an anchor means it is also focusable, so
@@ -76,6 +76,9 @@ export function NowPlayingDisc() {
           rel="noopener noreferrer"
           aria-label={`Now playing: ${label}`}
           className={[
+            // `group` so the spin on the image below can key off this anchor's
+            // hover and the tooltip's open state
+            "group",
             // percentages, so the offsets track the avatar rather than needing
             // to be retuned whenever its size changes
             "absolute inset-0 translate-x-[30%] cursor-pointer rounded-full",
@@ -129,7 +132,27 @@ export function NowPlayingDisc() {
             width={40}
             height={40}
             draggable={false}
-            className="size-full select-none rounded-full object-cover"
+            className={[
+              "size-full select-none rounded-full object-cover",
+              /*
+               * Turns like a record while hovered. The animation is always
+               * attached and only its play state toggles, so leaving the pill
+               * holds the disc where it stopped instead of snapping back to
+               * 0deg, and the next hover picks up from that angle.
+               *
+               * `motion-safe:` because `MotionProvider`'s `reducedMotion` only
+               * governs Motion's own animations, never raw CSS keyframes. This
+               * is the same targeted opt-out the other keyframes in
+               * `globals.css` get, just expressed as a variant.
+               */
+              "motion-safe:animate-[disc-spin_8s_linear_infinite]",
+              "paused",
+              // matches the reveal's triggers, so the disc keeps turning while
+              // the pointer is over the tooltip rather than stopping under it
+              "group-hover:running",
+              "group-data-[state=delayed-open]:running",
+              "group-data-[state=instant-open]:running",
+            ].join(" ")}
           />
         </a>
       </Tooltip>
