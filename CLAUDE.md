@@ -67,11 +67,38 @@ token here first.
 | `text-muted` | `#9b9b9b` | metadata, footer |
 | `accent` | `#3b82f6` | **logo mark only**, never text or links |
 | `danger` | `#b84a41` | invalid input, see below |
+| `selection` | `#34d399` | text selection highlight, see below |
 | `inverse-bg` | `#0a0a0a` | dark ground, see below |
 | `inverse-fill` | `#111111` | raised tile on a dark ground |
 | `inverse-stroke` | `#1e1e1e` | hairline on a dark ground |
 | `inverse-text` | `#fafafa` | lead copy on a dark ground |
 | `inverse-text-secondary` | `#8f8f8f` | supporting copy on a dark ground |
+
+**`selection` is user-driven, not decoration.** Nothing renders in it until
+someone drags across text, which is why a saturated hue over a whole run of
+prose does not reopen "no accent colour on text or links". It pairs with
+`text-primary` at 9.05:1, so selected prose reads as well as unselected.
+
+Only the selected text constrains this tone. The carets did too while they
+straddled the highlight, but they sit wholly outside it now, so it is free to
+move. The floor is around `#0b9160`, where dark text drops to 4.34 and the
+selected text would have to go light.
+
+**Carets at the ends of a selection are a component, not CSS.** `::selection`
+accepts `color`, `background-color`, `text-decoration`, `text-shadow` and the
+text-fill properties, and nothing else: no `content`, no pseudo-elements of its
+own. `components/ui/selection-pins.tsx` measures the live `Range` instead and
+draws two hairlines, mounted once in the root layout since selecting text is a
+whole-document behaviour. Their height comes from the line rect they terminate,
+so they match whatever type they sit in, and each carries a `size-1.25` knob
+centred on both tips. `size-1` would be 3.2px on this scale, and a fractional box
+cannot resolve a clean circle, so one of the two renders squared off.
+
+They sit **outside** the highlight, not straddling it, and that is what lets them
+be `stroke-strong`, the same token the `InlineLink` underline uses at rest. A
+straddling caret has to survive both the white page and the highlight, which no
+light grey does: over the emerald, `text-muted` is 1.26 and `text-secondary`
+1.52, so the inner half simply disappears.
 
 **`danger` is the one status tone.** Hue carries meaning here rather than
 decoration, the same exception the brand marks and the syntax colours get, so
