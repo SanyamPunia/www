@@ -1,0 +1,6 @@
+{
+  "title": "the redirect that broke my link preview",
+  "description": "A 307 between an apex domain and www is enough to stop X rendering your og:image. What a redirect does, why 308 matters, and the one line that must agree.",
+  "date": "2026-08-04",
+  "readTime": "4 min read"
+}

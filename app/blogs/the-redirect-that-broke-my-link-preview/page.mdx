@@ -1,0 +1,120 @@
+I shipped this site, posted the link on X, and got a grey placeholder where the
+preview image should have been. The title was there. The description was there.
+The image was a broken icon.
+
+The image was fine. I had checked it three times. What was actually wrong took me
+an embarrassing while to see, and it turned out to be five small things stacked on
+top of each other, none of which is hard on its own.
+
+Here they are, in the order they confused me.
+
+## two addresses, one site
+
+`sanyam.sh` and `www.sanyam.sh` feel like the same thing. They are not. To a
+server they are two different hostnames, as unrelated as two different domains.
+Nothing makes one the "real" version by default.
+
+So you pick. There is no correct answer, only a decision. Short is nicer to type
+and nicer to read, so I picked the apex. Plenty of large sites pick `www`.
+
+What matters is that you pick, because **the choice you never make is the one
+that bites you.**
+
+## a redirect is a forwarding note
+
+Once you pick, the other address needs to point at the winner. That pointing is a
+redirect. Somebody asks for `www.sanyam.sh`, the server answers "not here, try
+`sanyam.sh`", and the browser quietly goes there instead.
+
+Visitors never notice this. That is the problem. It works so smoothly for humans
+that you stop thinking about it, and then something that is not a human shows up.
+
+## 307 and 308 look identical until Google reads them
+
+When you set up that redirect, you get asked to choose a number. This felt like
+trivia to me. It is not.
+
+```
+307  go there for now, but keep asking me
+308  go there from now on, stop asking
+```
+
+To a browser these behave the same way. You cannot tell them apart by clicking
+around. To a search engine they are completely different sentences. A 307 says
+the situation is temporary, so both addresses stay in the index and whatever
+credit your pages have earned gets **split across two names that are supposed to
+be one site.** A 308 says this is settled, and the two get merged.
+
+Vercel defaults to 307. That default is reasonable, because a temporary redirect
+is the one you can undo without consequences. It is just the wrong choice for a
+decision you are never going to reverse.
+
+## crawlers follow redirects for pages, not for images
+
+This is the bit that actually broke my card, and the bit nobody told me.
+
+My site was telling X: my preview image is at `sanyam.sh/opengraph-image.jpg`.
+That address answered with a forwarding note to the `www` version.
+
+```
+og:image  ->  https://sanyam.sh/opengraph-image.jpg
+              307  ->  https://www.sanyam.sh/opengraph-image.jpg
+```
+
+A crawler fetching a **page** will follow that hop without complaint, which is
+exactly why my title and description showed up perfectly and made me think the
+metadata was fine. A crawler fetching an **image** generally will not. X asked
+once, got told to go somewhere else, gave up, and fell back to the small grey
+card.
+
+The image was never the problem. The address I gave for it was.
+
+## you can build an infinite loop while fixing this
+
+Worth knowing before you go clicking. My apex was pointing at `www`. The fix is
+to make `www` point at the apex instead.
+
+If you set up the new redirect first, for a moment both addresses point at each
+other. Every request bounces back and forth until the browser gives up. You have
+turned a small metadata bug into a site that does not load.
+
+So the order is: **make your chosen address serve the site, and only then tell
+the other one to redirect to it.** There is always one hostname actually serving.
+
+## one line has to agree with reality
+
+The thing that finally made this click for me: all of this is one decision
+expressed in two places, and they have to say the same thing.
+
+```ts
+export const SITE_URL = "https://sanyam.sh";
+```
+
+Every absolute URL on the site is built from that one constant. The canonical
+tags, `og:url`, the preview image, every entry in the sitemap, the sitemap
+pointer inside `robots.txt`. One line, nineteen URLs.
+
+The other place is your DNS and hosting config, which decides which hostname
+actually hands over bytes.
+
+**The bug was never in my image or my meta tags. It was that those two places
+disagreed about which of two names was the site.** Everything downstream was
+correctly derived from a wrong premise, which is the most annoying kind of bug,
+because every individual piece looks right when you check it.
+
+## how to check yours in one command
+
+Do not trust a browser for this. A browser follows redirects silently and will
+happily show you a working site that is invisible to a crawler.
+
+```bash
+curl -sI -A "Twitterbot/1.0" https://yoursite.com/opengraph-image.jpg | head -1
+```
+
+`200` means a crawler gets your image. Anything starting with `3` means it gets a
+forwarding note and your link previews are broken, no matter how good the image
+is.
+
+Same check on your homepage, your `robots.txt`, and one canonical URL from your
+sitemap. It takes a minute, and it is a minute I wish I had spent before posting
+the link.
