@@ -121,6 +121,29 @@ export function SelectionPins() {
       const range = selection.getRangeAt(0);
 
       /*
+       * Ignore anything selected inside transient overlay UI.
+       *
+       * A tooltip is portaled, sits at the same stacking level as this overlay and
+       * is torn down the moment the pointer leaves, so a caret drawn against its
+       * text has nothing to attach to a second later. Selecting a track name in
+       * the now-playing tooltip put carets inside it and then stranded them.
+       *
+       * `[data-selection-caret]` is here too, so the handles can never end up
+       * measuring themselves.
+       */
+      const container = range.commonAncestorContainer;
+      const host =
+        container instanceof Element ? container : container.parentElement;
+      if (
+        host?.closest(
+          '[role="tooltip"],[data-radix-popper-content-wrapper],[data-selection-caret]',
+        )
+      ) {
+        setEnds(null);
+        return;
+      }
+
+      /*
        * A range can outlive the nodes it points at. `getClientRects()` on a
        * detached range still returns the coordinates those nodes last had, which
        * is how the carets ended up stranded mid-page after a navigation.
@@ -196,6 +219,20 @@ export function SelectionPins() {
     };
 
     document.addEventListener("selectionchange", schedule);
+
+    /*
+     * Nodes leaving the document fire no `selectionchange`, so without this the
+     * read never re-runs and the carets stay painted where the text used to be.
+     * A closing tooltip is the case that showed it, but a lab demo swapping its
+     * content does the same thing.
+     *
+     * `childList` only, so Motion writing styles every frame does not trigger it.
+     * Rendering the carets is itself a mutation, but the read bails when the
+     * measurements are unchanged, so it settles after one extra pass rather than
+     * looping.
+     */
+    const mutations = new MutationObserver(schedule);
+    mutations.observe(document.body, { childList: true, subtree: true });
     // capture, so this also catches scrolling inside a nested scroller such as a
     // code block or the file-tree lab, not just the document
     window.addEventListener("scroll", schedule, true);
@@ -203,6 +240,7 @@ export function SelectionPins() {
 
     return () => {
       if (frame !== 0) cancelAnimationFrame(frame);
+      mutations.disconnect();
       document.removeEventListener("selectionchange", schedule);
       window.removeEventListener("scroll", schedule, true);
       window.removeEventListener("resize", schedule);
