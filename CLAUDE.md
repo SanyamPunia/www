@@ -453,6 +453,15 @@ Environment, all server-only except the last:
   reports nothing playing, so the site boots with the cover absent. The old
   version threw from a helper and relied on an outer catch, which meant a typo
   in a variable name looked identical to Spotify being down.
+- **The route sends `Cache-Control: no-store`, and `force-dynamic` is not enough
+  on its own.** That flag governs prerendering, not the CDN, so a response with
+  an `s-maxage` window still gets cached at the edge in production and every
+  visitor in a region shares one poll. The client's `cache: "no-store"` only
+  covers the browser, so the header has to say it too. There are three fetches
+  in this feature and all three are `no-store`: the token exchange, the
+  currently-playing call, and the route's own response. Do not reintroduce a
+  cache window here, a stale now-playing line is the one thing the feature
+  cannot survive.
 - **Minting the refresh token is a one-off manual flow.** Set the first two
   variables plus `NEXT_PUBLIC_BASE_URL=http://localhost:3000`, add
   `http://localhost:3000/api/spotify/callback` to the app's redirect allow-list
