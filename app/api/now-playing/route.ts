@@ -12,8 +12,12 @@ export async function GET() {
   const data = await getNowPlaying();
 
   return NextResponse.json(data, {
-    // the client polls every 30s, so a 15s edge cache absorbs bursts without
-    // the line ever being more than half a poll stale
-    headers: { "Cache-Control": "s-maxage=15, stale-while-revalidate=30" },
+    /*
+     * `no-store`, not an s-maxage window. `force-dynamic` only stops the route
+     * being prerendered, it does not stop the CDN caching the response, so on
+     * Vercel an edge cache meant every visitor in a region shared one poll and
+     * the disc showed a track that had already changed.
+     */
+    headers: { "Cache-Control": "no-store" },
   });
 }
