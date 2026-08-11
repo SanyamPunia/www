@@ -1,5 +1,6 @@
 import type React from "react";
 import { MorePosts } from "@/components/blogs/more-posts";
+import { PostRail } from "@/components/blogs/post-rail";
 import { BackLink } from "@/components/ui/back-link";
 import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
@@ -30,9 +31,20 @@ export function BlogPost({
     <PageTransition>
       <PageShell align="top">
         <JsonLd schema={blogPostSchema(meta)} />
+
+        {/* outside the stagger on purpose: it builds itself from the rendered
+            headings after mount, so it has no place in a sequence that has
+            already finished by then. It is fixed, so it costs the column
+            nothing. */}
+        <PostRail />
+
         <Reveal className="flex flex-col gap-12">
           <RevealItem className="flex flex-col gap-8">
-            <BackLink href="/blogs">Blogs</BackLink>
+            {/* the rail carries this above `lg` and is hidden below it, so
+                exactly one back link is on screen at any width */}
+            <div className="lg:hidden">
+              <BackLink href="/blogs">Blogs</BackLink>
+            </div>
 
             <div className="flex flex-col gap-2">
               <h1 className="text-lead text-text-primary text-pretty">
