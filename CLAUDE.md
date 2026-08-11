@@ -189,6 +189,23 @@ No ad-hoc `text-[15px]`, and no Tailwind default sizes either. `text-xs` and
 friends are not on this scale, so they render out of proportion with everything
 around them. Add a scale token if a genuinely new size is needed.
 
+**`cn()` has to be told this scale exists, and `lib/utils.ts` tells it.**
+tailwind-merge classifies `text-*` by reading the value: a t-shirt size is a
+font size and anything else is a colour. These roles are named rather than
+sized, so `text-meta` was landing in the colour group beside
+`text-text-primary` and losing, and `cn("text-meta", "text-text-primary")`
+returned the colour alone. No error, no warning, the element just inherited
+whatever size sat above it.
+
+It only bites when a role and a tone meet inside one `cn()` call, which is why
+it survived: rare enough to read as a design decision rather than a dropped
+class. It had silently unsized both `DropdownMenu` rows, and it is what made
+the post rail render larger than the prose it indexes. `extendTailwindMerge`
+declares the group once and fixes every call site, which is the only scale at
+which this is fixable, since the failure is invisible at each one.
+
+**A new role here needs a matching entry in `TYPE_SCALE` in `lib/utils.ts`.**
+
 **Every home page paragraph is `text-body`.** Only tone separates them, primary
 for the opening one and secondary for the two below it. Matching them at
 `text-lead` instead was tried first and looked worse, the larger supporting
@@ -374,6 +391,88 @@ files:
 - A post's demo component is **colocated** in the post directory when only that
   post uses it, and lives in `components/blogs/` when it might not be. Its
   import goes at the top of `page.mdx`.
+
+### The post rail
+
+`components/blogs/post-rail.tsx` is the left margin above `lg`: the back link,
+then the post's own sections with the one being read marked by a bar that
+travels between rows rather than a border toggling on each.
+
+- **The back link lives here, not above the title.** Both are chrome about the
+  page rather than content in it, and stacking them put a control between the
+  reader and the first line. `BlogPost` keeps a second copy in the column
+  wrapped in `lg:hidden`, so exactly one is on screen at any width. The rail
+  renders even when a post has no sections, because the back link does not
+  depend on them.
+- **It reads the rendered headings, not the MDX source.** `rehype-slug` writes
+  the ids (declared as a string in `next.config.ts`, since Turbopack passes
+  plugins to Rust and cannot take a JS function), and the rail queries those
+  exact elements out of the `article`. Parsing the source instead would mean
+  reimplementing the same slug algorithm and hoping the two never diverge, and
+  a divergence there is a dead anchor rather than a build error. The cost is
+  that the rail arrives on mount: it is `fixed`, so nothing moves when it does,
+  and it fades in on the standard variant rather than appearing.
+- **A heading only carries an id if its component passes one through.**
+  `Section` and `Subsection` in `mdx-components.tsx` spread their props for
+  that reason. Dropping the spread silently empties the rail.
+- **A row is a list of tokens, not a string.** Several headings name a file or
+  an identifier in a `code` span, and flattening `configure _app.tsx` to text
+  loses the one thing that says which half is a filename. The rail indexes the
+  headings, so it has to read like them. The code token sets no tone of its
+  own, so it follows the row between muted and primary.
+- **It is fixed in the margin, never a flex sibling.** As a sibling it takes its
+  width out of the row and pushes the column off centre, so a post would stop
+  lining up with every other page. It positions off `CONTENT_HALF_REM`, which
+  has to move whenever `CONTENT_WIDTH` does. 14rem of clearance for a 12rem
+  rail leaves a 2rem gutter, and at exactly `lg` its left edge lands on the
+  page's own `px-6`. Any wider and it runs off screen at that width.
+- **`pb-1` on the rail is not spacing, it is what keeps a scrollbar away.**
+  `BackLink` draws its underline as an `after:` pseudo-element at `-0.1em`,
+  which paints below the anchor's box, so on a post with no sections the
+  content was one pixel taller than the container. `overflow-y-auto` does not
+  care that it is one pixel: it painted a 6px thumb down the right-hand edge
+  beside a single link with nothing to scroll.
+- **The reading line sweeps in the last screenful, and that is load-bearing.**
+  `MorePosts` sits below the article and is shorter than a viewport, so the
+  page bottoms out before the final headings can climb to a fixed line. Three
+  of the four posts with headings never get their last one above 80px and one
+  never gets its last two, which left rows that could never mark themselves.
+  The usual patch, snapping to the last entry at the bottom, does not fix it,
+  it skips whatever sat between. Do not replace the sweep with a constant.
+- Fewer than two headings renders no list. One entry is not a table of
+  contents, it is a heading already on screen.
+- There is no mobile equivalent. Below `lg` a post has no structural
+  navigation, which is the same trade the design makes everywhere else.
+
+### Section anchors
+
+`components/blogs/heading-anchor.tsx` puts a hash on every heading the rail
+lists, hidden until that heading is hovered. It is how a reader gets the URL
+for one section instead of the whole post.
+
+- **A real `<a href="#id">`, never a button.** That is what updates the address
+  bar, scrolls, and lands the heading under its own `scroll-mt` natively, and
+  it is what lets the link be opened in a new tab through the browser's own
+  menu. The clipboard write is added on top rather than replacing any of it.
+- **The confirmation is the icon swapping to a tick, and the anchor is held
+  visible while it does.** That second half is what makes it work. The control
+  scrolls the heading it sits on, so the pointer is left behind and the hover
+  ends in the same frame the tick appears. Tied to `group-hover` alone it swaps
+  and hides simultaneously, which is indistinguishable from no feedback. The
+  copied state is the only thing allowed to override the hover.
+- **The tooltip label never changes.** Radix closes a tooltip on click, so a
+  "copied" label there can never be seen. It stays "Copy link to section" and
+  the `aria-label` carries the copied state instead. A toast was tried and
+  removed: three copies stack three toasts, and the tick is right where the
+  reader is already looking.
+- The crossfade is `CodeBlock`'s, so both copy controls on a post behave the
+  same way. It is not a true path morph. Nothing here can compile one, and
+  `torph` animates text rather than geometry.
+- The anchor holds its box whether or not it is visible, so revealing it never
+  shifts the leader rule beside it. It sits before that rule, since a control
+  past the rule's end reads as belonging to the next thing down.
+- `BlogPost` mounts one `TooltipProvider` around the article, rather than one
+  per heading.
 
 ## Lab
 
