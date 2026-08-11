@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { type BlogMeta, formatBlogDate } from "@/lib/blogs";
 import { blogPostSchema } from "@/lib/schema";
 
@@ -50,7 +51,11 @@ export function BlogPost({
           </RevealItem>
 
           <RevealItem>
-            <article>{children}</article>
+            {/* one provider for the whole post, rather than one per heading:
+                every section anchor inside is a tooltip trigger */}
+            <TooltipProvider delayDuration={200}>
+              <article>{children}</article>
+            </TooltipProvider>
           </RevealItem>
 
           <RevealItem>

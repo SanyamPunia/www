@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import type { ComponentPropsWithoutRef } from "react";
+import { HeadingAnchor } from "@/components/blogs/heading-anchor";
 import { CodeBlock } from "@/components/ui/code-block";
 import { InlineLink } from "@/components/ui/inline-link";
 
@@ -24,14 +25,33 @@ function Section({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
   return (
     // the spread carries `rehype-slug`'s id through, which is the whole anchor
     // target. `scroll-mt` keeps a heading off the very top edge when one is
-    // jumped to.
+    // jumped to, and sits under the rail's own reading line so the section the
+    // reader just clicked marks itself active on arrival.
     <h2
       {...props}
-      className="mt-12 mb-4 flex scroll-mt-16 items-center gap-3 text-body font-medium text-text-primary first:mt-0"
+      className="group mt-12 mb-4 flex scroll-mt-16 items-center gap-3 text-body font-medium text-text-primary first:mt-0"
     >
       <span className="min-w-0">{children}</span>
+      {/* before the rule, not after it: the rule runs to the margin and a
+          control past its end reads as belonging to the next thing down. The
+          anchor holds its box whether or not it is visible, so the rule starts
+          at the same place either way. */}
+      {props.id ? <HeadingAnchor id={props.id} /> : null}
       <span aria-hidden="true" className="h-px min-w-4 flex-1 bg-stroke-soft" />
     </h2>
+  );
+}
+
+/** A subsection. Subordinate by the absence of the section's rule, not by size. */
+function Subsection({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
+  return (
+    <h3
+      {...props}
+      className="group mt-8 mb-2 flex scroll-mt-16 items-center gap-3 text-body font-medium text-text-primary"
+    >
+      <span className="min-w-0">{children}</span>
+      {props.id ? <HeadingAnchor id={props.id} /> : null}
+    </h3>
   );
 }
 
@@ -51,14 +71,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // second one. Content headings start at h2 and h1 is folded into it.
     h1: Section,
     h2: Section,
-    h3: (props: ComponentPropsWithoutRef<"h3">) => (
-      // subordinate to a section by the absence of its rule, not by size.
-      // There is no size between body and the page title to spend here.
-      <h3
-        className="mt-8 mb-2 scroll-mt-16 text-body font-medium text-text-primary"
-        {...props}
-      />
-    ),
+    h3: Subsection,
     p: (props: ComponentPropsWithoutRef<"p">) => (
       <p
         className="mb-4 text-body text-text-secondary text-pretty"
