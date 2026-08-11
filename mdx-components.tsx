@@ -20,9 +20,15 @@ import { InlineLink } from "@/components/ui/inline-link";
  * device the `/work` and `/blogs` rows use, so structure reads consistently
  * across the site rather than being invented for prose.
  */
-function Section({ children }: ComponentPropsWithoutRef<"h2">) {
+function Section({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
   return (
-    <h2 className="mt-12 mb-4 flex items-center gap-3 text-body font-medium text-text-primary first:mt-0">
+    // the spread carries `rehype-slug`'s id through, which is the whole anchor
+    // target. `scroll-mt` keeps a heading off the very top edge when one is
+    // jumped to.
+    <h2
+      {...props}
+      className="mt-12 mb-4 flex scroll-mt-16 items-center gap-3 text-body font-medium text-text-primary first:mt-0"
+    >
       <span className="min-w-0">{children}</span>
       <span aria-hidden="true" className="h-px min-w-4 flex-1 bg-stroke-soft" />
     </h2>
@@ -49,7 +55,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       // subordinate to a section by the absence of its rule, not by size.
       // There is no size between body and the page title to spend here.
       <h3
-        className="mt-8 mb-2 text-body font-medium text-text-primary"
+        className="mt-8 mb-2 scroll-mt-16 text-body font-medium text-text-primary"
         {...props}
       />
     ),

@@ -4,6 +4,12 @@ import type { NextConfig } from "next";
 
 const withMDX = createMDX({
   extension: /\.mdx?$/,
+  options: {
+    // ids on every heading, which is what `TocRail` links to and what makes a
+    // section addressable on its own. Named as a string, not imported: plugins
+    // are passed to Turbopack's Rust side, which cannot take a JS function.
+    rehypePlugins: ["rehype-slug"],
+  },
 });
 
 const nextConfig: NextConfig = {
