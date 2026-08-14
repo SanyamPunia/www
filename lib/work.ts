@@ -104,6 +104,13 @@ const projects: Project[] = [
     href: "https://www.npmjs.com/package/@rbac-ui/react",
   },
   {
+    title: "sixtyfour",
+    slug: "sixtyfour",
+    image: "/projects/sixtyfour.webp",
+    category: "web",
+    href: "https://sixtyfour-liart.vercel.app",
+  },
+  {
     title: "pageo.me",
     slug: "pageo-me",
     image: "/projects/pageo.webp",
