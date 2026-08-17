@@ -108,7 +108,7 @@ const projects: Project[] = [
     slug: "sixtyfour",
     image: "/projects/sixtyfour.webp",
     category: "web",
-    href: "https://sixtyfour-liart.vercel.app",
+    href: "https://chess.sanyam.sh",
   },
   {
     title: "pageo.me",
