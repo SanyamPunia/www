@@ -73,3 +73,7 @@ index, so a draft can sit in the tree unpublished.
 `CLAUDE.md` carries the conventions this codebase follows and the reason behind
 each one: the colour tokens, the type scale, the motion defaults, and the traps
 worth knowing before changing any of them.
+
+happy to have you use this. please strip my details first (`lib/site.ts`,
+`lib/constants.ts`, `lib/work.ts`, `app/blogs/`, `public/assets/`) and a credit
+back is appreciated if you can.
