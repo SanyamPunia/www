@@ -345,15 +345,16 @@ A crossfade between routes, via React's `<ViewTransition>`.
   removed. They are a bigger effect than these pages need and they cost that
   class-selector dependency. Re-adding means a types map on the boundary,
   `transitionTypes` on the links, and keyframes per direction.
-- `experimental.viewTransition` in `next.config.ts` is what makes this work.
-  It does **not** pull in the experimental React channel, Next's
-  `needsExperimentalReact` only gates on `taint`, `transitionIndicator` and
-  `gestureTransition`.
-- **Setting that flag is what makes Next alias `react` to its own bundled
-  copy**, which is the copy exporting `ViewTransition`. The installed
-  `react@19.2.8` does not export it, so `require("react").ViewTransition` is
-  `undefined` in Node and that is expected, it is a bundler alias rather than a
-  package resolution. **Changing the flag needs a dev server restart.**
+- **No config flag. Do not add one back.** This needed
+  `experimental.viewTransition` in `next.config.ts` up to Next 16.2, and 16.3
+  dropped the key: view transitions work in the App Router with nothing set, and
+  passing it now fails the typecheck with "'viewTransition' does not exist in
+  type 'ExperimentalConfig'". See
+  `node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`.
+- **The App Router's `react` is Next's own bundled copy, which is the copy
+  exporting `ViewTransition`.** The installed `react@19.2.8` does not export it,
+  so `require("react").ViewTransition` is `undefined` in Node and that is
+  expected. It is a bundler alias rather than a package resolution.
 - `@types/react` declares it in `canary.d.ts`, opted into by
   `types/react-canary.d.ts`. A triple-slash reference rather than a
   `compilerOptions.types` array, which would switch off automatic `@types`
@@ -721,3 +722,13 @@ promising it would be a claim the ordering cannot support. `MoreLabs` filters on
 Any new top-level directory gets documented here before the task is done. Any
 new colour token gets a row in the token table. Any new type-scale entry gets a
 line in the type scale section.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
