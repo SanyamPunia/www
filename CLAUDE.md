@@ -524,6 +524,54 @@ transition={{ duration: 0.4, ease: "easeOut" }}
 variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.35 } } }}
 ```
 
+## The signature
+
+`public/assets/signature.svg` is the mark at the left of the footer, drawn on
+rather than faded in. `components/home/signature.tsx` fetches and injects it
+once it is in view, and the `.signature` rules in `app/globals.css` own the
+reveal.
+
+- **The asset is a pen path, not a font conversion.** It used to be six glyph
+  outlines from the source font, one per letter, each a closed contour running
+  around the stroke and back. Stroking those and animating `stroke-dashoffset`
+  started every letter wherever its own contour began, so the mark assembled
+  itself from six places at once. The file now holds two centreline strokes in
+  writing order: the top of the `s` through the `y`'s tail, then the last `a`
+  and `m` after the one pen lift the mark has.
+- **The strokes were derived from the outlines, not redrawn.** The outlines were
+  rasterised, thinned to a skeleton, split at the crossings, and walked as an
+  Eulerian trail with a straightest-continuation rule at each one. An arc whose
+  ink is wider than a single stroke is two strokes merged into one ribbon, which
+  is the `n` tips and the `m` entry, so the trail runs out and back along it.
+  Nothing in the repo reproduces that, so treat the two paths as source.
+- **`stroke-width` is 4.4, which is not the pen's real width.** The old runtime
+  stroked the outlines at 2.5, and stroking an outline paints the fill dilated
+  by half that on each side, so the mark on screen was about 2.4 times bolder
+  than the font draws it. 4.4 on the centreline reproduces that at 93% pixel
+  overlap, checked in a browser at 32px and at 96px. The designed weight is
+  nearer 2.2, which is a deliberate change rather than a fix if it is made.
+- **The viewBox is baked in, and the asset carries its own paint attributes.**
+  The component used to strip every fill, set stroke, width and caps per path,
+  measure each path with `getTotalLength()`, and retighten the viewBox from
+  `getBBox()` because the source box was a 375 square with the ink low inside
+  it. All of that is in the file now, so the component measures nothing.
+- **`pathLength="1"` is what keeps the stylesheet in plain numbers.** Without it
+  every dash length would have to be measured in JS first.
+- **The dash pattern is `1 2` resting at 1.02.** A pattern of `1` repeats every
+  two path lengths, so at offset 1 a dash begins exactly on the end of the path,
+  and a zero-length dash under `stroke-linecap: round` paints as a dot: a blob
+  sitting past the end of the mark while a stroke waits its turn. The gap of 2
+  puts that repeat out of reach, and the 0.02 keeps the pattern's other boundary
+  off the start of the path, since engines differ on whether a dash that ends at
+  zero length paints there.
+- **The two durations are one write split by length.** 1.1s and 0.4s are the
+  paths' 73/27 share of a 1.5s total, so both move at the same pen speed and the
+  second starts where the first stops. Durations that are not proportional read
+  as two different hands.
+- **Reduced motion is handled in the stylesheet.** These are raw keyframes, so
+  `MotionProvider`'s `reducedMotion` does not govern them, the same as
+  `disc-spin`.
+
 ## Toolchain notes
 
 - **TypeScript 7.** The compiler is the native port, which dropped the JS
