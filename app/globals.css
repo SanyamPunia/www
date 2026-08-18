@@ -148,9 +148,59 @@ textarea {
   text-transform: inherit;
 }
 
-/* drives components/home/signature.tsx, which sets the dasharray per path */
+/*
+ * The signature writes itself, so the whole reveal lives here rather than in
+ * components/home/signature.tsx, which now only injects the asset.
+ *
+ * `public/assets/signature.svg` is the mark as a pen path: two centreline
+ * strokes in writing order, the first 73% of the pen's travel and the second
+ * 27%, with one lift between them. The durations below are that split of a
+ * 1.5s write, so both strokes move at the same speed and the second starts
+ * where the first stops.
+ *
+ * `pathLength="1"` on each path is what keeps these numbers plain. Without it
+ * every length here would have to be measured with `getTotalLength()` first.
+ *
+ * The dash pattern is `1 2` and rests at 1.02, not `1` and 1. A pattern of `1`
+ * repeats every two path lengths, so at offset 1 the next dash begins exactly
+ * on the end of the path, and a zero-length dash under `stroke-linecap: round`
+ * paints as a dot: a stray blob past the end of the mark for as long as a
+ * stroke is waiting its turn. A gap of 2 puts that repeat out of reach, and the
+ * 0.02 keeps the pattern's other boundary off the start of the path, since
+ * engines differ on whether a dash that ends at zero length paints there.
+ */
+.signature svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.signature path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+  animation: signature-draw 1.1s linear 0.35s forwards;
+}
+
+.signature path + path {
+  animation-duration: 0.4s;
+  animation-delay: 1.53s;
+}
+
 @keyframes signature-draw {
   to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Raw keyframes, so MotionConfig's reducedMotion does not govern them. Each
+ * selector is repeated at the specificity that set it, so nothing here needs
+ * `!important`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .signature path,
+  .signature path + path {
+    animation: none;
     stroke-dashoffset: 0;
   }
 }
