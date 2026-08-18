@@ -26,10 +26,6 @@ const nextConfig: NextConfig = {
   // routes Next's typecheck through the tsc CLI instead.
   experimental: {
     useTypeScriptCli: true,
-    // enables React's <ViewTransition>. It does not pull in the experimental
-    // React channel, `needsExperimentalReact` only gates on taint,
-    // transitionIndicator and gestureTransition.
-    viewTransition: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
