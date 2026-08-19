@@ -73,6 +73,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "tab-overview": dynamic(() => import("@/components/labs/tab-overview"), {
     ssr: false,
   }),
+  "tether-button": dynamic(() => import("@/components/labs/tether-button"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

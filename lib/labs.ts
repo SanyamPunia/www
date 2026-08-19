@@ -24,6 +24,17 @@ export interface LabMetadata {
    * boxes read as chrome around chrome.
    */
   bare?: boolean;
+  /**
+   * Keep the `Demo` frame but drop its padding, so the experiment fills the
+   * frame edge to edge. For a demo whose whole surface is the interaction rather
+   * than a component sitting on a surface: the padding then reads as dead space
+   * inside the thing you are meant to be poking.
+   *
+   * Not `bare`. That removes the frame, and a demo that redefines the cursor
+   * needs the hairline to say where the new cursor stops. `tether-button` is the
+   * only entry using this.
+   */
+  flush?: boolean;
 }
 
 export const labsRegistry: LabMetadata[] = [
@@ -164,6 +175,21 @@ export const labsRegistry: LabMetadata[] = [
     reference: "https://x.com/mitchellh/status/2087537750182666290",
     bare: true,
   },
+  {
+    slug: "tether-button",
+    title: "Tether Button",
+    description: [
+      "A button pressed from a distance. The hand shoots a web at the button's nearest edge, and the button goes down when the web lands rather than when the mouse does, then stays down until the pointer lifts. Keep holding and the strand pays out and reels back in against the point it stuck to.",
+      "Key insight: the web anchors on the nearest point of the button's rounded rect, never its centre. Clamping the pointer into the rect inset by its own radius gives whichever edge or corner arc is closest, and stepping the radius back out toward the pointer lands on the boundary, so one formula covers all eight cases. That point is then fixed for the life of the shot. Re-deriving it every frame slides the splat around the button, and a splat that slides is not stuck to anything.",
+      "The strand is two mirrored threads wound around a straight core, one quadratic per half lobe, which costs about 45 curve commands per path on a 500px shot rather than the several hundred points a sampled sine needs. Lobe length is a distance and not a count, so a long shot and a short one are the same material rather than one drawing stretched. Everything else is derived per frame, because the heading turns as the hand orbits its anchor, and path data is written through `setAttribute` off refs, since something rebuilt every frame does not belong in a render.",
+      "The cursor is two OpenMoji hands, emoji as artwork rather than as a text glyph. A colour emoji cannot be tinted, renders as different art on every OS, and puts its ink at an unpredictable place inside the glyph box, which is the one coordinate the web launches from. Each hand pairs the `black` set's outline with the `color` set's `#skin` shape underneath, because a stroke-only hand is transparent and the button's label read straight through the index finger.",
+    ],
+    createdAt: "2026-08-20",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/tether-button/index.tsx",
+    reference: "https://x.com/ozzyxs1a/status/2086332798709715445",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -224,6 +250,7 @@ export const IMPLEMENTED_LABS = [
   "morphing-icons",
   "animated-dashed-border",
   "tab-overview",
+  "tether-button",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

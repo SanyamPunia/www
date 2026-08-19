@@ -18,6 +18,7 @@ import {
   metaDescription,
 } from "@/lib/labs";
 import { labSchema } from "@/lib/schema";
+import { cn } from "@/lib/utils";
 
 export function generateStaticParams() {
   return labsRegistry
@@ -78,7 +79,7 @@ export default async function LabDetailPage({
             {lab.bare ? (
               <Experiment slug={slug} />
             ) : (
-              <Demo className="my-0">
+              <Demo className={cn("my-0", lab.flush && "p-0")}>
                 <Experiment slug={slug} />
               </Demo>
             )}
