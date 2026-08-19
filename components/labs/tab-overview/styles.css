@@ -1,0 +1,69 @@
+/*
+ * This experiment's per-session tones.
+ *
+ * Colour is the differentiator between four skeletons built from the same
+ * shapes, so it carries meaning here rather than decorating, which is the
+ * exception the brand marks already get. It stays in this file: these are not
+ * design-system tokens, nothing outside this experiment may reach for them, and
+ * they are the same bend the other self-contained demos make with their own
+ * stylesheets.
+ *
+ * One hue per session, at two strengths: the mark carries the saturated value
+ * and the bars a light tint of it, one step up from the faintest the hue has, so
+ * a tab reads as coloured at a glance without becoming a wall of colour on a
+ * white card. Labels stay grey, since the site does not put an accent on text.
+ */
+.tone-dev {
+  --mark: #0d9488;
+  --bar: #99f6e4;
+}
+
+.tone-diff {
+  --mark: #e11d48;
+  --bar: #fecdd3;
+}
+
+.tone-log {
+  --mark: #d97706;
+  --bar: #fde68a;
+}
+
+.tone-shell {
+  --mark: #2563eb;
+  --bar: #bfdbfe;
+}
+
+/*
+ * Hover and press, mixed from the same hue so they cannot drift off it. Both
+ * land lighter than the bars, so the content stays the loudest thing in a card
+ * and the card itself only warms under the pointer.
+ *
+ * These live here rather than as `hover:` classes because a card is white in
+ * peek and in the overview, where a grey step reads as the card dimming rather
+ * than answering.
+ */
+.tone-dev,
+.tone-diff,
+.tone-log,
+.tone-shell {
+  --wash: color-mix(in oklab, var(--mark) 7%, #fff);
+  --press: color-mix(in oklab, var(--mark) 16%, #fff);
+}
+
+.tab-overview .card:hover {
+  background-color: var(--wash, var(--color-fill));
+}
+
+.tab-overview .card:active {
+  background-color: var(--press, var(--color-fill-hover));
+}
+
+/* every tone falls back to the greys, so a preview rendered outside a toned
+   surface still looks like the rest of the site rather than losing its fill */
+.tab-overview .bar {
+  background-color: var(--bar, var(--color-fill-active));
+}
+
+.tab-overview .mark {
+  color: var(--mark, var(--color-text-muted));
+}

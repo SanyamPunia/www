@@ -150,6 +150,20 @@ export const labsRegistry: LabMetadata[] = [
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/animated-dashed-border/index.tsx",
   },
+  {
+    slug: "tab-overview",
+    title: "Tab Overview",
+    description: [
+      "a terminal-style tab strip with three stages of one window: a row of labels, a taller strip where every tab shows what it holds on hover, and an overview grid filling the window so a tab can be picked by its shape rather than its title.",
+      "key insight: a tab is one element in all three stages, so a shared `layoutId` carries it between the strip and the grid. Motion tracks a card from where it was picked up to where it lands instead of one node vanishing while another appears in place, and tab order never changes, which is what makes that readable.",
+      "everything that moves runs on one spring, so the card, the strip and the window resize together. At different speeds they read as three pieces rather than one window. The previews are one component at two sizes, and a card keeps the smaller one in both the strip and the grid, so crossing between them changes its box and nothing else.",
+    ],
+    createdAt: "2026-08-19",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/tab-overview/index.tsx",
+    reference: "https://x.com/mitchellh/status/2087537750182666290",
+    bare: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -209,6 +223,7 @@ export const IMPLEMENTED_LABS = [
   "multi-step-form",
   "morphing-icons",
   "animated-dashed-border",
+  "tab-overview",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

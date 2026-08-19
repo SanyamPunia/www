@@ -70,6 +70,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
       ssr: false,
     },
   ),
+  "tab-overview": dynamic(() => import("@/components/labs/tab-overview"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
