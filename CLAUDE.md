@@ -493,12 +493,23 @@ experiment is a directory under `components/labs/`.
 - **No preview images.** The old registry pointed at screenshots of the dark
   build, wrong on a white page and wrong about what the components look like
   now. The detail page runs the real component.
-- Four experiments still carry a local `styles.css`. That is the one place the
+- **`bare: true` on a registry entry drops the `Demo` frame**, so that
+  experiment gets the column's full width. It is for a demo that draws its own
+  container: the frame's hairline then sits a padding-width outside the
+  experiment's own edge, and the two nested boxes read as chrome around chrome.
+  `tab-overview` is the only entry using it.
+- Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
-  part of the design system. Their colours still come from tokens via
-  `var(--color-*)`. `cursor-origin-button` had one and it was folded into
+  part of the design system. Four of them still take their colours from tokens
+  via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
+- **`tab-overview` is the one experiment defining its own hues**, one per
+  session, in its own stylesheet. Colour is the differentiator between four
+  skeletons built from the same shapes there, so it carries meaning rather than
+  decorating, which is the exception the brand marks already get. It is scoped
+  to that experiment: the values are not tokens, nothing else may reach for
+  them, and labels stay grey, since the site does not put an accent on text.
 
 ## Motion
 
