@@ -248,6 +248,12 @@ Marks set `aria-hidden="true"` and `focusable="false"` before the prop spread,
 since the anchor wrapping them carries the label and Biome's
 `a11y/noSvgWithoutTitle` fires otherwise.
 
+**The one emoji in the codebase is a cursor, and it is artwork rather than a
+glyph.** `components/labs/tether-button/cursors.tsx` vendors two OpenMoji black
+hands as SVG. It is a lab asset, not a UI icon, and the shared "icons, never
+emojis" rule still stands everywhere else. See the Lab section for why a text
+glyph could not serve.
+
 - **Import the `*Icon`-suffixed exports only.** `CheckIcon`, not `Check`. The
   bare names are deprecated in 2.1 and will be removed.
 - **Server components import from `@phosphor-icons/react/dist/ssr`.** The main
@@ -498,6 +504,13 @@ experiment is a directory under `components/labs/`.
   container: the frame's hairline then sits a padding-width outside the
   experiment's own edge, and the two nested boxes read as chrome around chrome.
   `tab-overview` is the only entry using it.
+- **`flush: true` keeps the frame and drops its padding**, so the experiment
+  fills the frame edge to edge. For a demo whose whole surface is the
+  interaction rather than a component sitting on a surface: the padding then
+  reads as dead space inside the thing you are meant to be poking. Not `bare`,
+  which removes the frame, and a demo that redefines the cursor needs the
+  hairline to say where the new cursor stops. `tether-button` is the only entry
+  using it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
@@ -510,6 +523,134 @@ experiment is a directory under `components/labs/`.
   decorating, which is the exception the brand marks already get. It is scoped
   to that experiment: the values are not tokens, nothing else may reach for
   them, and labels stay grey, since the site does not put an accent on text.
+
+### `tether-button`
+
+The one experiment with a custom cursor. Pressing anywhere on its stage shoots a
+web at the nearest edge of the button, and the button goes down when the web
+lands rather than when the mouse does.
+
+- **`cursor-none` has to go on the whole subtree, not just the stage.** `cursor`
+  inherits, but the UA stylesheet sets `cursor: default` on a `button`, and a
+  real declaration beats an inherited value, so the system arrow came back over
+  the one element you aim at. `[&_*]:cursor-none` alongside it covers the button
+  and anything added to the stage later. A headless screenshot cannot catch this,
+  since it never draws the OS cursor.
+- **The button also drops `cursor-pointer`**, which would beat the subtree rule
+  the same way. This is the only place the shared "cursor-pointer on every
+  clickable element" rule is off, and it is off because a second cursor is drawn
+  instead.
+- **The hands are emoji, vendored as artwork.** `1F446` and `1F91F` from
+  OpenMoji, CC BY-SA 4.0, copied into `cursors.tsx` verbatim apart from the
+  stroke, which becomes `currentColor`. This is the sanctioned exception to
+  "icons, never emojis", the same shape as the brand marks: the request was for
+  emoji and the drawings are assets, not glyphs standing in for icons. A text
+  glyph could not work here anyway. A colour emoji ignores `color`, renders as
+  different art on every OS, and puts its ink at an unpredictable place inside
+  its box, which is the one coordinate the web launches from. Noto Emoji
+  monochrome was the other route and costs 880KB for two glyphs, since Google
+  serves it as one file with no unicode-range split.
+- **Each hand carries a second copy of itself, filled, so it is opaque.** The
+  `black` set is stroke-only, so the hand was transparent and the button's label
+  read straight through it. `silhouette` is the same glyph's `#skin` group taken
+  from OpenMoji's `color` set, painted in `bg` under the outline. Filling the
+  outline instead does not work and looks like it nearly does: the palm's arcs
+  close implicitly and fill, but the pointing hand's index finger is two bare
+  `<line>` elements with no interior and the back of the hand is open arcs, so
+  the finger stayed see-through. That is invisible at 34px against a white
+  ground and obvious over a letter. A thick white understroke was the other
+  candidate and covers the finger but not the open back of the hand.
+- Being opaque also tucks the strand's last few px behind the palm rather than
+  letting it cross the hand.
+- **Every drawing declares a hotspot in OpenMoji's own 72 unit box**, read off
+  the ink rather than guessed: the pointing hand's fingertip is a semicircular
+  cap at (30.95, 7.9), and the horns hand's thumb tip is a cubic extremum at
+  (12.59, 11.36). Both sit at the drawing's upper left with the body below and to
+  the right, which is what lets one replace the other without the hand lurching.
+- **A shot heading into the hand slides its own start along the run.** The horns
+  hand's thumb is a 14 unit stroke leaving the hotspot, so a web fired down that
+  line paints the thumb out of the drawing. `HORNS_BODY` names the direction the
+  hand's mass lies in, and the strand's visible start moves up to
+  `LAUNCH_INSET` in proportion to how far the shot points that way. A shot
+  heading away, which is the case the reference draws, still leaves the thumb tip.
+- **A web that is out is a tether, not a drawing.** The anchor is fixed at
+  impact, so holding the press and moving the hand pays the strand out and reels
+  it back in against that one point. Re-deriving the nearest edge every frame was
+  the other option and is wrong: the splat would slide around the button, and a
+  splat that slides is not stuck to anything.
+- **So the geometry is per frame, not per shot.** The launch inset and the rim
+  the strand stops at both come off the current heading, which turns as the hand
+  orbits. Fixing them at launch paints the thumb over on the way past. The inset
+  is also capped against the length of the run, or a hand pulled right up to the
+  anchor insets past it and the strand inverts.
+- **The splat's rotation is fixed at impact.** One spoke lines up with the strand
+  as it lands, and after that the hand can orbit freely. A web that turned to keep
+  facing the hand would be a web that is not stuck.
+- **The tether only tracks inside the stage.** Dragging out freezes the strand
+  where it was, which is the same trade the hand makes: it hides on leave, because
+  the real cursor is back the moment the pointer is over anything without
+  `cursor-none`, and two cursors is worse than a strand that pauses.
+- **The button stays down for as long as the pointer does.** Not a fixed timer.
+  `MIN_PRESS` is a floor rather than a duration, for a click quicker than the
+  web's own flight: without it such a press lands and releases within a few
+  frames and never reads. `KEY_PRESS` is the whole press for a keyboard
+  activation, which has no lift coming, and `held` is what tells the two apart.
+- **The lift is heard on the window, and `blur` counts as one.** A pointer can
+  lift outside the stage and outside the window. A window that loses focus
+  mid-press never sends the `pointerup`, and a button stuck down forever is worse
+  than one that lets go early. Pointer capture was the other way to catch a lift
+  outside the stage and costs more than it gives: capture suppresses
+  `pointerleave`, so dragging out would leave the drawn hand on screen beside the
+  real cursor, which returns the moment the pointer is over anything without
+  `cursor-none`.
+- **The button is the site's own pill, and the press is a background step.**
+  `rounded-full bg-fill`, the same shape `InlineLink` uses, stepping to
+  `fill-active` when it goes down. It was a white face with a near-black border
+  and a solid black 4px lip, which is the reference's aesthetic rather than this
+  one: `shadow-*` appears nowhere else in the codebase outside the toaster's
+  third-party override, and nothing here depresses.
+- **The two fills are a branch, not a `data-pressed:` variant, because pressed
+  has to beat hover.** The button can be pressed from across the stage, so it is
+  usually pressed and not hovered, and a press landed on it directly would
+  otherwise read as a hover.
+- **The step in is instant and only the step back is timed.** At 200ms both ways
+  a press shorter than the transition never reaches its own colour, and
+  `MIN_PRESS` is 140ms, so the quickest clicks showed almost no press. Same shape
+  as the web layer and as `cursor-origin-button`.
+- **The shape maths is radius aware, which the pill forced.** One clamp into the
+  rect inset by its own radius answers both questions asked of the button: the
+  distance from there says whether a press is inside it, and stepping the radius
+  along that direction lands on the boundary. A 35px pill carries a 17.6px
+  radius, so the corners its bounding box claims and its shape does not come to
+  about a tenth of the box, and testing the box alone meant a press beside the
+  pill's end counted as a press on the button with no web. `rounded-full` also
+  compiles to `calc(infinity * 1px)`, so a computed radius that is not a real
+  number falls back to half the shorter side.
+- **Nothing clips, and the hand is allowed out of the frame.** Both ends of a
+  strand are inside the stage by construction and the splat sits on the button,
+  so the hand is the only thing that can reach an edge, and it hangs down and to
+  the right of its hotspot. Clipping it to the frame's radius left a 20px
+  fragment in the bottom right corner, which reads as a glitch. A cursor that
+  carries on past a border reads as a cursor.
+- **Showing the web is declarative, darkening it is not.** Two nested groups.
+  The outer one's opacity comes from `phase` and is timed in CSS, asymmetric so
+  a shot appears at once and only its disappearance is timed, the same shape as
+  `cursor-origin-button`. The inner one carries the per-frame darkening. The
+  outer used to be an `animate()` on opacity, which the next shot's `cancel()`
+  could stop part way and leave a landed web on screen with nothing left to
+  clear it. A transition driven by state cannot strand, since phase always
+  returns to idle.
+- **A new shot blanks the last splat before it paints.** A hidden layer keeps the
+  path data it was left with, so without that the previous web flashes at its
+  old anchor for the length of the new flight.
+- **`web.ts` is pure geometry in stage pixels**, and its SVG carries no
+  `viewBox`, so one user unit is one pixel and nothing needs a scale correction.
+  Path data is written through `setAttribute` off refs, since a strand rebuilt
+  every frame does not belong in a render.
+- **Reduced motion is read in the component.** `MotionProvider`'s
+  `reducedMotion` governs motion components, not a value animation driving path
+  data by hand. The web still lands and the button still presses, it just does
+  not travel.
 
 ## Motion
 
