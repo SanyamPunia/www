@@ -2,7 +2,7 @@
 
 import { SquaresFourIcon, TerminalWindowIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import "./styles.css";
 
@@ -78,6 +78,23 @@ const PREVIEW_MOTION = {
 
 /** the panel leaves and returns through the bottom of the window, which clips it */
 const SLIDE = { y: 40, opacity: 0 } as const;
+
+/*
+ * How long hover stays off after the overview closes.
+ *
+ * Picking a card runs the morph back into the strip, and the pointer usually
+ * ends up over the strip while that is still in flight, which Chrome reports as
+ * a pointer entry even if the pointer never moved. Peeking there starts a card's
+ * height animation while the card still carries the morph's transform, and
+ * Motion measures a `height: auto` target with a bounding rect, so the target
+ * comes back multiplied by whatever that scale is at the time: measured a 3.37x
+ * vertical scale, a preview aiming at 162px instead of 62px, and cards at 391px
+ * inside a 282px window, relaxing for the next half second.
+ *
+ * Long enough for the spring to land. Waiting also reads better than a strip
+ * that expands under a pointer that never moved.
+ */
+const MORPH_GUARD = 420;
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
@@ -268,10 +285,22 @@ function TabCard({
 export default function TabOverview() {
   const [activeId, setActiveId] = useState(TABS[0].id);
   const [stage, setStage] = useState<Stage>("closed");
+  // a ref rather than state: nothing renders from it, and a re-render here would
+  // land in the middle of the morph it exists to protect
+  const settling = useRef(false);
 
   const active = TABS.find((tab) => tab.id === activeId) ?? TABS[0];
   const peeking = stage === "peek";
   const overview = stage === "overview";
+
+  const leaveOverview = (id?: string) => {
+    if (id) setActiveId(id);
+    setStage("closed");
+    settling.current = true;
+    window.setTimeout(() => {
+      settling.current = false;
+    }, MORPH_GUARD);
+  };
 
   /*
    * Fixed height, and every stage fits inside it: the strip plus the panel
@@ -291,7 +320,9 @@ export default function TabOverview() {
             each tab. Peek only reads a closed strip, or crossing the row would
             drop the overview. */}
       <div
-        onPointerEnter={() => stage === "closed" && setStage("peek")}
+        onPointerEnter={() => {
+          if (stage === "closed" && !settling.current) setStage("peek");
+        }}
         onPointerLeave={() => stage === "peek" && setStage("closed")}
         className="flex shrink-0 items-start gap-2"
       >
@@ -302,7 +333,7 @@ export default function TabOverview() {
           type="button"
           aria-pressed={overview}
           aria-label={overview ? "Hide all tabs" : "Show all tabs"}
-          onClick={() => setStage(overview ? "closed" : "overview")}
+          onClick={() => (overview ? leaveOverview() : setStage("overview"))}
           className={cn(
             "flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-text-muted transition-colors duration-200",
             "hover:bg-fill hover:text-text-primary active:bg-fill-hover",
@@ -346,10 +377,7 @@ export default function TabOverview() {
               tab={tab}
               current={tab.id === activeId}
               expanded
-              onSelect={() => {
-                setActiveId(tab.id);
-                setStage("closed");
-              }}
+              onSelect={() => leaveOverview(tab.id)}
             />
           ))}
         </div>
