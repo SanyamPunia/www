@@ -75,9 +75,13 @@ export default async function LabDetailPage({
               would stack on the flex gap and push the link away from the thing
               it labels. */}
           <RevealItem className="flex flex-col gap-2">
-            <Demo className="my-0">
+            {lab.bare ? (
               <Experiment slug={slug} />
-            </Demo>
+            ) : (
+              <Demo className="my-0">
+                <Experiment slug={slug} />
+              </Demo>
+            )}
 
             {(lab.source || lab.reference) && (
               <div className="flex items-center justify-end gap-4 text-meta text-text-muted">

@@ -17,6 +17,13 @@ export interface LabMetadata {
   createdAt: string;
   source?: string;
   reference?: string;
+  /**
+   * Render without the `Demo` frame, so the experiment gets the column's full
+   * width. For a demo that draws its own container: the frame's hairline then
+   * sits a padding-width outside the experiment's own edge, and two nested
+   * boxes read as chrome around chrome.
+   */
+  bare?: boolean;
 }
 
 export const labsRegistry: LabMetadata[] = [
