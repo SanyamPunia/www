@@ -76,6 +76,12 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "tether-button": dynamic(() => import("@/components/labs/tether-button"), {
     ssr: false,
   }),
+  "document-pocket": dynamic(
+    () => import("@/components/labs/document-pocket"),
+    {
+      ssr: false,
+    },
+  ),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

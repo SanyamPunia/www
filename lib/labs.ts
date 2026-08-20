@@ -30,9 +30,8 @@ export interface LabMetadata {
    * than a component sitting on a surface: the padding then reads as dead space
    * inside the thing you are meant to be poking.
    *
-   * Not `bare`. That removes the frame, and a demo that redefines the cursor
-   * needs the hairline to say where the new cursor stops. `tether-button` is the
-   * only entry using this.
+   * Not `bare`. That removes the frame, and a demo whose surface is the
+   * interaction still wants the hairline to say where that surface stops.
    */
   flush?: boolean;
 }
@@ -190,6 +189,21 @@ export const labsRegistry: LabMetadata[] = [
     reference: "https://x.com/ozzyxs1a/status/2086332798709715445",
     flush: true,
   },
+  {
+    slug: "document-pocket",
+    title: "Document Pocket",
+    description: [
+      "A pocket of paper. Hovering it fans the cards up and tilts the front panel forward, hovering one card sinks the rest so that one stands clear, and clicking a card grows it to the middle of the stage with the others pushed off to the sides. Each sheet carries its own hue, since five skeletons built from three arrangements are otherwise one texture.",
+      "Key insight: hover cannot be left to the DOM here. It hit tests boxes as they are currently animated, so a card that moves because it is hovered moves out from under the pointer, the hover drops, the card falls back, and it picks the pointer up again. The fan flickers, and a card cannot be reached at all unless the pointer crosses it inside one frame. One `pointermove` on the stage, tested against the fan's neutral geometry, has no loop left to close.",
+      "A card is staged by animating its `width` rather than by scaling it. At three times the size a scale paints a 1px hairline at 3px and turns a corner into a stadium, so poses are stage pixels and a card's contents are sized in `cqw` against the card itself. An element is never its own query container though, so that unit on the card's own padding resolves against the viewport instead and inflates the box past twice its size.",
+      "Three layers under one perspective, and none of them nested: an element carrying `perspective` is its own stacking context, and the cards have to interleave between the pocket's wall and its shorter front panel. The pocket's hover reach grows with it, from its own footprint when shut to the box around pocket and fan when open, or a diagonal out to an outer card crosses a dead band and shuts the fan halfway.",
+    ],
+    createdAt: "2026-08-20",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/document-pocket/index.tsx",
+    reference: "https://x.com/raul_dronca/status/1992227756407685269",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -251,6 +265,7 @@ export const IMPLEMENTED_LABS = [
   "animated-dashed-border",
   "tab-overview",
   "tether-button",
+  "document-pocket",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
