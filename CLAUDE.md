@@ -110,15 +110,29 @@ it, with the contrast checked the same way.
 
 **The `inverse-*` set is not dark mode.** Nothing switches to it and there is
 still no `dark:` variant anywhere. It is a surface a component opts into when a
-light ground genuinely cannot work, which so far means exactly one case: an
-asset that is white on transparent. `components/labs/spring-image/` renders
-`/assets/logo.webp`, the site's own mark in white, which on `bg` painted as an
-empty ring. Recolouring the mark was not an option, so the ground inverted.
+light ground genuinely cannot work, and both callers so far are the same problem:
+white content with nothing to sit on.
+
+- `components/labs/spring-image/` renders `/assets/logo.webp`, the site's own
+  mark in white, which on `bg` painted as an empty ring. Recolouring the mark was
+  not an option, so the ground inverted.
+- `components/labs/document-pocket/` is a container full of white paper. The
+  light version was built first, with the pocket in `fill-active` and the paper
+  in `bg`, and it failed: every value in the piece sat inside 12% lightness of
+  every other, so the pocket, the paper and the page were one flat wash. The
+  darkest fill token is `stroke-strong` at 86% lightness, so there is no light
+  answer to reach for. The interior went `inverse-bg` and the front panel
+  `inverse-fill`.
 
 The values are the previous dark build's, so the two versions of the site stay
 recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 `inverse-text-secondary` is 6.12:1. Check any new pairing: `#6f6f6f` was the
 first choice for the secondary tone and fails at 3.94.
+
+**Shading a dark surface is light, not palette.** Nothing in the set is a lit
+edge or a sheen, and neither wants a token: they are the same material catching
+light. Use white and black at low alpha over an `inverse-*` ground, in the
+component. `document-pocket` is the reference for this.
 
 Reach for this only when the alternative is invisible content. A surface that
 is merely *nicer* dark is not a reason, that is the dark build this project
@@ -508,21 +522,24 @@ experiment is a directory under `components/labs/`.
   fills the frame edge to edge. For a demo whose whole surface is the
   interaction rather than a component sitting on a surface: the padding then
   reads as dead space inside the thing you are meant to be poking. Not `bare`,
-  which removes the frame, and a demo that redefines the cursor needs the
-  hairline to say where the new cursor stops. `tether-button` is the only entry
-  using it.
+  which removes the frame: a demo that redefines the cursor needs the hairline to
+  say where the new cursor stops, and one that pushes a card off its own edge
+  needs a box to clip it against. `tether-button` and `document-pocket` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **`tab-overview` is the one experiment defining its own hues**, one per
-  session, in its own stylesheet. Colour is the differentiator between four
-  skeletons built from the same shapes there, so it carries meaning rather than
-  decorating, which is the exception the brand marks already get. It is scoped
-  to that experiment: the values are not tokens, nothing else may reach for
-  them, and labels stay grey, since the site does not put an accent on text.
+- **Two experiments define their own hues**, `tab-overview` per terminal session
+  and `document-pocket` per sheet of paper. Both are the same case: colour is the
+  differentiator between skeletons built from the same few shapes, so it carries
+  meaning rather than decorating, which is the exception the brand marks already
+  get. Both are scoped to their experiment, the values are not tokens, nothing
+  else may reach for them, and labels and body lines stay grey, since the site
+  does not put an accent on text. `tab-overview` keeps its values in its own
+  stylesheet and `document-pocket` in a `const` beside its card list, which is
+  the better of the two: prefer it.
 
 ### `tether-button`
 
@@ -680,6 +697,218 @@ lands rather than when the mouse does.
   `reducedMotion` governs motion components, not a value animation driving path
   data by hand. The web still lands and the button still presses, it just does
   not travel.
+
+### `document-pocket`
+
+A pocket of paper. Hovering fans the cards out of it and tilts its front panel
+forward, hovering one card singles that one out, and clicking a card grows it to
+the middle of the stage with the rest pushed off to the sides.
+
+- **A card is staged by animating its `width`, never by scaling it.** A card goes
+  from 113px to 322px, so a `scale` would paint its 1px hairline at 3px and turn
+  its 6px corner into a stadium. Animating the box means no transform is
+  involved, so the ring stays a hairline and the radius stays whatever it is set
+  to. This is the whole reason `poses.ts` returns stage pixels rather than
+  percentages.
+- **Which is what makes the contents `cqw`.** The card is its own container and
+  everything inside it is a proportion of its width, so one element is a legible
+  miniature in the pocket and a document on stage with its rules and its padding
+  growing to match. There is no token for these, they are proportions of a box
+  rather than steps on the spacing scale.
+- **`cqw` on the container itself does not mean what it looks like, and this cost
+  a rebuild.** An element is a query container for its descendants and never for
+  itself, so `cqw` in a property on the card resolves against the card's nearest
+  *ancestor* container, and with none it falls back to the small viewport. The
+  card's padding was `p-[8cqw]`, which on a wide window is about 115px a side on a
+  113px card. `box-sizing: border-box` floors a border box at its own padding, so
+  the cards inflated past twice their size, `overflow-hidden` clipped every bar
+  out of them, and the result was five blank rectangles cascading down and right
+  of the pocket. Every value on the descendant spans was correct the whole time,
+  which is what made it hard to see. Card padding lives on `SHEET`, inside the
+  card.
+- **The stage is `bg-fill`, not the frame's white.** The paper is white, and on
+  white a fanned card is a hairline and a shadow and nothing else. This is the
+  same reasoning as the pocket going dark, one step down.
+- **The pocket is matte, so nothing here is glossy.** No travelling highlight and
+  no specular band, both of which read as moulded plastic. What sells a matte
+  surface instead is grain, a cavity that darkens with depth, and edges catching a
+  single pixel of light.
+- **Grain is the single biggest thing separating a matte surface from a flat
+  fill.** A diffuse material scatters light, and grain is what that looks like. It
+  is also what stops a near-black wall and a near-black panel reading as two
+  vector rectangles with a seam between them. One inline `feTurbulence` data URI,
+  284 bytes, so the page makes no request for it. `overlay` on the dark faces,
+  which by its own maths does nothing to pure black and everything to a mid tone,
+  so the grain appears exactly where the surface is lit and stays out of the
+  shadows, which is the right way round. `multiply` on the paper, so it can only
+  darken and never blow a white sheet out.
+- **The cavity gradient is load-bearing twice.** It makes the interior read as
+  open and lit from where the paper leaves, and it is also the only reason the
+  grain is visible on that face at all, since `overlay` has nothing to work with
+  on the unlit part.
+- **Every base tone stays in a class and only the light goes into `style`.** So
+  `bg-inverse-bg` with a `backgroundImage` gradient over it, never a `background`
+  shorthand carrying a colour. That is what keeps the token rule intact while the
+  shading stays white and black at alpha.
+- **Three stacked shadows outward, three inset.** Outward: a contact shadow to
+  seat it, a mid layer for form, a wide ambient one for depth, each faint alone,
+  because a single shadow dark enough to read at this size looks like a drop
+  shadow rather than like light. Inset: a lit top edge for the back lip, a bottom
+  occlusion where floor meets wall, and `inset 0 0 40px` for the depth itself,
+  since an interior is darkest where it meets its own walls.
+- **The panel's upward shadow is what seats the paper.** A shadow paints in its
+  own element's layer, and the panel is above the cards, so it lands on the white
+  paper rather than under it.
+- **The floor shadow sits behind the wall, centred on the pocket's bottom edge.**
+  The pocket hides its top half and only the spill shows. `FLOOR` is all the room
+  there is underneath, which is why it is short and wide rather than deep: taller
+  blurs straight into the frame's edge.
+- **The paper's lift is Tailwind classes, not an inline `boxShadow`.** A ring is a
+  box-shadow too, so an inline value overwrites the card's hairline instead of
+  composing with it, where Tailwind composes its own through `--tw-shadow`. The
+  hairline also stepped down from `stroke-strong` to `stroke` once the lift was
+  real, because a strong edge under a real shadow reads as a drawn border.
+- **The panel's hover is a `::before` wash, not a second background.** Its face is
+  a gradient, so a `bg-*` class cannot step it. `aria-expanded` carries the same
+  wash, per the open-trigger rule.
+- **The pocket's corner radius is one pixel value off the measured stage.** A
+  percentage pair, `x% / y%` per face picked so both land on the same pixel, is
+  the obvious answer and was the first one: it tracks each box, where a fixed
+  `rem` is only in sync at one width. It did not paint. The panel came out square
+  while the wall, on the same treatment, was round, and the cause was never
+  isolated. A pixel value sidesteps it, still tracks the pocket since the stage is
+  measured anyway, and serves both faces with one number.
+- **Motion was blamed for that and is innocent, which is worth knowing here.** It
+  only pulls a property out of `style` and into its own values when that property
+  is a transform, an `origin*`, or, with `layout`/`layoutId` set, something its
+  scale correctors cover. `getValueAsType` coerces numbers only, so a string in
+  `style` passes through untouched. Static strings and multi-layer `boxShadow`
+  values are safe to hand a motion component. Do not design around a restriction
+  that is not there.
+- **Uniform cards are what buy both.** The reference fans five different widths,
+  and a `translateX` percentage resolves against the element's own width, so one
+  offset moves a narrow card further than a wide one and every value needs
+  converting per card. Identical cards delete that whole layer.
+- **Corner radius is not proportional to the card.** It roughly doubles while the
+  card roughly triples, because a radius that keeps its ratio to a card three
+  times the size reads as a stadium rather than a corner.
+- **Three layers under one perspective, and none of them nested.** An element
+  carrying `perspective` is its own stacking context, so a pocket wrapper would
+  make the cards sit wholly above or wholly below both of its faces. They have to
+  interleave: wall, then cards, then the shorter front panel.
+- **The panel getting wider at the top as it tilts is correct, not a bug.** At
+  `-26deg` its top edge comes about 73px toward the viewer, which at
+  `perspective: 1000px` magnifies it by 1.08 and pushes its top corners about
+  10px past the wall's sides. A panel leaning out of a pocket does that.
+- **The panel never fades, and `TILT.staged` is what it is because of that.** It
+  used to drop to `opacity: 0` at -78deg while a card was staged, and a panel that
+  dissolves and re-materialises is not something a panel does: it looked
+  deliberate on the way out and wrong on the way back. It also never needed to get
+  out of the way, since a staged card renders above it. So it leans instead and
+  the scrim above it is what veils the pocket. -52 is the most it can lean and
+  still read as a panel: 110px of visible face, against 38px at -78, which is a
+  bar. Behind the scrim it composites to 76% lightness on a 95% ground, so
+  the pocket reads as depth behind glass rather than as a dark shape.
+- **The stage clips, unlike `tether-button`'s.** A card pushed aside for a staged
+  one is meant to hang off the edge with a sliver showing, which puts most of it
+  outside the frame, and `Demo` does not clip its own contents. Without
+  `overflow-hidden` a card slides out over the page beside the frame. The radius
+  has to be `Demo`'s own, since `flush` means the two are the same box.
+- **The sliver step is small so the deepest card stays on screen.** At 0.05 of
+  the stage the fourth card out cleared the edge completely, so from either end
+  of the pile two cards simply were not there and the arrow keys had nothing
+  saying they went anywhere.
+- **Hover is answered by `hitTest`, not by the DOM, and this is the single most
+  important thing in the experiment.** One `pointermove` on the stage, tested
+  against the fan's geometry in `poses.ts`. The DOM cannot do this job: it hit
+  tests boxes as they are currently animated, so a card that moves in response to
+  being hovered moves out from under the pointer, the hover drops, the card falls
+  back, and the hover re-acquires. `hitTest` reads the **neutral** boxes, with
+  nothing hovered, so a hover cannot change the geometry that decides the hover
+  and the loop cannot exist.
+- **Two DOM-driven versions were built and neither could be made stable.** The
+  first singled a card out by raising it 27px, which moved its own bottom edge off
+  the pointer that had just arrived there: the fan flickered continuously and a
+  card could not be reached at all unless the pointer crossed the whole band
+  inside one frame. Sinking the other cards instead (`SINK`) fixed that one, and
+  left a second: a singled-out card straightens from as much as 10 degrees, which
+  sweeps its corners up to 6.4px outside its new box. Containing that needs `GROW`
+  at 1.20, and a card that jumps a fifth bigger under the pointer reads as a zoom
+  rather than as one sheet picked out of a stack. A 60ms grace period on the
+  release absorbed some of it and none of the cause.
+- **Which is why the two motion rules in `pose` still matter.** Growth is centred,
+  so every edge of a singled-out card moves outward, and neighbours only ever lean
+  away from the card under the pointer. Anything added there has to keep both
+  properties, or the visible card and the tested box drift apart.
+- **The cost is a few pixels at four corners.** The outermost part of a
+  straightened card is outside the box being tested, so it is not hoverable. That
+  is the trade for a fan that behaves the same slowly as it does quickly, which is
+  the whole bug: replaying the reported gesture at 70 samples and at 8 now gives
+  one transition either way.
+- **Cards are only tested while the fan is out.** Shut, they sit behind the front
+  panel, so the pocket is the only thing there is to be over.
+- **The pocket's reach is as big as the pocket currently is.** Shut it is the
+  footprint, so the fan only ever *opens* from the pocket and never from empty
+  stage. Open it is the box around the pocket and the whole fan, because a fanned
+  card reaches well past the pocket's sides: testing the footprint alone leaves a
+  dead band outside the pocket's left and right edges and below the cards, and
+  every shallow diagonal from the front face out to an outer card crosses it, so
+  the fan shut halfway and dropped the card being reached for. One box rather than
+  the union of two, since a union of rectangles has the same hole. This cannot
+  oscillate, because opening only widens the region and the shut region is a
+  subset of the open one. Verified: 200 diagonal drags from a grid of points on
+  the front face to every card, none losing the fan; 9045 points outside the shut
+  footprint, none opening it; 6392 dwell tests, none unstable.
+- **Every sheet carries its own hue, at two strengths.** `mark` is saturated and
+  paints exactly one element, `tint` is a wash and paints exactly one block, and
+  the body lines stay grey. Every `mark` clears 3:1 on white paper, which is what
+  a meaningful graphic needs, and every `tint` lands between 1.25 and 1.42, the
+  same band as the `stroke-strong` grey it replaces at 1.37, so a card gains a hue
+  without gaining weight. Ordered so no two neighbours in the fan sit near each
+  other in hue, since neighbours are what overlap.
+- **`SLOT` is the whole of the closed state.** It sets how much paper shows above
+  the front panel, and that strip is the only thing saying the pocket has anything
+  in it. At 0.18 it was 14% of a card, which read as a seam. 0.10 shows 30%. The
+  floor is where the card's own top passes the pocket's, which is paper poking out
+  of the back of a shut pocket.
+- **`FAN_GROW` is 8%, and has to stay subtle.** A sheet clear of the stack is
+  nearer the eye than one still filed. It applies to every card in the fan, so it
+  multiplies with `GROW` on whichever one is singled out, and two visible size
+  steps on one card read as a zoom. It cannot affect hover stability, since it
+  applies whether or not anything is hovered.
+- **The listeners are bound to the node, not written as JSX props.** The stage is
+  not a control, it is a region the pointer passes through, and it has no honest
+  interactive role to carry: `group`, the closest ARIA has, means a set of form
+  fields. `focusin` and `focusout` sit there too, since they bubble and a card
+  taking focus has to reach up to them.
+- **Closing a card asks whether the pointer is still on the pocket.** No
+  `pointermove` is coming to answer it, so without that the fan shuts under a
+  pointer that never moved.
+- **The pile remembers the last card staged and keeps it on top.** Restacking on
+  landing is a visible z-snap the instant the cards settle, and a real folder
+  remembers what you last pulled out of it.
+- **An odd card count is deliberate.** It gives a true centre card that sits
+  square and unrotated at rest, which is what makes the fan read as a fan opening
+  rather than as a stack being shuffled. That card also gets the one arrangement
+  with a header, since at rest it is on top and its header is the only part of
+  any card showing above the panel.
+- **Closing is sequenced, opening is not.** The panel waits `WIND`'s delay before
+  it winds back up, so the paper is home before the pocket shuts over it. Folding
+  the fan away and shutting the panel at the same time reads as one collapse, and
+  the paper going back in is the half of the gesture worth watching. The delay is
+  a share of the cards' own duration rather than a second number to keep in sync,
+  and at 0.6 of it the panel overlaps their tail instead of waiting on it. Strictly
+  sequential is what the reference does and is most of a second of animation for a
+  pointer that has already left. It applies to the panel coming back only: tilting
+  open has to answer the pointer at once, and leaning back for a staged card rides
+  that card's own spring so the two read as one movement.
+- **The front panel is a real `<button>`.** It carries `aria-expanded` and its
+  matching hover, per the open-trigger rule, and it is what opens the pocket on
+  touch, where there is no hover to fan it with.
+- **Reduced motion is read with `useReducedMotion`.** Unlike `tether-button`
+  these are motion components, so `MotionProvider` governs the transforms, but
+  `width`, `height` and `borderRadius` are not transforms and would still ease.
+  One `INSTANT` transition covers all of them.
 
 ## Motion
 
