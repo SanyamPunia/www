@@ -35,6 +35,19 @@ const MIN_PRESS = 140;
 const KEY_PRESS = 260;
 /** ms the web takes to fade once the button releases, spent in CSS */
 const FADE = 200;
+/**
+ * ms the fade waits before it starts. The fall is the point of the release, and
+ * gravity is slowest at the start, so an undelayed fade spends its opacity on
+ * the part of the drop that has barely moved and is gone by the time the strand
+ * is really falling.
+ */
+const FADE_DELAY = 150;
+/** seconds the release takes. Inside `FADE`, so it plays out before it is gone. */
+const RELEASE = 0.24;
+/** px the free end falls once nothing is holding it up */
+const FALL_DROP = 44;
+/** px of extra slack at the bottom of that fall, which is the silk going limp */
+const FALL_SLACK = 26;
 
 const SPLAT_RADIUS = 10;
 
@@ -104,23 +117,16 @@ export default function TetherButton() {
     return { x: event.clientX - box.x, y: event.clientY - box.y };
   };
 
-  const paint = (origin: Point, end: Point, progress: number) => {
-    const tip = {
-      x: origin.x + (end.x - origin.x) * progress,
-      y: origin.y + (end.y - origin.y) * progress,
-    };
-    const drawn = strand(origin, tip);
-    core.current?.setAttribute("d", drawn.core);
-    left.current?.setAttribute("d", drawn.left);
-    right.current?.setAttribute("d", drawn.right);
-    // the strand darkens as it extends, so a shot leaves the hand faint and
-    // reads solid once it is anchored
-    if (web.current) {
-      web.current.style.opacity = String(
-        LAUNCH_OPACITY + (1 - LAUNCH_OPACITY) * progress,
-      );
-    }
-  };
+  const paint = useCallback(
+    (origin: Point, tip: Point, slack: number, opacity: number) => {
+      const drawn = strand(origin, tip, slack);
+      core.current?.setAttribute("d", drawn.core);
+      left.current?.setAttribute("d", drawn.left);
+      right.current?.setAttribute("d", drawn.right);
+      if (web.current) web.current.style.opacity = String(opacity);
+    },
+    [],
+  );
 
   /** the pointer's last position inside the stage, which is the strand's tail */
   const pointer = useRef<Point>({ x: 0, y: 0 });
@@ -130,7 +136,18 @@ export default function TetherButton() {
    * line redrawn to the nearest edge, so it elongates and shrinks as the hand
    * moves instead of sliding around the button.
    */
-  const shot = useRef<{ anchor: Point; progress: number } | null>(null);
+  const shot = useRef<{
+    anchor: Point;
+    progress: number;
+    /**
+     * The run the web was spun to cover, set when it lands and 0 while it is
+     * still travelling. Bringing the hand inside this leaves the difference
+     * hanging as slack.
+     */
+    rest: number;
+    /** 0 while anything holds the far end up, running to 1 once nothing does */
+    fall: number;
+  } | null>(null);
 
   /** whether the pointer that started this press is still down */
   const held = useRef(false);
@@ -145,7 +162,7 @@ export default function TetherButton() {
    * heading changes as the hand orbits the anchor, so how far the strand's start
    * slides has to change with it or the thumb gets painted over on the way past.
    */
-  const redraw = () => {
+  const redraw = useCallback(() => {
     const live = shot.current;
     if (!live) return;
 
@@ -176,16 +193,76 @@ export default function TetherButton() {
       y: live.anchor.y - heading.y * splatHub(SPLAT_RADIUS),
     };
 
-    paint(start, rim, live.progress);
-  };
+    /*
+     * The tip is interpolated toward the rim, then dropped.
+     *
+     * The drop has to land after the interpolation, not on the rim. Offsetting
+     * the rim scales the offset by `progress`, so a strand reeling in would
+     * cancel its own fall exactly as gravity was meant to take over.
+     */
+    const tip = {
+      x: start.x + (rim.x - start.x) * live.progress,
+      y: start.y + (rim.y - start.y) * live.progress + live.fall * FALL_DROP,
+    };
+
+    // whatever the web was spun to cover and no longer has to, plus the silk
+    // that goes limp once nothing is pulling on it
+    const slack =
+      (live.rest > 0 ? Math.max(0, live.rest - span) : 0) +
+      live.fall * FALL_SLACK;
+
+    /*
+     * The strand darkens as it extends, so a shot leaves the hand faint and
+     * reads solid once it is anchored. That ramp belongs to the launch only:
+     * `progress` also runs back down on release, which ran the ramp in reverse
+     * and dimmed the strand just as it started to fall. Past the landing the
+     * layer's own fade owns the disappearance.
+     */
+    paint(
+      start,
+      tip,
+      slack,
+      live.rest > 0 ? 1 : LAUNCH_OPACITY + (1 - LAUNCH_OPACITY) * live.progress,
+    );
+  }, [paint]);
 
   const release = useCallback(() => {
     pressedAt.current = 0;
-    // the web detaches and fades from wherever it was, so the last frame stands
-    // rather than tracking the hand through the fade
-    shot.current = null;
     setPhase("idle");
-  }, []);
+
+    const live = shot.current;
+    if (!live || reduced()) {
+      shot.current = null;
+      return;
+    }
+
+    /*
+     * Letting go does two things at once, which is what makes it read as silk
+     * rather than a line being deleted. The strand reels back toward the hand,
+     * and the end that was stuck falls, because nothing holds it up any more.
+     *
+     * One linear clock drives both so they cannot drift apart. The reel is linear
+     * on it and the fall is its square, which is constant acceleration, so the
+     * drop starts imperceptibly and is still gathering pace when the layer
+     * finishes fading. Reeling alone looked like a rewind.
+     */
+    const from = live.progress;
+    playing.current.push(
+      animate(0, 1, {
+        duration: RELEASE,
+        ease: "linear",
+        onUpdate: (t) => {
+          if (!shot.current) return;
+          shot.current.progress = from * (1 - t);
+          shot.current.fall = t * t;
+          redraw();
+        },
+        onComplete: () => {
+          shot.current = null;
+        },
+      }),
+    );
+  }, [redraw]);
 
   /**
    * Let go, once the press has been on screen long enough to read. Called when
@@ -286,7 +363,7 @@ export default function TetherButton() {
     setPhase("flight");
 
     const span = Math.hypot(anchor.x - origin.x, anchor.y - origin.y);
-    shot.current = { anchor, progress: 0 };
+    shot.current = { anchor, progress: 0, rest: 0, fall: 0 };
 
     /*
      * `MotionProvider`'s `reducedMotion` governs motion components, not a value
@@ -322,6 +399,13 @@ export default function TetherButton() {
           }),
         );
       }
+
+      /*
+       * The rest length is the run at launch, not at landing. That is the silk
+       * actually spun, so moving closer during the flight lands a web that is
+       * already slack, which is right.
+       */
+      if (shot.current) shot.current.rest = span;
 
       pressedAt.current = performance.now();
       // still holding: the lift handler ends this. Already let go during the
@@ -483,6 +567,7 @@ export default function TetherButton() {
           style={{
             opacity: shooting ? 1 : 0,
             transitionDuration: shooting ? "0ms" : `${FADE}ms`,
+            transitionDelay: shooting ? "0ms" : `${FADE_DELAY}ms`,
           }}
         >
           <g

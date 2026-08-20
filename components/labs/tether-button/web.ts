@@ -93,8 +93,13 @@ interface Strand {
   right: string;
 }
 
+/** how much of the slack becomes bow at the spine's middle */
+const SAG_RATIO = 0.5;
+/** the bow's ceiling, as a fraction of the run it spans */
+const MAX_BOW = 0.6;
+
 /**
- * Two mirrored threads wound around a straight core.
+ * Two mirrored threads wound around a spine.
  *
  * Each half lobe is one quadratic, so a 500px shot costs about 45 curve
  * commands per path instead of the several hundred points a sampled sine needs.
@@ -103,43 +108,92 @@ interface Strand {
  *
  * `LENS` is a distance, not a count of lobes, so a long shot and a short one are
  * the same material rather than one drawing stretched to two lengths.
+ *
+ * `slack` is how much more strand there is than gap to span, and it bows the
+ * spine. Without it the tether is a straight line at every length, which is what
+ * gives away a redrawn line rather than a rope: bringing the hand back toward the
+ * anchor should leave silk hanging, not shorten the run.
  */
-export function strand(origin: Point, tip: Point): Strand {
-  const dx = tip.x - origin.x;
-  const dy = tip.y - origin.y;
-  const length = Math.hypot(dx, dy);
-  if (length < 1) return { core: "", left: "", right: "" };
+export function strand(origin: Point, end: Point, slack = 0): Strand {
+  const dx = end.x - origin.x;
+  const dy = end.y - origin.y;
+  const chord = Math.hypot(dx, dy);
+  if (chord < 1) return { core: "", left: "", right: "" };
 
-  const ux = dx / length;
-  const uy = dy / length;
-  // perpendicular to the run, which is the axis the twist opens along
-  const nx = -uy;
-  const ny = ux;
+  const ux = dx / chord;
+  const uy = dy / chord;
+  // the perpendicular that points down the screen, so slack hangs rather than
+  // arching over the top
+  const down = ux < 0 ? -1 : 1;
+  const nx = -uy * down;
+  const ny = ux * down;
 
-  const at = (along: number, across: number) =>
-    `${round(origin.x + ux * along + nx * across)} ${round(
-      origin.y + uy * along + ny * across,
-    )}`;
+  /*
+   * How far the spine bows at its middle.
+   *
+   * Scaled by that perpendicular's own downward component, so a horizontal run
+   * hangs fully and a vertical one does not bow at all, which is what slack rope
+   * hanging straight down looks like. Capped against the run as well: a hand
+   * brought right up to the anchor leaves the whole rest length hanging, and
+   * drawing that honestly is a loop several times longer than the gap it spans.
+   */
+  const bow = Math.min(slack * SAG_RATIO * Math.abs(ny), chord * MAX_BOW);
 
-  const lobes = Math.max(1, Math.round(length / LENS));
-  const step = length / lobes;
+  // a quadratic reaches half its control's offset at the midpoint
+  const cx = origin.x + ux * (chord / 2) + nx * bow * 2;
+  const cy = origin.y + uy * (chord / 2) + ny * bow * 2;
 
-  const start = `M${at(0, 0)}`;
-  let left = start;
-  let right = start;
+  const at = (t: number) => {
+    const u = 1 - t;
+    return {
+      x: u * u * origin.x + 2 * u * t * cx + t * t * end.x,
+      y: u * u * origin.y + 2 * u * t * cy + t * t * end.y,
+    };
+  };
+
+  /** the unit normal to the spine at `t`, which is the axis a lobe opens along */
+  const normalAt = (t: number) => {
+    const tx = 2 * (1 - t) * (cx - origin.x) + 2 * t * (end.x - cx);
+    const ty = 2 * (1 - t) * (cy - origin.y) + 2 * t * (end.y - cy);
+    const len = Math.hypot(tx, ty) || 1;
+    return { x: -ty / len, y: tx / len };
+  };
+
+  // the spine's length, not the chord, or a bowed strand stretches its lobes.
+  // The usual cheap estimate for a quadratic.
+  const arc =
+    (2 * chord +
+      Math.hypot(cx - origin.x, cy - origin.y) +
+      Math.hypot(end.x - cx, end.y - cy)) /
+    3;
+
+  const lobes = Math.max(1, Math.round(arc / LENS));
+  const step = 1 / lobes;
+
+  const point = (p: Point) => `${round(p.x)} ${round(p.y)}`;
+
+  const head = `M${point(origin)}`;
+  let left = head;
+  let right = head;
 
   for (let i = 0; i < lobes; i++) {
     const middle = (i + 0.5) * step;
+    const spine = at(middle);
+    const n = normalAt(middle);
     // a quadratic reaches half its control's offset at the midpoint, so the
     // control sits at twice the width the lobe should paint
     const reach =
-      2 * AMPLITUDE * pinch(middle, length) * (i % 2 === 0 ? 1 : -1);
-    const end = at((i + 1) * step, 0);
-    left += `Q${at(middle, reach)} ${end}`;
-    right += `Q${at(middle, -reach)} ${end}`;
+      2 * AMPLITUDE * pinch(middle * arc, arc) * (i % 2 === 0 ? 1 : -1);
+    const tail = point(at((i + 1) * step));
+    left += `Q${point({ x: spine.x + n.x * reach, y: spine.y + n.y * reach })} ${tail}`;
+    right += `Q${point({ x: spine.x - n.x * reach, y: spine.y - n.y * reach })} ${tail}`;
   }
 
-  return { core: `${start}L${at(length, 0)}`, left, right };
+  return {
+    core: `${head}Q${point({ x: cx, y: cy })} ${point(end)}`,
+    left,
+    right,
+  };
 }
 
 /**
