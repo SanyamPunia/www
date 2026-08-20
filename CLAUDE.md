@@ -583,6 +583,35 @@ lands rather than when the mouse does.
   orbits. Fixing them at launch paints the thumb over on the way past. The inset
   is also capped against the length of the run, or a hand pulled right up to the
   anchor insets past it and the strand inverts.
+- **Slack bows the strand, and that is what stops it reading as a redrawn line.**
+  The web remembers the run it was spun to cover, which is the run at launch and
+  not at landing, so moving closer during the flight lands a web that is already
+  slack. Bringing the hand inside that leaves the difference hanging. The spine
+  becomes a quadratic and the lobes ride its local normal, so the twist follows
+  the curve round instead of staying square to a straight axis, and the lobe
+  count comes off the spine's own length rather than the chord or a bowed strand
+  stretches its lobes.
+- **The bow is scaled by the perpendicular's downward component and capped
+  against the run.** Scaling means a horizontal run hangs fully and a vertical one
+  does not bow at all, which is what slack rope hanging straight down looks like.
+  The cap is a design decision rather than physics: a hand brought right up to
+  the anchor leaves the whole rest length hanging, and drawing that honestly is a
+  loop several times longer than the gap it spans.
+- **Letting go reels the web in and drops it at the same time.** One linear clock
+  drives both so they cannot drift: the reel is linear on it and the fall is its
+  square, which is constant acceleration. Reeling alone read as a rewind. The
+  splat stays where it stuck, so the strand visibly peels off it.
+- **The fall is applied to the tip, after the interpolation, never to the rim.**
+  Offsetting the rim scales the offset by `progress`, so a strand reeling in
+  cancels its own fall exactly as gravity is meant to take over. That is the
+  whole trick and it is invisible until you try it the other way.
+- **The launch's opacity ramp had to stop applying on release.** The strand
+  darkens as it extends, off `progress`, and `progress` also runs back down when
+  the web lets go, so the ramp ran in reverse and dimmed the strand just as it
+  started to fall. Past the landing the layer's own fade owns the disappearance.
+- **That fade is delayed rather than just slow.** Gravity is slowest at the
+  start, so an undelayed fade spends its opacity on the part of the drop that has
+  barely moved and is gone by the time the strand is really falling.
 - **The splat's rotation is fixed at impact.** One spoke lines up with the strand
   as it lands, and after that the hand can orbit freely. A web that turned to keep
   facing the hand would be a web that is not stuck.
