@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NewBadge } from "@/components/ui/new-badge";
 import { formatLabDate, type LabMetadata } from "@/lib/labs";
 
 /**
@@ -12,12 +13,17 @@ import { formatLabDate, type LabMetadata } from "@/lib/labs";
 export function LabIndex({ labs }: { labs: LabMetadata[] }) {
   return (
     <ul className="-mx-4 flex flex-col gap-1">
-      {labs.map((lab) => (
+      {labs.map((lab, index) => (
         <li key={lab.slug}>
           <Link
             href={`/lab/${lab.slug}`}
-            className="group flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
+            className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
           >
+            {/* first child, so the badge joins the link's accessible name and a
+                screen reader hears "new" before the title rather than after the
+                date. The list is sorted newest first, so index 0 is the entry. */}
+            {index === 0 && <NewBadge />}
+
             <span className="min-w-0 shrink truncate text-body leading-tight text-text-primary">
               {lab.title}
             </span>

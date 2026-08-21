@@ -206,6 +206,47 @@ textarea {
 }
 
 /*
+ * The circle round `NewBadge`, drawn on once rather than faded in.
+ *
+ * Same mechanism as the signature: `pathLength="1"` on the path, so the dash
+ * lengths are plain numbers here, and `1 2` resting at 1.02 keeps the pattern's
+ * repeat off both ends of the path, since a zero-length dash under a round cap
+ * paints as a dot.
+ *
+ * The delay waits for the row itself. `Reveal` holds its children 0.35s and
+ * staggers them 0.08s, and the list is the second block, so the row has landed by
+ * about 0.83s. Drawing under a row that is still arriving reads as two unrelated
+ * animations.
+ *
+ * `linear`, for the same reason the signature is: the stroke then advances at a
+ * constant path length per second, which is one pen speed. Easing a drawn line
+ * makes the pen appear to accelerate and brake, and at this duration `ease-out`
+ * spent most of the time on the last third of the loop.
+ */
+.new-circle path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+  animation: new-circle-draw 0.92s linear 0.72s forwards;
+}
+
+@keyframes new-circle-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Raw keyframes, so `MotionProvider`'s reducedMotion does not govern them, the
+ * same as the signature. The circle is still there, it just is not drawn.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .new-circle path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
  * Drives the underline on `InlineLink` when it is given a `drawAt`. Paired
  * with `transform-origin: left` and `animation-fill-mode: both`, so the rule
  * sits at zero width through its delay and then sweeps out left to right.
