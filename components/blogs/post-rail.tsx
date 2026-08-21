@@ -5,6 +5,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { BackLink } from "@/components/ui/back-link";
 import { CONTENT_HALF_REM } from "@/lib/constants";
+import { isPlainClick, scrollToHeading } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 
 /**
@@ -230,6 +231,13 @@ export function PostRail(): React.ReactNode {
                     links.current[i] = el;
                   }}
                   href={`#${entry.id}`}
+                  // the same smooth scroll the heading's own anchor does, or a
+                  // post moves two different ways depending on which of the two
+                  // controls was used
+                  onClick={(event) => {
+                    if (isPlainClick(event) && scrollToHeading(entry.id))
+                      event.preventDefault();
+                  }}
                   aria-current={active === i ? "location" : undefined}
                   className={cn(
                     "cursor-pointer py-1 pl-3 text-meta transition-colors duration-200 hover:text-text-primary focus-visible:rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15",

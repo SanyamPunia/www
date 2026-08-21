@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { isPlainClick, scrollToHeading } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,11 +16,15 @@ import { cn } from "@/lib/utils";
  * them and `PostRail` links to them, so the only thing missing was a way to get
  * one out of the page without opening devtools.
  *
- * A real `<a href="#id">`, not a button. That is what updates the address bar,
- * scrolls the page and lands the heading under its own `scroll-mt` natively,
- * and it is what lets the link be opened in a new tab or copied through the
- * browser's own menu. The clipboard write is added on top rather than replacing
- * any of it, so the control does the obvious thing however it is used.
+ * A real `<a href="#id">`, not a button. That is what puts the section in the
+ * address bar, and it is what lets the link be opened in a new tab or copied
+ * through the browser's own menu. The clipboard write is added on top rather than
+ * replacing any of it, so the control does the obvious thing however it is used.
+ *
+ * A plain click is the one case that does not use the native jump. It scrolls
+ * smoothly instead, through `scrollToHeading`, which also writes the hash. Every
+ * modified click still falls through to the real `href`, which is the half of
+ * being an anchor that matters.
  *
  * Phosphor's hash, never a literal `#` character. The two draw the same shape
  * and only one of them is an icon: a text character inherits the prose font and
@@ -62,7 +67,12 @@ export function HeadingAnchor({ id }: { id: string }): React.ReactNode {
     <Tooltip label="Copy link to section">
       <a
         href={`#${id}`}
-        onClick={() => void copy()}
+        onClick={(event) => {
+          void copy();
+          // a modified click wants a new tab, so it has to reach the real href
+          if (isPlainClick(event) && scrollToHeading(id))
+            event.preventDefault();
+        }}
         aria-label={copied ? "Link copied" : "Copy link to this section"}
         className={cn(
           "inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-muted transition-all duration-200 hover:bg-fill hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 group-hover:opacity-100",
