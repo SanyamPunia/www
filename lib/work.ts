@@ -104,6 +104,13 @@ const projects: Project[] = [
     href: "https://www.npmjs.com/package/@rbac-ui/react",
   },
   {
+    title: "nib",
+    slug: "nib",
+    image: "/projects/nib.webp",
+    category: "web",
+    href: "https://nib.sanyam.sh",
+  },
+  {
     title: "sixtyfour",
     slug: "sixtyfour",
     image: "/projects/sixtyfour.webp",
