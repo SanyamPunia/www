@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
+import { Hint } from "./hint";
 import {
   CONTACT,
   corner,
@@ -513,6 +514,11 @@ export default function DocumentPocket() {
           height: CONTACT.height,
         }}
       />
+
+      {/* The note in the bottom left corner, and its arrow up to the pocket.
+          Nothing about a dark box says "hover me", so without it the experiment
+          reads as a still image. It leaves once the fan is out. */}
+      {stage > 0 && <Hint stage={stage} show={!open && active === null} />}
 
       {/* The pocket's wall: the darkest thing here, because it is an interior in
           shadow. The paper reads against it, which a light pocket could not do. */}

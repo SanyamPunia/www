@@ -178,6 +178,16 @@ export const CONTACT = {
 
 export const STAGE_ASPECT = `${W_UNITS} / ${H_UNITS}`;
 
+/**
+ * A viewBox spanning the whole stage, at 100 units per aspect unit.
+ *
+ * Derived from the aspect rather than written out, so an overlay drawn in these
+ * units cannot drift from the stage's real shape. It maps 1:1 with no distortion,
+ * which means a stroke width in these units scales with the stage the same way
+ * every other value here does.
+ */
+export const STAGE_VIEWBOX = `0 0 ${W_UNITS * 100} ${H_UNITS * 100}`;
+
 /** the pocket's corner, as a fraction of its own width */
 const CORNER = 0.095;
 
