@@ -42,6 +42,7 @@ pnpm check        # all three, this is the gate
 | Default radius | `rounded-full` pills and avatars, `rounded-lg` cards, `rounded-md` inputs |
 | Focus pattern | `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2` |
 | Body font | `Inter` variable via `next/font/google`, displayed all lowercase |
+| Annotation font | `Caveat` variable, same loader, **one lab only**, see below |
 | Class helper | `cn()` from `lib/utils.ts` |
 | Formatter and linter | Biome, not ESLint or Prettier |
 | Page width | `CONTENT_WIDTH` in `lib/constants.ts`, consumed by `PageShell` |
@@ -228,6 +229,17 @@ not drop the closing note to `text-meta`, it was deliberately raised to match
 the paragraph above it.
 
 `text-meta` serves the footer, tooltips, section labels and row metadata.
+
+**One font is not on this scale, and that is the point.** `Caveat` in
+`app/fonts.ts` is a handwriting face used by `components/labs/document-pocket/`
+and nothing else, at a size derived from the demo's own width rather than from a
+token. A note pencilled beside an experiment is not prose on the page, so it is
+sized as part of the drawing. Do not promote it to the scale, do not use it for
+UI, and do not add another off-scale face without the same kind of reason.
+
+Next scopes a font to the components that use it, so it is fetched on the one lab
+page that renders it and nowhere else, verified against `/`, `/lab` and `/work`.
+`next/font` self-hosts it, so no page makes a third-party request for it.
 
 **`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
 post open with a real `<h1>` at `text-lead`, followed by a `text-body`
@@ -902,6 +914,22 @@ the middle of the stage with the rest pushed off to the sides.
   pointer that has already left. It applies to the panel coming back only: tilting
   open has to answer the pointer at once, and leaning back for a staged card rides
   that card's own spring so the two read as one movement.
+- **The hint is the only thing saying the demo is interactive.** Nothing about a
+  dark box says "hover me", so without the note in the bottom left corner the
+  experiment reads as a still image. It is the one place on the site with a
+  handwriting face, because the note is *about* the demo rather than part of it and
+  Inter would read as another label inside the piece. It leaves once the fan is
+  out, since a hint that outlives the thing it points at is clutter.
+- **The arrow is drawn in the stage's own units, not its own viewBox.**
+  `STAGE_VIEWBOX` is derived from the aspect, so it maps 1:1 and a stroke width in
+  those units scales with the stage like every other value here. The head is one
+  stroke running barb, tip, barb with a bow on each side, because straight barbs
+  read as a vector arrowhead and this is meant to look drawn.
+- **It is `pointer-events-none`, and that is not optional.** The stage's own
+  `pointermove` decides everything in this experiment, so anything laid over the
+  stage has to be transparent to it. It is also hidden under
+  `@media (hover: hover)`, since the copy is a lie on a touch screen, where the
+  panel is tappable instead.
 - **The front panel is a real `<button>`.** It carries `aria-expanded` and its
   matching hover, per the open-trigger rule, and it is what opens the pocket on
   touch, where there is no hover to fan it with.
