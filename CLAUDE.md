@@ -231,15 +231,33 @@ the paragraph above it.
 `text-meta` serves the footer, tooltips, section labels and row metadata.
 
 **One font is not on this scale, and that is the point.** `Caveat` in
-`app/fonts.ts` is a handwriting face used by `components/labs/document-pocket/`
-and nothing else, at a size derived from the demo's own width rather than from a
-token. A note pencilled beside an experiment is not prose on the page, so it is
-sized as part of the drawing. Do not promote it to the scale, do not use it for
-UI, and do not add another off-scale face without the same kind of reason.
+`app/fonts.ts` is a handwriting face with exactly two callers, both of them
+annotations rather than prose: the hint in `components/labs/document-pocket/`, and
+`components/ui/new-badge.tsx`. Neither is sized by a token. The hint takes its
+size from the demo's own width, since it is part of that drawing, and the badge is
+20px, which is 1.39x `text-body`, because Caveat's x-height is far enough below
+Inter's that matching the row by token renders visibly smaller than it. Do not promote this face to the scale, do not use it for UI, and do not add a
+third off-scale face without the same kind of reason.
 
-Next scopes a font to the components that use it, so it is fetched on the one lab
-page that renders it and nowhere else, verified against `/`, `/lab` and `/work`.
-`next/font` self-hosts it, so no page makes a third-party request for it.
+Next scopes a font to the components that use it, so it is fetched only on the
+pages that render one of those two, and `next/font` self-hosts it, so no page
+makes a third-party request for it.
+
+**`NewBadge` marks the newest entry and nothing else, because there is no clock
+available.** Both indexes are statically prerendered, so a check against the
+current date would be answered once at build time and then keep claiming the same
+thing until the next deploy, which is the trap `sitemap.ts` avoids by omitting
+`lastModified`. The newest entry is the newest whenever the page is served. It
+hangs in the margin absolutely, so a truncating row title never shares its width,
+and it is hidden below `md`. The hand-drawn circle round it is what set that
+breakpoint: the word alone reached 44px past the column against 51px of margin at
+`sm`, and with the circle plus the margin that clears the row it needs 62px. The
+circle is one stroke that overshoots its own start, since a closed ellipse reads
+as a border rather than as a pen mark, and **every offset around it is measured
+from the circle rather than from the word**, since the circle hangs 6.4px past the
+span on all four sides. Sizing the gap to the word alone is what put the circle
+inside the row's hover pill. It is the
+row's first child, so a screen reader hears "new" before the title.
 
 **`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
 post open with a real `<h1>` at `text-lead`, followed by a `text-body`
@@ -483,10 +501,22 @@ travels between rows rather than a border toggling on each.
 lists, hidden until that heading is hovered. It is how a reader gets the URL
 for one section instead of the whole post.
 
-- **A real `<a href="#id">`, never a button.** That is what updates the address
-  bar, scrolls, and lands the heading under its own `scroll-mt` natively, and
-  it is what lets the link be opened in a new tab through the browser's own
-  menu. The clipboard write is added on top rather than replacing any of it.
+- **A real `<a href="#id">`, never a button.** That is what puts the section in
+  the address bar, and it is what lets the link be opened in a new tab through
+  the browser's own menu. The clipboard write is added on top rather than
+  replacing any of it.
+- **A plain click scrolls smoothly instead of jumping, through `lib/scroll.ts`.**
+  The native jump was correct and instant, which is the problem: a reader who
+  clicks a section cannot tell whether the page moved a little or a long way.
+  `PostRail`'s rows go through the same helper, or a post scrolls two different
+  ways depending on which of the two controls was used. Three things there are
+  load-bearing. It is `window.scrollTo`, never `scrollIntoView`, which walks up
+  and scrolls every scrollable ancestor. The offset is read off the heading's
+  computed `scroll-margin-top` rather than restated, so it cannot drift from the
+  `scroll-mt-16` in `mdx-components.tsx`. And every modified click still falls
+  through to the real `href`, which is most of why these are anchors at all.
+  `pushState` writes the hash, since assigning `location.hash` would fire the
+  native jump on top of the smooth scroll and land twice.
 - **The confirmation is the icon swapping to a tick, and the anchor is held
   visible while it does.** That second half is what makes it work. The control
   scrolls the heading it sits on, so the pointer is left behind and the hover
