@@ -79,9 +79,16 @@ const COUNT = CARDS.length;
  * Springs by intent, not by element. Opening is allowed to show off, closing
  * gets out of the way without bouncing, and singling a card out happens often
  * enough that it would read as a toy if it bounced at all.
+ *
+ * `OPEN` and `SHUT` were 0.55 and 0.3 and moved up together, keeping their 1.8
+ * ratio. Paper has some weight to it and the fan was travelling faster than it
+ * looked like it should, but the ratio is the deliberate part: opening is the
+ * gesture worth watching, and closing follows a pointer that has already left.
+ * `SINGLE` deliberately did not follow them, since it answers a hover and any
+ * slower reads as lag.
  */
-const OPEN = { type: "spring", duration: 0.55, bounce: 0.34 } as const;
-const SHUT = { type: "spring", duration: 0.3, bounce: 0.08 } as const;
+const OPEN = { type: "spring", duration: 0.65, bounce: 0.34 } as const;
+const SHUT = { type: "spring", duration: 0.36, bounce: 0.08 } as const;
 const SINGLE = { type: "spring", duration: 0.3, bounce: 0.16 } as const;
 const STAGE = { type: "spring", duration: 0.5, bounce: 0.18 } as const;
 const INSTANT = { duration: 0 } as const;
