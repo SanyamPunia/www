@@ -601,6 +601,24 @@ told what kind of pointer it is.
   screen has no way to take a `:hover` back, so a tapped card kept its wash for
   as long as it stayed the last thing touched. Press stays unguarded, since
   `:active` ends with the touch.
+- **The panel's content fade sits under a null `PresenceContext`, and without
+  it the fade does not play until the overview has been opened once.** The
+  panel's `AnimatePresence` carries `initial={false}`, which is meant to say
+  "do not slide the panel in on first paint". Motion says it by putting
+  `initial: false` on a context, and every motion component below reads it:
+  `makeLatestValues` mounts a blocked child at `animate` rather than at
+  `initial`, so the keyed content mounted at `opacity: 1` and switching tabs
+  changed the preview with no fade at all. It comes back on its own because
+  `PresenceChild` memoises that context without `initial` in its dependencies,
+  so the value is stuck for the life of that child and only a remount clears
+  it. Opening the overview unmounts the panel and closing it mounts a fresh
+  one, past `AnimatePresence`'s own first render, which is why the fade
+  appeared after the first trip through the overview and stayed. A nested
+  `AnimatePresence` clears the context too and costs more than it gives:
+  `sync` renders both previews at once and grows the panel, and `wait` doubles
+  the swap and blanks it in between. Measured: the panel still paints at
+  `opacity: 1` with no transform on first load, and still re-enters from
+  `translateY(40px)`.
 - **The card's label row is a plain span, and giving it a projection node is
   what broke it.** It was `layout="position"`, which counter-scales, so the text
   painted at its final size while the card was still at a fraction of its own.
