@@ -1,7 +1,7 @@
 "use client";
 
 import { SquaresFourIcon, TerminalWindowIcon } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, PresenceContext } from "motion/react";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import "./styles.css";
@@ -456,17 +456,43 @@ export default function TabOverview() {
               </span>
             </span>
 
-            {/* keyed on the tab, so switching tabs fades the new content in
-                  rather than swapping it under the same box */}
-            <motion.div
-              key={active.id}
-              className={`tone-${active.id}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={FADE}
-            >
-              <Preview shape={active.shape} size="md" />
-            </motion.div>
+            {/*
+             * Keyed on the tab, so switching tabs fades the new content in
+             * rather than swapping it under the same box.
+             *
+             * The null presence context is what lets that fade run at all, and
+             * it is the panel's own `initial={false}` it is undoing. That flag
+             * is meant to say "do not slide the panel in on first paint", but
+             * `AnimatePresence` says it by putting `initial: false` on a
+             * context, and every motion component below reads it: `makeLatest
+             * Values` blocks a blocked child's initial and mounts it at
+             * `animate` instead. So this element mounted at `opacity: 1` and
+             * the fade never played.
+             *
+             * It survived because it comes back on its own. `PresenceChild`
+             * memoises that context without `initial` in its dependencies, so
+             * the value is stuck at false for the life of that child, and only
+             * a remount clears it. Opening the overview unmounts the panel and
+             * closing it mounts a fresh one, by which point `AnimatePresence`
+             * is past its own first render and passes `undefined`. That is why
+             * the fade was missing until the first trip through the overview
+             * and correct forever after.
+             *
+             * A nested `AnimatePresence` clears the context too and costs more
+             * than it gives: `sync` renders both previews at once and grows the
+             * panel, and `wait` doubles the swap and blanks it in between.
+             */}
+            <PresenceContext.Provider value={null}>
+              <motion.div
+                key={active.id}
+                className={`tone-${active.id}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={FADE}
+              >
+                <Preview shape={active.shape} size="md" />
+              </motion.div>
+            </PresenceContext.Provider>
           </motion.div>
         )}
       </AnimatePresence>
