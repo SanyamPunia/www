@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { Toaster } from "@/components/providers/toaster";
 import { SelectionPins } from "@/components/ui/selection-pins";
@@ -64,6 +65,16 @@ export default function RootLayout({
         {/* here rather than per page: selecting text is a whole-document
             behaviour, and one listener covers every route */}
         <SelectionPins />
+        {/*
+         * Analytics. The tracker hooks `history.pushState` and `popstate`
+         * itself, so App Router navigations are counted with nothing wired up
+         * per route. `afterInteractive` rather than `beforeInteractive`: the
+         * latter is fetched ahead of first-party code, which is the wrong
+         * trade for a page-view counter. There is no `data-hostname`, so the
+         * script reports `location.hostname` and preview deploys land on a
+         * host that is not registered, which drops them.
+         */}
+        <Script defer src="https://assets.onedollarstats.com/stonks.js" />
       </body>
     </html>
   );
