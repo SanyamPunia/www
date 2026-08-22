@@ -619,18 +619,40 @@ told what kind of pointer it is.
   the swap and blanks it in between. Measured: the panel still paints at
   `opacity: 1` with no transform on first load, and still re-enters from
   `translateY(40px)`.
-- **The card's label row is a plain span, and giving it a projection node is
-  what broke it.** It was `layout="position"`, which counter-scales, so the text
-  painted at its final size while the card was still at a fraction of its own.
-  Opening the overview starts a card at the strip's width, which on a phone is
-  42%, so a 56px label was drawn in a 38px slot and ran over the two tabs beside
-  it. `overflow-hidden` on the card does not catch that, and it is worth knowing
-  why before reaching for it again: a clip applies in the element's own box,
-  which the layout animation has already resized to the grid card's full width,
-  so nothing is cut and the spill only exists once the card's transform shrinks
-  what was clipped. `truncate` misses it for the same reason. Peek is unaffected
-  either way, since it resizes a card through the preview's height rather than
-  the card's box and involves no transform at all.
+- **The card's content is position-locked and the card clips, and both halves
+  are load-bearing.** A layout animation resizes with a transform, so a card's
+  own box is already the destination while the transform is still the source.
+  `layout="position"` on the label row and on the preview holds both at their
+  real size through that, which is what the design wants: the content is
+  identical in the strip and in the grid, so only the box is meant to move.
+  `overflow-hidden` on the card then cuts whatever does not fit the box the
+  card is currently painting, which on a phone is a 56px label and a 146px bar
+  inside 67px of card.
+- **Locking only the label is worse than locking neither**, which is how it
+  shipped and what made the title look broken on a phone. The label held 12px
+  while the bars rode the card's scale down to a third of theirs, so the label
+  sat across the first bar for the length of the opening morph.
+- **Letting the label ride the scale instead is worse still. Do not try it.**
+  It reads fine opening, where the card scales up from 42% and the text is
+  merely small, and it is violent closing, where the card scales down from 250%
+  and every label is drawn at 30px and shrinks. There is no direction in which
+  riding is right: 12px is the label's size in both stages, so the only correct
+  answer is that it never scales.
+- **No `layout` value resizes without a transform, so do not go looking for
+  one.** The projection engine takes `true`, `"position"`, `"size"`,
+  `"preserve-aspect"`, `"x"` and `"y"`, and every one of them animates with a
+  scale. `"preserve-aspect"` is not an escape hatch either, it only drops to
+  position-only when the aspect ratio moves by more than 0.2. Resizing a real
+  box means animating `width` and `height` as values, with no `layout` at all,
+  which is what `document-pocket` does and what `PREVIEW_MOTION` does for the
+  card's height. Doing it here would mean measuring both arrangements and
+  driving every card by hand, which is a rebuild rather than a prop.
+- **Rect maths cannot verify any of this.** `getBoundingClientRect` reports
+  what an element claims, not what an ancestor's clip lets through, so a probe
+  that compares a label's edge to its card's says `overflow-hidden` changed
+  nothing. It also scores a label that is the wrong size but inside its box as
+  clean. Compare pixels, and look at the closing morph as well as the opening
+  one.
 
 ### `tether-button`
 
