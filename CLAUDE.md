@@ -1249,6 +1249,27 @@ promising it would be a claim the ordering cannot support. `MoreLabs` filters on
   since there is no content to scroll, and it carries no `BackLink` because the
   copy already names every route worth reaching.
 
+## Analytics
+
+One `<Script>` in the root layout, pointing at OneDollarStats. There is no
+package, no provider component and no per-route call.
+
+- **The tracker counts App Router navigations on its own.** It hooks
+  `history.pushState` and `popstate`, which is how the App Router moves between
+  routes, so nothing has to be wired into a page or a layout below the root.
+- **`afterInteractive`, which is `next/script`'s default.**
+  `beforeInteractive` is fetched ahead of first-party code, and the installed
+  Next docs reserve it for critical scripts. A page-view counter is not one.
+- **No `data-hostname`.** The script reports `location.hostname` instead, so a
+  preview deploy sends its events under a `*.vercel.app` host, which is not
+  registered and is dropped. Setting the attribute would count preview traffic
+  as production traffic.
+- **No `data-devmode`.** That attribute is what makes localhost report, and
+  nothing on this site needs local page views in the dashboard.
+- **A domain only counts once it is added in the dashboard.** The script is
+  live either way, so an empty dashboard is a registration problem and not a
+  code one.
+
 ## Directories
 
 - `app/` routes. `components/ui/` shared primitives, `components/home/` and
