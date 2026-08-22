@@ -56,7 +56,7 @@ export default function BlogsPage() {
           </RevealItem>
 
           <RevealItem>
-            <BlogIndex blogs={blogs} />
+            <BlogIndex blogs={blogs} markNewest />
           </RevealItem>
         </Reveal>
       </PageShell>

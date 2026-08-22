@@ -49,7 +49,7 @@ export default function LabPage() {
           </RevealItem>
 
           <RevealItem>
-            <LabIndex labs={labs} />
+            <LabIndex labs={labs} markNewest />
           </RevealItem>
         </Reveal>
       </PageShell>
