@@ -583,6 +583,37 @@ experiment is a directory under `components/labs/`.
   stylesheet and `document-pocket` in a `const` beside its card list, which is
   the better of the two: prefer it.
 
+### `tab-overview`
+
+One window in three stages, and the two that answer a pointer both had to be
+told what kind of pointer it is.
+
+- **Peek is a mouse gesture, gated on the event's own `pointerType`.** A touch
+  tap fires `pointerenter`, `pointerleave` and `click` inside about 60ms, so one
+  tap on the toggle used to open the peek, shut it and start the overview morph
+  at once. That is the same `height: auto` measured under a live transform that
+  `MORPH_GUARD` exists to prevent, arriving from the other direction. Reading
+  the event rather than a `(hover: hover)` query is what keeps a laptop with a
+  touchscreen peeking for its mouse and not for a finger: the query answers for
+  the device and reports true for both. **So on a phone the toggle is the whole
+  experiment**, closed to overview and back, with nothing in between.
+- **The hue wash is `@media (hover: hover)` for the same reason.** A touch
+  screen has no way to take a `:hover` back, so a tapped card kept its wash for
+  as long as it stayed the last thing touched. Press stays unguarded, since
+  `:active` ends with the touch.
+- **The card's label row is a plain span, and giving it a projection node is
+  what broke it.** It was `layout="position"`, which counter-scales, so the text
+  painted at its final size while the card was still at a fraction of its own.
+  Opening the overview starts a card at the strip's width, which on a phone is
+  42%, so a 56px label was drawn in a 38px slot and ran over the two tabs beside
+  it. `overflow-hidden` on the card does not catch that, and it is worth knowing
+  why before reaching for it again: a clip applies in the element's own box,
+  which the layout animation has already resized to the grid card's full width,
+  so nothing is cut and the spill only exists once the card's transform shrinks
+  what was clipped. `truncate` misses it for the same reason. Peek is unaffected
+  either way, since it resizes a card through the preview's height rather than
+  the card's box and involves no transform at all.
+
 ### `tether-button`
 
 The one experiment with a custom cursor. Pressing anywhere on its stage shoots a
