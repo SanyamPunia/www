@@ -223,36 +223,29 @@ function TabCard({
         `tone-${tab.id}`,
         // `card` is what carries hover and press, in the lab's stylesheet, since
         // both are washes of this tab's own hue
-        "card flex h-full min-w-0 cursor-pointer flex-col p-2 text-left transition-colors duration-200",
+        //
+        // `overflow-hidden` is what keeps the content inside the box the box is
+        // currently painting. A layout animation resizes with a transform, so
+        // the card's own box is already the destination and only the transform
+        // is still the source. Everything below counter-scales against that, so
+        // on a phone the opening morph drew the full 56px label and a 146px bar
+        // inside a card painted 67px wide, over the two tabs beside it. The
+        // clip cuts them at the card's edge instead.
+        //
+        // Rect maths does not see this. `getBoundingClientRect` reports what an
+        // element claims, not what an ancestor lets through, so a probe that
+        // compares edges says the clip changed nothing. Compare pixels.
+        "card flex h-full min-w-0 cursor-pointer flex-col overflow-hidden p-2 text-left transition-colors duration-200",
         filled && "bg-bg ring-1 ring-inset",
         filled && (current ? "ring-stroke" : "ring-stroke-soft"),
         FOCUS,
       )}
     >
-      {/*
-       * The label row rides the card's scale, so it is a plain span with no
-       * projection node of its own.
-       *
-       * It was a `layout="position"` motion span, which gave it one, and a
-       * projection node counter-scales: the text kept painting at its final
-       * size while the card was still at a fraction of its own. Opening the
-       * overview starts the card at the strip's width, which on a phone is 42%,
-       * so a 56px label was drawn in a 38px slot and ran over the two tabs
-       * beside it.
-       *
-       * `overflow-hidden` on the card does not catch that, and it is worth
-       * knowing why before reaching for it again: a clip applies in the
-       * element's own box, which the layout animation has already resized to
-       * the grid card's full width. The label fits there, so nothing is cut,
-       * and the spill only exists once the card's transform has shrunk what was
-       * clipped. `truncate` misses it for the same reason.
-       *
-       * Peek is unaffected either way. It resizes a card by animating the
-       * preview's height rather than the card's box, so no transform is
-       * involved and there is nothing for a projection node to correct. See
-       * PREVIEW_MOTION.
-       */}
-      <span className="flex min-w-0 items-center gap-1.5">
+      <motion.span
+        layout="position"
+        transition={SPRING}
+        className="flex min-w-0 items-center gap-1.5"
+      >
         <TerminalWindowIcon
           aria-hidden="true"
           className="mark size-3.5 shrink-0"
@@ -265,7 +258,7 @@ function TabCard({
         >
           {tab.label}
         </span>
-      </span>
+      </motion.span>
 
       {/*
        * The preview owns the open and close: its height animates, the card's
@@ -291,9 +284,25 @@ function TabCard({
             transition={PREVIEW_MOTION}
             className="block overflow-hidden px-1"
           >
-            <span className="block pt-2">
+            {/*
+             * Position-locked for the same reason the label row above is: the
+             * card's content is identical in the strip and in the grid, so a
+             * morph is meant to move the box and leave the content alone.
+             *
+             * Locking only the label was worse than locking neither. The label
+             * held 12px while the bars rode the card's scale down to a third of
+             * theirs, so the two collided: the label sat across the first bar
+             * for the length of the opening morph. Locking both keeps them in
+             * step, and the card reads as a window opening over content that
+             * was always the right size.
+             */}
+            <motion.span
+              layout="position"
+              transition={SPRING}
+              className="block pt-2"
+            >
               <Preview shape={tab.shape} size="sm" />
-            </span>
+            </motion.span>
           </motion.span>
         )}
       </AnimatePresence>
