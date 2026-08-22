@@ -247,8 +247,18 @@ makes a third-party request for it.
 available.** Both indexes are statically prerendered, so a check against the
 current date would be answered once at build time and then keep claiming the same
 thing until the next deploy, which is the trap `sitemap.ts` avoids by omitting
-`lastModified`. The newest entry is the newest whenever the page is served. It
-hangs in the margin absolutely, so a truncating row title never shares its width,
+`lastModified`. The newest entry is the newest whenever the page is served.
+
+**Which row is newest is the caller's claim, through `markNewest`, and not
+something `BlogIndex` or `LabIndex` may assume.** Only a list of everything can
+make it. `MorePosts` and `MoreLabs` render through those same two components and
+pass a list with the current page filtered out and the rest cut to three, so
+row 0 there is the newest of what is left. While the badge keyed off row 0 alone,
+reading the newest post put it on the runner-up, which is the one thing the
+badge must never do. So the two indexes pass `markNewest` and the two "more"
+sections do not.
+
+It hangs in the margin absolutely, so a truncating row title never shares its width,
 and it is hidden below `md`. The hand-drawn circle round it is what set that
 breakpoint: the word alone reached 44px past the column against 51px of margin at
 `sm`, and with the circle plus the margin that clears the row it needs 62px. The
