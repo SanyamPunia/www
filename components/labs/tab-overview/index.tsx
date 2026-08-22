@@ -229,11 +229,30 @@ function TabCard({
         FOCUS,
       )}
     >
-      <motion.span
-        layout="position"
-        transition={SPRING}
-        className="flex min-w-0 items-center gap-1.5"
-      >
+      {/*
+       * The label row rides the card's scale, so it is a plain span with no
+       * projection node of its own.
+       *
+       * It was a `layout="position"` motion span, which gave it one, and a
+       * projection node counter-scales: the text kept painting at its final
+       * size while the card was still at a fraction of its own. Opening the
+       * overview starts the card at the strip's width, which on a phone is 42%,
+       * so a 56px label was drawn in a 38px slot and ran over the two tabs
+       * beside it.
+       *
+       * `overflow-hidden` on the card does not catch that, and it is worth
+       * knowing why before reaching for it again: a clip applies in the
+       * element's own box, which the layout animation has already resized to
+       * the grid card's full width. The label fits there, so nothing is cut,
+       * and the spill only exists once the card's transform has shrunk what was
+       * clipped. `truncate` misses it for the same reason.
+       *
+       * Peek is unaffected either way. It resizes a card by animating the
+       * preview's height rather than the card's box, so no transform is
+       * involved and there is nothing for a projection node to correct. See
+       * PREVIEW_MOTION.
+       */}
+      <span className="flex min-w-0 items-center gap-1.5">
         <TerminalWindowIcon
           aria-hidden="true"
           className="mark size-3.5 shrink-0"
@@ -246,7 +265,7 @@ function TabCard({
         >
           {tab.label}
         </span>
-      </motion.span>
+      </span>
 
       {/*
        * The preview owns the open and close: its height animates, the card's
