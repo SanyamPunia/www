@@ -339,7 +339,24 @@ export default function TabOverview() {
             each tab. Peek only reads a closed strip, or crossing the row would
             drop the overview. */}
       <div
-        onPointerEnter={() => {
+        onPointerEnter={(event) => {
+          /*
+           * Peek is a mouse gesture, and the pointer's own type is what says
+           * so. A touch tap fires `pointerenter`, `pointerleave` and `click`
+           * inside about 60ms, so one tap on the toggle used to open the peek,
+           * shut it and start the overview morph at once. That is the
+           * `height: auto` measured under a live transform that MORPH_GUARD
+           * exists to prevent, arriving from the other direction.
+           *
+           * Reading `pointerType` rather than a `(hover: hover)` query is what
+           * keeps a laptop with a touchscreen peeking for its mouse and not for
+           * a finger: the query answers for the device and reports true for
+           * both, where the event answers for the gesture in hand.
+           *
+           * So on a phone the toggle is the whole experiment: closed to
+           * overview and back, with nothing in between to interrupt it.
+           */
+          if (event.pointerType !== "mouse") return;
           if (stage === "closed" && !settling.current) setStage("peek");
         }}
         onPointerLeave={() => stage === "peek" && setStage("closed")}

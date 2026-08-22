@@ -50,8 +50,17 @@
   --press: color-mix(in oklab, var(--mark) 16%, #fff);
 }
 
-.tab-overview .card:hover {
-  background-color: var(--wash, var(--color-fill));
+/*
+ * The wash is a mouse state and says so, because a touch screen has no way to
+ * take one back: `:hover` sticks to whatever was tapped last, so a card kept
+ * its wash for as long as it stayed the last thing touched, and the overview
+ * morph then ran out of a colour the finger had left behind. Press is
+ * unguarded, since `:active` ends with the touch.
+ */
+@media (hover: hover) {
+  .tab-overview .card:hover {
+    background-color: var(--wash, var(--color-fill));
+  }
 }
 
 .tab-overview .card:active {
