@@ -84,12 +84,23 @@ export default async function LabDetailPage({
               </Demo>
             )}
 
-            {(lab.source || lab.reference) && (
-              <div className="flex items-center justify-end gap-4 text-meta text-text-muted">
-                {lab.reference && (
-                  <LabLink href={lab.reference}>Reference</LabLink>
+            {/* the hint says what to do with the demo and the links say where it
+                came from, so the two share one row from opposite ends. `ml-auto`
+                rather than `justify-between`, so the links stay right whether or
+                not the entry carries a hint. It wraps on a narrow column, where
+                the hint runs to two lines on its own. */}
+            {(lab.hint || lab.source || lab.reference) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-meta text-text-muted">
+                {lab.hint && <p className="min-w-0">{lab.hint}</p>}
+
+                {(lab.source || lab.reference) && (
+                  <div className="ml-auto flex items-center gap-4 whitespace-nowrap">
+                    {lab.reference && (
+                      <LabLink href={lab.reference}>Reference</LabLink>
+                    )}
+                    {lab.source && <LabLink href={lab.source}>Source</LabLink>}
+                  </div>
                 )}
-                {lab.source && <LabLink href={lab.source}>Source</LabLink>}
               </div>
             )}
           </RevealItem>
