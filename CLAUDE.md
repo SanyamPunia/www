@@ -570,6 +570,15 @@ experiment is a directory under `components/labs/`.
   container: the frame's hairline then sits a padding-width outside the
   experiment's own edge, and the two nested boxes read as chrome around chrome.
   `tab-overview` is the only entry using it.
+- **`hint` on a registry entry is one line naming the gesture**, rendered by the
+  page beside the source links rather than inside the demo. For an experiment
+  whose affordance is not visible: `event-stacking` looks like a calendar and
+  says nothing about the arrow keys. It shares that row because it is copy about
+  the demo, the same category as where the demo came from, and because a line of
+  page chrome inside a component is a line the component then has to lay out.
+  Keep it short: at the column's width the links leave it 394px, so 75 characters
+  wrapped and 60 does not. It is not a replacement for `document-pocket`'s
+  handwritten note, which is inside the drawing and points at one part of it.
 - **`flush: true` keeps the frame and drops its padding**, so the experiment
   fills the frame edge to edge. For a demo whose whole surface is the
   interaction rather than a component sitting on a surface: the padding then
@@ -583,15 +592,15 @@ experiment is a directory under `components/labs/`.
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Two experiments define their own hues**, `tab-overview` per terminal session
-  and `document-pocket` per sheet of paper. Both are the same case: colour is the
-  differentiator between skeletons built from the same few shapes, so it carries
-  meaning rather than decorating, which is the exception the brand marks already
-  get. Both are scoped to their experiment, the values are not tokens, nothing
-  else may reach for them, and labels and body lines stay grey, since the site
-  does not put an accent on text. `tab-overview` keeps its values in its own
-  stylesheet and `document-pocket` in a `const` beside its card list, which is
-  the better of the two: prefer it.
+- **Three experiments define their own hues**, `tab-overview` per terminal
+  session, `document-pocket` per sheet of paper and `event-stacking` per event.
+  All three are the same case: colour is the differentiator between shapes built
+  from the same few parts, so it carries meaning rather than decorating, which is
+  the exception the brand marks already get. Each is scoped to its experiment,
+  the values are not tokens, nothing else may reach for them, and labels and body
+  lines stay grey, since the site does not put an accent on text. `tab-overview`
+  keeps its values in its own stylesheet and the other two in a `const` beside
+  their card list, which is the better of the two: prefer it.
 
 ### `tab-overview`
 
@@ -1048,6 +1057,203 @@ the middle of the stage with the rest pushed off to the sides.
   these are motion components, so `MotionProvider` governs the transforms, but
   `width`, `height` and `borderRadius` are not transforms and would still ease.
   One `INSTANT` transition covers all of them.
+
+### `event-stacking`
+
+A four-day calendar whose events are dragged between slots. A card dropped onto
+another joins it as a pile, and the pile compresses to fit the cell it is in.
+`layout.ts` is the geometry, pure and DOM-free, the same split
+`document-pocket` makes with `poses.ts`.
+
+Three Motion props carry it, and all three answer the same question: what stops
+a card being mangled on the way down.
+
+- **`layout` moves a card between cells.** It measures the box before the state
+  change and after it and animates the delta, so nothing here computes a path.
+  The card's `left` and `width` are percentages and its `top` and `height` are
+  pixels, which does not matter to it, since it measures real boxes.
+- **`layout="position"` on the card's content is what keeps that from being a
+  mangling.** A layout animation covers a resize with a transform, and joining a
+  pile takes every member from 70px to 63px, so a plain child would squash
+  vertically on the way in and spring back at the end. Measured: through a drop
+  that resizes a card 70px to 63px, the locked box holds 48.0px on every frame.
+  Not plain `layout`, which would animate its size too and leave it a frame
+  behind. Its size is not meant to move at all.
+- **`dragSnapToOrigin` covers the other half of the drop, and its spring has to
+  match the layout one.** Drag writes a plain `x`/`y` offset from wherever the
+  card's box currently is, and the drop moves that box to another cell, so at
+  the instant of the commit the offset is measured against a box that is no
+  longer there. `layout`'s own transform starts at the old cell and unwinds to
+  the new one, so the two compose to the pointer's position on the first frame
+  and to the target cell on the last. Both ends are right whatever the springs
+  are. What the springs decide is the path between them, and two different ones
+  send the card round a curve on its way into the slot. An inertia bounce is a
+  spring with `stiffness` and `damping` under other names at the same default
+  mass, so matching it is a matter of naming the same two numbers, and
+  `dragMomentum={false}` hands it a velocity of zero so there is no decay phase
+  to reconcile.
+- **Resetting `x` and `y` in `onDragEnd` instead does not work, and it is the
+  obvious first try.** `layout` snapshots the box with the transform backed out,
+  so its animation would start at the origin cell rather than at the pointer and
+  the card teleports home before setting off.
+
+**There are two springs, and only one card is ever held to the matched one.** A
+spring's duration does not depend on how far it goes, and a pile opening or
+closing a slot is 7px where a drop is up to 500px. On the drop's spring that
+resize measured 181ms, which reads as a card easing rather than as a pile
+reacting, while the same numbers over a whole grid read as a throw. So `SNAPPY`
+carries every card the drag is not holding and lands in about 96ms, close to the
+140ms the target wash takes to fade in, and `TRAVEL` carries the dropped card and
+the wash. Overshoot at that damping ratio is 1.3%, which on 7px is 0.09px, so it
+is a fast ease in practice and a spring only so the lab has one kind of curve.
+
+Which card is which is state rather than a guess. `landing` holds the id the drop
+is carrying and every other way a card moves clears it, including the lift that
+starts the next gesture. Not an animation callback, since a drop back into the
+cell it came from changes no geometry and so completes no animation to hear
+about.
+
+**`dragConstraints` is a plain object of numbers and never the grid's own ref,
+and that is not a preference.** Ref constraints put a `ResizeObserver` on the
+*draggable element*, and every card here changes height whenever a pile it
+belongs to gains or loses a member. Each of those resizes calls
+`scalePositionWithinConstraints`, which stops whatever animation is running and
+rewrites `x` and `y` to hold the card's old progress inside the freshly measured
+box. Two things follow and both were measured. A drop that changes a card's
+height loses its return to origin part way through and leaves the card sitting
+at most of its drag offset, which is a card stranded a cell away from where it
+was dropped. And a card at rest takes a permanent few pixels of transform every
+time its height changes, because a shorter card has a larger bottom constraint
+and the same progress inside it lands somewhere else. `isRefObject` gates both
+the observer and the rewrite, so numeric constraints are the version that does
+nothing but clamp. The cost is that they are transform offsets in pixels, so
+`limits` needs the grid's measured width, which is why there is a
+`ResizeObserver` of our own. It has to be in props before the gesture starts,
+because Motion resolves constraints in its own `pointerdown` handler and that
+runs before any React handler on the same element.
+
+**The pile fits its cell, and the peek gives way before the height does.** A
+card loses `PEEK` for every card above it, which is 70px alone, 63px in a pair
+and 56px in a three. A fourth would take it under the 50px its own two lines
+need, so past that the peeks share out whatever room is left instead: five cards
+are five 50px cards 5px apart. Clipping the content would mean a pile whose
+cards stop saying what they are, which is the one thing the pile exists to show.
+
+**Which cell the pointer is over is computed from the pointer, not from the
+DOM.** A `pointerenter` on a cell cannot fire while a card is being dragged over
+it, because the card is the thing under the pointer. So the grid is measured
+once per gesture and every sample is arithmetic against that. Motion reports a
+gesture's point in **page** coordinates, off `pageX` and `pageY`, where
+`getBoundingClientRect` is in viewport coordinates, so the scroll is added in
+once at the start rather than corrected every frame. The result is clamped,
+because the constraints hold the card's box inside the grid and nothing holds
+the pointer there.
+
+**Both piles answer the drag, and the card in the air does not.** The cell it is
+heading for counts it before it lands, so the cards already there keep their
+order, shift down and open the slot on top. The cell it left drops it as soon as
+it is over another one, so that pile closes up: a pair leaves a lone card holding
+the whole cell, and a three leaves its new top card relaxed and back at the top
+of it. Coming home reverses both, since the two tests are the same test. The
+lifted card keeps the box it had at rest through all of it, because a card that
+resizes under the pointer reads as the pointer doing it. Motion would survive it
+moving, it watches its own `didUpdate` and adds the layout delta back into both
+the drag origin and the offset, so that is a design call and not a workaround.
+
+**The wash marking the target cell takes the card's own corner radius**, not the
+cell's square one, since what it stands for is the shape about to land in it. It
+keeps the cell's footprint, which is what says the cell rather than the card is
+the target.
+
+**Pile order is a number on the event, not the array's order.** Landing takes
+the highest order in that cell plus one, and cycling drops the front card below
+the lowest, so the events array never reorders. `layout` only animates an
+element that stayed mounted, and reordering the array would work, but it puts a
+DOM move in the middle of every drop for nothing.
+
+**A card leans while it is carried, off the horizontal velocity of the drag.** It
+was a fixed 2.5 degrees, which said the card was in the air but not that it was
+being moved. `useVelocity` on the drag's own `x` is the source, because it decays
+to zero on its own when the pointer stops, where a velocity read out of `onDrag`
+freezes at its last value and leaves a card tilted while the hand is still.
+Calibrated rather than picked: 213px/s leans 2.4 degrees and 2167px/s leans 9.5,
+against a 12 degree clamp. The spring's own rise time is what holds a short flick
+short of that clamp, which is correct and is also why the tilt is turned up by
+lowering the velocity each degree costs rather than by raising the clamp. The
+spring is the loosest in the file at a 0.57 damping ratio, so 11% of overshoot
+puts a wobble on it as the hand stops, which is the part that reads as weight.
+
+**A `grip` motion value gates it, and it has to.** `x` keeps moving after the
+release, since it is what `dragSnapToOrigin` unwinds, and that unwind is the
+residual of the drag offset rather than the card's own travel. A card carried
+right across the grid reads a large leftward velocity on landing and would snap
+the wrong way over. Zeroing `grip` at the release lets the spring level the card
+out while it flies into the slot, which is what putting a card down looks like.
+It is set in the gesture handlers rather than from `lifted` in an effect, since
+the card already knows both moments and neither needs a render. Reduced motion
+sets it to 0 and leaves it there: `useSpring` is a hook rather than a motion
+component, so `MotionProvider` does not reach it.
+
+**The two labels that say where a card is are morphed, not swapped, through
+`torph`.** A card's time comes from the row it sits in and the airborne label
+from the cell under the pointer, so a move rewrites both. "9:00 AM" to "10:00 AM"
+and "Wed 10:00 AM" to "Thu 11:00 AM" keep most of their characters, so morphing
+the few that change reads as one label being corrected where a swap reads as a
+different label arriving. This is the second caller after `multi-step-form`.
+
+- **220ms, not its own 400ms default**, and in milliseconds unlike every other
+  duration here, since `torph` is not Motion. The airborne label is rewritten
+  every time the pointer crosses a cell boundary, which is far more often than
+  400ms, and a morph still running when the next one starts reads as a smear.
+- **`whitespace-nowrap` on the time, never `truncate`.** `torph` lays its
+  characters out itself and an `overflow-hidden` box on the same element clips
+  them mid-morph. The card clips instead, which it already does, and the widest
+  time still has 5.69px of clearance inside the narrowest card.
+- **The dot beside the time stays outside it.** `torph` takes text children only,
+  never elements.
+- **It reads `prefers-reduced-motion` itself** through `respectReducedMotion`,
+  which defaults on, and renders no wrapper at all when it is set. So this is the
+  one animation in the lab that neither `MotionProvider` nor a `useReducedMotion`
+  call governs.
+
+Smaller things, all of them things that were wrong first:
+
+- **A drag ends with a `click` on the button it started on**, so without a flag
+  set at drag start every drop would also cycle the pile. Drag start is past the
+  gesture's own threshold, so a real click never sees the flag.
+- **A card has no border, so its tint is the whole of its edge.** It carried a
+  hairline in its own hue at 25% for a while, which read as an outlined chip
+  rather than as a block of time. That hairline is also why focus was an
+  `outline` for a while: a focus ring is a box-shadow and so was the hairline, so
+  the ring replaced the edge of the card being moved by keyboard. With no
+  hairline the project's own focus pattern goes back in unchanged.
+- **`select-none` on the window.** Every gesture here is a drag across type, so
+  without it a pointer that misses a card selects the day heads and the hour
+  labels, and one that hits a card leaves its own two lines highlighted behind
+  it. Scoped to the window rather than the whole block, so the hint under it stays
+  selectable prose.
+- **`cursor-grab`, which is the second place the shared "cursor-pointer on every
+  clickable element" rule is off**, after `tether-button`. A card is grabbed far
+  more often than it is clicked.
+- **The marks are the 700 step where `document-pocket`'s are the 600.** There a
+  mark sits on white paper and here it sits on the card's own tint, and
+  amber-600 on amber-200 is 2.56:1. Every pairing here clears 4:1 on its own
+  tint, and the tints stay in the 1.24 to 1.42 band. The card's own meta line is
+  `text-secondary` rather than `text-muted` for the same reason: muted is 2.23
+  on a tint.
+- **The hint is a registry field, not copy inside the demo.** The cards look
+  grabbable and the pile at Thu 9:00 shows what a drop does, so this does not
+  need a note saying it is interactive the way `document-pocket` does. What
+  neither of those says is that the arrow keys move a focused card, and a path
+  reachable only by pointer is the one worth naming. Adding a second `Caveat`
+  caller for it would also undo "one lab only" on that face.
+- **The hour gutter is one class string used twice**, the column and the spacer
+  holding the day heads off it, since they have to agree. `w-12` was the first
+  pick and wraps "10 am" onto two lines.
+- **The card's horizontal padding steps up with the column.** At 390px a column
+  is 73.6px and "10:00 AM" was 0.72px from fitting, measured at 52.25px in a
+  51.53px box. A title losing its tail is what `truncate` is for. A time losing
+  one character is a bug, so the padding gives way instead.
 
 ## Motion
 
