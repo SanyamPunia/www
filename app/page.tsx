@@ -24,13 +24,14 @@ export const metadata: Metadata = {
  *  230ms   lead paragraph            (stagger 80ms)
  *  230ms   colour band starts sweeping across "Sanyam" (1.2s)
  *  310ms   supporting paragraph
- *  390ms   closing note
- *  470ms   hairline rule
- *  550ms   footer starts
- *  950ms   footer settles, the page is whole
- *  950ms   "currently" underline sweeps left → right (450ms)
- * 1090ms   "write"                   (stagger 140ms)
- * 1230ms   "lab"
+ *  390ms   what I have shipped
+ *  470ms   closing note
+ *  550ms   hairline rule
+ *  630ms   footer starts
+ * 1030ms   footer settles, the page is whole
+ * 1030ms   "currently" underline sweeps left → right (450ms)
+ * 1170ms   "write"                   (stagger 140ms)
+ * 1310ms   "lab"
  *
  * The album cover behind the avatar is outside all of this. It arrives on a
  * network response, fades itself in, and then loops independently.
@@ -39,11 +40,12 @@ export const metadata: Metadata = {
 const TIMING = {
   /**
    * When Reveal's last child finishes. Derived from `components/ui/reveal.tsx`:
-   * delayChildren 150 + (5 staggers x 80) + duration 400. Six RevealItems.
+   * delayChildren 150 + (6 staggers x 80) + duration 400. Seven RevealItems.
    * If any of those three change, or a block is added, this moves with them.
-   * Adding the avatar took it from 870 to 950.
+   * Adding the avatar took it from 870 to 950, and the packages paragraph from
+   * 950 to 1030.
    */
-  revealSettled: 950,
+  revealSettled: 1030,
   /** between each link's draw, left to right down the paragraph */
   underlineStagger: 140,
   /**
@@ -114,6 +116,21 @@ export default function Page() {
                 lab
               </InlineLink>{" "}
               of UI experiments.
+            </p>
+          </RevealItem>
+
+          <RevealItem>
+            <p className="text-body text-text-secondary text-pretty">
+              I wrote{" "}
+              <InlineLink href={links.easeful} external>
+                easeful
+              </InlineLink>
+              , which gives a Radix or Base UI component its enter and exit
+              animation from one attribute and ships no JavaScript.{" "}
+              <InlineLink href={links.morphrig} external>
+                Morphrig
+              </InlineLink>{" "}
+              is a ten-part explainer on how icon morphing actually works.
             </p>
           </RevealItem>
 

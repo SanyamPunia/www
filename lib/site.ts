@@ -19,4 +19,6 @@ export const links = {
   enclave: "https://www.enclave.money/",
   bitscale: "https://bitscale.ai/",
   uniqueForge: "https://www.npmjs.com/package/unique-forge",
+  easeful: "https://easeful.sanyam.sh",
+  morphrig: "https://morphrig.dev",
 } as const;

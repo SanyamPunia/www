@@ -222,7 +222,7 @@ which this is fixable, since the failure is invisible at each one.
 **A new role here needs a matching entry in `TYPE_SCALE` in `lib/utils.ts`.**
 
 **Every home page paragraph is `text-body`.** Only tone separates them, primary
-for the opening one and secondary for the two below it. Matching them at
+for the opening one and secondary for the three below it. Matching them at
 `text-lead` instead was tried first and looked worse, the larger supporting
 paragraph read as a wall. Do not "fix" any of them back to `text-lead`, and do
 not drop the closing note to `text-meta`, it was deliberately raised to match
