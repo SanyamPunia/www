@@ -14,7 +14,9 @@ interface Favicon {
  * work: npm 403s on `/favicon.ico` behind Cloudflare, and Enclave ships a
  * white-on-transparent mark that is invisible on white, so its dark tile is
  * composited locally. SoundCloud and Spotify come from svgl.app, SoundCloud as
- * a wordmark and Spotify as a square.
+ * a wordmark and Spotify as a square. Both of the own-project marks are served
+ * from `/icon.*` rather than `/favicon.ico`, since both sites are App Router
+ * ones and that is where Next puts it.
  *
  * Re-fetch by hand if a brand changes its mark.
  */
@@ -31,6 +33,18 @@ const FAVICONS: Record<string, Favicon> = {
     height: 16,
   },
   "npmjs.com": { src: "/assets/favicons/npm.webp", width: 16, height: 16 },
+  "morphrig.dev": {
+    src: "/assets/favicons/morphrig.webp",
+    width: 16,
+    height: 16,
+  },
+  // an SVG rather than a webp, unlike the other squares: the site serves a
+  // 410-byte square mark of its own, which is smaller than a raster of it
+  "easeful.sanyam.sh": {
+    src: "/assets/favicons/easeful.svg",
+    width: 16,
+    height: 16,
+  },
   "soundcloud.com": {
     src: "/assets/favicons/soundcloud.svg",
     width: 36,
