@@ -34,6 +34,20 @@ export interface LabMetadata {
    * interaction still wants the hairline to say where that surface stops.
    */
   flush?: boolean;
+  /**
+   * One line naming the gesture the experiment answers to, shown beside the
+   * source links rather than inside the demo.
+   *
+   * For an experiment whose affordance is not visible: `event-stacking` looks
+   * like a calendar and says nothing about the arrow keys. It lives here rather
+   * than in the component because it is copy about the demo and not part of it,
+   * and because that row is where the page already puts everything else in that
+   * category.
+   *
+   * Not a replacement for `document-pocket`'s handwritten note, which is inside
+   * the drawing and is pointing at one part of it.
+   */
+  hint?: string;
 }
 
 export const labsRegistry: LabMetadata[] = [
@@ -204,6 +218,22 @@ export const labsRegistry: LabMetadata[] = [
     reference: "https://x.com/raul_dronca/status/1992227756407685269",
     flush: true,
   },
+  {
+    slug: "event-stacking",
+    title: "Event Stacking",
+    description: [
+      "A four-day calendar whose events are dragged between slots. A card dropped onto another joins it as a stack: the pile compresses to fit the cell it is in, the card underneath keeps a sliver of its own colour showing, and clicking the front card sends it to the back.",
+      "Key insight: `layout` is what moves a card between cells, and `layout=\"position\"` on the card's content is what stops that being a mangling. A layout animation covers a resize with a transform, and joining a pile takes every member from 70px to 63px, so a plain child squashes vertically on the way in and springs back at the end. The locked box holds its real size through its parent's.",
+      "The drop is two animations at once. Drag writes a plain `x`/`y` offset from the card's own box, and the commit moves that box to another cell, so `dragSnapToOrigin` and `layout` each cover one half of the distance between them. Both ends land wherever the springs are, and matching the two is what keeps the card off a curve on its way into the slot.",
+      "Both piles answer the drag and the card in the air does not. The cell it is heading for counts it before it lands, and the cell it left drops it the moment it is over another one, so breaking a pair leaves a lone card holding the whole cell. The lifted card keeps the box it had at rest, since a card that resizes under the pointer reads as the pointer doing it.",
+    ],
+    createdAt: "2026-08-23",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/event-stacking/index.tsx",
+    reference: "https://x.com/artntek/status/2090533166696014035",
+    hint: "Drag an event onto another, or move one with the arrow keys.",
+    bare: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -266,6 +296,7 @@ export const IMPLEMENTED_LABS = [
   "tab-overview",
   "tether-button",
   "document-pocket",
+  "event-stacking",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
