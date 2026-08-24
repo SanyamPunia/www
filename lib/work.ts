@@ -83,6 +83,13 @@ const projects: Project[] = [
     href: "https://github.com/SanyamPunia/profanity-api",
   },
   {
+    title: "morphrig",
+    slug: "morphrig",
+    image: "/projects/morphrig.webp",
+    category: "writing",
+    href: "https://morphrig.dev",
+  },
+  {
     title: "easeful",
     slug: "easeful",
     image: "/projects/easeful.webp",
@@ -137,13 +144,6 @@ const projects: Project[] = [
     image: "/projects/clyp.webp",
     category: "web",
     href: "https://clyp.sanyam.sh",
-  },
-  {
-    title: "morphrig",
-    slug: "morphrig",
-    image: "/projects/morphrig.webp",
-    category: "web",
-    href: "https://morphrig.dev",
   },
   {
     title: "on-snip.org",
