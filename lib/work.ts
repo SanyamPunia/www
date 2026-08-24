@@ -129,7 +129,7 @@ const projects: Project[] = [
     slug: "clyp",
     image: "/projects/clyp.webp",
     category: "web",
-    href: "https://clyp-omega.vercel.app/",
+    href: "https://clyp.sanyam.sh",
   },
   {
     title: "on-snip.org",
