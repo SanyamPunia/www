@@ -83,6 +83,13 @@ const projects: Project[] = [
     href: "https://github.com/SanyamPunia/profanity-api",
   },
   {
+    title: "easeful",
+    slug: "easeful",
+    image: "/projects/easeful.webp",
+    category: "package",
+    href: "https://easeful.sanyam.sh",
+  },
+  {
     title: "unique-forge",
     slug: "unique-forge",
     image: "/projects/uf.webp",
@@ -130,13 +137,6 @@ const projects: Project[] = [
     image: "/projects/clyp.webp",
     category: "web",
     href: "https://clyp.sanyam.sh",
-  },
-  {
-    title: "easeful",
-    slug: "easeful",
-    image: "/projects/easeful.webp",
-    category: "package",
-    href: "https://easeful.sanyam.sh",
   },
   {
     title: "morphrig",
