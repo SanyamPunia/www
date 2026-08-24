@@ -2,7 +2,9 @@
 
 import {
   AnimatePresence,
+  type MotionValue,
   motion,
+  motionValue,
   useMotionValue,
   useReducedMotion,
   useSpring,
@@ -16,6 +18,7 @@ import {
   type Bounds,
   type Box,
   type Cell,
+  cellBox,
   cellFrom,
   cellLabel,
   clamp,
@@ -249,6 +252,16 @@ const GUTTER = "w-14 shrink-0";
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
 
+/**
+ * How long a press has to hold still before the whole pile comes with it.
+ *
+ * 400ms is the usual long-press threshold and it is comfortably past the 3px
+ * Motion needs before a drag starts, so a press that means to drag one card
+ * never trips it. Moving first cancels the timer, which is what makes the two
+ * gestures the same press with different endings.
+ */
+const HOLD_MS = 400;
+
 /** which way each arrow key moves a focused card */
 const STEP: Record<string, Cell> = {
   ArrowLeft: { day: -1, slot: 0 },
@@ -262,6 +275,27 @@ interface Lift extends Cell {
   id: string;
 }
 
+/** one card's drag offset */
+interface Offset {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+}
+
+/**
+ * A pile held as one by a long press.
+ *
+ * `ids` is snapshotted when the hold engages rather than recomputed from the
+ * leader's cell, because the drop commits the move while the offsets are still
+ * unwinding: by then the leader's cell is the target, and asking it who its
+ * neighbours are would answer with the cards that were already there.
+ */
+interface Hold {
+  /** the card the pointer has */
+  id: string;
+  /** every member of its pile, bottom first */
+  ids: string[];
+}
+
 function EventCard({
   event,
   box,
@@ -269,14 +303,21 @@ function EventCard({
   depth,
   count,
   lifted,
+  raised,
+  carrying,
   move,
   label,
   constraints,
+  offset,
+  follow,
+  holdable,
   onLift,
   onOver,
   onDrop,
   onCycle,
   onNudge,
+  onHold,
+  onSettled,
 }: {
   event: CalendarEvent;
   box: Box;
@@ -284,30 +325,116 @@ function EventCard({
   depth: number;
   count: number;
   lifted: boolean;
+  /**
+   * Off the page: in a held pile, or in flight, or both.
+   *
+   * Separate from `lifted`, which is in flight only. A pile that has just been
+   * taken has not moved yet and has no destination to name, so it wants the
+   * shadow without the dimming.
+   */
+  raised: boolean;
+  /**
+   * How many cards this one is carrying, for the leader of a held pile and null
+   * everywhere else.
+   *
+   * One badge per pile, on the card the pointer has. The tightening alone was
+   * the only thing saying a pile had been taken, and 4px of closed gap is not
+   * enough to notice while you are looking at the pointer.
+   */
+  carrying: number | null;
   /** `TRAVEL` for the card a drop is carrying, `SNAPPY` for everything else */
   move: typeof TRAVEL | typeof SNAPPY;
   /** the target cell's name, while this card is the one in the air */
   label: string | null;
   /** how far this card may go, in transform offsets. See `limits`. */
   constraints: ReturnType<typeof limits> | false;
+  /** this card's own drag offset, owned by the parent. See `offsetFor`. */
+  offset: Offset;
+  /**
+   * The offset to copy, for a card carried as part of a held pile rather than
+   * under the pointer itself. Null for the card the pointer has, and for every
+   * card that is not being carried.
+   */
+  follow: Offset | null;
+  /** whether a long press can take this card's pile as one */
+  holdable: boolean;
   onLift: (id: string) => void;
   onOver: (point: { x: number; y: number }) => void;
   onDrop: (id: string, point: { x: number; y: number }) => void;
   onCycle: (id: string) => void;
-  onNudge: (id: string, step: Cell) => void;
+  onNudge: (id: string, step: Cell, whole: boolean) => void;
+  onHold: (id: string) => void;
+  onSettled: () => void;
 }) {
   const hue = HUES[event.hue];
   const reduce = useReducedMotion();
 
   /*
-   * Owned here rather than left to Motion, so reduced motion can end the snap
-   * on the frame it starts. `MotionProvider` covers the layout animation, which
-   * it drops to `type: false`, but not the drag's own return to origin, and an
-   * instant relocation beside a springing offset is the jump `SNAP` exists to
-   * prevent, arriving from the other side.
+   * The drag offset, owned by the parent so that one card can copy another's.
+   *
+   * Reduced motion still ends the snap on the frame it starts through these:
+   * `MotionProvider` covers the layout animation, which it drops to
+   * `type: false`, but not the drag's own return to origin, and an instant
+   * relocation beside a springing offset is the jump `SNAP` exists to prevent,
+   * arriving from the other side.
    */
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  const { x, y } = offset;
+
+  /*
+   * A card in a held pile copies the pointer's card frame by frame.
+   *
+   * A subscription rather than sharing one motion value between them, because
+   * drag writes to whichever value sits in the leader's `style` and a follower
+   * needs its own for its own transform. Copying is also what gives every card
+   * in the pile the same lean for free, since each one derives that from its own
+   * `x`.
+   *
+   * It has to outlive the drop. The leader's offset is still unwinding under
+   * `dragSnapToOrigin` after the release, so the parent holds the pile together
+   * until `onDragTransitionEnd`, and only then is `follow` null again. The
+   * cleanup lands at zero rather than wherever the last frame left it, so a
+   * subscription torn down early cannot strand a card mid-air.
+   */
+  useEffect(() => {
+    if (!follow) return;
+
+    x.set(follow.x.get());
+    y.set(follow.y.get());
+    const stopX = follow.x.on("change", (value) => x.set(value));
+    const stopY = follow.y.on("change", (value) => y.set(value));
+
+    return () => {
+      stopX();
+      stopY();
+      x.set(0);
+      y.set(0);
+    };
+  }, [follow, x, y]);
+
+  /*
+   * Cleared on release and on any movement, so the two gestures are one press
+   * with different endings. A ref rather than state: nothing renders from it and
+   * a re-render here would land inside the press it is timing.
+   */
+  const holdTimer = useRef(0);
+  /*
+   * Whether the hold actually engaged, which the click guard needs as well as
+   * `dragged`. A press long enough to take the pile and then released without
+   * moving is a change of mind, and cycling the pile under it would be a
+   * surprise, so it counts as a gesture that happened rather than as a click.
+   */
+  const engaged = useRef(false);
+
+  const startHold = () => {
+    if (!holdable) return;
+    engaged.current = false;
+    window.clearTimeout(holdTimer.current);
+    holdTimer.current = window.setTimeout(() => {
+      engaged.current = true;
+      onHold(event.id);
+    }, HOLD_MS);
+  };
+  const cancelHold = () => window.clearTimeout(holdTimer.current);
 
   /*
    * 1 while the card is being carried, 0 otherwise, and an input to the lean
@@ -346,13 +473,26 @@ function EventCard({
       type="button"
       layout
       transition={move}
-      drag
+      // a follower is carried by the leader's offset, so it must not also be
+      // grabbable while the pile is in the air
+      drag={follow === null}
       dragConstraints={constraints}
       dragElastic={0}
       dragMomentum={false}
       dragSnapToOrigin
       dragTransition={SNAP}
+      onPointerDown={startHold}
+      onPointerUp={() => {
+        cancelHold();
+        // a press that never became a drag has no snap to wait for, so the pile
+        // is released here rather than in `onDragTransitionEnd`
+        if (!dragged.current) onSettled();
+      }}
+      onPointerCancel={cancelHold}
+      onPointerLeave={cancelHold}
       onDragStart={() => {
+        // movement won the race, so this is one card and not the pile
+        cancelHold();
         dragged.current = true;
         // reduced motion gets no lean at all. `useSpring` is a hook rather than a
         // motion component, so `MotionProvider` does not reach it.
@@ -368,9 +508,13 @@ function EventCard({
         }
         onDrop(event.id, info.point);
       }}
+      // the offsets are still unwinding until this fires, which is what holds a
+      // pile together across its own drop
+      onDragTransitionEnd={onSettled}
       onClick={() => {
-        if (dragged.current) {
+        if (dragged.current || engaged.current) {
           dragged.current = false;
+          engaged.current = false;
           return;
         }
         onCycle(event.id);
@@ -380,7 +524,8 @@ function EventCard({
         if (!step) return;
         // or the page scrolls out from under the card being moved
         keyEvent.preventDefault();
-        onNudge(event.id, step);
+        // shift is the keyboard's long press: it takes the whole pile
+        onNudge(event.id, step, keyEvent.shiftKey);
       }}
       aria-label={
         count > 1
@@ -415,7 +560,9 @@ function EventCard({
        */
       className={cn(
         "absolute cursor-grab overflow-hidden bg-[var(--tint)] text-left active:cursor-grabbing",
-        lifted ? "shadow-lg" : "transition-shadow duration-200",
+        // the lift arrives at once and only its departure is timed, so a press
+        // that takes the pile reads immediately
+        raised ? "shadow-lg" : "transition-shadow duration-200",
         FOCUS,
       )}
     >
@@ -471,6 +618,32 @@ function EventCard({
         </span>
       </motion.span>
 
+      {/*
+       * How many cards are coming, while the pile is held.
+       *
+       * Bottom right, because the card's own two lines are top left and the
+       * airborne label is centred, so this is the one corner nothing else uses.
+       * `bg-text-primary` on a pale tint is the same treatment the header gives
+       * today's date, and it is the loudest thing the palette has.
+       *
+       * `aria-hidden`, since the button's own label already says "card 1 of 2".
+       */}
+      <AnimatePresence>
+        {carrying !== null && (
+          <motion.span
+            key="carrying"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={FADE}
+            className="pointer-events-none absolute right-1 bottom-1 flex size-5 items-center justify-center rounded-full bg-text-primary text-bg text-meta"
+          >
+            {carrying}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
       {/* the slot the card would land in, which is the one thing a reader
           cannot see while the card is covering it */}
       <AnimatePresence>
@@ -498,6 +671,28 @@ function EventCard({
 export default function EventStacking() {
   const [events, setEvents] = useState(EVENTS);
   const [lift, setLift] = useState<Lift | null>(null);
+  const [hold, setHold] = useState<Hold | null>(null);
+
+  /*
+   * One drag offset per card, owned here rather than by the card, so a follower
+   * in a held pile can be handed the leader's pair as a prop. A card cannot
+   * reach a sibling's, and registering them upward would have a follower
+   * subscribing on the same commit the leader registers on.
+   *
+   * A ref keyed by id rather than a hook, since the pairs have to outlive every
+   * render and there is no fixed number of them. `motionValue` is Motion's own
+   * constructor for exactly this, values built outside a component.
+   */
+  const offsets = useRef(new Map<string, Offset>());
+
+  const offsetFor = (id: string) => {
+    const existing = offsets.current.get(id);
+    if (existing) return existing;
+
+    const created = { x: motionValue(0), y: motionValue(0) };
+    offsets.current.set(id, created);
+    return created;
+  };
 
   const gridRef = useRef<HTMLDivElement>(null);
   /*
@@ -537,15 +732,26 @@ export default function EventStacking() {
    * an animation callback, since a drop back into the cell it came from changes
    * no geometry and so completes no animation to hear about.
    */
-  const [landing, setLanding] = useState<string | null>(null);
+  const [landing, setLanding] = useState<string[]>([]);
 
-  const moveTo = (id: string, cell: Cell, dropped = false) => {
-    setLanding(dropped ? id : null);
+  const moveTo = (id: string, cell: Cell, dropped = false) =>
+    moveGroup([id], cell, dropped);
+
+  /**
+   * Moves a run of cards to one cell, keeping the order they are given in.
+   *
+   * `ids` is bottom card first, so the highest order in the target plus the
+   * index lands them on top of whatever is already there without shuffling them
+   * against each other. One card is the same operation with a list of one.
+   */
+  const moveGroup = (ids: string[], cell: Cell, dropped = false) => {
+    setLanding(dropped ? ids : []);
     setEvents((prev) => {
       const top = Math.max(...prev.map((event) => event.order)) + 1;
-      return prev.map((event) =>
-        event.id === id ? { ...event, ...cell, order: top } : event,
-      );
+      return prev.map((event) => {
+        const index = ids.indexOf(event.id);
+        return index === -1 ? event : { ...event, ...cell, order: top + index };
+      });
     });
   };
 
@@ -554,7 +760,7 @@ export default function EventStacking() {
     const event = events.find((candidate) => candidate.id === id);
     if (!grid || !event) return;
 
-    setLanding(null);
+    setLanding([]);
     const rect = grid.getBoundingClientRect();
     bounds.current = {
       left: rect.left + window.scrollX,
@@ -582,8 +788,31 @@ export default function EventStacking() {
     setLift(null);
     // read from the point again rather than from `lift`, so the commit cannot
     // disagree with the pointer that made it
-    moveTo(id, cellFrom(point, bounds.current), true);
+    const cell = cellFrom(point, bounds.current);
+    // `hold` is deliberately not cleared here. The offsets are still unwinding,
+    // and the pile has to stay together until `onSettled`.
+    if (hold) moveGroup(hold.ids, cell, true);
+    else moveTo(id, cell, true);
   };
+
+  /**
+   * Takes the pressed card's whole pile as one object.
+   *
+   * Only a real pile, since a long press on a lone card has nothing to gather
+   * and should stay an ordinary drag.
+   */
+  const onHold = (id: string) => {
+    const card = events.find((event) => event.id === id);
+    if (!card) return;
+
+    const pile = pileAt(card.day, card.slot);
+    if (pile.length < 2) return;
+
+    setHold({ id, ids: pile.map((event) => event.id) });
+  };
+
+  /** the pile is one thing until every offset it shares has unwound */
+  const onSettled = () => setHold(null);
 
   /**
    * Bring a card to the front of its pile, or send the front card to the back.
@@ -592,7 +821,7 @@ export default function EventStacking() {
    * toggle and a pile of three a deck.
    */
   const onCycle = (id: string) => {
-    setLanding(null);
+    setLanding([]);
     setEvents((prev) => {
       const card = prev.find((event) => event.id === id);
       if (!card) return prev;
@@ -612,18 +841,39 @@ export default function EventStacking() {
     });
   };
 
-  const onNudge = (id: string, step: Cell) => {
+  const onNudge = (id: string, step: Cell, whole: boolean) => {
     const card = events.find((event) => event.id === id);
     if (!card) return;
-    moveTo(id, {
+
+    const cell = {
       day: clamp(card.day + step.day, DAYS.length - 1),
       slot: clamp(card.slot + step.slot, HOURS.length - 1),
-    });
+    };
+    const pile = pileAt(card.day, card.slot);
+
+    // shift is the keyboard's long press. No `dropped`, since a keyboard move
+    // has no offset unwinding beside it to keep in step.
+    if (whole && pile.length > 1) {
+      moveGroup(
+        pile.map((event) => event.id),
+        cell,
+      );
+      return;
+    }
+
+    moveTo(id, cell);
   };
 
   const lifted = lift
     ? events.find((event) => event.id === lift.id)
     : undefined;
+
+  /*
+   * Every card the gesture is carrying: a held pile, the one card under the
+   * pointer, or nothing. Both cases share an origin cell, so `lifted` answers
+   * for the whole run.
+   */
+  const carried = hold ? hold.ids : lift ? [lift.id] : [];
 
   /*
    * A pile, bottom card first. Which of these the drag adds to or takes from is
@@ -731,7 +981,10 @@ export default function EventStacking() {
           </AnimatePresence>
 
           {events.map((event) => {
-            const isLifted = lift?.id === event.id;
+            // the hold this card belongs to, as the hold itself rather than a
+            // boolean, so the leader's id is narrowed alongside it
+            const heldIn = hold?.ids.includes(event.id) ? hold : null;
+            const isCarried = carried.includes(event.id);
             const resting = pileAt(event.day, event.slot);
 
             /*
@@ -751,17 +1004,18 @@ export default function EventStacking() {
             let members = resting;
             let arriving = 0;
 
-            if (!isLifted && lift && lifted) {
+            if (!isCarried && lift && lifted) {
               const home =
                 lifted.day === event.day && lifted.slot === event.slot;
               const over = lift.day === event.day && lift.slot === event.slot;
 
               if (home && !over) {
                 members = resting.filter(
-                  (candidate) => candidate.id !== lift.id,
+                  (candidate) => !carried.includes(candidate.id),
                 );
               } else if (over && !home) {
-                arriving = 1;
+                // a held pile opens as many slots as it has cards
+                arriving = carried.length;
               }
             }
 
@@ -770,25 +1024,59 @@ export default function EventStacking() {
             );
             const count = members.length + arriving;
             const depth = count - 1 - rank;
-            const box = place(event.day, event.slot, depth, count);
+            const box = place(
+              event.day,
+              event.slot,
+              depth,
+              count,
+              heldIn !== null,
+            );
 
             return (
               <EventCard
                 key={event.id}
                 event={event}
                 box={box}
-                zIndex={isLifted ? 40 : 10 + rank}
+                zIndex={isCarried ? 40 + rank : 10 + rank}
                 depth={depth}
                 count={count}
-                lifted={isLifted}
-                move={landing === event.id ? TRAVEL : SNAPPY}
-                label={isLifted ? cellLabel(lift.day, lift.slot) : null}
-                constraints={width > 0 ? limits(event.day, box, width) : false}
+                lifted={isCarried && lift !== null}
+                raised={heldIn !== null || (isCarried && lift !== null)}
+                carrying={
+                  heldIn && heldIn.id === event.id ? heldIn.ids.length : null
+                }
+                move={landing.includes(event.id) ? TRAVEL : SNAPPY}
+                // the leader alone, since one pile in the air has one
+                // destination and saying it on every card is only louder
+                label={
+                  lift && lift.id === event.id
+                    ? cellLabel(lift.day, lift.slot)
+                    : null
+                }
+                offset={offsetFor(event.id)}
+                follow={
+                  heldIn && heldIn.id !== event.id ? offsetFor(heldIn.id) : null
+                }
+                holdable={hold === null && resting.length > 1}
+                constraints={
+                  width > 0
+                    ? limits(
+                        event.day,
+                        // a held pile is bounded as one box: the leader's own is
+                        // a subset of it, and constraining that would let the
+                        // cards under it leave the grid
+                        heldIn ? cellBox(event.day, event.slot) : box,
+                        width,
+                      )
+                    : false
+                }
                 onLift={onLift}
                 onOver={onOver}
                 onDrop={onDrop}
                 onCycle={onCycle}
                 onNudge={onNudge}
+                onHold={onHold}
+                onSettled={onSettled}
               />
             );
           })}

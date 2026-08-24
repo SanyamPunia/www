@@ -222,16 +222,17 @@ export const labsRegistry: LabMetadata[] = [
     slug: "event-stacking",
     title: "Event Stacking",
     description: [
-      "A four-day calendar whose events are dragged between slots. A card dropped onto another joins it as a stack: the pile compresses to fit the cell it is in, the card underneath keeps a sliver of its own colour showing, and clicking the front card sends it to the back.",
+      "A four-day calendar whose events are dragged between slots. A card dropped onto another joins it as a stack: the pile compresses to fit the cell it is in, the card underneath keeps a sliver of its own colour showing, and clicking the front card sends it to the back. Holding a press on a stack takes the whole thing, which then travels and lands as one.",
       "Key insight: `layout` is what moves a card between cells, and `layout=\"position\"` on the card's content is what stops that being a mangling. A layout animation covers a resize with a transform, and joining a pile takes every member from 70px to 63px, so a plain child squashes vertically on the way in and springs back at the end. The locked box holds its real size through its parent's.",
       "The drop is two animations at once. Drag writes a plain `x`/`y` offset from the card's own box, and the commit moves that box to another cell, so `dragSnapToOrigin` and `layout` each cover one half of the distance between them. Both ends land wherever the springs are, and matching the two is what keeps the card off a curve on its way into the slot.",
       "Both piles answer the drag and the card in the air does not. The cell it is heading for counts it before it lands, and the cell it left drops it the moment it is over another one, so breaking a pair leaves a lone card holding the whole cell. The lifted card keeps the box it had at rest, since a card that resizes under the pointer reads as the pointer doing it.",
+      "A held pile travels by copying rather than by sharing. Drag writes to whichever motion value sits in the card the pointer has, so the rest of the pile subscribes to that one and mirrors it into its own, which is also what gives every card the same lean for nothing. The copy has to outlive the drop, since the leader's offset is still unwinding after the release.",
     ],
     createdAt: "2026-08-23",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/event-stacking/index.tsx",
     reference: "https://x.com/artntek/status/2090533166696014035",
-    hint: "Drag an event onto another, or move one with the arrow keys.",
+    hint: "Hold a stack to take it whole, or move one with the arrow keys.",
     bare: true,
   },
 ];

@@ -42,6 +42,16 @@ export const GAP = 3;
  */
 export const PEEK = 7;
 /**
+ * The same, for a pile held as one object by a long press.
+ *
+ * Tighter, so the cards clamp together and the pile reads as a single thing
+ * rather than as a fan. The pile still fills its cell exactly whatever this is:
+ * the deepest card sits at `(count - 1) * peek` and every card is `room - (count
+ * - 1) * peek` tall, so the two cancel. A smaller peek buys height, which is why
+ * a held pile also looks more solid than a resting one.
+ */
+export const HOLD_PEEK = 3;
+/**
  * The shortest a card is allowed to get.
  *
  * A card's content is two lines of `text-meta` plus its padding, which is 48px,
@@ -81,10 +91,12 @@ export function place(
   slot: number,
   depth: number,
   count: number,
+  held = false,
 ): Box {
   const room = ROW - GAP * 2;
+  const ceiling = held ? HOLD_PEEK : PEEK;
   const peek =
-    count > 1 ? Math.min(PEEK, (room - MIN_HEIGHT) / (count - 1)) : 0;
+    count > 1 ? Math.min(ceiling, (room - MIN_HEIGHT) / (count - 1)) : 0;
 
   return {
     left: `calc(${day * COLUMN}% + ${GAP}px)`,
@@ -123,6 +135,17 @@ export function limits(day: number, box: Box, width: number) {
     top: -box.top,
     bottom: ROW * HOURS.length - box.top - box.height,
   };
+}
+
+/**
+ * The box a whole pile occupies, which is its cell inset by the gap.
+ *
+ * A pile always fills its cell, so this is `place` for a single card. It is what
+ * bounds a held pile's drag: the leader's own box is a subset of it, and
+ * constraining that instead would let the cards below it leave the grid.
+ */
+export function cellBox(day: number, slot: number): Box {
+  return place(day, slot, 0, 1);
 }
 
 /** the gutter's label for a row: "9 AM", "12 PM". The stylesheet lowercases it. */
