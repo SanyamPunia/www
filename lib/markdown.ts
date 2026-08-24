@@ -3,6 +3,7 @@ import path from "node:path";
 import { getAllBlogs } from "./blogs";
 import { SITE_URL } from "./constants";
 import { isImplemented, labsRegistry } from "./labs";
+import { PROFILE } from "./profile";
 import {
   DESCRIPTION,
   EMAIL,
@@ -140,6 +141,63 @@ function home(): string {
     ].join("\n"),
     `Every page is served as markdown at its own path plus \`.md\`, and at its own path for a request sending \`Accept: text/markdown\`. The index is at ${url("/llms.txt")}.`,
   );
+}
+
+/**
+ * The index an agent looks for first, per the llmstxt.org convention: an `h1`, a
+ * blockquote summary, then `##` sections of links with a note after each.
+ *
+ * It links the markdown rather than the pages, since the whole point of reaching
+ * this file is to avoid parsing HTML. `llms-full.txt` is under `Optional`,
+ * because the convention reserves that heading for what a client short of
+ * context can skip, and one file holding every page is exactly that.
+ */
+export function llmsIndex(): string {
+  const entry = (title: string, route: string, note: string) =>
+    `- [${title}](${url(`${route}.md`)}): ${note}`;
+
+  return doc(
+    "# Sanyam Punia",
+    `> ${DESCRIPTION}`,
+    "Every page is served as markdown at its own path plus `.md`, and at its own path for a request sending `Accept: text/markdown`.",
+    "## Pages",
+    [
+      entry("Home", "/index", "who this is, and everything below in one place"),
+      entry("Work", "/work", "companies and side projects, newest first"),
+      entry("Blogs", "/blogs", "the writing index"),
+      entry("Lab", "/lab", "the UI experiment index"),
+    ].join("\n"),
+    "## Blogs",
+    getAllBlogs()
+      .map((blog) => entry(blog.title, `/blogs/${blog.slug}`, blog.description))
+      .join("\n"),
+    "## Lab",
+    labsRegistry
+      .slice()
+      .reverse()
+      .filter((lab) => isImplemented(lab.slug))
+      .map((lab) => entry(lab.title, `/lab/${lab.slug}`, lab.description[0]))
+      .join("\n"),
+    "## Optional",
+    `- [Every page in one file](${url("/llms-full.txt")}): the same documents concatenated`,
+    // the hand-written half, which is everything about the person rather than
+    // about a page. See `lib/profile.ts` for what this replaced.
+    PROFILE,
+  );
+}
+
+/**
+ * Every document in one file, each keeping its own frontmatter so a client can
+ * still tell where one page ends and the next begins.
+ *
+ * The home document goes first and the rest follow `markdownRoutes`, which is
+ * the order the site itself is organised in rather than an alphabetical one.
+ */
+export function llmsFull(): string {
+  return `${markdownRoutes()
+    .map((route) => markdownFor(route))
+    .filter(Boolean)
+    .join("\n")}`;
 }
 
 function work(): string {
