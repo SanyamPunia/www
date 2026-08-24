@@ -585,22 +585,24 @@ experiment is a directory under `components/labs/`.
   reads as dead space inside the thing you are meant to be poking. Not `bare`,
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
-  needs a box to clip it against. `tether-button` and `document-pocket` use it.
+  needs a box to clip it against. `tether-button`, `document-pocket` and
+  `stamp-collection` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Three experiments define their own hues**, `tab-overview` per terminal
-  session, `document-pocket` per sheet of paper and `event-stacking` per event.
-  All three are the same case: colour is the differentiator between shapes built
-  from the same few parts, so it carries meaning rather than decorating, which is
-  the exception the brand marks already get. Each is scoped to its experiment,
-  the values are not tokens, nothing else may reach for them, and labels and body
-  lines stay grey, since the site does not put an accent on text. `tab-overview`
-  keeps its values in its own stylesheet and the other two in a `const` beside
-  their card list, which is the better of the two: prefer it.
+- **Four experiments define their own hues**, `tab-overview` per terminal
+  session, `document-pocket` per sheet of paper, `event-stacking` per event and
+  `stamp-collection` per print. The first three are the same case: colour is the
+  differentiator between shapes built from the same few parts, so it carries
+  meaning rather than decorating, which is the exception the brand marks already
+  get. `stamp-collection` has a stronger claim than any of them, since a postage
+  stamp is a printed object and its colours are the object. Each is scoped to its
+  experiment, the values are not tokens, and nothing else may reach for them.
+  `tab-overview` keeps its values in its own stylesheet and the others in a
+  `const` beside their own data, which is the better of the two: prefer it.
 
 ### `tab-overview`
 
@@ -1312,6 +1314,203 @@ Smaller things, all of them things that were wrong first:
   is 73.6px and "10:00 AM" was 0.72px from fitting, measured at 52.25px in a
   51.53px box. A title losing its tail is what `truncate` is for. A time losing
   one character is a bug, so the padding gives way instead.
+
+### `stamp-collection`
+
+Three stamps on a dark table. Hovering one lifts it, clicking one brings it to
+the front and pushes the other two out behind it, and the print inside a focused
+stamp slides under its own window as the pointer moves.
+
+`poses.ts` is the geometry and the perforation holes, `motifs.tsx` the three
+prints and the palette, `stamp.tsx` one stamp, `index.tsx` the stage.
+
+- **The paper is an SVG, not a `div` with a CSS mask.** Both punch the holes.
+  Only the SVG gives a `drop-shadow` that follows the scallops instead of the
+  bounding box, and a stamp whose shadow is a rectangle is a rectangle.
+- **The holes sit centred on the edge line**, so half of each one bites in. That
+  is what leaves convex paper between them, which is the shape a torn
+  perforation actually has. The pitch is recomputed from a whole number of holes
+  per edge, so both corners land on one and a row cannot end mid-scallop.
+- **They are deduped by position.** A corner hole belongs to two edges. The mask
+  does not mind the second copy, but React keys the circles by position and warns
+  about all four.
+- **A stamp is staged by animating its `width` and `height`, never by scaling
+  it.** A scale takes the perforated edge and the shadow blur with it, which is
+  the one thing drawing the paper as vector was for. So the poses are stage
+  pixels, the same as `document-pocket`.
+- **The lettering is `cqw` against the stamp**, since a stamp goes from 160px
+  wide to 236px. `container-type` sits on the button and nothing on that element
+  may use `cqw`: an element is a query container for its descendants and never
+  for itself, which is the trap `document-pocket` documents at length.
+- **The print is drawn larger than its window on every side.** That bleed is what
+  the parallax slides into, and it is why no edge of a print can reach the cream
+  frame however far the pointer pushes.
+- **A focused stamp leans toward the pointer under `transformPerspective`.**
+  Toward, not away, so the near edge comes forward and you see a little further
+  under the frame on that side. That also agrees with the print, which slides
+  against the pointer: the two together read as a picture behind glass rather
+  than as one flat thing rotating. 9 degrees at 900px, since further looks like
+  a card being flipped.
+  - **Positive `rotateX` takes the bottom toward the viewer and positive
+    `rotateY` takes the right edge away**, so the pointer's offset works
+    unchanged on one axis and negated on the other. Worth checking rather than
+    guessing, the signs are not symmetric.
+  - **`transformPerspective` on the stamp, not `perspective` on the stage.** An
+    element carrying `perspective` becomes its own stacking context, which is
+    the thing `document-pocket` had to design around.
+  - **Every stamp reads the same lean and the same drift.** Only the focused one
+    is ever driven and the values are zero at rest, so the two behind it lean
+    invisibly and no stamp has to be told whether it is the one in focus.
+- **Three springs, not one.** The stamp travelling between poses is the slowest,
+  the lean is stiffer, and the print's drift is the loosest. The stamp is the
+  object being moved and answers almost at once, the print lags behind glass. On
+  one spring that separation is gone and the two read as a single flat thing
+  rotating. The drift is a spring of its own rather than a transform of the
+  lean's, or it would arrive with that lag already baked in.
+**The hover lift felt laggy and took four fixes, in the order they were found.
+The last one is the one that mattered, and the first three were all real.**
+
+- **Its own curve, not the pose spring.** The pose spring is tuned for a stamp
+  crossing the stage, so 14px took 235ms to settle with nothing visible in the
+  first 40. A spring's duration does not depend on how far it goes, the same trap
+  `event-stacking` documents.
+- **A transform, not `top`.** `top` is a layout property, so every frame
+  relayouts and repaints the stamp.
+- **The drawing is memoised.** A stamp is 91 to 121 SVG nodes and there are
+  three, so a hover handed React 309 nodes to reconcile in order to move one
+  stamp 14px. Under a 4x CPU throttle that was one 37.9ms frame at the instant
+  the pointer arrived. Behind a `useMemo` whose dependencies are all stable, the
+  longest frame in the whole lift is 16.8ms.
+- **The lift is driven from the event handler, not from parent state.**
+  `pointerenter` to the first pixel of movement measured 21 to 24ms unthrottled,
+  because React had to handle the event, re-render three stamps and commit before
+  Motion could pick up a new target on the following frame. Setting the value in
+  the handler starts it on the frame the pointer arrived, and the parent tracks no
+  hover state at all now.
+- **It is a tween and not a spring, and this was the actual complaint.** Opening
+  a stamp felt fast while the lift felt slow, with the lift's spring the quicker
+  of the two at 160ms against 277ms. Distance is why. Opening moves a stamp about
+  150px and grows it about 100px, so every frame carries a lot of change. The
+  lift covers 14px, which on a spring is about 1.5px a frame, and a spring spends
+  most of its time on the last couple of pixels. Sub-pixel creep for a dozen
+  frames reads as sluggish however short the total is. A sharp ease-out
+  front-loads it: 5.7px in the first 29ms against 5px in the first 103ms before.
+
+**None of this was visible in a settle time**, which went 235, 141, 141, 91. Two
+of the four fixes did not move it at all. For a gesture this small, measure
+`pointerenter` to the first pixel that moves, and measure how much of the
+distance the first two frames cover. A late or creeping response to input reads
+as lag whatever the total duration says.
+- **Hover never changes the stacking.** A lifted stamp stays under whichever ones
+  were already over it, so only part of the lift shows. Raising it to the front
+  reads as picking the stamp up, which is what the click is for, and it made a
+  hover on the leftmost stamp look like a selection that had not finished.
+- **The sun's field is a step off the paper, and it has to be.** It was the
+  paper's own colour first, which left the picture window with no visible edge on
+  that stamp, so the mist bands appeared to stop in mid air where the clip cut
+  them. 1.15:1 is enough to read as a print on a mount and not enough to read as
+  a second colour. The bands also run off both edges of the window rather than
+  stopping inside it, so the clip reads as the print continuing.
+- **The third print was an iris and read as a bird.** Three leaves and three
+  petals is not enough shape to say flower. A chrysanthemum is a loop of
+  ellipses, and a radial flower is the one botanical form that survives being
+  reduced that far, because the arrangement carries it rather than any one
+  petal's outline.
+**Selecting runs two beats and leaving runs three.** In: fan, pile, focus. Out:
+focus, pile, fan-still-holding-the-lead, fan. One pile serves both directions,
+which is why the sequence reverses without a second set of poses read backwards.
+
+**The extra beat on the way out exists because `zIndex` is discrete.** Going in,
+the selected stamp never has to give up any stacking, so there is nothing to
+cover. Coming back it does, and stamp 0 is the worst case: it went from in front
+of everything to behind everything in one frame while the other two were still
+piled on top of it, so nearly the whole stamp vanished at once. So it travels to
+its own slot while still raised, still squared up and still on top, and only the
+last beat lowers it, turns it to the row's angle and gives up the `zIndex`
+together. Two things buy that: the swap now has three properties moving to hide
+behind, and by then the row has spread, so the overlap it has to lose is one
+neighbour instead of two. Traced on stamp 0: z20 at x257 mid-travel, z10 at x243
+with the rotation already turning.
+
+- **The second beat is a timer, not an animation callback.** A callback fires per
+  property and per stamp, so there is no single "that move is done" to chain off.
+  `HOLD` is 220ms against a pose spring that settles in about 280, so the second
+  beat starts on the tail of the first. Waiting the full settle reads as two
+  animations with a gap, the same call `document-pocket` makes at 0.6 of its own
+  duration.
+- **The pile puts the selected stamp on top, in both directions.** It is the one
+  about to grow on the way in and the one that just shrank on the way out.
+  Without that it sat wherever its index put it, so a middle stamp grew out from
+  behind another one and shrank back into hiding.
+- **That stamp also rises and squares up, and the rise exists to cover a pop.**
+  `zIndex` is a discrete value, so the selected stamp arrives in front of the
+  others in a single frame however smoothly everything else is moving, and
+  against a gather that reads as the stack glitching rather than as a stamp coming
+  forward. Delaying the swap makes it worse, since the stamps overlap most when
+  the pile is tight, and leaving a raised stamp behind in `zIndex` occludes it
+  where it overlaps, which looks broken rather than early. So the swap keeps its
+  frame and gets something to hide behind: the lead rises and squares up in the
+  same frame, and the eye reads the movement instead of the layer order. The
+  square-up is not decoration either, focus is at 0 degrees, so it is that
+  rotation starting a beat early.
+- **The pile has to be loose enough to read as three stamps.** At 0.012 of the
+  stage it was 6px of offset behind a stamp carrying a drop shadow, which shows
+  nothing but a dark sliver, so the beat the gather exists for was invisible.
+  0.032 with a spread of angles reads as a stack squared up by hand. The angles
+  matter as much as the offsets: three stamps at the same angle are one
+  silhouette however far apart they are.
+- **A click mid-sequence is ignored rather than queued.** The stamps are in
+  flight and nothing under the pointer means what it looks like it means. That
+  holds for the table as much as for a stamp.
+- **Clicking the bare table puts the stamp back**, alongside clicking the stamp
+  itself and Escape. The stamps are children of the stage so their clicks bubble
+  to it, and the event's target is what tells the two apart: a stamp reports the
+  button, the table reports itself, and the grain layer cannot report anything,
+  being `pointer-events-none`. Nothing needs `stopPropagation`.
+  - **The listener is bound to the node, not written as a JSX prop**, the same
+    call `document-pocket` makes for its own stage: it is a region the pointer
+    passes through and has no honest interactive role to carry. As a prop it is a
+    roleless `div` with an `onClick` and no keyboard equivalent Biome can see,
+    since Escape lives on the window.
+  - The stage keeps no cursor change. Making the whole dark area look interactive
+    costs more than the affordance is worth, and the stamp and Escape both
+    already close it.
+- **The unselected stamps fade where the pile left them, never unmounted**, so
+  nothing travels twice and the way back has somewhere to animate out of.
+- **Reduced motion skips the middle beat entirely.** The sequence is
+  choreography, and there is nothing to read in it when nothing moves.
+- **The lift belongs to the fan and nowhere else**, and only once the fan has
+  stopped moving. A selected stamp has nowhere to rise to and one still gathering
+  is in flight. Verified by the transform's own `translateY`: -14.34 in the fan,
+  0 mid-gather, 0 when selected.
+- **Every arrangement change disarms the lift for `TRAVEL`, which fixes a
+  flicker.** Closing spreads the stamps back out under a pointer that has not
+  moved, and every stamp crossing it fires its own `pointerenter` on the way
+  past, so each lifted and dropped as it went. That is hover in reverse: the
+  pointer moved onto nothing, the stamps moved onto the pointer, which is the same
+  shape as the bug `document-pocket` solves by hit-testing neutral geometry
+  instead of trusting the DOM.
+  - **Disarming is the whole fix and it needs no test for whether the pointer
+    moved.** A stamp that arrives under a stationary pointer has already had its
+    `pointerenter`, so it stays flat until the pointer leaves and comes back,
+    which is the right answer: you did not hover it, it came to you.
+  - Measured with the pointer parked on the return path, across the 109 frames of
+    a close: 77 frames carried a lift before, 0 after, and hovering still lifts
+    14.34px once the fan has settled.
+- **Escape leaves a focused stamp.** Clicking it again is the only other way out,
+  and a focused stamp covers most of the stage that would otherwise be clicked
+  off.
+- **Hover is gated on `pointerType`**, the same as `tab-overview`. A touch tap
+  fires enter and click together, and a lift that plays under the selection it
+  triggered reads as a stutter.
+- **The focus ring is tight, rounded and in the paper's own tone.** It is an
+  `outline` on the button's box, so it is a rectangle round a scalloped object
+  whatever it looks like. At `offset-4` and grey it read as a stray box beside the
+  stamp rather than as a selection frame.
+- **The ground is dark for the `document-pocket` reason, not for taste.** The
+  paper is cream, and cream on `bg` puts every value in the piece inside a few
+  percent of every other. The darkest fill token is `stroke-strong` at 86%
+  lightness, so there is no light answer to reach for.
 
 ## Motion
 
