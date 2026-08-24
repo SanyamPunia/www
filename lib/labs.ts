@@ -235,6 +235,22 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Hold a stack to take it whole, or move one with the arrow keys.",
     bare: true,
   },
+  {
+    slug: "stamp-collection",
+    title: "Stamp Collection",
+    description: [
+      "Three postage stamps laid out by hand on a dark table. Hovering one lifts it, clicking one brings it to the front of the stage and pushes the other two out behind it, and the print inside a focused stamp slides under its own window as the pointer moves around it.",
+      "Key insight: the paper is an SVG, not a `div` with a CSS mask. Both can punch the perforations, but only the SVG gives a `drop-shadow` that follows the scallops instead of the bounding box, and a stamp whose shadow is a rectangle is a rectangle. The holes sit centred on the edge line so half of each one bites in, which is what leaves convex paper between them.",
+      "A stamp is staged by animating its `width` and `height`, never by scaling it. A scale takes the perforated edge and the shadow blur with it, which is the one thing drawing the paper as vector was for. So the poses are stage pixels and the lettering is sized in `cqw` against the stamp itself, which makes it a query container for its own children and never for itself.",
+      "The print is drawn larger than its window on every side, so the parallax has somewhere to slide and no edge of it can cross the cream frame however far the pointer pushes. It runs on a looser spring than the stamp: the stamp arrives and stops, the print keeps drifting for a moment, which is what reads as glass.",
+    ],
+    createdAt: "2026-08-24",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/stamp-collection/index.tsx",
+    reference: "https://x.com/AdityaSur11/status/2091805210280919082",
+    hint: "Hover a stamp to lift it, click one to bring it forward.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -298,6 +314,7 @@ export const IMPLEMENTED_LABS = [
   "tether-button",
   "document-pocket",
   "event-stacking",
+  "stamp-collection",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -85,6 +85,12 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "event-stacking": dynamic(() => import("@/components/labs/event-stacking"), {
     ssr: false,
   }),
+  "stamp-collection": dynamic(
+    () => import("@/components/labs/stamp-collection"),
+    {
+      ssr: false,
+    },
+  ),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
