@@ -1183,6 +1183,17 @@ from its own `x`.
   no snap to wait for and releases on `pointerup` instead. The subscription's
   cleanup lands at zero rather than wherever the last frame left it, so one torn
   down early cannot strand a card mid-air.
+- **A release only counts from the card that took the pile, and the id check is
+  what enforces that.** Once a pile has moved, the `pointerup` usually lands on a
+  card *above* the one being carried: a deep card shows only its own sliver, and
+  every card above it has a larger `zIndex`. That card never dragged, so
+  releasing on it ended the gesture mid-flight, and because `hold` was then null
+  by the time `onDragEnd` ran, `onDrop` moved the pressed card alone and left the
+  rest to snap back to the origin. Measured on a pile of five: the cards broke
+  about 190px apart during the drop, and 2 to 7px after the fix. Only the middle
+  cards were affected, since nothing sits above the top card and nothing reaches
+  as low as the bottom one's sliver, which is why holding either of those looked
+  fine.
 - **`hold.ids` is snapshotted when the hold engages**, never recomputed from the
   leader's cell. The drop commits the move while the offsets are still unwinding,
   so by then the leader's cell is the target, and asking it who its neighbours
