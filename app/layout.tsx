@@ -4,6 +4,7 @@ import { MotionProvider } from "@/components/providers/motion-provider";
 import { Toaster } from "@/components/providers/toaster";
 import { SelectionPins } from "@/components/ui/selection-pins";
 import { SITE_URL } from "@/lib/constants";
+import { DESCRIPTION } from "@/lib/site";
 import { inter } from "./fonts";
 import "./globals.css";
 
@@ -13,12 +14,10 @@ export const metadata: Metadata = {
     default: "Sanyam Punia",
     template: "%s - Sanyam",
   },
-  description:
-    "Full-stack developer from India, currently a frontend engineer at Oliv AI. Writes about frontend, ships small dev tools and keeps a lab of UI experiments.",
+  description: DESCRIPTION,
   openGraph: {
     title: "Sanyam Punia",
-    description:
-      "Full-stack developer from India, currently a frontend engineer at Oliv AI. Writes about frontend, ships small dev tools and keeps a lab of UI experiments.",
+    description: DESCRIPTION,
     url: SITE_URL,
     siteName: "Sanyam Punia",
     locale: "en-US",

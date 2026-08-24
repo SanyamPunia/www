@@ -7,8 +7,10 @@ import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
+import { faviconFor } from "@/lib/favicons";
 import { homeSchema } from "@/lib/schema";
-import { links, socials } from "@/lib/site";
+import { paragraphs } from "@/lib/site";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -61,6 +63,27 @@ const TIMING = {
 const drawAt = (n: number) =>
   TIMING.revealSettled + n * TIMING.underlineStagger;
 
+/**
+ * Which links sweep an underline, and in what order.
+ *
+ * Only the text shape of `InlineLink` has a rule to sweep. A link whose host
+ * carries a mark paints as a pill instead, so it is skipped rather than spending
+ * a slot, which is exactly what the hand-written `drawAt(0)`, `drawAt(1)` and
+ * `drawAt(2)` used to encode by hand.
+ *
+ * Derived once at module scope from the same segments the page renders, so the
+ * order cannot disagree with the order a reader sees. Adding a link to the copy
+ * now shifts the ones after it on its own.
+ */
+const DRAW_ORDER = new Map<string, number>();
+for (const paragraph of paragraphs) {
+  for (const segment of paragraph.segments) {
+    if (typeof segment === "string" || "name" in segment) continue;
+    if (faviconFor(segment.href)) continue;
+    DRAW_ORDER.set(segment.href, DRAW_ORDER.size);
+  }
+}
+
 export default function Page() {
   return (
     <PageTransition>
@@ -76,73 +99,53 @@ export default function Page() {
             <Avatar />
           </RevealItem>
 
-          <RevealItem>
-            <p className="text-body text-text-primary text-pretty">
-              I&rsquo;m <DiaText delay={TIMING.nameSweepAt} text="Sanyam" />, a
-              full-stack developer based in India. I believe simplicity is what
-              makes a great user experience, and that clean design paired with
-              efficient code is what actually makes the difference.
-            </p>
-          </RevealItem>
+          {/*
+           * One block per paragraph, in the order `lib/site.ts` lists them. The
+           * copy is not here: this page is the layout, and a paragraph of prose
+           * with links threaded through it is also the one thing `/index.md`
+           * needs, so it lives where both can read it.
+           */}
+          {paragraphs.map((paragraph) => (
+            <RevealItem key={paragraph.id}>
+              <p
+                className={cn(
+                  "text-body text-pretty",
+                  paragraph.tone === "primary"
+                    ? "text-text-primary"
+                    : "text-text-secondary",
+                )}
+              >
+                {paragraph.segments.map((segment) => {
+                  if (typeof segment === "string") return segment;
 
-          <RevealItem>
-            <p className="text-body text-text-secondary text-pretty">
-              <InlineLink href="/work" drawAt={drawAt(0)}>
-                Currently
-              </InlineLink>{" "}
-              a frontend engineer at{" "}
-              <InlineLink href={links.oliv} external>
-                Oliv AI
-              </InlineLink>
-              , building AI-powered sales intelligence. Before that I built a
-              real-time trading terminal at{" "}
-              <InlineLink href={links.enclave} external>
-                Enclave
-              </InlineLink>
-              , and led engineering as founding engineer at{" "}
-              <InlineLink href={links.bitscale} external>
-                Bitscale
-              </InlineLink>
-              . I{" "}
-              <InlineLink href="/blogs" drawAt={drawAt(1)}>
-                write
-              </InlineLink>{" "}
-              about what I learn, publish small{" "}
-              <InlineLink href={links.uniqueForge} external>
-                dev tools
-              </InlineLink>
-              , and keep a{" "}
-              <InlineLink href="/lab" drawAt={drawAt(2)}>
-                lab
-              </InlineLink>{" "}
-              of UI experiments.
-            </p>
-          </RevealItem>
+                  if ("name" in segment) {
+                    return (
+                      <DiaText
+                        key={segment.name}
+                        delay={TIMING.nameSweepAt}
+                        text={segment.name}
+                      />
+                    );
+                  }
 
-          <RevealItem>
-            <p className="text-body text-text-secondary text-pretty">
-              I wrote{" "}
-              <InlineLink href={links.easeful} external>
-                easeful
-              </InlineLink>
-              , which gives a Radix or Base UI component its enter and exit
-              animation from one attribute and ships no JavaScript.{" "}
-              <InlineLink href={links.morphrig} external>
-                Morphrig
-              </InlineLink>{" "}
-              is a ten-part explainer on how icon morphing actually works.
-            </p>
-          </RevealItem>
+                  const draw = DRAW_ORDER.get(segment.href);
 
-          <RevealItem>
-            <p className="text-body text-text-secondary text-pretty">
-              I also make{" "}
-              <InlineLink href={socials.soundcloud} external>
-                music
-              </InlineLink>
-              . reach out about startups, a cool idea, or anything at all.
-            </p>
-          </RevealItem>
+                  return (
+                    <InlineLink
+                      key={segment.href}
+                      href={segment.href}
+                      // derived rather than declared per call site, so an
+                      // external link cannot be added without the rel guard
+                      external={segment.href.startsWith("http")}
+                      drawAt={draw === undefined ? undefined : drawAt(draw)}
+                    >
+                      {segment.text}
+                    </InlineLink>
+                  );
+                })}
+              </p>
+            </RevealItem>
+          ))}
 
           <RevealItem>
             <hr className="border-stroke" />
