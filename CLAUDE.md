@@ -1165,9 +1165,56 @@ cell's square one, since what it stands for is the shape about to land in it. It
 keeps the cell's footprint, which is what says the cell rather than the card is
 the target.
 
+**A long press takes the whole pile, and it travels by copying rather than by
+sharing.** Drag writes to whichever motion value sits in the card the pointer
+has, so a follower cannot use that same value: it needs its own for its own
+transform. Each one subscribes to the leader's and mirrors it, which is also what
+gives every card in the pile the same lean for nothing, since each derives that
+from its own `x`.
+
+- **The offsets are owned by the parent, not by the card.** A card cannot reach a
+  sibling's, and registering them upward would have a follower subscribing on the
+  same commit the leader registers on. They live in a ref keyed by id rather than
+  in a hook, since there is no fixed number of them, built with `motionValue`,
+  which is Motion's constructor for values made outside a component.
+- **The copy has to outlive the drop.** The leader's offset is still unwinding
+  under `dragSnapToOrigin` after the release, so `hold` is cleared by
+  `onDragTransitionEnd` and not by the drop. A press that never became a drag has
+  no snap to wait for and releases on `pointerup` instead. The subscription's
+  cleanup lands at zero rather than wherever the last frame left it, so one torn
+  down early cannot strand a card mid-air.
+- **`hold.ids` is snapshotted when the hold engages**, never recomputed from the
+  leader's cell. The drop commits the move while the offsets are still unwinding,
+  so by then the leader's cell is the target, and asking it who its neighbours
+  are would answer with the cards that were already there.
+- **A held pile is bounded as one box.** `cellBox` is the cell inset by the gap,
+  which is what a pile always fills. Constraining the leader's own box instead
+  would let the cards under it leave the grid.
+- **Three things say the pile has been taken, and the tightening alone was not
+  enough.** `place` takes a smaller peek ceiling, which clamps the cards together
+  and, because a pile always fills its cell whatever the peek, also makes each
+  card taller. That is 4px of closed gap, which nobody notices while looking at
+  the pointer. So the pile also lifts, and the leader carries a count badge.
+  - **The lift needed its own prop.** `lifted` means in flight, and it drives the
+    content dimming and the airborne label as well as the shadow. A pile that has
+    just been taken has not moved and has no destination to name, so `raised`
+    carries the shadow on its own.
+  - **The badge is bottom right and `bg-text-primary`.** The card's own two lines
+    are top left and the airborne label is centred, so that corner is the one
+    nothing else uses, and a near-black pill is the loudest thing the palette has
+    against a pale tint. It is the same treatment the header gives today's date.
+    `aria-hidden`, since the button's label already says "card 1 of 2".
+- **The click guard needs the hold as well as the drag.** A press long enough to
+  take the pile and then released without moving is a change of mind, and cycling
+  the pile under it would be a surprise.
+- **Shift is the keyboard's long press.** A pointer-only gesture is the thing the
+  hint bullet below already argues against.
+
 **Pile order is a number on the event, not the array's order.** Landing takes
-the highest order in that cell plus one, and cycling drops the front card below
-the lowest, so the events array never reorders. `layout` only animates an
+the highest order in that cell plus one plus its index in the run being moved, so
+one card and a whole pile are the same operation and a pile keeps its own order
+against itself. Cycling drops the front card below the lowest. The events array
+never reorders. `layout` only animates an
 element that stayed mounted, and reordering the array would work, but it puts a
 DOM move in the middle of every drop for nothing.
 
