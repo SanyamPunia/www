@@ -30,6 +30,23 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
+  /*
+   * Every page is also served as markdown at its own path plus `.md`.
+   *
+   * Two depths rather than one wildcard, because a literal suffix after a
+   * repeated parameter is the pattern path matching does not reliably support:
+   * `/:path*.md` does not match. The site is two segments deep at most.
+   *
+   * The root is `/index.md`, which falls out of the one-segment rule with `a`
+   * set to `index`, so it needs no rule of its own. `lib/markdown.ts` maps that
+   * segment back to the home page.
+   */
+  async rewrites() {
+    return [
+      { source: "/:a.md", destination: "/md/:a" },
+      { source: "/:a/:b.md", destination: "/md/:a/:b" },
+    ];
+  },
   async redirects() {
     return [
       {
