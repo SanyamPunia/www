@@ -1433,6 +1433,102 @@ there is no tag or topic data to compute relatedness from, so a heading
 promising it would be a claim the ordering cannot support. `MoreLabs` filters on
 `isImplemented`, or it would point every lab page at a 404.
 
+## Markdown variants
+
+Every page is also served as markdown, for anything reading the site rather than
+looking at it. Three ways in:
+
+- **`.md` on the page's own path.** `/blogs/a-post.md`, `/lab/event-stacking.md`,
+  `/work.md`, and `/index.md` for the home page.
+- **`Accept: text/markdown` at the page's own path.** `proxy.ts` rewrites it.
+- **`/llms.txt`**, the index, and **`/llms-full.txt`**, every document in one
+  file, both per the llmstxt.org convention.
+
+`lib/markdown.ts` builds the documents, `app/md/[...path]/route.ts` serves them,
+`proxy.ts` does the header half, and `next.config.ts` holds the rewrites.
+
+**`/llms.txt` replaced a hand-written `public/llms.txt`, and that file is the
+argument for generating it.** By the time it was found it knew none of the four
+newest experiments, neither of the two newest packages and none of the recent
+posts. Everything in it the site already holds is derived now. What is left is
+`lib/profile.ts`, the writing that had no other home: the work highlights, the
+package descriptions, the usage policy. Three of its sections were dropped rather
+than moved, since social links are `lib/site.ts` and the site structure is
+`markdownRoutes`, and a block of `User-agent`/`Allow` rules had been pasted in as
+well, which does nothing in that file. Crawler rules belong in `robots.ts`, which
+already says the same thing where a crawler reads it.
+
+- **`llms-full.txt` is `noindex` and `llms.txt` is not.** The full file really is
+  every indexable page's body at one URL. The index is not a second copy of
+  anything, it is the one surface listing them all.
+- **A directory named `llms.txt` is how the App Router serves a dotted path.**
+  The proxy never sees either file, since its matcher excludes anything
+  containing a dot.
+
+- **Nothing in `lib/markdown.ts` restates a page's copy.** Every document is
+  built from the same source its page renders from: `meta.json` and `page.mdx`
+  for a post, `labsRegistry` for an experiment, `workSections` for `/work`,
+  `lib/site.ts` for the home page. A second hand-written copy of a title or a
+  date is how the markdown ends up describing a page the site no longer has.
+  Extracting the root description into `lib/site.ts` was part of this, and it
+  was already written out twice inside `app/layout.tsx` before anything else
+  needed it.
+- **The home page's four paragraphs live in `lib/site.ts` as segments**, which
+  is what lets `/index.md` be the page rather than a summary of it. A segment is
+  a plain string, a `{ text, href }` link, or `{ name }` for the one slot
+  `DiaText` sweeps. It carries no presentation beyond a paragraph's tone, which
+  is the only thing separating them on screen.
+  - **A segment string carries its own spaces.** JSX collapses whitespace and a
+    JS string does not, and the page renders the segments back to back with
+    nothing between them.
+  - **Whether a link sweeps an underline is now derived, not numbered.**
+    `app/page.tsx` walks the same segments once at module scope and counts only
+    the links whose host has no mark, since a pill has no rule to sweep. That is
+    exactly what the hand-written `drawAt(0)`, `drawAt(1)` and `drawAt(2)`
+    encoded, except adding a link to the copy now shifts the ones after it on its
+    own. Verified after the move: the same three delays, 1030, 1170 and 1310, on
+    the same three links.
+  - **`external` is derived from the href too**, so an outbound link cannot be
+    added without the `rel` guard.
+- **The handler cannot live at the root as `[...path]`.** A dynamic page beats a
+  catch-all in Next's matching order, so `/lab/tab-overview.md` would reach
+  `app/lab/[slug]` and 404 there as an experiment whose slug ends in `.md`. A
+  literal `md` segment beats both.
+- **Two rewrite depths rather than one wildcard.** A literal suffix after a
+  repeated parameter is the pattern path matching does not reliably support, so
+  `/:path*.md` matches nothing. The site is two segments deep at most. `/index.md`
+  falls out of the one-segment rule and needs no rule of its own, since
+  `lib/markdown.ts` maps that segment back to the home page.
+- **Middleware is called Proxy from Next 16 on.** Same file convention, one per
+  project, at the same level as `app`. See
+  `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`.
+- **The proxy's matcher excludes anything containing a dot**, which is what keeps
+  it off both static files and the `.md` requests `next.config.ts` already
+  rewrites, since a proxy runs before those rewrites.
+- **A browser never triggers the negotiation.** It asks for
+  `text/html,application/xhtml+xml,...` and `curl` asks for `*/*`, so the test is
+  for `text/markdown` appearing in `Accept` rather than for html being absent.
+- **The markdown responses are `noindex` and carry `Vary: Accept`.** Every one is
+  the same content as an already-indexable page, and two URLs competing for one
+  body is what canonicals exist to prevent, so `sitemap.ts` lists none of them
+  and the HTML page announces the file with `rel="alternate"` instead. The `Vary`
+  is what stops a cache handing markdown to a browser.
+- **`Vary` deliberately does not go on the page responses.** Setting it on
+  `NextResponse.next()` is the obvious move and does not work: Next writes its
+  own `Vary` for the router further down the stack and replaces the header
+  outright, measured on a production build. The failure that has a visible cost
+  is covered by the markdown response's own `Vary`, and the reverse degrades to
+  an agent using the `.md` path. Forcing it through `next.config.ts` would
+  overwrite the header the router relies on.
+- **A stripped demo leaves a note.** A post's MDX is already markdown apart from
+  its import line and the demo element mounted in the prose. Two posts put that
+  demo under a heading of its own, so dropping the line outright left a
+  "## Live Demo" with nothing under it.
+- **Reading `page.mdx` is a fold with a fence flag, not a regex over the file.**
+  Plenty of the code inside a fence starts with `<` or the word `import`, and a
+  pass that could not see where a fence began stripped lines out of the middle
+  of the examples the posts exist to show.
+
 ## SEO routes
 
 `robots.ts`, `sitemap.ts` and `not-found.tsx`, all reading `SITE_URL`.
@@ -1486,10 +1582,17 @@ package, no provider component and no per-route call.
   surface needs it, which is how `reveal.tsx` got there.
 - `app/api/` route handlers. Only Spotify lives here, see below. Everything
   under it is `Disallow`ed in `robots.ts`.
+- `app/md/` the markdown variant of every page, reached through the rewrites in
+  `next.config.ts` and through `proxy.ts`. Not linked from anywhere a reader
+  goes, and every response is `noindex`. `app/llms.txt/` and `app/llms-full.txt/`
+  sit beside it. See Markdown variants above.
 - `lib/` no React. `constants.ts` layout tokens, `site.ts` copy and URLs,
   `work.ts` work data, `favicons.ts` the host-to-mark registry,
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
-  `utils.ts`.
+  `markdown.ts` the markdown variant of every page, `profile.ts` the one block
+  of copy in the whole site that no page renders, `utils.ts`.
+- `proxy.ts` at the root, the only file there that runs per request. It exists
+  for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
   reference. Anything untyped from npm gets its `.d.ts` here.
 
