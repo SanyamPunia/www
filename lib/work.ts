@@ -132,6 +132,20 @@ const projects: Project[] = [
     href: "https://clyp.sanyam.sh",
   },
   {
+    title: "easeful",
+    slug: "easeful",
+    image: "/projects/easeful.webp",
+    category: "package",
+    href: "https://easeful.sanyam.sh",
+  },
+  {
+    title: "morphrig",
+    slug: "morphrig",
+    image: "/projects/morphrig.webp",
+    category: "web",
+    href: "https://morphrig.dev",
+  },
+  {
     title: "on-snip.org",
     slug: "on-snip-org",
     image: "/projects/onsnip.webp",
