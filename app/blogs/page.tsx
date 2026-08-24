@@ -15,7 +15,10 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: "Blogs",
   description: DESCRIPTION,
-  alternates: { canonical: "/blogs" },
+  alternates: {
+    canonical: "/blogs",
+    types: { "text/markdown": "/blogs.md" },
+  },
 };
 
 export default function BlogsPage() {

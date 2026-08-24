@@ -13,7 +13,15 @@ import { paragraphs } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    /*
+     * Announces the markdown variant, so a client that reads the page can find
+     * it without being told the `.md` convention. The file itself carries
+     * `x-robots-tag: noindex`, so this relationship only ever points one way.
+     */
+    types: { "text/markdown": "/index.md" },
+  },
 };
 
 /* ─────────────────────────────────────────────────────────

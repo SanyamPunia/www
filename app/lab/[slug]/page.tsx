@@ -38,7 +38,10 @@ export async function generateMetadata({
   return {
     title: lab.title,
     description: metaDescription(lab.description[0]),
-    alternates: { canonical: `/lab/${slug}` },
+    alternates: {
+      canonical: `/lab/${slug}`,
+      types: { "text/markdown": `/lab/${slug}.md` },
+    },
   };
 }
 

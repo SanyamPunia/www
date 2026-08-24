@@ -68,7 +68,10 @@ export function blogMetadata(meta: BlogMeta): Metadata {
   return {
     title: meta.title,
     description: meta.description,
-    alternates: { canonical: `/blogs/${meta.slug}` },
+    alternates: {
+      canonical: `/blogs/${meta.slug}`,
+      types: { "text/markdown": `/blogs/${meta.slug}.md` },
+    },
     openGraph: {
       title: meta.title,
       description: meta.description,

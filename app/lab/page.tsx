@@ -15,7 +15,10 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: "Lab",
   description: DESCRIPTION,
-  alternates: { canonical: "/lab" },
+  alternates: {
+    canonical: "/lab",
+    types: { "text/markdown": "/lab.md" },
+  },
 };
 
 export default function LabPage() {

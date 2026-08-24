@@ -12,7 +12,10 @@ export const metadata: Metadata = {
   title: "Work",
   description:
     "Companies Sanyam has built at, from founding engineer at Bitscale to frontend engineer at Oliv AI, plus the side projects and packages he ships.",
-  alternates: { canonical: "/work" },
+  alternates: {
+    canonical: "/work",
+    types: { "text/markdown": "/work.md" },
+  },
 };
 
 export default function WorkPage() {
