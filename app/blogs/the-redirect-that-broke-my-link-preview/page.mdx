@@ -1,120 +1,120 @@
-I shipped this site, posted the link on X, and got a grey placeholder where the
-preview image should have been. The title was there. The description was there.
-The image was a broken icon.
+My link preview came out as a grey box. Title there, description there, image
+missing. The image was fine. What was wrong was a three digit number I had never
+once thought about.
 
-The image was fine. I had checked it three times. What was actually wrong took me
-an embarrassing while to see, and it turned out to be five small things stacked on
-top of each other, none of which is hard on its own.
+## two names, one site
 
-Here they are, in the order they confused me.
+`sanyam.sh` and `www.sanyam.sh` look like the same site. They are two different
+hostnames, and a hostname is just the name part of a web address, everything
+before the first slash. A server treats those two as unrelated as two completely
+different domains, and neither is the real site until you say so.
 
-## two addresses, one site
+So you pick. I picked the bare one, meaning no `www` in front. Either is fine.
+What matters is that the name you did not pick has to point at the one you did,
+and that pointing is a redirect.
 
-`sanyam.sh` and `www.sanyam.sh` feel like the same thing. They are not. To a
-server they are two different hostnames, as unrelated as two different domains.
-Nothing makes one the "real" version by default.
+A redirect is the server answering "not here, try over there" instead of handing
+over the page. Your browser follows it without mentioning it, which is why nobody
+thinks about redirects until something that is not a browser has to deal with
+one.
 
-So you pick. There is no correct answer, only a decision. Short is nicer to type
-and nicer to read, so I picked the apex. Plenty of large sites pick `www`.
+## why there are four numbers and not one
 
-What matters is that you pick, because **the choice you never make is the one
-that bites you.**
+Every redirect carries a three digit code, and the code answers two yes or no
+questions.
 
-## a redirect is a forwarding note
+**Is this forever?** Permanent means the address has moved for good, stop asking.
+Temporary means keep asking, it might come back.
 
-Once you pick, the other address needs to point at the winner. That pointing is a
-redirect. Somebody asks for `www.sanyam.sh`, the server answers "not here, try
-`sanyam.sh`", and the browser quietly goes there instead.
+**Should the browser keep the same kind of request?** Opening a page is a GET.
+Submitting a form is a POST. That is the request method, and when a POST hits a
+redirect something has to decide whether the next request is still a POST or
+quietly becomes a GET. The original two codes left that to the browser, which
+went badly often enough that two more were added that promise not to change it.
 
-Visitors never notice this. That is the problem. It works so smoothly for humans
-that you stop thinking about it, and then something that is not a human shows up.
-
-## 307 and 308 look identical until Google reads them
-
-When you set up that redirect, you get asked to choose a number. This felt like
-trivia to me. It is not.
-
-```
-307  go there for now, but keep asking me
-308  go there from now on, stop asking
-```
-
-To a browser these behave the same way. You cannot tell them apart by clicking
-around. To a search engine they are completely different sentences. A 307 says
-the situation is temporary, so both addresses stay in the index and whatever
-credit your pages have earned gets **split across two names that are supposed to
-be one site.** A 308 says this is settled, and the two get merged.
-
-Vercel defaults to 307. That default is reasonable, because a temporary redirect
-is the one you can undo without consequences. It is just the wrong choice for a
-decision you are never going to reverse.
-
-## crawlers follow redirects for pages, not for images
-
-This is the bit that actually broke my card, and the bit nobody told me.
-
-My site was telling X: my preview image is at `sanyam.sh/opengraph-image.jpg`.
-That address answered with a forwarding note to the `www` version.
+Two questions, two answers each, four codes.
 
 ```
-og:image  ->  https://sanyam.sh/opengraph-image.jpg
-              307  ->  https://www.sanyam.sh/opengraph-image.jpg
+301  permanent   may turn POST into GET
+302  temporary   may turn POST into GET
+307  temporary   keeps the method
+308  permanent   keeps the method
 ```
 
-A crawler fetching a **page** will follow that hop without complaint, which is
-exactly why my title and description showed up perfectly and made me think the
-metadata was fine. A crawler fetching an **image** generally will not. X asked
-once, got told to go somewhere else, gave up, and fell back to the small grey
-card.
+## how to keep them straight
+
+Line the four up in order and the permanence reads the same both ways.
+
+```
+301  302  307  308
+ P    T    T    P
+```
+
+307 is a 302 that keeps its method. 308 is a 301 that keeps its method. For an
+ordinary link with no form behind it, 301 and 308 do the same job, and so do 302
+and 307. Pick by whether you will ever undo it. Never means permanent.
+
+## what the number actually changes
+
+Nothing, if you are a browser. All four feel identical when you click, which is
+why this looks like trivia.
+
+A search engine reads it as a sentence. Temporary means both addresses are real,
+so both stay in the index, which is the list of pages a search engine knows
+about. Whatever credit your pages have earned then splits between two names meant
+to be one site. Permanent means the two get merged.
+
+Vercel defaults to 307, which is sensible for a redirect you might undo. Choosing
+between a bare domain and `www` is not one of those.
+
+## why my image broke and my title did not
+
+A link preview is built by a bot. It reads your page and looks for the Open Graph
+tags, a handful of `meta` tags naming the title, description and image a preview
+should use. Then it fetches that image.
+
+My page said the image was at `sanyam.sh/opengraph-image.jpg`. That address
+answered with a redirect to the `www` version.
+
+A bot fetching a page follows a redirect without complaint, which is why my title
+and description came through perfectly and convinced me the metadata was fine. A
+bot fetching an image usually does not. X asked once, got told to go somewhere
+else, gave up, and drew the grey box.
 
 The image was never the problem. The address I gave for it was.
 
-## you can build an infinite loop while fixing this
-
-Worth knowing before you go clicking. My apex was pointing at `www`. The fix is
-to make `www` point at the apex instead.
-
-If you set up the new redirect first, for a moment both addresses point at each
-other. Every request bounces back and forth until the browser gives up. You have
-turned a small metadata bug into a site that does not load.
-
-So the order is: **make your chosen address serve the site, and only then tell
-the other one to redirect to it.** There is always one hostname actually serving.
-
-## one line has to agree with reality
-
-The thing that finally made this click for me: all of this is one decision
-expressed in two places, and they have to say the same thing.
+## the one line that has to agree
 
 ```ts
 export const SITE_URL = "https://sanyam.sh";
 ```
 
-Every absolute URL on the site is built from that one constant. The canonical
-tags, `og:url`, the preview image, every entry in the sitemap, the sitemap
-pointer inside `robots.txt`. One line, nineteen URLs.
+Every absolute URL on this site is built from that one constant. Absolute means
+written out in full with `https://` at the front rather than as a bare `/path`.
+That covers the canonical tags, which tell a search engine which address is a
+page's official one, the preview image, and every entry in the sitemap, the file
+listing the pages you want found.
 
-The other place is your DNS and hosting config, which decides which hostname
-actually hands over bytes.
+It has to name the same hostname your DNS actually serves. DNS is the phone book
+of the internet, the part that turns a hostname into the machine answering for
+it. Mine disagreed with that constant, so everything downstream was correctly
+derived from a wrong premise. Every piece looks right when you check it alone.
 
-**The bug was never in my image or my meta tags. It was that those two places
-disagreed about which of two names was the site.** Everything downstream was
-correctly derived from a wrong premise, which is the most annoying kind of bug,
-because every individual piece looks right when you check it.
+One warning before you edit DNS. Make your chosen name serve the site first, then
+point the other at it. The other order leaves the two redirecting to each other
+until the browser gives up.
 
-## how to check yours in one command
-
-Do not trust a browser for this. A browser follows redirects silently and will
-happily show you a working site that is invisible to a crawler.
+## check yours in one command
 
 ```bash
 curl -sI -A "Twitterbot/1.0" https://yoursite.com/opengraph-image.jpg | head -1
 ```
 
-`200` means a crawler gets your image. Anything starting with `3` means it gets a
-forwarding note and your link previews are broken, no matter how good the image
-is.
+`curl` makes one request and prints the raw answer, with no browser tidying it
+up. `-I` asks for only the response headers rather than the file itself, and `-A`
+sets the user agent, the line where a request says who it is, so the server
+replies the way it would reply to X.
 
-Same check on your homepage, your `robots.txt`, and one canonical URL from your
-sitemap. It takes a minute, and it is a minute I wish I had spent before posting
-the link.
+`200` means a bot gets your image. Anything starting with `3` means it gets a
+redirect instead, and your previews are broken however good the image is. Run it
+on your homepage and one URL from your sitemap too.
