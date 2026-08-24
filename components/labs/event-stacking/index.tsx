@@ -317,7 +317,7 @@ function EventCard({
   onCycle,
   onNudge,
   onHold,
-  onSettled,
+  onRelease,
 }: {
   event: CalendarEvent;
   box: Box;
@@ -364,7 +364,7 @@ function EventCard({
   onCycle: (id: string) => void;
   onNudge: (id: string, step: Cell, whole: boolean) => void;
   onHold: (id: string) => void;
-  onSettled: () => void;
+  onRelease: (id: string) => void;
 }) {
   const hue = HUES[event.hue];
   const reduce = useReducedMotion();
@@ -484,9 +484,20 @@ function EventCard({
       onPointerDown={startHold}
       onPointerUp={() => {
         cancelHold();
-        // a press that never became a drag has no snap to wait for, so the pile
-        // is released here rather than in `onDragTransitionEnd`
-        if (!dragged.current) onSettled();
+        /*
+         * A press that never became a drag has no snap to wait for, so the pile
+         * is released here rather than in `onDragTransitionEnd`.
+         *
+         * The id is what makes this safe, and it is the whole bug this replaced.
+         * Once a pile has moved, the pointer is usually over a card *higher* in
+         * it than the one being carried, because a deeper card shows only its
+         * own sliver and every card above it has a larger `zIndex`. So the
+         * `pointerup` lands on a follower, which never dragged, and releasing on
+         * that dropped the pile mid-flight: `hold` was null by the time
+         * `onDragEnd` ran, so `onDrop` moved the pressed card alone and left the
+         * rest to snap back. The parent checks the id and ignores anyone else.
+         */
+        if (!dragged.current) onRelease(event.id);
       }}
       onPointerCancel={cancelHold}
       onPointerLeave={cancelHold}
@@ -510,7 +521,7 @@ function EventCard({
       }}
       // the offsets are still unwinding until this fires, which is what holds a
       // pile together across its own drop
-      onDragTransitionEnd={onSettled}
+      onDragTransitionEnd={() => onRelease(event.id)}
       onClick={() => {
         if (dragged.current || engaged.current) {
           dragged.current = false;
@@ -811,8 +822,16 @@ export default function EventStacking() {
     setHold({ id, ids: pile.map((event) => event.id) });
   };
 
-  /** the pile is one thing until every offset it shares has unwound */
-  const onSettled = () => setHold(null);
+  /**
+   * Lets go of the pile, but only for the card that took it.
+   *
+   * Every card reports its own release, because the one that receives the
+   * `pointerup` is not reliably the one being carried: a deep card shows only a
+   * sliver, so after any movement the pointer is over a card above it. Comparing
+   * the id is what keeps a follower's release from ending the gesture.
+   */
+  const onRelease = (id: string) =>
+    setHold((prev) => (prev && prev.id === id ? null : prev));
 
   /**
    * Bring a card to the front of its pile, or send the front card to the back.
@@ -1076,7 +1095,7 @@ export default function EventStacking() {
                 onCycle={onCycle}
                 onNudge={onNudge}
                 onHold={onHold}
-                onSettled={onSettled}
+                onRelease={onRelease}
               />
             );
           })}
