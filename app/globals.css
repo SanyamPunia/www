@@ -59,7 +59,37 @@
   --color-inverse-text: #fafafa;
   --color-inverse-text-secondary: #8f8f8f;
 
+  /*
+   * One tone per internal destination in the home page's prose.
+   *
+   * This is the one place the "no accent colour on text or links" override
+   * bends, and it bends for the reason the rule exists: those three words are
+   * the only links on the page without a mark beside them, so nothing said they
+   * were links until the underline swept in. A hue does.
+   *
+   * Muted on purpose, and checked: 5.83, 6.51 and 6.53 on white against
+   * `text-secondary`'s 5.28, so each link reads a touch stronger than the prose
+   * around it and none of them reads as a colour.
+   */
+  --color-link-work: #2f6f6a;
+  --color-link-blogs: #4a5b96;
+  --color-link-lab: #7a4f78;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * The width at which a post's left rail appears, as its own variant.
+   *
+   * It is not `lg`, and it is named rather than written twice, because two
+   * files have to agree on it: the rail shows at `rail:` and `BlogPost` hides
+   * its own copy of the back link at the same width, so exactly one is on
+   * screen. Miss one and a post between the two widths has no way back.
+   *
+   * 68rem is what the geometry needs. The rail is 12rem wide and sits 16rem
+   * clear of the column's half width, so its left edge is 32.8rem from centre
+   * and the page's own gutter is 1.2rem: anything narrower runs it off screen.
+   */
+  --breakpoint-rail: 68rem;
 
   /*
    * The whole design sits at 0.8 of a conventional scale. That factor is baked
@@ -77,20 +107,6 @@
   /* named type scale, see CLAUDE.md */
   --text-lead: 1.05rem;
   --text-lead--line-height: 1.5;
-  /*
-   * The width at which a post's left rail appears, as its own variant.
-   *
-   * It is not `lg`, and it is named rather than written twice, because two
-   * files have to agree on it: the rail shows at `rail:` and `BlogPost` hides
-   * its own copy of the back link at the same width, so exactly one is on
-   * screen. Miss one and a post between the two widths has no way back.
-   *
-   * 68rem is what the geometry needs. The rail is 12rem wide and sits 16rem
-   * clear of the column's half width, so its left edge is 32.8rem from centre
-   * and the page's own gutter is 1.2rem: anything narrower runs it off screen.
-   */
-  --breakpoint-rail: 68rem;
-
   --text-body: 0.9rem;
   --text-body--line-height: 1.6;
   --text-action: 0.8rem;

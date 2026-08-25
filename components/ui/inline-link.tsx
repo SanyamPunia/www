@@ -24,6 +24,32 @@ const FOCUS =
 const UNDERLINE =
   "relative after:absolute after:inset-x-0 after:bottom-[-0.1em] after:h-[0.14em] after:rounded-full after:bg-stroke-strong after:transition-colors after:duration-200 group-hover:after:bg-text-primary";
 
+/**
+ * A tone per internal destination, derived from the href like the shape is.
+ *
+ * The three markless links in the home page's copy are the only ones with
+ * nothing beside them saying they are links, so each takes its own hue: the
+ * word at rest, and the rule under it at 45% until hover takes it to full.
+ *
+ * Route to token lives here and nowhere else, since this is the one component
+ * that renders a link in prose. Adding a route means adding its token to
+ * `@theme` first. A route without an entry is untoned, which is the default.
+ */
+const ROUTE_TONE: Record<string, { text: string; rule: string }> = {
+  "/work": {
+    text: "text-link-work",
+    rule: "after:bg-link-work/45 group-hover:after:bg-link-work",
+  },
+  "/blogs": {
+    text: "text-link-blogs",
+    rule: "after:bg-link-blogs/45 group-hover:after:bg-link-blogs",
+  },
+  "/lab": {
+    text: "text-link-lab",
+    rule: "after:bg-link-lab/45 group-hover:after:bg-link-lab",
+  },
+};
+
 /*
  * The draw. `both` fill mode is what holds the rule at zero width through its
  * delay, so nothing flashes at full width before its turn. The delay reads
@@ -50,6 +76,8 @@ export function InlineLink({
   drawAt,
 }: InlineLinkProps) {
   const favicon = faviconFor(href);
+  // a pill has no rule to tone, and its mark already says it is a link
+  const tone = favicon ? undefined : ROUTE_TONE[href];
 
   const classes = favicon
     ? cn(
@@ -86,7 +114,10 @@ export function InlineLink({
         className,
       )
     : cn(
-        "group cursor-pointer transition-colors duration-200 hover:text-text-primary",
+        "group cursor-pointer transition-colors duration-200",
+        // a toned link keeps its hue on hover: stepping to `text-primary` there
+        // would take the colour away at the moment the pointer arrives
+        tone ? tone.text : "hover:text-text-primary",
         FOCUS,
         "focus-visible:rounded-xs",
         className,
@@ -128,7 +159,11 @@ export function InlineLink({
      * above wants middle, because an image's baseline is its bottom edge.
      */
     <span
-      className={cn(UNDERLINE, drawAt !== undefined && UNDERLINE_DRAW)}
+      className={cn(
+        UNDERLINE,
+        tone?.rule,
+        drawAt !== undefined && UNDERLINE_DRAW,
+      )}
       style={
         drawAt === undefined
           ? undefined
