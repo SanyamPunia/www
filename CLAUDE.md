@@ -69,6 +69,9 @@ token here first.
 | `accent` | `#3b82f6` | **logo mark only**, never text or links |
 | `danger` | `#b84a41` | invalid input, see below |
 | `selection` | `#34d399` | text selection highlight, see below |
+| `link-work` | `#2f6f6a` | the home page's `/work` link, see Inline links |
+| `link-blogs` | `#4a5b96` | the home page's `/blogs` link |
+| `link-lab` | `#7a4f78` | the home page's `/lab` link |
 | `inverse-bg` | `#0a0a0a` | dark ground, see below |
 | `inverse-fill` | `#111111` | raised tile on a dark ground |
 | `inverse-stroke` | `#1e1e1e` | hairline on a dark ground |
@@ -144,8 +147,16 @@ deliberately replaced.
 - **No dark mode.** One light theme. The shared "every surface works in light
   and dark" rule does not apply, there is nothing to switch to. This replaces
   the previous version's inverse override (it was dark-only).
-- **No accent colour on text or links.** Hierarchy comes from tone and weight
-  alone. This is deliberate and is most of why the design reads clean.
+- **No accent colour on text or links, with one exception.** Hierarchy comes
+  from tone and weight alone. This is deliberate and is most of why the design
+  reads clean.
+
+  The exception is the three internal links in the home page's copy, `/work`,
+  `/blogs` and `/lab`, which take a tone each. It bends the rule for the reason
+  the rule exists: every other link in that paragraph carries a favicon pill
+  beside it, so those three words were the only ones with nothing at all saying
+  they were links until the underline swept in on load. See Inline links below.
+  Nothing else on the site may reach for these.
 - **Nothing scales on press. There is no `active:scale-[0.98]` in this
   codebase.** The shared rule mandates it on every tappable element and this
   project overrides it outright. At this scale a 2% transform shifts an edge by
@@ -316,7 +327,9 @@ glyph could not serve.
 - Sizing is `size-*`, never the `size` prop, so the Tailwind scale stays the one
   source of truth. Inline-in-text icons use `size-[0.9em]` so they track the
   copy they sit in.
-- Weight stays at the `regular` default. Do not pass `weight` per call site.
+- Weight stays at the `regular` default. Do not pass `weight` per call site. The
+  one exception is the signature player's transport, where the glyphs are player
+  symbols rather than UI icons and take `fill`.
 
 ## Inline links
 
@@ -324,6 +337,25 @@ glyph could not serve.
 shapes off a single rule: **a link whose host has a mark becomes a pill, a link
 without one stays underlined text.** Call sites pass nothing extra, the shape
 is derived from the href.
+
+**A markless link to `/work`, `/blogs` or `/lab` also takes a tone**, derived
+from the href the same way the shape is. The word carries the hue and the rule
+under it carries it at 45%, going to full on hover. This is the one place the
+"no accent colour on text or links" override bends, and the reason is that those
+three are the only links in the home page's copy with no mark beside them: a
+sweeping underline says "link" for 450ms on load and nothing after that.
+
+- **`ROUTE_TONE` in `inline-link.tsx` is the whole map, route to token.** It is
+  the one component that renders a link in prose, so nothing else needs to know.
+  A route with no entry is untoned, which is the default and stays the default.
+- **Adding a route means adding its token to `@theme` first**, then a row to the
+  colour table, then the entry here.
+- **A toned link keeps its hue on hover** and only its rule steps up. Going to
+  `text-primary` there would take the colour away at the moment the pointer
+  arrives.
+- The tones are muted on purpose and checked against the prose they sit in: 5.83,
+  6.51 and 6.53 on white against `text-secondary`'s 5.28, so each link reads a
+  touch stronger than the paragraph around it and none of them reads as a colour.
 
 - The pill is the same `rounded-full bg-fill` shape as the primary button, sized
   entirely in `em` so it tracks the text it sits in. Never give it a fixed
@@ -444,9 +476,10 @@ files:
 - Content headings start at **h2**. The shell renders the h1, so an h1 in the
   body would be a second one.
 - Code fences render through `components/ui/code-block.tsx`. `sugar-high`
-  emits `sh__*` classes coloured by the `--sh-*` properties in `globals.css`,
-  which are **greys, not a syntax rainbow**, so a code block stays inside the
-  page's monochrome.
+  emits `sh__*` classes coloured by the `--sh-*` properties in `globals.css`.
+  These are the one place on the site with a full palette, since a token's colour
+  is what says what kind of token it is, the same exception the brand marks get.
+  Punctuation and comments stay grey so they recede.
 - A missing `meta.json` hides a directory from the index, so a draft can sit
   in the tree unpublished.
 - A post's demo component is **colocated** in the post directory when only that
@@ -547,6 +580,228 @@ for one section instead of the whole post.
 - `BlogPost` mounts one `TooltipProvider` around the article, rather than one
   per heading.
 
+### The signature player
+
+`app/blogs/turning-a-signature-into-two-pen-strokes/` is the post that came out
+of the signature. The post is about the asset, since the file is what had to be
+rebuilt: the player is its demo, and it earns its place by making the two strokes
+and the pen lift between them visible. `timeline.ts` is the timing,
+`signature-player.tsx` the player, and both are colocated in the post directory
+because nothing else uses them.
+
+It was a lab first, and the move is why `IMPLEMENTED_LABS` no longer lists it
+and `components/lab/experiment.tsx` no longer maps it. A demo that needs this
+much explaining is a post with a demo in it rather than an experiment with a
+paragraph under it.
+
+- **The footer's mark cannot be scrubbed, which is why this exists.** It is two
+  CSS animations with their own durations and delays, so there is no single value
+  to seek. `timeline.ts` turns the same numbers into one progress axis and derives
+  both dash offsets from it, which makes a seek and a play the same operation at
+  different speeds.
+- **Those numbers are restated from `globals.css`, and there is no way round it.**
+  A keyframe's duration is not readable from JS without parsing the stylesheet.
+  So they are named once in `timeline.ts` with the stylesheet cited, the same
+  trade `CONTENT_HALF_REM` makes in `lib/constants.ts`: the two move together.
+- **`pathLength="1"` on the asset is what keeps this cheap.** A dash offset is a
+  plain number rather than something `getTotalLength()` has to measure, which is
+  also why the footer's stylesheet can hold plain numbers.
+- **The 0.08s pen lift is kept, not closed up.** `globals.css` ends the first
+  stroke at 1.45s and starts the second at 1.53s. On the scrubber that gap is a
+  short plateau where the ink stops growing, and it is the one thing about the
+  mark that a finished signature cannot show you. It is also why the asset is two
+  paths and not one.
+- **One fetch feeds both copies.** The ghost and the ink come from the same
+  markup, so they cannot disagree about the geometry, and only the ink copy is
+  dashed. The dash is set imperatively rather than by borrowing `.signature`,
+  since that class carries the animation this replaces.
+- **Nothing renders per frame.** One subscription writes the two dash offsets,
+  the two block fills, the nib and the slider's position straight to the DOM.
+  The slider is uncontrolled, so dragging it never fights a value React is also
+  setting, and it is skipped while it has focus so a drag cannot be overwritten
+  mid-gesture.
+  - **That skip has to give way to playback, and this was a bug.** Space plays
+    from the scrubber, so the focused case is the common one rather than the
+    exception: with the guard on focus alone the thumb sat still through a whole
+    write, and a later arrow key then stepped from wherever the thumb was left
+    rather than from the ink. A drag pauses playback on its first `change`, so
+    focused and playing cannot both be true once the pointer is really moving.
+- **A native `range`, styled through its own pseudo-elements.** The shared rules
+  ban a native date input and say nothing about this one, and a hand-rolled
+  scrubber starts life as a slider with no keyboard behaviour: arrows, Home and
+  End all come free here.
+- **The nib is a ring, not a dot.** A filled dot in the ink's own colour merges
+  with the stroke's round cap and reads as a thicker bit of line. At radius 5.4 a
+  ring clears the 4.4 stroke's own 2.2 and reads as a position. It carries its own
+  thin stroke rather than inheriting the mark's, or it would be as heavy as the
+  line it tracks, and it is appended to the injected markup rather than shipped in
+  the asset, since the asset is the mark and this is a readout about it.
+  `getPointAtLength` wants user units even though `pathLength` has renormalised
+  the dash pattern, which is why each path's real length is measured once.
+- **The nib carries a halo, and that is a contrast problem rather than a
+  stacking one.** It is already the last child of the top layer. A ring in the
+  ink's own colour still disappears exactly where it crosses that ink, which is
+  most of the time, so a wider ring in `--color-bg` sits under it and cuts a gap
+  around it. Same trick `tether-button` uses to make a drawing read over
+  anything. The halo's colour goes through `style`, since an SVG attribute cannot
+  take a `var()`.
+  - **The group carries the position, not the circles.** One `transform` per
+    frame rather than two coordinates on each of two circles.
+- **The nib goes out at both ends and through the lift**, which is exactly when
+  the real pen was up.
+- **The scrubber is a timeline, not a slider: a lane with a block per stroke in
+  it.** The write is two strokes, so the gap between the blocks is the pen lift,
+  and the one thing a finished signature cannot show you is visible before
+  anything is pressed. Each block fills with its own stroke, off `drawnAt`, which
+  is the same fraction that moves that stroke's dash, so the track and the ink
+  cannot disagree. It went flat bar with two ticks, then two thin sections with
+  labels under them, then this.
+  - **It is thick because it is the thing you grab.** A 3.2px bar with a 9.6px
+    dot on it is a control you aim at. The lane is `h-10` with `h-7` blocks in it,
+    which is a control you drop a finger on, and the height is also what makes
+    room for each block to carry its own name.
+  - **The thumb is a playhead, `h-7 w-1.5`,** since a dot on a 32px lane reads as
+    a stray bead.
+  - **A block's name sits inside it, in `text-primary`.** The fill sweeps beneath
+    the label, so it is on two grounds in one pass and has to clear both. They
+    used to be buttons under the lane that seeked to their own section, and the
+    lane took that job: it is thick enough to click a stroke's start directly.
+  - **The axis under it is a tick every 0.1s, numbered every other one.** That is
+    what makes the blocks read as durations rather than as two proportions. The
+    write is 1.58s, so the last tick is 1.5 and the lane runs a little past it,
+    which is what an axis over a total that is not round looks like.
+  - **The axis row is `h-8`, which is what it actually occupies:** a 4.8px tick
+    and then a label at `top-2` on a 19.2px line. At `h-4` the numbers painted
+    outside their own box, so the flex gap below could not see them and the
+    transport sat on the axis however wide that gap was.
+  - **The three groups sit at `gap-8`.** The stage, the timeline and the
+    transport are separate things, and at 16px with the numbers hanging out of
+    their box the whole block read as one congested slab. Measured: 25.6px
+    between each, and the demo is 434px tall on a wide column.
+  - **Everything drawn in the lane is inset by half a thumb**, since a range's
+    thumb travels between its own centres and not edge to edge. `TRACK_INSET` is
+    2.4px, half of the playhead's `w-1.5`. Measured on a 499px lane: block one
+    runs 2.4 to 346.6, the lift is 25.0px, block two starts at 371.6.
+  - **The fill is a `scaleX` inside a clipping block**, never a width. A width
+    relayouts every frame, and scaling a rounded bar squashes its own caps, so the
+    block carries the radius and `overflow-hidden` and the bar inside it is a
+    plain rectangle.
+  - **The range is still native, still the only interactive element, and paints
+    nothing but its thumb.** It lies over the lane at full size, so a click
+    anywhere on it seeks, and everything under it is `pointer-events-none`. Native
+    is what keeps the arrows, Home and End for free.
+- **Space is bound to the scrubber, never to the window.** A range ignores it
+  natively so nothing is being overridden, and keeping it off the window is what
+  stops an embedded demo eating the page's scroll key.
+- **It plays itself once when it scrolls into view**, which is what the footer's
+  mark does on arrival. Without it the demo is a blank stage with a faint ghost
+  on it and nothing saying that play does anything. `useInView(..., { once: true })`
+  plus a ref guard, since the effect re-runs whenever `run` changes.
+- **`run` is wrapped in `useCallback` so that effect can depend on it**, and as a
+  named function expression, because the loop calls it again from its own
+  `onComplete` and a `useCallback` has no name to recurse through otherwise.
+- **The tint is off by default, and it is the narrowest use of the colour
+  exception on the site.** The two strokes are the same ink doing the same thing,
+  so which is which cannot be read off the finished mark at all. One press paints
+  them apart, indigo at 5.12 and rose at 4.70 on white, which is what a graphic
+  needs. The nib's ring takes whichever stroke it is riding, so the write effect
+  has to depend on `tint` or the ring keeps the old colour until the next seek.
+  **There are two pairs, `ink` and `wash`.** The saturated pair is what a stroke
+  on white paper needs and is 1.9:1 under the block labels on the track, so the
+  blocks take a light pair instead, which is the `mark` and `tint` split
+  `event-stacking` already makes.
+  Clearing goes back to the empty string rather than to a colour, so the mark
+  returns to whatever `currentColor` is rather than to a guess at it.
+- **`select-none` on the whole demo.** Scrubbing is a drag across a row of text,
+  so without it a slow drag selects the rate pills and the readouts on the way
+  past. Everything in here is a control or a readout about one, so there is
+  nothing a reader would want to copy.
+- **Speed divides the remaining duration, never the timeline.** Scaling the
+  timeline would move the ticks off the strokes they name. Changing rate mid-play
+  restarts the run from where it is, since a playback's duration is fixed once it
+  has started, and the new rate is passed in rather than read from state that has
+  not committed.
+- **The default rate is 0.5x, which is what the autoplay plays at.** The demo is
+  about the order the strokes are written in and the pause between them, and at
+  1x the whole thing is over in 1.58s. The rate lives in state rather than the run
+  carrying its own, so the control agrees with what you just watched.
+- **One control cycles the speed, and it is in the pill with everything else.**
+  It was three pressed pills off to the right, which said their own state and cost
+  a whole grid column to sit in. This reverses the earlier note here: a cycling
+  button does need a tooltip, and it gets one, because a control carrying a text
+  label usually does not. The label is the value, not the action, so nothing on it
+  says a press changes anything.
+  - **`CONTROL_WIDE` exists because "0.5x" does not fit a square.** `CONTROL` is
+    the base plus `w-8`, this one the base plus `w-11`, so no call site overrides
+    a width.
+  - **The label does not crossfade, unlike the play glyph.** Play and pause are
+    two different shapes and a swap between them wants covering. A rate is a
+    number being corrected, and a number that fades and turns while it changes
+    reads as an effect rather than as a readout.
+- **The four icon-only controls carry tooltips and the rate pills do not.** Play,
+  stop, loop and the tint have nothing but a glyph. A rate pill carries its own text and
+  pressing it sets that rate, so a tooltip there would restate the label, which
+  the shared rules call out.
+  - **One `TooltipProvider` round the transport**, not one per button, the same
+    call `BlogPost` makes for its headings.
+  - **A toggle's tooltip names what a press will do, not what is true.** The fill
+    and `aria-pressed` already say the state, so the copy is "Loop the write" or
+    "Stop looping". Radix closes a tooltip on click and needs a fresh
+    `pointerenter`, so the changed copy is only seen after the pointer leaves and
+    comes back, which is the same behaviour `heading-anchor` documents.
+- **Play and pause crossfade with a turn and a dip under them.** Not a path
+  morph: nothing here can compile one, and a triangle and two bars share no
+  points to morph between, which is the same call `heading-anchor` makes for its
+  tick. `sync` rather than `CodeBlock`'s `mode="wait"`, with both glyphs
+  absolute, so they overlap through the swap and the button is never briefly
+  empty. This control can be pressed twice in a row, where a copy control's
+  confirmed state stands for two seconds. Measured across one press: 24 of 39
+  frames carry both glyphs, none carries neither, and the button holds 26px
+  throughout. `MotionProvider` drops the scale and the rotation under reduced
+  motion and leaves the crossfade on its own.
+- **Two readouts sat at the ends of the transport and both are gone**, a beat
+  label reading "start", "stroke 1", "pen lift", "stroke 2", "end", and a clock
+  reading elapsed against total. The timeline made both redundant: the blocks name
+  the stroke you are in, the gap is the lift and the axis under them is numbered
+  in seconds.
+  `beatAt` and the `Beat` type went with it. Losing it also takes the last
+  `setState` out of the per-frame write, so nothing in this player renders per
+  frame at all now.
+- **The demo wraps itself in `Demo` with `block`**, not the frame's own
+  `grid place-items-center`, since it wants the whole width and a centred grid
+  item is sized to its content.
+- **The mark is sized by width, not by height.** The asset is 2.06:1, so a
+  height alone decides how wide it paints: at `h-32` it filled 42% of the
+  column and the demo read as a toolbar with a line of ink above it. `w-full`
+  inside a `max-w-96` scales it with the column and caps it, which is what
+  keeps it inside the column at 375px, where the cap is wider than the column.
+  The stage is `h-80`.
+- **The transport is one centred pill and nothing else on the row.** Play, stop,
+  loop, tint and speed all live in it, `rounded-full bg-fill` at `gap-2 p-2`,
+  175.9x38.4. It was a three-column grid holding a clock, the buttons and three
+  speed pills, which needed two `1fr` tracks to keep the middle centred and a
+  stacked layout below 420px. Five controls in one pill need neither and fit a
+  phone.
+  - **The row around it draws nothing.** It was a hairline panel across the whole
+    width for a while, and that made the row the object rather than the
+    controls.
+  - **Every secondary control's background step moves up one**, since they sit on
+    the pill's own `bg-fill` where a `hover:bg-fill` would be invisible.
+  - **Play is the one dark element on the surface**, `bg-text-primary` with a
+    `text-bg` glyph, which is what says where to press first. It cannot be another
+    fill step, because the pill it sits on is already one. Its hover and press are
+    alpha steps on the same token, since none of the fill tokens is a shade of it.
+  - **The glyphs pass `weight="fill"`**, the one place in this codebase that sets
+    an icon weight. These are player symbols rather than UI icons: a filled
+    triangle and a filled square are what a transport looks like everywhere, and
+    at `size-3.5` the outlines read as sketches of the controls. `ArrowsClockwise`
+    barely changes, since an arrow is a stroke whatever the weight.
+- **Playback is not gated on reduced motion, deliberately.** That setting is about
+  motion a reader did not ask for, and this is a play button. The demo has
+  nothing left to show if pressing it does nothing. **The autoplay is gated**, and it is
+  the one piece of motion here nobody asked for, which is exactly the line: a
+  press is a request, an autoplay is not.
+
 ## Lab
 
 `app/lab/page.tsx` is the index, `app/lab/[slug]/page.tsx` the detail. Each
@@ -602,7 +857,10 @@ experiment is a directory under `components/labs/`.
   stamp is a printed object and its colours are the object. Each is scoped to its
   experiment, the values are not tokens, and nothing else may reach for them.
   `tab-overview` keeps its values in its own stylesheet and the others in a
-  `const` beside their own data, which is the better of the two: prefer it.
+  `const` beside their own data, which is the better of the two: prefer it. The
+  signature player's two stroke hues are the same exception outside the lab, and
+  the narrowest use of it on the site, being two values behind a toggle that is
+  off by default.
 
 ### `tab-overview`
 
@@ -1584,6 +1842,9 @@ reveal.
 - **Reduced motion is handled in the stylesheet.** These are raw keyframes, so
   `MotionProvider`'s `reducedMotion` does not govern them, the same as
   `disc-spin`.
+- **`app/blogs/turning-a-signature-into-two-pen-strokes/` is the post about this
+  file**, and its demo plays the same asset on a transport, restating these
+  durations to do it. See The signature player above.
 
 ## Toolchain notes
 
