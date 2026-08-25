@@ -1,0 +1,133 @@
+import SignaturePlayer from "./signature-player";
+
+There is a signature at the foot of this site. It draws itself on arrival, which
+is a handful of CSS and no work at all. Getting it to look like writing while it
+did that took a new file.
+
+Press play, or drag the scrubber. The palette button paints the two strokes apart.
+
+<SignaturePlayer />
+
+## outlines are not strokes
+
+The mark started as text in a handwriting font. Convert that to paths and you get
+what a font actually stores: one closed contour per letter, running up one side of
+the ink and back down the other. Six letters, six loops.
+
+That is fine for filling. It falls apart the moment you want to draw it, because
+drawing an SVG path means giving it a dash pattern as long as itself and animating
+the offset:
+
+```css
+path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1.5s forwards;
+}
+```
+
+A dash travels along a path from wherever that path begins. For a contour around a
+letter, "begins" is whatever point the export happened to start at, and it is a
+different point on every letter. So the reveal starts in six unrelated places at
+once, each one crawling around its own letter and meeting itself. It reads like
+six things being uncovered. It does not read like a hand.
+
+There is nothing to fix in the animation. The file is wrong. What a pen draws is a
+centreline: one line down the middle of the ink, in the order the hand moved.
+
+## deriving the centrelines
+
+I did not redraw the mark by hand. The outlines already had the shape, so the job
+was extracting the line through the middle of them.
+
+What worked: rasterise the filled outlines, thin the bitmap to a one pixel
+skeleton, cut the skeleton at every crossing, and walk the pieces as a trail that
+uses each one once, choosing the straightest continuation at each junction. A
+signature crosses itself constantly, and straightest-continuation is what keeps a
+`y` descender going down instead of turning up into the next letter.
+
+One case needed handling on its own. Where a curve's ink is wider than a single
+pen stroke, the thinning gives back two parallel lines instead of one, because the
+shape genuinely is two strokes merged into one ribbon. That happens at the `n`
+tips and the `m` entry. The trail runs out along one edge of the ribbon and back
+along the other, which is also what the hand did.
+
+The result is two paths. Nothing in the repo reproduces that pipeline, so those
+two paths are source now, in the same sense a photograph is.
+
+## the weight is not the pen's weight
+
+The file says `stroke-width="4.4"`, and the font does not draw the mark anywhere
+near that heavy.
+
+The old version stroked the outlines rather than filling them. Stroking a closed
+contour paints the outline itself, dilating the letter by half the stroke width on
+each side. At 2.5, that put 1.25 units of extra ink on every edge of every letter,
+so the mark on screen was about 2.4 times bolder than the font intended, and it
+had looked like that for long enough to be what I thought the signature looked
+like.
+
+Matching it on a centreline is one number instead of a side effect. 4.4 lands at
+93% pixel overlap with the old rendering, checked at 32px and at 96px. The
+designed weight is nearer 2.2, so going there is a redesign rather than a fix.
+
+## the dash pattern is `1 2`, not `1`
+
+`pathLength="1"` on each path renormalises its length, so every dash number in the
+stylesheet is a plain fraction and nothing has to call `getTotalLength()` first.
+The undrawn state should then be `stroke-dasharray: 1; stroke-dashoffset: 1`, and
+that has a bug in it.
+
+A dash pattern of `1` means one unit on, one unit off, repeating. At offset 1 the
+next dash starts exactly on the end of the path. Its length there is zero, and
+`stroke-linecap: round` paints a zero length dash as a dot. So an undrawn stroke
+is not invisible: it is a blob sitting at the very end of the mark, waiting its
+turn while the first stroke writes.
+
+```css
+.signature path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+}
+```
+
+A gap of 2 puts the repeat out of reach. The extra 0.02 keeps the pattern's other
+boundary off the start of the path, since engines disagree about whether a dash
+ending at zero length paints there.
+
+## the file carries its own paint
+
+Everything the mark needs is in the asset:
+
+```html
+<svg viewBox="0 0 206.81 100.47" fill="none" stroke="currentColor"
+     stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
+  <path pathLength="1" d="M26.25 15.6c0 0 2.71 -4.32 ..." />
+  <path pathLength="1" d="..." />
+</svg>
+```
+
+The component that injects it used to strip every fill, set the stroke, the width
+and the caps per path, measure each path with `getTotalLength()`, and retighten
+the `viewBox` from `getBBox()`, because the exported box was a 375 unit square
+with the ink sitting low inside it. All of that is baked in now, so the runtime
+measures nothing and the mark cannot arrive at the wrong size while it waits for
+JavaScript.
+
+`stroke="currentColor"` is the one thing left deliberately open, so the mark
+inherits whatever colour it sits in.
+
+## two paths means one pen lift
+
+Writing "sanyam" takes the pen off the paper once, between the `y` and the last
+`a`. That is the only reason the file is two paths instead of one, and it is worth
+keeping rather than closing up.
+
+The two durations are a single write split by length. 1.1s and 0.4s are the paths'
+73/27 share of a 1.5s total, so both move at the same pen speed and the second
+starts where the first stopped. Durations that are not proportional read as two
+different hands.
+
+In the demo above, that lift is the gap between the two sections of the track. The
+ink stops growing, the nib comes off the page, and 80 milliseconds later the hand
+comes back down for the last two letters.
