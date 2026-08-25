@@ -77,6 +77,20 @@
   /* named type scale, see CLAUDE.md */
   --text-lead: 1.05rem;
   --text-lead--line-height: 1.5;
+  /*
+   * The width at which a post's left rail appears, as its own variant.
+   *
+   * It is not `lg`, and it is named rather than written twice, because two
+   * files have to agree on it: the rail shows at `rail:` and `BlogPost` hides
+   * its own copy of the back link at the same width, so exactly one is on
+   * screen. Miss one and a post between the two widths has no way back.
+   *
+   * 68rem is what the geometry needs. The rail is 12rem wide and sits 16rem
+   * clear of the column's half width, so its left edge is 32.8rem from centre
+   * and the page's own gutter is 1.2rem: anything narrower runs it off screen.
+   */
+  --breakpoint-rail: 68rem;
+
   --text-body: 0.9rem;
   --text-body--line-height: 1.6;
   --text-action: 0.8rem;

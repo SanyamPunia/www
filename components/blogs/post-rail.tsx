@@ -179,9 +179,15 @@ export function PostRail(): React.ReactNode {
       // take its width out of the row and push the column off centre, so the
       // post would no longer sit where every other page's does.
       //
-      // 14rem of clearance for a 12rem rail leaves a 2rem gutter to the column,
-      // and at exactly `lg` the rail's left edge lands on the page's own `px-6`
-      // gutter. Any wider and it runs off the screen at that width.
+      // 16rem of clearance for a 12rem rail leaves a 4rem gutter to the column.
+      // It was 14rem for a 2rem gutter, which read as a second column of text
+      // beside the prose rather than as chrome in the margin.
+      //
+      // The clearance is what sets the breakpoint, not the other way round: at
+      // exactly `rail` the left edge lands on the page's own `px-6` gutter, and
+      // anything narrower runs it off screen. That is why the variant is
+      // `--breakpoint-rail` in `globals.css` and not `lg`, and why widening the
+      // gutter again means moving both.
       //
       // `pb-1` is not spacing, it is what keeps the scrollbar away. `BackLink`
       // draws its underline as an `after:` pseudo-element at `-0.1em`, which
@@ -189,8 +195,8 @@ export function PostRail(): React.ReactNode {
       // rail's content was one pixel taller than the rail. `overflow-y-auto`
       // does not care that it is one pixel: it showed a 6px thumb down the
       // right-hand edge, beside a single link with nothing to scroll.
-      className="fixed top-20 hidden max-h-[calc(100dvh-8rem)] w-60 overflow-y-auto pb-1 lg:block"
-      style={{ left: `calc(50% - ${CONTENT_HALF_REM}rem - 14rem)` }}
+      className="fixed top-20 hidden max-h-[calc(100dvh-8rem)] w-60 overflow-y-auto pb-1 rail:block"
+      style={{ left: `calc(50% - ${CONTENT_HALF_REM}rem - 16rem)` }}
       // the page's own entrance, not the `Reveal` one: this cannot join that
       // stagger, since its sections do not exist until the headings have
       // rendered and the sequence has already started. The delay matches

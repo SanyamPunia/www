@@ -40,9 +40,10 @@ export function BlogPost({
 
         <Reveal className="flex flex-col gap-12">
           <RevealItem className="flex flex-col gap-8">
-            {/* the rail carries this above `lg` and is hidden below it, so
-                exactly one back link is on screen at any width */}
-            <div className="lg:hidden">
+            {/* the rail carries this above `rail` and is hidden below it, so
+                exactly one back link is on screen at any width. The variant is
+                shared for that reason, see `--breakpoint-rail`. */}
+            <div className="rail:hidden">
               <BackLink href="/blogs">Blogs</BackLink>
             </div>
 
