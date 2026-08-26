@@ -114,8 +114,9 @@ it, with the contrast checked the same way.
 
 **The `inverse-*` set is not dark mode.** Nothing switches to it and there is
 still no `dark:` variant anywhere. It is a surface a component opts into when a
-light ground genuinely cannot work, and both callers so far are the same problem:
-white content with nothing to sit on.
+light ground genuinely cannot work, and every caller so far is a version of the
+same problem: white content with nothing to sit on, or nothing dark enough left
+in the light tokens to sit it against.
 
 - `components/labs/spring-image/` renders `/assets/logo.webp`, the site's own
   mark in white, which on `bg` painted as an empty ring. Recolouring the mark was
@@ -127,6 +128,16 @@ white content with nothing to sit on.
   darkest fill token is `stroke-strong` at 86% lightness, so there is no light
   answer to reach for. The interior went `inverse-bg` and the front panel
   `inverse-fill`.
+- `components/labs/stamp-collection/` lays cream paper on a table, which is the
+  same few percent of lightness again, so the table went `inverse-bg`. See its
+  own section.
+- `components/labs/book-opening/` is a book of white paper, and its two boards
+  are what make the stack a book rather than a pile of loose sheets. A board a
+  step off the paper cannot do that, since `stroke-strong` at 86% lightness is as
+  dark as the light set goes and the board, the paper and the table would land
+  inside 5% of each other. **Only the boards invert here and the stage stays
+  light**, which is the narrowest use of the set: it is one object on the page,
+  not the ground under it.
 
 The values are the previous dark build's, so the two versions of the site stay
 recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
@@ -840,8 +851,8 @@ experiment is a directory under `components/labs/`.
   reads as dead space inside the thing you are meant to be poking. Not `bare`,
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
-  needs a box to clip it against. `tether-button`, `document-pocket` and
-  `stamp-collection` use it.
+  needs a box to clip it against. `tether-button`, `document-pocket`,
+  `stamp-collection` and `book-opening` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
@@ -1769,6 +1780,157 @@ with the rotation already turning.
   paper is cream, and cream on `bg` puts every value in the piece inside a few
   percent of every other. The darkest fill token is `stroke-strong` at 86%
   lightness, so there is no light answer to reach for.
+
+### `book-opening`
+
+A book on a table, fourteen sheets deep. Hovering it fans every leaf off the
+spine and lays the front board out to the left, and in cursor mode the same fan
+answers the pointer's distance left of the shut book's fore-edge instead.
+`lerp.ts` is the two functions the whole experiment runs on, `sheets.ts` the
+geometry, `index.tsx` the stage and the frame loop.
+
+- **One inherited property drives fourteen transforms.** The stage carries
+  `--book-open`, a plain number from 0 to 1, and every sheet is
+  `rotateY(calc(var(--book-open) * var(--sheet-angle)))` with its own angle as a
+  static custom property beside it. So a frame is one `setProperty` and one
+  `textContent`, and the browser applies the rotations. Nothing in the component
+  renders while the book moves, the same bar the signature player sets. Measured
+  under a 4x CPU throttle: 73 frames across one open, the longest 16.8ms and the
+  median 16.7, so none is dropped.
+- **The fan is the same lerp as the animation, run across the stack instead of
+  across time.** Sheet i lands at `lerp(0, -SPREAD, i / (COUNT - 1))`, so the two
+  boards take the ends, the leaves split what is left, and one number decides how
+  wide the book opens. An even number of leaves is deliberate: an odd one puts a
+  leaf at exactly half the spread, which at full open is the one angle that paints
+  nothing, a sheet seen along its own edge.
+- **The lerp is of the fore-edge and not of the angle, and this is the one thing
+  in the geometry worth reading twice.** Even angles are not even paper. A
+  sheet's free end sits at `cos(angle)` of the way out and cosine is flat where
+  the fan is flat, so on even angles the sheet nearest the back board hid all but
+  a few pixels of it while the pair either side of vertical stood 23px apart:
+  half the fan was a stack of slivers and half was wide open pages. Spacing the
+  fore-edges and taking the angle back out with `acos` shows the same strip of
+  every sheet. Measured at full open: 18.9px of the back board, then 22.7, 24.7,
+  25.8, 26.5, 26.9 going in, where perfectly even spacing would be 23.2 and
+  perspective widens whichever sheet leans nearer the eye.
+- **What that costs is the two ends, and it is what an even spread of paper looks
+  like.** The boards finish 32 and 22 degrees clear of their neighbours against 9
+  in the middle, so pages near the covers lie down and the ones at the middle
+  stand up.
+- **`a * (1 - t) + b * t`, and never `a + (b - a) * t`.** The two are one line of
+  algebra and two different floating point expressions. This one is exact at both
+  ends, where the other finishes on `a + (b - a)` and lands near b rather than on
+  it: at a of 100 and b of 0.1 it returns 0.09999999999999432. **Nothing here
+  depends on that exactness**, since the loop snaps inside an epsilon and the CSS
+  multiply each sheet carries is the a of 0 case, and it is still the form to
+  write, because the other one fails silently the first time a lerp is asked for
+  its own endpoint.
+- **The smoothing is a time constant, not a share of the gap per frame.** A fixed
+  share is a different curve on every display, and 0.15 a frame settles in half
+  the time at 120Hz that it does at 60. `approach` asks for a share per second and
+  converts it with the frame's own `dt`. Opening is slower than shutting, the call
+  `document-pocket` makes for the same reason. Nothing overshoots, because paper
+  does not bounce and a lerp toward a target cannot pass it: **this is the one lab
+  with no spring and no keyframe in it at all**, and the mode pill's own state is
+  a background step rather than a sliding indicator so it stays that way.
+- **The loop stops when it arrives, and the handle it holds is not a flag saying
+  it is alive.** An exponential approach never lands, so it snaps inside 1e-4,
+  which on the widest sheet is a hundredth of a degree, and at rest the page
+  requests no frames at all. Skipping the request while a handle is set reads as
+  the obvious optimisation and is a bug: a scheduled frame that never arrives
+  leaves a target nothing will ever read, and every gesture after it does nothing
+  but write that target again. A browser that produces frames on demand rather
+  than on a clock is enough to do it, and headless Chrome is one, where the book
+  rests at 0.998 between input bursts. So `aim` cancels and reschedules, and only
+  restarts its clock when the loop was idle, since resetting it on every call
+  would hand every frame of a drag the same assumed step and take the refresh rate
+  back out of the maths.
+- **The pointer's target is a plain box that grows with the fan and never shrinks
+  under a pointer.** `document-pocket` documents the failure this avoids: hit test
+  a box that moves because it was hovered and the hover drops, the box goes back,
+  and the hover picks it up again. A sheet past vertical is well outside the shut
+  book's footprint, so a reach fixed at that footprint shuts the book the moment
+  the pointer follows the paper. Both edges step outward with the fan instead, and
+  since the shut region is a subset of every later one there is no oscillation
+  available. It carries no transform, so the browser's own hit testing is exact
+  and nothing is measured in JS. Verified: a pointer walked from the middle of the
+  shut book out to the far edge of the open fan in 3px steps never drops below
+  1.000, and the stage sees no `pointerleave` on the way.
+- **Recentring is the cover's own cosine, and it is a correction rather than part
+  of the interpolation.** The spine is the container's left edge, so a shut book
+  centred on the stage would open into the left half of it and finish a half
+  width off centre. That half width is spent as the fan reaches left of the spine,
+  which is `max(0, -cos(angle))` and is not linear in t at all: until the cover
+  passes vertical the whole fan still sits inside the shut book's own box.
+  Measured at half open, where the cover stands at 84 degrees, a book drifting on
+  t instead is 37px right of centre, its shadow is half as wide again as the thing
+  casting it, and the pointer's target has grown into a region with nothing in it.
+  All three read `--fan-left` for that reason. Verified across the open: the fan's
+  own middle holds 48.3% to 50.4% of the stage.
+- **`cos()` in `calc` is CSS Values 4 and lives in `left`, not in a
+  `translateX`.** It has been in every evergreen browser since 2023, and keeping
+  it out of the transform means an unsupported one costs the book its centring
+  rather than its perspective.
+- **A tap is heard on `pointerup` and a key press on `click`, which is two
+  handlers for what looks like one thing.** A click is the obvious place for both
+  and it does not hold: the click a browser synthesizes after a tap is a
+  compatibility event, it arrives after the whole pointer sequence including the
+  leave, and React did not dispatch it at all on any tap after the first one here.
+  A `pointerup` carrying `pointerType` is the tap itself. A keyboard activation
+  has no pointer type to read and arrives only as a click, where `detail` of 0 is
+  what says no pointer was involved. A mouse does nothing in either mode, since
+  the pointer is already saying what it wants.
+- **A touch `pointerleave` is a lift, not a departure.** A touch pointer stops
+  existing when the finger comes off, so it fires `pointerleave` then rather than
+  on going anywhere, and that leave lands after the `pointerup` the tap is heard
+  on. Ungated, a tap opened the book and shut it again inside one gesture, and a
+  pull could never leave it open, since letting go read as leaving. Measured
+  before the gate: a drag to full open fell back to 0 the moment the finger came
+  off.
+- **Each board is two faces under `backface-visibility: hidden`.** A cover swung
+  past 90 degrees shows its own back, and a title read backwards is the one thing
+  a book cannot do, which is visible in the reference this came from. The board's
+  outside is cloth and its inside is paper, so the two-sided build is what a bound
+  book has anyway. `container-type` sits on the face rather than on the sheet,
+  since a sheet has 3D children and containment would flatten them, and the `cqw`
+  values inside are proportions of a cover rather than steps on the type scale.
+- **Both pastedowns are grey, and that is what gives the open book its ends.** The
+  two boards face away from the reader at full open, so with white paper on their
+  insides the fan finished on the same white it is made of and read as loose
+  sheets. Their hairline steps up to `stroke-strong`, since `stroke` and
+  `fill-hover` are the same value to a pixel.
+- **Each pastedown carries one end of the interpolation, printed against the
+  fore-edge.** That strip is the only part of a sheet its neighbour does not
+  cover, and spacing the fore-edges is what makes it wide enough to print on at
+  both ends of the fan. On even angles the two strips were a few pixels and about
+  eleven, so the same letter was legible on one side and not the other.
+- **The table is `fill-active`, one step darker than `document-pocket`'s.** There
+  the paper only had to read against a near-black pocket. Here it is the whole
+  object, and on `bg-fill` the sheets, the table and the pool of light on it all
+  sat inside 5% of each other and the fan read as fog.
+- **A sheet's lift ramps with the fan, and that is not a flourish.** Shut, all
+  fourteen sheets are in the same place, so any shadow they carry is painted
+  fourteen times and the book sits in a dark halo. At 0 the leaves cast nothing
+  and the boards carry the whole book's shadow, which is what a shut book has.
+  The lift is an inline `boxShadow` because it interpolates a custom property, so
+  every sheet's hairline is a real `outline` rather than a ring, which is a
+  box-shadow too and would be overwritten by it.
+- **The 0.45px of depth per sheet is not decoration.** Shut, every sheet holds the
+  same rotation and the same box, so without it fourteen coplanar layers sit
+  exactly on top of each other and nothing but document order decides which
+  paints first. It is applied inside the rotation, so a sheet is offset along its
+  own normal rather than the stage's, and the tilt turns the 5.9px of stack into a
+  sliver of page block along the foot of the shut book.
+- **The boards overhang the leaves**, which is a book's own square, and the hinge
+  therefore sits 3.2px outside the text block's spine, which is what a real joint
+  does.
+- **Reduced motion takes the whole gap in one step.** The book still opens, which
+  is the demo. It just does not travel, the same line `stamp-collection` draws
+  between a sequence, which is choreography, and its destination, which is
+  content. Verified: 60ms after a hover it is at 1.000 and 60ms after the pointer
+  leaves it is back at 0.
+- The stage's `touch-action` is `pan-y` in cursor mode only, so a horizontal drag
+  is the demo's and a vertical one is still the page's.
 
 ## Motion
 
