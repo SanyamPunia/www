@@ -251,6 +251,22 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Hover a stamp to lift it, click one to bring it forward.",
     flush: true,
   },
+  {
+    slug: "book-opening",
+    title: "Book Opening",
+    description: [
+      "A book on a table, fourteen sheets deep. Hovering it fans every leaf off the spine and lays the front board out to the left, and in cursor mode the fan answers the pointer instead: the further left of the shut book's fore-edge it goes, the further the cover comes round.",
+      "Key insight: the stage carries one number and every sheet multiplies it by the angle it lands on at full open, so fourteen transforms come off one inherited property and the browser is the thing interpolating them. The fan is that same lerp run across the stack rather than across time, which leaves one value in the file deciding how wide the book opens.",
+      "The smoothing is `a * (1 - t) + b * t` on a time constant rather than a fixed share of the gap per frame, which is a different curve on every refresh rate: 0.15 a frame settles in half the time at 120Hz that it does at 60Hz. Nothing overshoots, since paper does not bounce and a lerp toward a target cannot pass it, and the loop stops once the gap is under `1e-4`, since an exponential approach never actually lands.",
+      "The pointer's target grows with the book and never shrinks under it. A fanned sheet sits well outside the shut book's footprint, so a reach fixed at that footprint shuts the book the moment the pointer follows the paper, and a reach made of the sheets themselves cannot work at all: they move because they were hovered, which is the loop `document-pocket` exists to close.",
+      "Each board is two faces under `backface-visibility: hidden`, because a cover swung past 90 degrees shows its own back and a title read backwards is the one thing a book cannot do. The inside of both boards is paper, and each carries one end of the interpolation printed against its fore-edge, which is the only strip of a sheet its neighbour does not cover.",
+    ],
+    createdAt: "2026-08-27",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/book-opening/index.tsx",
+    hint: "Hover the book, or pick cursor and move left across the stage.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -315,6 +331,7 @@ export const IMPLEMENTED_LABS = [
   "document-pocket",
   "event-stacking",
   "stamp-collection",
+  "book-opening",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
