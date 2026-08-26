@@ -77,12 +77,19 @@ export function MorphingIconDemo() {
           className="flex size-10 cursor-pointer items-center justify-center rounded-lg bg-bg ring-1 ring-stroke ring-inset transition-colors hover:bg-fill hover:ring-stroke-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
         >
           <div className="text-text-primary">
+            {/*
+              The stroke is in device pixels rather than icon units, since the
+              lines carry `vectorEffect="non-scaling-stroke"`, so each size has
+              to name its own weight. 2 on 32px is a sixteenth of the box, which
+              is what Phosphor's regular weight paints at this size, so the
+              glyph reads at the weight of every other icon on the site.
+            */}
             <MorphingIconAnimated
               fromIcon={previousIcon}
               toIcon={currentIcon}
               size={32}
               strokeColor="currentColor"
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           </div>
         </button>
@@ -150,13 +157,19 @@ export function MorphingIconDemo() {
               }`}
               title={icon}
             >
+              {/*
+                A touch heavier than the preview's sixteenth, because these keys
+                are half the size and their unselected state is `stroke-strong`
+                on white. At the same ratio a faded glyph is a 1px grey line and
+                barely there.
+              */}
               <MorphingIcon
                 fromIcon="menu"
                 toIcon={icon}
                 progress={1}
                 size={16}
                 strokeColor="currentColor"
-                strokeWidth={2.5}
+                strokeWidth={1.25}
               />
             </motion.button>
           );
