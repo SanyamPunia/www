@@ -1,7 +1,9 @@
 "use client";
 
+import { ArrowsLeftRightIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { TextMorph } from "torph/react";
 import { cn } from "@/lib/utils";
 import { approach, clamp01, lerp } from "./lerp";
 import {
@@ -262,12 +264,34 @@ const PASTEDOWN_EDGE =
 const BOARD_EDGE =
   "bg-inverse-bg outline-1 -outline-offset-1 outline-inverse-stroke";
 
-type Mode = "hover" | "cursor";
+/** the cycle, in the order the control steps through it */
+const MODES = ["hover", "cursor"] as const;
 
-const MODES: { id: Mode; label: string }[] = [
-  { id: "hover", label: "Hover" },
-  { id: "cursor", label: "Cursor" },
-];
+/**
+ * How the control's label changes, through `torph`.
+ *
+ * The label is the value, so what a press does is correct it rather than replace
+ * it, and morphing the characters is what that looks like. Same call
+ * `event-stacking` makes for the two labels that say where a card is, and the
+ * same ease, so the lab has one curve for text.
+ *
+ * **This does not cost the lab its "no spring and no keyframe" claim.** `torph`
+ * transitions: it measures the two strings, sets the box to the target width and
+ * lets CSS carry it, which is also why the pill resizes with the word instead of
+ * jumping when "hover" becomes "cursor".
+ *
+ * 200ms rather than its own 400ms default, matching the pill's own colour step,
+ * so the label and the ground under it settle together. In milliseconds, unlike
+ * every other duration here, since `torph` is not Motion, and it reads
+ * `prefers-reduced-motion` itself through `respectReducedMotion`, so this is the
+ * one thing on the stage that `useReducedMotion` below does not govern.
+ */
+const MORPH = {
+  duration: 200,
+  ease: "cubic-bezier(0.32, 0.72, 0, 1)",
+} as const;
+
+type Mode = (typeof MODES)[number];
 
 export default function BookOpening() {
   const [mode, setMode] = useState<Mode>("hover");
@@ -531,37 +555,67 @@ export default function BookOpening() {
       />
 
       {/*
-       * Which input the book answers to. Two labelled pills, so neither needs a
-       * tooltip, and the selected one is a background step, since nothing on
-       * this site scales on press.
+       * Which input the book answers to, as a readout you can press.
        *
-       * White on the stage's own grey, which is the one place a pill can go here:
-       * `bg-fill` is the table.
+       * **The site's own answer to a mode selector is one control whose label is
+       * the current value.** The signature player's transport documents it at
+       * length: it was three pressed pills off to the right, they each said their
+       * own state, and they cost a whole column to sit in. This was the same
+       * mistake twice over, first as a white pill holding two segments with the
+       * pressed one filled, then as two bare words with a rule under the live
+       * one. Both spent a whole row saying which of two things was true.
+       *
+       * So it reads glyph then value, which is the shape the `t` readout in the
+       * opposite corner already has, and the two corners are now the same kind of
+       * thing: one reports the number, one reports and sets what drives it. Mono
+       * for the same reason, since what it names is a variable rather than copy.
+       *
+       * **It carries no tooltip, unlike the rate pill it is modelled on.** That
+       * one needs one because its label is a bare number, so nothing on it says a
+       * press changes anything. Here the mark does: two arrows against a value is
+       * what a swap looks like, and the value's own field is the other half of the
+       * label. The `aria-label` carries the same claim for a reader who has no
+       * glyph to look at.
+       *
+       * The pill is the site's `rounded-full bg-fill`, a step lighter than the
+       * `fill-active` table, so it reads as raised without needing a hairline.
+       * `text-primary` on it is 15.4:1, against the 4.31 a bare word managed on
+       * the bare table.
+       *
+       * **Its hover goes lighter and only the press goes darker, which is the
+       * opposite of the site's own order.** The usual pair steps `bg-fill` to
+       * `fill-hover` on a white page, and both of those steps move toward the
+       * table here: measured, `fill-hover` on this corner is a 1.03:1 step and
+       * simply is not there. So hover lifts the pill to `bg` and the press pushes
+       * it past its resting tone to `fill-hover`, which is the shared rule about
+       * hovers on an elevated surface going lighter, arriving from a mid-grey
+       * ground rather than a dark one.
+       *
+       * A colour step and a text morph is all of it, and neither is a spring or a
+       * keyframe, so the lab still has none of either. See `MORPH`.
        */}
-      <div className="absolute top-3 right-3 flex items-center gap-0.5 rounded-full bg-bg p-0.5 ring-1 ring-stroke ring-inset">
-        {MODES.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={mode === id}
-            onClick={() => {
-              setMode(id);
-              // the other mode's input is gone, so nothing is asking for the
-              // book to be open any more
-              aim(0);
-            }}
-            className={cn(
-              "cursor-pointer rounded-full px-2.5 py-1 text-meta transition-colors duration-200",
-              mode === id
-                ? "bg-fill-active text-text-primary"
-                : "text-text-muted hover:bg-fill-hover hover:text-text-primary",
-              FOCUS,
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <button
+        type="button"
+        aria-label={`Input ${mode}, press to change`}
+        onClick={() => {
+          setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length] ?? "hover");
+          // the mode it was in is no longer being fed, so nothing is asking for
+          // the book to be open any more
+          aim(0);
+        }}
+        className={cn(
+          "absolute top-3 right-4 flex h-7 cursor-pointer items-center gap-1.5 rounded-full bg-fill px-2.5 font-mono text-meta text-text-primary transition-colors duration-200 hover:bg-bg active:bg-fill-hover",
+          FOCUS,
+        )}
+      >
+        <ArrowsLeftRightIcon
+          aria-hidden="true"
+          className="size-3 shrink-0 text-text-muted"
+        />
+        <TextMorph duration={MORPH.duration} ease={MORPH.ease}>
+          {mode}
+        </TextMorph>
+      </button>
 
       {/* The number the whole demo is. Written straight to the node, so it costs
           no render, and it is the only thing on the stage saying that hover and
