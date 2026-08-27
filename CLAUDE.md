@@ -367,6 +367,27 @@ sweeping underline says "link" for 450ms on load and nothing after that.
 - The tones are muted on purpose and checked against the prose they sit in: 5.83,
   6.51 and 6.53 on white against `text-secondary`'s 5.28, so each link reads a
   touch stronger than the paragraph around it and none of them reads as a colour.
+- **Hovering a toned link grows a wash of its own hue up out of the rule.** A
+  `::before` at `origin-bottom` on a scaleY, so what arrives is the rule
+  thickening into the word rather than a box fading in behind it, which is the
+  point: the rule is the only thing marking these three as links at rest. Its
+  bottom edge is the rule's top edge, `-0.04em` against the rule's `0.14em` at
+  `-0.1em`, so the two touch with no seam, and its top is the span's own content
+  box, which for Inter sits `0.24em` above cap height and clears both the caps
+  and the `y` in "currently" without a measured height. It runs `0.12em` wider
+  than the word on each side, where the rule stays the word's own width: 1.7px,
+  which is enough that the first and last letter are not sitting on the edge of
+  their own highlight and little enough that the wash still reads as the rule
+  growing rather than as a second shape.
+- **The wash is the tone at 12%, which is a contrast floor rather than a taste.**
+  Over white that composites to 4.94, 5.48 and 5.50 against the word sitting on
+  it, so a hovered link is still ordinary body-copy contrast. 14% is the last
+  step that clears 4.5 on all three.
+- **`isolate` on the span is what keeps the negative z-index inside the link.**
+  Without it the wash paints behind the paragraph as well, which costs nothing on
+  a white page and breaks the moment anything under it has a background.
+- Under reduced motion the wash still appears, it just does not travel, the same
+  line `book-opening` draws.
 
 - The pill is the same `rounded-full bg-fill` shape as the primary button, sized
   entirely in `em` so it tracks the text it sits in. Never give it a fixed
@@ -1528,7 +1549,8 @@ component, so `MotionProvider` does not reach it.
 from the cell under the pointer, so a move rewrites both. "9:00 AM" to "10:00 AM"
 and "Wed 10:00 AM" to "Thu 11:00 AM" keep most of their characters, so morphing
 the few that change reads as one label being corrected where a swap reads as a
-different label arriving. This is the second caller after `multi-step-form`.
+different label arriving. This is the second caller after `multi-step-form`,
+and `book-opening`'s mode control is the third.
 
 - **220ms, not its own 400ms default**, and in milliseconds unlike every other
   duration here, since `torph` is not Motion. The airborne label is rewritten
@@ -1831,8 +1853,8 @@ geometry, `index.tsx` the stage and the frame loop.
   converts it with the frame's own `dt`. Opening is slower than shutting, the call
   `document-pocket` makes for the same reason. Nothing overshoots, because paper
   does not bounce and a lerp toward a target cannot pass it: **this is the one lab
-  with no spring and no keyframe in it at all**, and the mode pill's own state is
-  a background step rather than a sliding indicator so it stays that way.
+  with no spring and no keyframe in it at all**, and the mode control's own state
+  is a colour step rather than a sliding indicator so it stays that way.
 - **The loop stops when it arrives, and the handle it holds is not a flag saying
   it is alive.** An exponential approach never lands, so it snaps inside 1e-4,
   which on the widest sheet is a hundredth of a degree, and at rest the page
@@ -1929,6 +1951,39 @@ geometry, `index.tsx` the stage and the frame loop.
   between a sequence, which is choreography, and its destination, which is
   content. Verified: 60ms after a hover it is at 1.000 and 60ms after the pointer
   leaves it is back at 0.
+- **Which input the book answers to is one control whose label is the current
+  input, and pressing it swaps.** That is the site's own answer to a mode
+  selector, and the signature player's rate pill documents it: two or three
+  pressed pills each say their own state and spend a whole row doing it. This got
+  there the long way, first as a white pill holding two segments with the pressed
+  one filled, then as two bare words with a hairline under the live one. The first
+  was worse for a reason worth keeping: the fill it marked the selection with was
+  `fill-active`, which is the table the stage is painted in, so the selected
+  segment was the colour of the ground behind its own container.
+  - **It reads glyph then value, which is the shape the `t` readout in the
+    opposite corner already has**, in the same mono for the same reason, since
+    what it names is a variable rather than copy. The two corners are now the same
+    kind of thing: one reports the number, one reports and sets what drives it.
+  - **No tooltip, unlike the rate pill.** That one needs one because its label is
+    a bare number, so nothing on it says a press changes anything. Two arrows
+    against a value is what a swap looks like, and the `aria-label` carries the
+    same claim for a reader with no glyph to look at.
+  - **The label morphs through `torph` rather than swapping**, the same call
+    `event-stacking` makes for its own two labels and on the same ease, so the lab
+    has one curve for text. What a press does to a value is correct it, and
+    morphing the characters is what that looks like. It also costs the lab nothing
+    on the claim above: `torph` measures the two strings, sets the box to the
+    target width and lets CSS transition it, so there is still no spring and no
+    keyframe here, and the pill resizes with the word instead of jumping when
+    "hover" becomes "cursor". Verified across a full cycle: 66.56px to 73.80px and
+    back, with the inline width released to `auto` each time.
+  - **Its hover goes lighter and only its press goes darker, the opposite of the
+    site's own order.** The usual `bg-fill` to `fill-hover` pair assumes a white
+    page, and both of those steps move toward the table here: `fill-hover` on this
+    corner is a 1.03:1 step and is not there at all. So hover lifts the pill to
+    `bg` and the press pushes it past its resting tone to `fill-hover`. It is the
+    shared rule about hovers on an elevated surface going lighter, arriving from a
+    mid-grey ground rather than a dark one.
 - The stage's `touch-action` is `pan-y` in cursor mode only, so a horizontal drag
   is the demo's and a vertical one is still the page's.
 
@@ -2017,6 +2072,366 @@ reveal.
 - **Biome 2.5.** `css.parser.tailwindDirectives` must stay on or Biome fails to
   parse `@theme` in `app/globals.css`.
 
+## The portrait
+
+Poking the photo at the top of the home page wobbles it. Poking it eight times in
+one flurry knocks the avatar's whole stack out of the page, and from there each
+piece is thrown around, falls where it is let go, and is caught by its own slot's
+magnet on the way back.
+
+`components/home/use-falling.ts` is one falling body: its flight, its drag, its
+magnet home. `components/home/portrait.tsx` is what the bodies are and when they
+go, and calls the hook twice, once for the photo and once for the album cover.
+`components/home/avatar.tsx` stays a server component and hands the disc down as
+`behind`.
+
+- **Both pieces of the stack drop, and they are two bodies rather than one.**
+  Hiding the cover while the photo was out was the first version and it was a
+  cheat: a stack with no front is not a stack, and the cover sat at 30% of the
+  avatar's width, so it covered 70% of the empty slot. Falling glued together
+  would be the other cheat, since what is on the page is two circles and not one
+  shape. So the machinery is per body, which is why it is a hook, and the drop is
+  the only thing they share.
+  - **Opposite nudges and a beat between them**, or matched velocities read as one
+    shape splitting in half. 80ms is enough to see the front one go first without
+    the second reading as an afterthought. The speeds were 26 and -34 first and
+    the two landed 36px apart with 40px boxes, so they came to rest touching and
+    read as one having landed on the other. 44 and -58 leaves a real gap.
+  - **The loose cover is a plain circle of the art, not the disc itself.** That
+    one is a link with a tooltip, a reveal keyed off its own hover and a record
+    spin, none of which belongs on something lying on the floor: a fallen object
+    is not a control, and a cover that kept turning as it fell would read as still
+    playing. Keeping it mounted and merely hidden is also what keeps its fetch and
+    its poll alive, so putting the cover back is instant rather than a refetch and
+    a replayed reveal.
+  - **Its art is read off the rendered disc**, since the now-playing state belongs
+    to the component in `behind` and lifting it up here to answer one question
+    would put Spotify inside the portrait. `PostRail` makes the same call for the
+    same reason. It is a snapshot, so a track change while the cover is on the
+    floor leaves the old art lying there, which is what a fallen object does.
+  - **The cover's place is measured off its anchor and its art off the image
+    inside it, and reading both off the image was a bug.** The image is the part
+    that turns, so a hovered disc's own rect is the bounding box of a rotated
+    square: 56.4px across at 45 degrees, sitting 8.2px above and left of where the
+    disc actually is. The anchor never turns, so its box is the disc's box.
+    Measured after: `{x: 12, y: 0}` against the `{x: 3.8, y: -8.2}` it was.
+- **A cover put back on its own takes the photo's place, and putting the photo
+  back on top sends it home, in that order.** It is the only thing in the slot, so
+  sitting 12px right of nothing would read as a misplaced disc. The photo landing
+  slides it right into its usual offset, on the disc's own reveal curve so the
+  slide and the slide it already does on hover are one movement. Traced from the
+  release: the snap finishes, then 0, 6.5, 9.8, 11.4, 11.8, 12.
+  - **Nothing turns while the stack is in pieces, and every handover is at one
+    frozen angle.** What looked like the cover jumping to a rotated angle was the
+    handover: the loose copy is this file's own markup and held no angle at all,
+    so a swap in either direction jumped by whatever the real one had reached.
+    `spinAngle` reads that angle at the drop, the copy holds it, and `data-loose`
+    on the slot freezes the real one at the same place until the stack is whole
+    again. A record off the turntable does not turn, so a spinning copy in mid-air
+    or on the floor was the wrong way to close the same gap: nothing turning is
+    also nothing to disagree about. Measured: real paused at 221.2 with the copy at
+    220.5 through the fall and the landing, a 0.7 degree step at the swap, which is
+    one frame of the turn between reading the angle and the pause landing, and
+    `running` again from 263 to 304 once the stack is whole.
+  - **What slides is the box the cover resolves against, not the cover.** Its own
+    position is markup this file does not own, so the wrapper holding it is a real
+    box of the slot's size rather than `display: contents`, which has no box to
+    transform.
+  - **A cover that turns up while the photo is out stays out of the layout until
+    the photo is home.** A song starting mid-drop put a cover in a slot whose
+    front is empty, painting at its own indented offset with nothing to be
+    indented from. That one was never part of the drop, so there is nothing to
+    hand over to: `display: none` keeps it out, and when the photo lands the
+    display returns and its own `cover-reveal` plays, which is the introduction it
+    would have had on a normal load. Traced from the release: nine samples hidden
+    while the photo snaps home, then 1.9/0.16, 6.5/0.54, 8.5/0.71, 10.3/0.86,
+    11.6/0.96, 12/1 as offset over opacity.
+  - **`art` is what tells that case from the other one**, being the snapshot the
+    drop takes: a cover that came loose has one and a cover that turned up
+    afterwards does not.
+  - **That wrapper is `invisible` while the loose copy is out, never `hidden`, and
+    this was a bug with a very visible tell.** `display: none` cancels a CSS
+    animation and restoring display replays it from the start, so putting the cover
+    back ran its own `cover-reveal` again, and that keyframe begins at
+    `translate: 0` and `opacity: 0`: the cover appeared 12px left of home,
+    invisible, and crawled back to the right. `visibility: hidden` leaves the
+    animation alone and takes the copy out of hit testing just the same. Measured
+    through the swap, offset from home over opacity: on `hidden` it was -12/0,
+    -5.5/0.54, -2.8/0.77, -1/0.92, -0.1/0.99, 0/1, and on `invisible` it is 0/1 on
+    every frame.
+  - **The cover's home follows the photo, and is re-measured on the crossing.** A
+    cover still loose when the photo lands would otherwise keep homing to the spot
+    the photo just took. `remeasure` corrects a loose body's offsets by however
+    far its dock moved, so nothing jumps when the front is given back.
+  - **One value serves the dock and what paints, and having two was a bug.** The
+    loose copy was drawn from the cover's own offset while the magnet measured
+    against the front, so it came to rest 12px right of where it was aiming and
+    then jumped left as the real one took over: placing the cover moved it right
+    and then into place. Whatever the magnet calls zero has to be what zero paints
+    at. Traced through the handover, offset from home: `-0.6, -0.2, -1.2, -0.8,
+    -0.2, 0` on the loose copy, then `0` on the real one, where it used to end
+    `loose:12` then `real:0`.
+  - **A body leaves its slot at once and falls a beat later**, which is what the
+    `delay` on the hook is. Leaving late means the slot is still painting
+    something whose place has already moved: the cover's home becomes the front
+    the moment the photo goes, so a cover still in the slot for 80ms after that is
+    12px from where its own slot now claims it is. It also leaves from where it
+    actually is rather than from its new home, since the loose copy is started at
+    the offset it had. Measured 105ms after the drop, with the hang at 80: 10.9,
+    which is the 12 it was sitting at minus 25ms of drift.
+- **There is one ring and it is the photo's.** The cover has none and does not
+  need one: put back on its own it goes to the front, which is this ring, and put
+  back behind a photo that is already home it has the photo itself as its
+  landmark. It had its own for a while and two overlapping dashed circles 12px
+  apart at 40px said one thing twice.
+- **The ring is `absolute`, never in flow, and this was a bug.** As a block it took
+  the slot's one 40px row, so with the cover loose and the photo home the two
+  shared the flow and the photo sat 40px below where it belongs. The slot is a
+  fixed `size-12.5` box, so nothing inside it needs to hold it open.
+- **The ring steps outside the cover once the cover is home.** On its own box it
+  draws on the cover's own edge, which at 40px reads as a perforated disc rather
+  than as a place for something: the dashes look like they belong to the album art.
+  Four pixels out it is a halo around the cover, which is what "the photo goes on
+  this" looks like.
+- **Arming moves the ring's tone, and fills it only when the ring is empty.** The
+  dashes stay dashed either way: a dashed ring going solid changes what the thing
+  is rather than what state it is in. They step from `stroke-strong` to
+  `text-secondary`, 1.2:1 on white against 5.3:1.
+  - The fill is conditional because the ring paints above whatever is in the slot.
+    Over an empty slot an opaque `bg-fill` is the clearest thing there is. Over a
+    cover that has been put back it wiped the album art out the moment the magnet
+    caught, so the halo case gets the tone alone.
+  - **And the cover under it dims to `opacity-45`**, which is a step of light
+    rather than a curtain: it is still what is playing, and what the moment means
+    is that something is going on top of it.
+  - **So the armed flag is written to the slot, not to the ring**, since the cover
+    has to read it too, and both bodies arm that one node. It is still a data
+    attribute straight to the DOM, so a drag renders nothing.
+  - The dim and the slide are two properties on two clocks, 200ms against 460ms,
+    so the wrapper spells the `transition` shorthand out: Tailwind's
+    `transition-*` utilities carry one duration between them.
+
+- **It is not a button and it is not in the tab order.** The photo is `alt=""`
+  decorative, so a control here has no honest label, and "wobble the portrait"
+  puts a stop at the top of every page load forever in exchange for a joke. The
+  listeners are bound to the node rather than written as JSX props, the same call
+  `document-pocket` and `stamp-collection` make for their stages, and a keyboard
+  gets the one thing it actually needs: **Escape puts the photo back.** The poke
+  is heard on `pointerup`, which keeps it a poke rather than an activation, the
+  same call `book-opening` makes for its tap.
+- **No selection ever starts anywhere in the slot, and guarding the photo alone
+  was not enough.** `select-none` stops the photo's own box being selected and
+  does not stop a press anchoring a selection that runs into the prose, which puts
+  a highlight and a pair of `SelectionPins` carets on the page for a gesture aimed
+  at a picture. Preventing the pointerdown is what stops it, since the selection
+  is the mousedown's own default action.
+  - **The clicks that do it are the ones after the drop.** A flurry does not stop
+    when the stack leaves: the eighth poke takes the photo out from under the
+    pointer and the rest of the flurry lands on the empty slot, where a rapid
+    multi-click anchors on the nearest text it can find, which up here is the
+    page's `sr-only` heading. So the listener is on the slot, which is the whole
+    region the gesture happens in, and `pointerdown` bubbles, so it covers the
+    photo, the ring, the loose cover and the empty box between them. The loose
+    photo is portaled out of the slot and denies its own, in the hook.
+  - Measured with 26 rapid clicks at a rising `clickCount`, half of them after the
+    drop: no ranges and no carets, against one uncollapsed range without it. **Touch is exempt**, since a finger's press on the photo is also
+  the start of a page scroll, and `select-none` already covers the long press that
+  would select there. It is also a second reason the poke is heard on `pointerup`:
+  preventing a pointerdown suppresses the compatibility mouse events it would have
+  produced, `click` among them.
+- **The streak window is what keeps this an easter egg rather than a hazard.** A
+  cumulative count drops the photo on someone who clicked it eight times across a
+  visit and never asked for anything. Two seconds is long enough that a
+  deliberate flurry never resets and short enough that a curious single poke leads
+  nowhere. Verified: four pokes, a pause, then five more leaves the photo in
+  place.
+- **A poke clicks, through `poke-sound.ts` and `public/assets/poke.mp3`.** 4.8KB,
+  0.216s, from freesound. Web Audio rather than an `<audio>` element, and the
+  flurry is why: a poke lands every 90ms or so, and one element replayed that fast
+  has to be rewound and restarted, which either swallows the play or cuts the
+  previous one off. One decoded buffer with a fresh source node per poke overlaps
+  them properly and starts on the tick of the press.
+  - **Fetched when the pointer arrives on the photo, not on mount**, so a visitor
+    who never goes near it pays nothing and the first poke is not the silent one.
+    Verified: nothing is requested until the pointer is over the photo.
+  - **The clock is unlocked on the press and the sound plays on the release, and
+    that is the whole reason there are two functions.** A context created outside a
+    user activation starts suspended, only a gesture may resume it, `resume` is a
+    promise, and a suspended context's clock does not advance: a source started on
+    one is queued rather than dropped, so resuming later fires every queued click
+    at once. Arming on `pointerdown` gives the resume the length of the press, and
+    the play refuses to start anything until the clock is running. Measured under
+    Chrome's default policy: a 0ms press loses the first click and nothing queues,
+    a 60ms press loses nothing.
+  - **The pitch climbs with the streak** the way the wobble's amplitude does, 1.0
+    to 1.12, and **the poke that knocks the stack loose drops to 0.82**: the pitch
+    has been rising and the thing coming off is a release rather than another
+    press. Gain is 0.32, since a click at full scale on a portfolio is a
+    jump-scare.
+  - Not gated on reduced motion, which is about movement nobody asked for where
+    this is the sound of a press. Same line the signature player draws for its
+    play button.
+- **The wobble ramps, and that is the only thing saying the pokes are counted**,
+  4.2 degrees on the first and 9 on the last. A counter would give the joke away.
+  A circle turning shows nothing, so this only reads at all because what turns is
+  the portrait inside it.
+- **The loose cover stays in the slot and only the photo is portaled, and that is
+  what fixes the stacking between them.** A portal appends to `body`, so a loose
+  cover painted above the whole page including a photo already home: carrying it
+  in showed it on top of the photo, and landing it snapped 70% of it behind the
+  photo in one frame. Left in the slot and before the photo in document order it
+  is behind the photo the entire time it is carried, which is where it is going,
+  so the landing changes no layer at all. Verified with `elementFromPoint` at the
+  photo's centre: the photo is topmost while the cover is carried over it and on
+  every frame through the landing.
+  - It costs nothing else. `absolute` there resolves against the slot rather than
+    the page, so its `left` and `top` are the offset it already had rather than
+    page coordinates, and everything the hook measures is offsets from the dock
+    either way. Nothing in the column clips, so it still travels the whole
+    viewport, and it still scrolls with the page.
+  - **What it does cost is that the avatar's `RevealItem` has to be raised**, and
+    that is why `app/page.tsx` gives it `relative z-30`. A loose piece inside the
+    block inherits the block's place in the column, and at `z-index: auto` the
+    prose and the footer are later siblings: the footer's rule drew straight over
+    a cover lying near it. `RevealItem` animates a filter, which makes it a
+    stacking context, so nothing inside it can be raised past it and the item
+    itself is what has to be. Verified with `elementFromPoint`: the loose cover is
+    topmost over both the prose and the footer rule, and the docked photo is still
+    topmost over the cover.
+  - Raising the docked photo instead cannot work: it is inside `RevealItem`, whose
+    filter makes it a stacking context, and no `z-index` on a descendant escapes
+    that. Dropping the loose cover to a negative `z-index` would work and puts it
+    under the page's own text for the length of the flight.
+- **The photo is portaled into `body`, and that is not a preference.**
+  `RevealItem` animates `filter` and finishes at `blur(0px)`, which is still a
+  filter, and a filter makes its element the containing block for any fixed
+  descendant. A photo positioned inside the reveal could never leave it. In `body`
+  with no positioned ancestor, `absolute` resolves against the initial containing
+  block, which is page coordinates: the photo lies on the page and scrolls with
+  it rather than sticking to the glass, and the magnet needs no scroll listener to
+  stay honest. One element in two places, so moving it between the slot and the
+  portal remounts it, which costs nothing since the file is already fetched.
+- **`(0, 0)` is the dock, which is what makes the magnet arithmetic and not
+  geometry.** The photo is positioned at the slot and everything it does is an
+  offset from there, so the distance home is `hypot(x, y)` and docking is
+  animating both to zero.
+- **The drag is hand-rolled, where `spring-image` uses Motion's `drag` for the
+  same gesture, and the magnet is the whole reason.** `drag` writes the pointer's
+  own offset and there is no seam in it to bias. This blends the raw offset toward
+  the slot before writing it, by nothing at the rim and by `PULL` of what is left
+  at the middle, so the photo leads the pointer and you feel it caught before you
+  let go. Arming the slot is the same test, so what lights up and what will catch
+  cannot disagree.
+- **Armed is written to the node as a data attribute, never held in state.** A
+  drag renders nothing at all, the bar the signature player and `book-opening`
+  both set.
+- **Let go anywhere outside the magnet and it falls from there, carrying the
+  throw.** Which is why **the fall is integrated rather than keyframed.** A tween
+  has to know its destination and its duration before it starts, so every drop
+  from a different height and every throw with a different velocity would want
+  its own, and a bounce would want its own keyframes on top. Gravity does not
+  need to be told where the floor is: it accelerates, the floor is a test, and
+  the same handful of lines serve the first drop, a lob across the page and a
+  photo nudged an inch. One rAF loop, three motion values written per frame, and
+  it stops asking for frames once the photo has stopped sliding.
+  - `G` is 2600 px/s², set so a full-height drop still takes the 0.72s the
+    keyframed version did. Measured on the drop, sampled every 120ms: 51, 101,
+    126, 162 and 221px, then a 32px bounce and rest.
+  - **One velocity, Motion's own, serving both the throw and the lean.** It was a
+    hand-rolled pair of smoothed pointer samples with an 80ms staleness test
+    bolted on, and `useVelocity` on the photo's own `x` and `y` gives both for
+    nothing. It is measured off where the photo actually went rather than off the
+    pointer, so the magnet's pull is in it and a photo let go on the way in is
+    already travelling toward the slot. And it decays on its own:
+    `getVelocity` returns 0 once a value has not changed for 30ms
+    (`MAX_VELOCITY_DELTA`), which is what stops a hand that held position and let
+    go from throwing anything, where a velocity kept by hand freezes at whatever
+    it last was. Verified: released stationary at mid-screen it falls straight
+    down, under 6px sideways.
+  - **`maxY` is the floor and the drag's lower bound at once**, one function
+    rather than two numbers that have to agree, so a photo dragged to the bottom
+    of the screen is already resting where gravity would have put it.
+- **Every number in that world was cut for subtlety once it worked, and the
+  tilt needed a hard cap.** Spin is honest about the throw that caused it and
+  honest ends up sideways: a hard flick came to rest 92 degrees over even after
+  the spin rate was cut, because it kept turning through the wall bounce and the
+  slide. Past about 40 a photo reads as tumbling rather than as having fallen
+  askew, so `TILT_MAX` stops it at 42 and takes the spin with it. A design cap
+  rather than physics, the same call `document-pocket` makes for its bow.
+  `MAX_SPEED` came down from 3200 to 2000 for the same reason: at 3200 a flick
+  put the photo into the far wall and most of the way back across the page.
+  Measured after: an ordinary drop rests at 17.6 degrees and the hardest flick
+  the harness can throw rests at exactly 42.
+- **A pointer that arrives mid-flight stops it rather than fighting it**, which is
+  also what lets a thrown photo be caught in mid-air. Measured: pressed 250px
+  above the floor, it stops 3.3px later, which is one frame, and holds there.
+  Stopping rather than letting the snap finish is also why an interrupted return
+  cannot fire the `onComplete` that puts the photo back in the layout.
+- **The drop out of the slot is the one flight that cannot be caught.** The
+  pointer that dropped the photo is sitting exactly where the photo launches
+  from, so a flurry that has not stopped yet catches it within a frame or two of
+  letting go: the photo appears to stick to the cursor and the fall never
+  happens. So that flight is sealed until it has landed and stopped sliding. A
+  throw is not sealed and stays catchable, since the hand that threw it has to go
+  back for it. Any hard stop clears the seal as well, or an Escape mid-drop would
+  strand it, since a cancelled flight never reaches the rest test that clears it.
+  Measured on fourteen clicks at 95ms with no pause: the eighth drops it, the
+  remaining six land on the falling photo and none of them holds it, and it
+  lands.
+- **Everything that keeps the photo on screen allows for its tilt, off the live
+  angle rather than a constant.** A rotated square covers more ground than a
+  square: at 16 degrees a 40px box spans 49.5, grown about its centre, so bounds
+  written in the untilted box's own offsets keep 4.7px less margin than they
+  think at every edge, and at 42 degrees it is 8.2px. Measured: dragged into both
+  corners of a 1000x900 viewport the photo lands on 12.0 and 12.0, and on 988.0
+  and 888.0.
+- **A carried photo leans off its own horizontal velocity, and swings back when
+  the hand stops.** The numbers are `event-stacking`'s unchanged, since it is the
+  same claim about the same gesture and that lab calibrated them against real
+  drags: 213px/s leans 2.4 degrees and 2167px/s leans 9.5, against a 12 degree
+  clamp, on the loosest spring either file has, whose 11% of overshoot is the
+  wobble that reads as weight. Horizontal only: a carried object swings about the
+  axis it is being moved along.
+  - **What the photo paints is two values, not one.** `turn` is the angle it fell
+    to, written by the loop and unwound by the snap, and `lean` is a spring on the
+    hand's speed that belongs to nobody once the hand is gone. Everything that
+    keeps the photo on screen reads their sum, so the tilt allowance covers the
+    sway too.
+  - **`grip` gates it, and it has to.** `x` keeps moving after the release, being
+    what the fall is written to, so an ungated lean would answer the fall as
+    though a hand were still carrying it. Zeroing the grip at the release lets the
+    spring level the photo out while it flies, which is what putting something
+    down looks like. Set in the gesture handlers, since they already know both
+    moments and neither needs a render.
+  - Measured, carrying at about 1200px/s: the resting tilt of 18.1 degrees leans
+    to 8 going right and to 28 going left, levels back to exactly 18.1 when the
+    hand stops, and a slow reposition at 89px/s moves it 0.8 degrees.
+- **The snap home is the one spring left**, at a 0.58 damping ratio, so 11% of
+  overshoot reads as a magnet closing. The wobble is a tween because its shape is
+  its keyframes rather than any physics. **Docking winds the angle back inside one
+  turn first**, since the spin accumulates across throws and a photo that has
+  rolled twice would otherwise unwind two full revolutions into the slot. The jump
+  is invisible: what it lands on is the angle it is already painting.
+- **What is behind the photo is hidden while the photo is out.** A stack with no
+  front is not a stack, and the album cover sits at 30% of the avatar's width, so
+  it would cover 70% of the empty slot, which is the one thing on the page that
+  has to stay visible while there is something to drop into it. `contents`
+  normally, `display: none` while out, so the disc keeps the avatar box as its
+  offset parent either way and nothing is unmounted.
+- **The placeholder keeps the photo's exact box**, so nothing in the column moves
+  when one swaps for the other, the same call `spring-image` makes. `border-2` and
+  not a ring: a dashed ring is not a thing, and a hairline dash at this diameter
+  reads as a smudge.
+- **Reduced motion still drops the photo, it just does not travel.** The line
+  `book-opening` draws: the drop is what happened, the fall is how it looked. The
+  loop never starts and the photo is put on the floor, and a release outside the
+  magnet does the same. The wobble goes entirely, being decoration with nothing to
+  report, and the resting drift and tilt stay, since where a thing came to rest is
+  a state rather than a movement. It is read with
+  `useReducedMotion` in the component, since `MotionProvider` governs motion
+  components and never a value animation driven by hand, the same reason
+  `tether-button` reads it.
+
 ## Spotify now-playing
 
 `lib/spotify.ts` is the provider, `app/api/now-playing/` the route the client
@@ -2068,11 +2483,33 @@ Environment, all server-only except the last:
   over an inset ring, so there was no visible edge at all. This is the same trap
   as the number-counter and the dashed border: a child paints over a parent's
   inset ring.
-- **The disc turns via `paused` / `running`, not by adding the animation on
-  hover.** `disc-spin` is always attached and only its play state toggles, so
+- **The disc turns by toggling its play state, not by adding the animation on
+  hover.** `disc-spin` is always attached and only the play state moves, so
   leaving the pill holds the disc at whatever angle it reached. Gating the
   animation itself would restart it at `0deg` and snap on every unhover. It is
   `motion-safe:`, since `MotionProvider` does not govern raw CSS keyframes.
+- **The animation is four longhands and not `animate-[…]`, and this was a bug:
+  the disc spun the whole time.** `animate-[…]` compiles to the `animation`
+  shorthand, which resets `animation-play-state` to `running`, and Tailwind emits
+  `animation` after `animation-play-state` in the same layer whatever spelling the
+  pause uses, `paused` and `[animation-play-state:paused]` alike. So the pause
+  could never land. Chrome's own matched rules are how to see this, and they said
+  it plainly: the pause, then the shorthand, both in `layer(utilities)`. Longhands
+  do not reset each other, so with the shorthand gone the order stops mattering.
+  Verified: `animationPlayState` reads `paused` with nothing hovered, where it
+  read `running`.
+- **The spin runs whenever the avatar is whole, and the hover gate is gone.** What
+  the cover says is that something is playing, and a record that only turns when it
+  is pointed at says it only then. Turning constantly is also what the site had
+  always done, by accident: the hover gate never worked, since `animate-[…]`
+  compiles to the `animation` shorthand, which resets `animation-play-state` to
+  `running`, and Tailwind emits `animation` after `animation-play-state` in the
+  same layer whatever spelling the pause uses. `DISC_SPIN` is four longhands for
+  that reason, since longhands do not reset each other, and it is exported for the
+  slot to freeze.
+- **`data-loose` on the slot stops it while any piece of the stack is out.** A
+  record off the turntable does not turn, and freezing it is also what keeps the
+  loose copy's held angle honest. See The portrait above.
 - **`disc-spin` is declared in `globals.css` rather than using
   `animate-[spin_…]`.** Tailwind only emits its own `spin` keyframes when
   `animate-spin` is used, so naming `spin` in an arbitrary value can compile to
@@ -2257,7 +2694,9 @@ package, no provider component and no per-route call.
 - `app/` routes. `components/ui/` shared primitives, `components/home/` and
   `components/work/` are per-surface, `components/icons/` holds brand marks.
   `components/home/avatar.tsx` is the first block on the home page: the photo,
-  with the now-playing cover stacked behind it.
+  with the now-playing cover stacked behind it. `portrait.tsx` beside it is the
+  stack and everything it does, `use-falling.ts` is one falling body and
+  `poke-sound.ts` is the click a poke makes. See The portrait above.
   A per-surface component moves to `components/ui/` the moment a second
   surface needs it, which is how `reveal.tsx` got there.
 - `app/api/` route handlers. Only Spotify lives here, see below. Everything
