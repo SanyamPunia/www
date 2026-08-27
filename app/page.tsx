@@ -103,7 +103,16 @@ export default function Page() {
         <h1 className="sr-only">Sanyam Punia</h1>
 
         <Reveal className="flex flex-col gap-12">
-          <RevealItem>
+          {/*
+           * **Raised, because things fall out of this block.** A loose piece of
+           * the avatar is positioned inside it rather than portaled, so it
+           * inherits this item's place in the column: at `z-index: auto` the
+           * prose and the footer are later siblings and painted over a cover
+           * lying anywhere near them. `RevealItem` animates a filter, which makes
+           * it a stacking context, so nothing inside can be raised past it and
+           * the item itself is what has to be.
+           */}
+          <RevealItem className="relative z-30">
             <Avatar />
           </RevealItem>
 

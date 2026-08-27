@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Spotify } from "@/components/icons/spotify";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import type { NowPlaying as NowPlayingData } from "@/lib/spotify";
+import { cn } from "@/lib/utils";
 
 const POLL_MS = 30_000;
 
@@ -35,6 +36,33 @@ const POLL_MS = 30_000;
  */
 const REVEAL =
   "motion-safe:animate-[cover-reveal_460ms_cubic-bezier(0.22,1,0.36,1)]";
+
+/**
+ * The record turn.
+ *
+ * **It runs whenever the avatar is whole, and stops while the stack is in
+ * pieces.** What the cover says is that something is playing, and a record that
+ * only turns when it is pointed at says it only then, so the hover gate this used
+ * to have is gone. But a record does not turn while it is off the turntable
+ * either: `Portrait` marks the slot `data-loose` from the moment any piece of the
+ * stack comes out of it, which freezes this at the angle it had reached and lets
+ * the loose copy hold that same angle. Nothing spins mid-air or on the floor, and
+ * both handovers are at one angle, so neither jumps.
+ *
+ * **Four longhands rather than `animate-[…]`, and that is what makes the pause
+ * possible at all.** The shorthand resets `animation-play-state` to `running`,
+ * and Tailwind emits `animation` after `animation-play-state` in the same layer
+ * whatever spelling the pause uses, so a pause beside a shorthand can never land.
+ * That is why the hover gate never worked and the disc used to turn constantly.
+ * Longhands do not reset each other.
+ */
+export const DISC_SPIN = cn(
+  "motion-safe:[animation-name:disc-spin]",
+  "motion-safe:[animation-duration:8s]",
+  "motion-safe:[animation-timing-function:linear]",
+  "motion-safe:[animation-iteration-count:infinite]",
+  "[[data-loose=true]_&]:[animation-play-state:paused]",
+);
 const CONCEAL =
   "motion-safe:animate-[cover-conceal_460ms_cubic-bezier(0.22,1,0.36,1)_forwards]";
 /** must match the keyframes name above, for the `animationend` guard */
@@ -194,24 +222,7 @@ export function NowPlayingDisc() {
             draggable={false}
             className={[
               "size-full select-none rounded-full object-cover",
-              /*
-               * Turns like a record while hovered. The animation is always
-               * attached and only its play state toggles, so leaving the pill
-               * holds the disc where it stopped instead of snapping back to
-               * 0deg, and the next hover picks up from that angle.
-               *
-               * `motion-safe:` because `MotionProvider`'s `reducedMotion` only
-               * governs Motion's own animations, never raw CSS keyframes. This
-               * is the same targeted opt-out the other keyframes in
-               * `globals.css` get, just expressed as a variant.
-               */
-              "motion-safe:animate-[disc-spin_8s_linear_infinite]",
-              "paused",
-              // matches the reveal's triggers, so the disc keeps turning while
-              // the pointer is over the tooltip rather than stopping under it
-              "group-hover:running",
-              "group-data-[state=delayed-open]:running",
-              "group-data-[state=instant-open]:running",
+              DISC_SPIN,
             ].join(" ")}
           />
         </a>
