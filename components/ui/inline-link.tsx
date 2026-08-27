@@ -35,20 +35,56 @@ const UNDERLINE =
  * that renders a link in prose. Adding a route means adding its token to
  * `@theme` first. A route without an entry is untoned, which is the default.
  */
-const ROUTE_TONE: Record<string, { text: string; rule: string }> = {
-  "/work": {
-    text: "text-link-work",
-    rule: "after:bg-link-work/45 group-hover:after:bg-link-work",
-  },
-  "/blogs": {
-    text: "text-link-blogs",
-    rule: "after:bg-link-blogs/45 group-hover:after:bg-link-blogs",
-  },
-  "/lab": {
-    text: "text-link-lab",
-    rule: "after:bg-link-lab/45 group-hover:after:bg-link-lab",
-  },
-};
+const ROUTE_TONE: Record<string, { text: string; rule: string; wash: string }> =
+  {
+    "/work": {
+      text: "text-link-work",
+      rule: "after:bg-link-work/45 group-hover:after:bg-link-work",
+      wash: "before:bg-link-work/12",
+    },
+    "/blogs": {
+      text: "text-link-blogs",
+      rule: "after:bg-link-blogs/45 group-hover:after:bg-link-blogs",
+      wash: "before:bg-link-blogs/12",
+    },
+    "/lab": {
+      text: "text-link-lab",
+      rule: "after:bg-link-lab/45 group-hover:after:bg-link-lab",
+      wash: "before:bg-link-lab/12",
+    },
+  };
+
+/*
+ * The hover wash, growing up out of the rule.
+ *
+ * `origin-bottom` on a scaleY is what makes it read as the rule thickening into
+ * the word rather than as a box fading in behind it, which is the whole point:
+ * the rule is the only thing marking these three as links at rest, so the hover
+ * comes out of it.
+ *
+ * Its bottom edge is the rule's top edge. The rule is `0.14em` tall sitting at
+ * `-0.1em`, so the top of it is `-0.04em`, and the two touch with no seam. Every
+ * value is in `em` for the same reason the rule's are: a px offset does not
+ * follow the 0.8 scale.
+ *
+ * It runs `0.12em` wider than the word on each side, where the rule stays the
+ * word's own width. 1.7px of it, which is enough that the first and last letter
+ * are not sitting on the edge of their own highlight and little enough that the
+ * wash still reads as the rule growing rather than as a second shape.
+ *
+ * The top is the span's own content box, which for Inter sits `0.24em` above cap
+ * height, so the wash clears the caps and the `y` in "currently" without a
+ * measured height.
+ *
+ * `isolate` is what keeps the negative z-index inside the link. Without it the
+ * wash paints behind the paragraph as well, which costs nothing on a white page
+ * today and breaks the moment anything under it has a background.
+ *
+ * Under reduced motion the wash still appears, it just does not travel, the same
+ * line `book-opening` draws.
+ */
+const WASH =
+  "isolate before:-z-10 before:absolute before:inset-x-[-0.12em] before:top-0 before:bottom-[-0.04em] before:origin-bottom before:scale-y-0 before:rounded-t-[0.2em] before:transition-transform before:duration-200 group-hover:before:scale-y-100 motion-reduce:before:transition-none";
 
 /*
  * The draw. `both` fill mode is what holds the rule at zero width through its
@@ -162,6 +198,8 @@ export function InlineLink({
       className={cn(
         UNDERLINE,
         tone?.rule,
+        tone && WASH,
+        tone?.wash,
         drawAt !== undefined && UNDERLINE_DRAW,
       )}
       style={
