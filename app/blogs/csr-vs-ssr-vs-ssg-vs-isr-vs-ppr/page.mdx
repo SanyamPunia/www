@@ -1,0 +1,57 @@
+I kept mixing these five up. I would read an explanation, nod, and lose it again
+a week later. So I wrote each one down in a line or two with a real example next
+to it. Hope it saves you the same loop.
+
+They all answer one question. Who builds the HTML, and when. It is a per route
+choice too, not a per app one, so one site can use all five.
+
+## CSR
+
+Client-side rendering. The browser gets a shell with no content, runs the
+JavaScript, fetches the data, then paints. Nothing meaningful is in the HTML the
+server sent, so a crawler sees an empty div.
+
+Example: Figma's canvas.
+
+## SSR
+
+Server-side rendering. The server runs your components on every request and
+returns finished HTML. Always fresh, and you pay for that work on every hit.
+
+Example: an Amazon cart page.
+
+## SSG
+
+Static site generation. `next build` runs the components once and writes an HTML
+file to disk. Every visitor gets that same file off a CDN, with no server doing
+anything.
+
+Example: these posts.
+
+## ISR
+
+Incremental static regeneration. The file SSG writes, plus an expiry. The first
+request after it expires still gets the old file and starts a rebuild behind it.
+The request after that gets the new one.
+
+Example: a news homepage on a 60 second window.
+
+## PPR
+
+Partial prerendering. One response carrying both kinds. The cached shell ships
+immediately and the per-request parts stream into the holes it left.
+
+Example: a store page with your cart badge on it.
+
+## Picking one
+
+```
+same for everyone              SSG
+changes on a timer             ISR
+changes per request            SSR
+mostly shared, few personal    PPR
+behind a login, never crawled  CSR
+```
+
+In the App Router you rarely name any of these. You write a component, and what
+you use inside it decides which one you get.
