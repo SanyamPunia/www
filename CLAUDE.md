@@ -873,19 +873,19 @@ experiment is a directory under `components/labs/`.
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
-  `stamp-collection` and `book-opening` use it.
+  `stamp-collection`, `book-opening` and `folder-stack` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Four experiments define their own hues**, `tab-overview` per terminal
-  session, `document-pocket` per sheet of paper, `event-stacking` per event and
-  `stamp-collection` per print. The first three are the same case: colour is the
-  differentiator between shapes built from the same few parts, so it carries
-  meaning rather than decorating, which is the exception the brand marks already
-  get. `stamp-collection` has a stronger claim than any of them, since a postage
+- **Five experiments define their own hues**, `tab-overview` per terminal
+  session, `document-pocket` per sheet of paper, `event-stacking` per event,
+  `stamp-collection` per print and `folder-stack` per record. Four of them are the
+  same case: colour is the differentiator between shapes built from the same few
+  parts, so it carries meaning rather than decorating, which is the exception the
+  brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
   stamp is a printed object and its colours are the object. Each is scoped to its
   experiment, the values are not tokens, and nothing else may reach for them.
   `tab-overview` keeps its values in its own stylesheet and the others in a
@@ -1986,6 +1986,345 @@ geometry, `index.tsx` the stage and the frame loop.
     mid-grey ground rather than a dark one.
 - The stage's `touch-action` is `pan-y` in cursor mode only, so a horizontal drag
   is the demo's and a vertical one is still the page's.
+
+### `folder-stack`
+
+A drawer of card index folders, eight tabs deep, with alphabetical dividers cut
+to three positions. Hovering a folder pulls that one folder up out of the pile.
+`records.ts` is what is filed, `motifs.tsx` the traces and the hues, `stack.ts`
+the geometry, `index.tsx` the pile and the case.
+
+- **Every card is the same box in the same place and exactly one `translateY`
+  moves.** A card is never resized and every card is the same height whatever it
+  holds, so **the reveal is occlusion**: the hovered card comes out from behind
+  the card in front of it, and there is nothing to fade, mount or measure. It is
+  the same claim `book-opening` makes about its sheets, arrived at from the other
+  end: there the transforms come off one inherited property, here each card
+  carries its own and the browser is still the only thing interpolating.
+- **The hovered card is the only thing that moves.** The card in front never
+  gives way, the case never travels, and the cards behind do not move either: the
+  lifted card paints over them, which is what pulling a folder out of a drawer
+  does. The pile keeps its own shape, and this is also the strongest form of the
+  stability argument below. It was built the other way first, splitting the lift
+  between the half of the pile at and above the card and the half below it, which
+  centres the object at rest and makes the whole drawer appear to open at once.
+- **The room a lift needs is carried at both ends of the stage, so the pile sits
+  in the middle of it.** The topmost card needs the whole `LIFT` above its own
+  row, so that much table sits above the shut pile and the same below the case:
+  measured, 136px either side of a 304px object. Two other arrangements were
+  built and both are worse. Pinning the pile to the foot of the frame is a shorter
+  stage with all of the slack above it, which reads as a pile that has slid to the
+  bottom. Sliding the whole assembly down as a first beat and lifting the card as
+  a second keeps the pile centred in that shorter stage, and it costs a flicker,
+  since the slide takes the card out from under its own pointer, which shuts it,
+  brings it back and starts again. That is fixable, by exempting the hovered card
+  from the slide and splitting its lift across `translate` and `transform` so the
+  two beats can hold different delays, and it is a lot of machinery for a demo
+  that is about the folders.
+- **The lift is a whole number of rows, and that is not tidiness.** A lifted
+  card's paper edge cuts across whatever is behind it, so at any other value that
+  edge lands part way through a tab and slices it, which reads as a rendering
+  fault rather than as one card in front of another. At a multiple of `PEEK` the
+  edge lands exactly where a card's own paper starts, so every tab behind is
+  either whole or gone and the lifted card sits in the slot three rows up rather
+  than between two of them. **Three is also one whole turn of the cut cycle**, so
+  it lands on a row whose tab is cut to the same position as its own and covers it
+  exactly: at four the two sat side by side in one band, which read as a pair of
+  tabs at the same height. It is the shortest lift that clears the card in front
+  and still keeps the deepest card's panel inside the clip.
+- **A card is `LIFT + PEEK + TAB_H` tall, not as tall as its contents need, and
+  this was a flicker.** A tab band is transparent either side of the tab in it,
+  so what shows through the band of one card is the paper of the card behind it.
+  Lifting a card takes the foot of its paper up by the same amount as its head:
+  any shorter and it stops covering the last few pixels it was covering, the
+  pointer sitting there lands on the card behind, that card lifts and leaves in
+  its turn, and the pile flickers down through itself. **A lifted card has to
+  keep covering everything it covered.** Measured on a slow pointer sweep at 4px
+  steps: seven backward steps before, none after.
+- **The pointer can be trusted to the DOM here, and being exact about why is most
+  of the design.** `document-pocket` had to hit test its own neutral geometry,
+  because a card that moves in response to being hovered moves out from under the
+  pointer, the hover drops, the card falls back, and it picks the pointer up
+  again. Three properties close that off:
+  - A hovered card's region runs from its own tab top to the next card's, and
+    lifting it takes that top edge up and leaves the foot where it was. **The open
+    region strictly contains the resting one**, whatever the pointer is doing
+    inside it.
+  - Nothing else on the stage moves at all, so **nothing can arrive under a
+    pointer that is not already on it**.
+  - So **the state settles in at most one step and cannot cycle.** Every position
+    has a resting owner, which is the card whose shut strip holds it. A pointer
+    inside the lifted card's grown region keeps it, and a pointer anywhere else
+    lands on its resting owner, whose own region then contains it. There is no
+    second card whose region could have moved in the meantime.
+
+  Several states are stable for one position, since a lifted card's grown region
+  covers the resting strips of the cards behind it, and that is hysteresis rather
+  than ambiguity: it covers them on screen as well, so what is hit is what is
+  drawn. Verified the way `document-pocket` verifies its own fan, by replaying one
+  gesture at two sample rates: a pointer walked down the pile in 4px steps and in
+  16px steps opens the cards in order both times, with no step backwards in
+  either.
+- **The hit region is the drawing, not the box, and that needs three declarations
+  to say.** The card is `pointer-events-none` and its paper and its tab's fill
+  path are `pointer-events-auto`, so the enter still reaches the button by
+  bubbling. Left on its own box a card would answer for a 17px band of the card
+  behind it across everything but the tab in it, since a tab's band is the card's
+  own top strip and is transparent either side of the tab: the pointer would open
+  the wrong folder wherever the box and the drawing disagree. An SVG path is a
+  target only where it paints, so this also makes a pointer on a shoulder's curve
+  belong to the card showing under it.
+- **A panel is hidden unless its own card is out, and that is not belt and
+  braces.** A card is covered by the card in front of it, so lifting card k
+  uncovers the panel of card k - 1, which is 26px of a second record showing under
+  the one being read. The hide is deferred by exactly the length of the travel,
+  since a discrete property with a delay flips at the end of it, and the panel is
+  back behind the card in front by then. The show is not deferred, because a panel
+  at rest is already covered: that is what `PANEL_TOP` buys, and it is why a panel
+  starts at `PEEK + TAB_H` from its card's top rather than a margin below the
+  card's own edge.
+- **The lifted card is the only one that can carry a shadow, and the only one
+  that wants one.** A card's shadow paints in its own layer and every card in
+  front of it paints above that layer, so at rest a shadow reaches nothing. A
+  lifted card is in front of everything it overlaps, so its shadow lands on the
+  cards behind and is what says it came out of the pile rather than being a gap
+  in it. At rest the pile is line art, which is what paper flush in a drawer
+  looks like.
+- **It is the one lab of the recent set that does not reach for the `inverse-*`
+  tokens.** `document-pocket`, `stamp-collection` and `book-opening` all had to,
+  because in each of them the paper was the object and nothing in the light set was
+  far enough from it. This pile does not have that problem: every card carries a
+  full hairline outline, so the drawing is what separates the cards from the table
+  and from each other, and the tones under it can be a step apart rather than a
+  world apart. The table is `fill`, the case and the dividers are grey, and every
+  folder is its own colour.
+- **Every record carries its own hue, and this is the exception four other
+  experiments already take.** Six cards are built from the same few parts, so the
+  colour is what tells them apart and carries meaning rather than decorating. The
+  values live in `motifs.tsx` beside the drawings, they are not tokens, and nothing
+  else on the site may reach for them.
+- **The hue is the folder, not the type.** The first version put a `mark` on each
+  record's tab label and a wash behind its trace and left every folder white, which
+  spends the colour on two small things and asks the type to carry it. A drawer of
+  coloured folders is what a real filing set looks like, it is a far bigger
+  expression of the same information, and it hands the labels back to
+  `text-primary` where they read at 11 to 12:1 rather than at 5. Three values each:
+  `paper` is the folder, `edge` its crease and hairline, `mark` the one saturated
+  thing on it, which is the trace. **A panel is white on both kinds of card**,
+  since a sheet of paper inside a coloured folder is what a folder holds, and it is
+  also the ground a trace reads best on.
+- **The papers are bright file folder colours: green, amber, sky, aqua, violet,
+  coral.** Five sets came before them and every one was too quiet, so what is worth
+  keeping is what quiet was made of. A wash at chroma 0.02 was fog, nine elements
+  inside 12% lightness of each other, which is what `book-opening` and
+  `document-pocket` each had to design their way out of. A generated set at one
+  lightness and one chroma with the hues spaced evenly round the wheel is a system
+  and not a palette, and even spacing is exactly what makes six colours read as an
+  assortment: tuning that chroma from 0.02 to 0.09 and back to 0.045 never fixed
+  it. An archival stock of sage, manila and dust blue is a lovely palette for a
+  page that is not this one, where six greyed papers on a grey table read as dust.
+- **Each hue is pushed to where it is clean rather than to a shared chroma**, since
+  blue runs out of gamut long before yellow does and matching them flattens the
+  yellow. **Chroma rather than lightness is what separates a folder from the
+  ground**: the papers sit at 1.20 to 1.62 against the `fill` table and are the
+  only things in the frame carrying any hue. `text-primary` still lands at 9.8 to
+  13.2 on every one of them, so nothing here trades legibility for brightness.
+- **A divider is white paper.** Grey was left over from the version where every
+  folder was white, and among six bright ones it read as the one card nobody had
+  updated. White is the unpainted stock a real index divider is cut from, it is the
+  ground the group's hue dots need to read against, and it puts the dividers in the
+  same family as the sheets inside the folders rather than in the case's.
+- **The case is white paper**, like the dividers and like every sheet inside a
+  folder. It went grey for one round, while the ground was white and a white case
+  was the largest thing in the frame holding no colour. With the ground back to
+  `fill` and the folders bright, grey was the wrong way round: it made the biggest
+  object in the piece the dullest thing in it, a flat slab under a row of colour.
+  White puts it in the paper family and leaves the table as the only grey.
+  Measured: papers 1.32 to 1.78 on white, `text-primary` on one 9.8 to 13.2, edges
+  1.30 to 1.59 on their own paper, and marks 5.0 to 7.0 on the white sheet, which is
+  the floor for the divider legend that prints in them.
+- **The case's top corners are square, and that is what covers the cut.** The last
+  card has nothing in front of it, so its paper ends on the clip line as a flat
+  edge with no border on it, and the case's top edge is that same line. Rounded,
+  the corners curved away from the cut and left the raw edge hanging over them:
+  measured, the case is 5.4px wider than the last card either side against a 14px
+  radius, so the curve started 8.6px inside the card and the cut showed. A straight
+  top edge spans the whole of it, and a drawer front is square where the cards go
+  in anyway.
+- **A divider prints the files it heads in their own hues**, so it reads as the
+  legend for its group and each name matches the tab a few rows below it.
+- **The filing line is `text-secondary`, not `text-muted`.** Muted measured 2.4:1
+  on the wash the panel used to be and 2.5 on the white it is now, for the line
+  carrying a record's number, its place and its length. This is 5.33.
+- **One tab width for both kinds of card, and that is the lift's doing.** A lifted
+  card lands three rows up, one turn of the cut cycle, so its tab lands exactly on
+  the tab of the card it covers. That only reads as one tab if the two are the same
+  size: at 148 against a divider's 108 the wider one poked out either side and its
+  label showed through, which looks like a rendering fault.
+- **A record's panel holds a drawn trace of what its note says**, on a time axis
+  200 units long: a hedge with a train swelling through it, mud clicks under two
+  gulls, rain, ice giving way and the water settling, wind with a bell struck over
+  it, two guy wires three cycles against four. Three lines of type in a box is not
+  worth opening a folder for. **The viewBox stretches and the strokes do not**:
+  `preserveAspectRatio="none"` lets a trace fill a panel from 166px to 345px wide,
+  which is right for a time axis and wrong for a hairline, so every shape carries
+  `vector-effect: non-scaling-stroke`, set in CSS since the attribute does not
+  inherit. Nothing is random at runtime either, the wobble is a hash.
+- **A divider's tab is grey card stock with its group's hues on it, and it used to
+  be solid near-black.** That was the reference's own treatment and it inverted the
+  weight of the whole piece: a 96 by 17 block of `text-primary` was the heaviest
+  thing on the stage by an order of magnitude, and a divider is structure, while
+  the folders are the content and were the quietest labels in the frame. So the
+  fill drops to `fill-active`, which is a stiffer stock than the paper around it
+  and is what an index divider is anyway, the label goes to `text-primary` at a
+  tenth of the ink the fill spent, and the tab carries one dot per record in the
+  group in that record's own `mark`. It reads as a heading with its contents
+  previewed on it, and each dot matches the tab a row or two below it.
+- **A divider opens onto a wave, like a record does.** The group's tape as one
+  waveform, shared out by length and coloured by the file each stretch belongs to,
+  over a line saying the range, the count and the run time, which is summed from
+  its own records and derived rather than written down. Four versions of this
+  panel were lists first, a comma line, one name per line, two columns of coloured
+  names, then chips, and every one of them restated the three tabs sitting a row
+  or two below it. **A divider's sheet is `fill` rather than white**, since a white
+  sheet on a white card is a hairline round nothing. Both kinds carry the same box,
+  the same hairline and the same geometry, so an open card is an open card whichever
+  it is, and only the fill knows what it is sitting on.
+- **Corners are 12px, which is off the radius scale on purpose** and is the one
+  value in the geometry that is a taste rather than a constraint. `rounded-lg` is
+  6.4px, the site's own card radius and what the frame around this demo uses, and
+  on a card 400px wide by 167px tall it reads as a square with the corners taken
+  off. These are drawn objects rather than surfaces, the same standing
+  `document-pocket` and `stamp-collection` give their own pixel geometry.
+- **The reference is all mono and this is not.** Labels are the site's own face
+  and mono marks a value: the filing number, the length, the file count. Same
+  split `book-opening` makes for its readout, and the lowercase is the
+  stylesheet's, so nothing here is written in caps.
+- **A tab is a flat top on two S-curved shoulders, and there is no corner
+  anywhere in it.** Each shoulder is one cubic with both control points on the
+  midway x, which puts a horizontal tangent at each end: the shoulder leaves the
+  card's own top edge along that edge and arrives at the tab's top along the top.
+  A trapezoid with rounded top corners was the first version and it still had two
+  hard angles where the slants met the card, which was the sharpest thing in the
+  demo. The feet needing no join is also what makes it work at a hairline, since
+  the stroke arrives tangent to the card's border and finishes on that border's
+  own centre line: the tab's outline runs into the card's edge rather than landing
+  on it.
+- **The tab is two paths.** The fill runs two pixels past the card's own top edge,
+  so it covers the paper's border where the tab crosses it, and the hairline stops
+  on that border's centre line, so no shoulder overshoots into the paper. One path
+  doing both jobs has to pick.
+- **The case is not a member of the pile.** Nothing opens it, nothing moves it,
+  and the cards are cut off at its top edge by a static clip rather than hidden
+  behind it, so it is free to be as shallow as it looks. It carries no handler
+  either: arriving on it is a card's own leave. The stage's own listeners are
+  bound to the node rather than written as JSX props, the same call
+  `document-pocket` and `stamp-collection` make for their stages, and `focusout`
+  has to be heard there anyway since it bubbles.
+- **A card shuts on its own leave, one frame out, and both halves of that are
+  load-bearing.** Acting on the leave at once drops the pile back for the frame
+  between leaving one card and entering the next, since those arrive in that
+  order. A shut that waits a frame is cancelled by the enter before it can run,
+  and a pointer that has really left the pile has no enter coming. Verified by
+  watching every `aria-expanded` change through a crossing: the log reads 2, 3, 4
+  with nothing between them.
+
+  Not answering the leave at all is what shipped first, and it is worse than it
+  sounds: **only the stage's leave shut the pile, so a lifted card held its state
+  across the whole stage**, including the band of bare table above the shut pile,
+  which is a third of the frame. A pointer wandering anywhere in the demo kept a
+  card up. The stage's own leave still shuts at once, since nothing is going to
+  take it.
+- **`text-left` on the card is load-bearing**: a `<button>` centres its own text,
+  and a filing card's lines all start at its left margin.
+- **One panel height for both kinds, and it is the number the stage is built
+  on.** The stage carries a lift at both ends, so every pixel of panel costs two
+  of frame: taking it from 100 to 76 is what dropped the lift to three rows and
+  the stage by 32px, and it is why the pile went from 53% of the frame to 60%. The
+  whole geometry then went up a notch, so those numbers now read 84 and 36. A
+  record spends the 84 on a filing line, a 28px trace and a caption. **The place
+  rides the filing line rather than the caption**, since a caption and a place on
+  one row run past the panel at the narrowest column, and a note is at most 26
+  characters so it stays on one line at every width.
+- **A divider's legend is two columns**, which is the same panel doing a different
+  job. One file to a line is a row taller than a record needs, and the panel is
+  sized by the record; a comma list fits and leaves the box half empty on a wide
+  column. Measured at 900, 430, 360 and 320px: nothing in a panel overflows it,
+  and no panel shows a pixel of itself at rest.
+- **The cards are 0.80 to 0.96 of the stage wide.** They were 0.70 to 0.94 and
+  the drawer read as a small object in a big room: a stage this tall can only be
+  filled by a pile this wide. 0.96 keeps the case clear of the frame's own radius
+  at every width, and the extra room goes into the panels, where a caption gets
+  194px at the narrowest column against 166.
+- **The pile deals itself in on arrival, one card behind the next, back to front
+  with the case last.** `Reveal` brings the whole demo in on the page's own
+  stagger and this is the same idea one level down: a 0.4s fade, 55ms apart.
+  **A fade and nothing else.** The site's own reveal variant pairs one with a rise
+  and a blur, and on eight cards arriving in sequence that reads as the pile
+  assembling out of focus rather than as cards being dealt. The keyframe is
+  `folder-in` in `globals.css`, it touches `opacity` alone, and **it names no
+  transform**, since `transform` is what carries a card's lift and an animation
+  outranks a normal declaration: naming it there would swallow a hover that landed
+  inside the first second. All
+  of it sits behind `motion-safe:`, since `MotionProvider` governs Motion's own
+  animations and never a raw keyframe, and with the animation gone every card is
+  simply present, because the keyframe carries the `opacity: 0` rather than the
+  element. Measured: the cascade runs 0 to 0.44s of delay, and under the setting
+  `animationName` is `none` with every card at opacity 1 on the first frame.
+- **A trace draws itself in from the left as its card comes out**, on a
+  `clip-path` sweep rather than a dash offset, since half of these motifs are
+  forty separate lines and a dash only reveals a path. Linear, because what it
+  stands for is a tape running at one speed where everything else here
+  front-loads, and 340ms against the card's own 200 so it is still arriving after
+  the card has settled.
+- **It draws once and stays drawn.** A card the pointer has already opened has
+  nothing left to reveal, and replaying the sweep on every return reads as the
+  panel reloading its own contents. So the clip is keyed off whether a record has
+  ever been open rather than off whether it is open now, which also means nothing
+  has to defer to the panel's hide: the clip no longer moves when a card drops.
+  The id is added from an effect rather than from the four handlers that can open
+  a card, and that extra commit is what gives the sweep a frame to start from.
+  Measured: 84% clipped at 120ms, 30% at 200ms, drawn at 420ms, still drawn after
+  a close, and no second sweep on the way back in.
+- **The case carries a label plate rather than bare type**, so it reads as the
+  front of a drawer and not as the box left over under the pile. A hairline pill
+  rather than the site's filled one, since nothing there is pressable and a
+  `bg-fill` pill on white paper is what a button looks like.
+- **Which of the two gestures a pointer gets is a test for a hovering pointer,
+  never a test against a finger.** `tab-overview` reads `pointerType` rather than a
+  `(hover: hover)` query, since the query answers for the device and a laptop with a
+  touchscreen reports true for both, and what neither says is what to do with a
+  pointer naming itself neither: `""` is what a browser sends when it does not
+  know, and `!== "touch"` hands that one the hover path on a device with no way to
+  take a hover back. So `mouse` and `pen` hover and everything else taps. **On a
+  phone this experiment is taps and nothing else.**
+- A tap is heard on `pointerup` and a key press on `click` with `detail` of 0,
+  both `book-opening`'s calls, and focus alone opens a card.
+  - **A tap is `pointerup` rather than that click, and the reason is slop.** A
+    finger drifts, and a tap that drifts far enough is a scroll: the browser
+    cancels the pointer and sends neither a `pointerup` nor a `click`, which is
+    the right answer, since what was asked for was the page to move. Inside the
+    slop both arrive and `pointerup` is the one carrying the pointer's type.
+    Measured on this stage: a 12px drift opens the folder, a 40px drift lands
+    `pointercancel` and changes nothing.
+  - **A tap on the bare table shuts whatever is open**, which is the touch half of
+    the pointer's own leave, since a finger has no leave to be heard: it stops
+    existing when it lifts. `stamp-collection` makes the same call for its table,
+    and the same test tells a miss from a hit, the event's own target. A card's
+    paper and its tab are the only things on the stage that take a pointer, so
+    anything not inside a button is the table. A swipe never reaches it, being
+    cancelled rather than lifted, so scrolling past the demo cannot shut a card.
+    The case counts as table, which is what tapping the front of a drawer should
+    do.
+  - Verified on a 390px phone: tap opens, a second tap on the same card shuts it,
+    a tap on another switches, a tap on the table shuts the pile, and a mouse
+    moved across the stage on that same viewport still hovers, since the gate is
+    the pointer and not the width.
+- Reduced motion drops the travel and keeps the opening, and **all three of the
+  transition's properties sit inside `motion-safe:`**: without the duration in there,
+  `transition-property` keeps its initial value of `all` and reduced motion gets a
+  200ms transition on everything instead of none. Verified: `0s` under the
+  setting.
 
 ## Motion
 
