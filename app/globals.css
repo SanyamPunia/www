@@ -351,6 +351,31 @@ textarea {
 }
 
 /*
+ * Deals `folder-stack`'s pile in, one card behind the next, so the drawer
+ * assembles on arrival rather than being there already.
+ *
+ * **Opacity only.** It had a 6px rise on `translate` as well, which is the site's
+ * own reveal variant one level down, and on eight cards arriving in sequence it
+ * reads as the pile assembling out of focus rather than as cards being dealt. A
+ * plain fade is the whole of it.
+ *
+ * `from` only, so it ends on each card's own computed value and this keyframe does
+ * not have to know what any of them are. Nothing here touches `transform`, which
+ * is what carries a card's lift: an animation outranks a normal declaration, so a
+ * transform named here would swallow a hover landing inside the first second.
+ *
+ * The stagger is a per-card `animation-delay` in the component, and the whole
+ * thing is behind `motion-safe:` there, so under reduced motion no animation is
+ * applied at all and every card is simply present. That is why there is no
+ * opt-out for it below.
+ */
+@keyframes folder-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
  * MotionConfig's reducedMotion only governs Motion's own animations, and the
  * two above are raw CSS. This is the targeted opt-out, not the blanket
  * !important reset the shared rules ban: it names the two keyframes and lands

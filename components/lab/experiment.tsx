@@ -94,6 +94,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "book-opening": dynamic(() => import("@/components/labs/book-opening"), {
     ssr: false,
   }),
+  "folder-stack": dynamic(() => import("@/components/labs/folder-stack"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

@@ -267,6 +267,24 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Hover the book, or pick cursor and move left across the stage.",
     flush: true,
   },
+  {
+    slug: "folder-stack",
+    title: "Folder Stack",
+    description: [
+      "A drawer of card index folders, eight tabs deep, with alphabetical dividers between the groups and every tab cut to one of three positions the way a real index is. Hovering a folder pulls that one folder up out of the pile, and what it holds was behind the card in front of it the whole time.",
+      "The pile deals itself in on arrival, one card behind the next. Every folder is its own colour, and each holds a white sheet with a drawn trace of what its note says, which draws itself in from the left as the card comes out: a hedge with a train swelling through it, mud clicks under two gulls, ice giving way and the water settling, two guy wires three cycles against four. The viewBox stretches with the column and the strokes do not, so one trace fills a panel at any width and keeps its hairline.",
+      "Key insight: the reveal is occlusion. Every card is the same box in the same place for the life of the demo and exactly one `translateY` moves, so nothing fades, mounts or is measured, and the card in front of the one being read never has to give way.",
+      "The lift is a whole number of rows, which is not tidiness. A lifted card's paper edge cuts across whatever is behind it, so at any other value that edge lands part way through a tab and slices it. At a multiple of the row it lands exactly where a card's own paper starts, so every tab behind is either whole or gone, and at three rows, one whole turn of the cut cycle, it lands on a tab cut to the same position as its own and covers it exactly.",
+      "A card is also taller than it looks, by exactly the lift, and that was a flicker. A tab band is transparent either side of the tab in it, so what shows through one card's band is the paper of the card behind. Lifting takes the foot of that paper up too, and a card any shorter stops covering its last few pixels: the pointer there lands on the card behind, which lifts and leaves in its turn, and the pile walks down through itself.",
+      "`document-pocket` had to hit test its own neutral geometry, because a card that moves in response to being hovered moves out from under the pointer. Nothing here can: a lifted card's region strictly contains its resting one, nothing else on the stage moves at all, and so the state settles in at most one step. The hit region is the drawing rather than the box, down to the curve on each tab's shoulders.",
+    ],
+    createdAt: "2026-08-28",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/folder-stack/index.tsx",
+    reference: "https://x.com/edo_lunardi/status/2085743043982897338",
+    hint: "Hover a folder to open it, or tap one.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -332,6 +350,7 @@ export const IMPLEMENTED_LABS = [
   "event-stacking",
   "stamp-collection",
   "book-opening",
+  "folder-stack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
