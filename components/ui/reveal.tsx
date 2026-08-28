@@ -11,12 +11,20 @@ const container = {
   },
 };
 
+/**
+ * A fade and a 4px rise, and no blur.
+ *
+ * It carried `filter: blur(6px)` to `blur(0px)` as well, which is a common
+ * arrival effect and reads as the page resolving out of focus rather than
+ * appearing. It is also the most expensive part of it: a filter makes its element
+ * a containing block for fixed descendants and forces its own compositing layer,
+ * which is what `components/home/portrait.tsx` has to portal out of.
+ */
 const item = {
-  hidden: { opacity: 0, y: 4, filter: "blur(6px)" },
+  hidden: { opacity: 0, y: 4 },
   show: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: 0.4, ease: "easeOut" as const },
   },
 };

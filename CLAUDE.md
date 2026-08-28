@@ -2003,9 +2003,12 @@ fights the library.
 Standard variants, reused rather than reinvented:
 
 ```ts
-// fade + blur + rise
-initial={{ opacity: 0, y: 4, filter: "blur(6px)" }}
-animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+// fade + rise. No blur: it read as the page resolving out of focus rather
+// than appearing, and a filter is also the most expensive part of it, since it
+// makes its element a containing block for fixed descendants and forces a
+// compositing layer, which is what `portrait.tsx` has to portal out of.
+initial={{ opacity: 0, y: 4 }}
+animate={{ opacity: 1, y: 0 }}
 transition={{ duration: 0.4, ease: "easeOut" }}
 
 // staggered children

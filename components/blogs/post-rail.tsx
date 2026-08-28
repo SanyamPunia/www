@@ -201,8 +201,8 @@ export function PostRail(): React.ReactNode {
       // stagger, since its sections do not exist until the headings have
       // rendered and the sequence has already started. The delay matches
       // `delayChildren`, so it lands with the first block of the column.
-      initial={{ opacity: 0, y: 4, filter: "blur(6px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
     >
       <div className="flex flex-col gap-8">
