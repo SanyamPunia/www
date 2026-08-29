@@ -4,8 +4,8 @@ import { ArrowsLeftRightIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { approach, clamp01, lerp } from "@/lib/lerp";
 import { cn } from "@/lib/utils";
-import { approach, clamp01, lerp } from "./lerp";
 import {
   BOOK_HEIGHT,
   BOOK_WIDTH,

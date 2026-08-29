@@ -1,4 +1,4 @@
-import { lerp } from "./lerp";
+import { lerp } from "@/lib/lerp";
 
 /*
  * The book's whole geometry, as fractions of the stage it sits in.
