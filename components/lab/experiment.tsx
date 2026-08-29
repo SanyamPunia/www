@@ -97,6 +97,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "folder-stack": dynamic(() => import("@/components/labs/folder-stack"), {
     ssr: false,
   }),
+  "window-shade": dynamic(() => import("@/components/labs/window-shade"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

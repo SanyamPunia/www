@@ -285,6 +285,24 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Hover a folder to open it, or tap one.",
     flush: true,
   },
+  {
+    slug: "window-shade",
+    title: "Window Shade",
+    description: [
+      "A cabin window with a shade you pull down by hand. The panel stays wherever it is let go, and the whole cabin crosses from a white ground to a near-black one as it comes, so half way down is a place to stop rather than a moment between two states.",
+      "Key insight: the theme is not a switch, it is the position of a control. The stage carries one number and every tone on it is a `color-mix` between one of the site's light tokens and its `inverse-*` twin at that number, so a deliberately light-only design gets a light and dark crossing without gaining a second theme. In `oklab` rather than sRGB, or the ramp is already dark for most of its travel.",
+      "Text is the one thing on the stage that cannot interpolate. A colour crossing from dark to light passes through the ground it is sitting on, and the ground is crossing the other way at the same time, so the two meet: the readout and the wall are the same value at half travel. It steps over 0.04 of the travel instead, where the two sides measure 4.2 and 4.0 against a wall that is 13.2 and 19.0 at the ends.",
+      "What holds the dark state is a gap rather than an effect. The panel is a couple of pixels narrower than the pane, which is the clearance it needs to slide at all, so a seated shade leaves two hairlines of daylight down its sides and a stage that would otherwise finish as an empty rectangle finishes as a closed shade in a dark cabin.",
+      "The cabin is line art and the only soft things in it are light: the pool on the wall, the falloff away from it, the bloom under the panel's foot and that leak. A panel joint in the sidewall is a groove rather than a tone, since a shadow carries it on the light wall and a lit lip carries it on the dark one, which is the one line here that escapes the flip.",
+      "Outside the glass the split is by distance instead, and nothing out there is a shape. The cloud is `feTurbulence` rather than the row of white ovals it started as, since a lump reads as a cartoon at any falloff and cloud is made of turbulence, not of ovals. The sun is a bloom with no disc in it, the wing reads by tone rather than by an outline round it, and a vignette and a film grain over the pane tie the three layers into one image. Two decks drift at a 2.8 ratio, which is what makes the parallax read as depth rather than as one thing moving. All of it then sits behind one blur, since a view drawn this precisely competes with the panel that is the actual demo, and the inner pane of a cabin window is scratched acrylic anyway: the sheen, the vignette and the grain stay sharp, being the glass rather than what is past it.",
+      "Grab and pull, not aim and jump, which is why this is not a native `range` the way the signature player's scrubber is: a range moves its thumb to the click, and a shade that leaps to meet your finger is not a shade. The cost is spelling out the keys. A phone keeps its scroll everywhere but the grip, and a tap on the glass throws the panel at whichever end it is not near.",
+    ],
+    createdAt: "2026-08-29",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/window-shade/index.tsx",
+    hint: "Drag the shade down by its grip, or tap the window.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -351,6 +369,7 @@ export const IMPLEMENTED_LABS = [
   "stamp-collection",
   "book-opening",
   "folder-stack",
+  "window-shade",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

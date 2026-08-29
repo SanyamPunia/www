@@ -519,3 +519,22 @@ textarea {
   background: var(--color-stroke-strong);
   border-radius: 9999px;
 }
+
+/*
+ * Drifts `window-shade`'s cloud decks past the pane.
+ *
+ * The element is twice the pane's width and its tile is half of the element, so
+ * travelling half the element is travelling exactly one tile and the loop has no
+ * seam. That is why this keyframe carries no numbers of its own: the geometry is
+ * in the component and this is only the share of it to cover.
+ *
+ * Each deck names its own duration in the same `animate-[...]` utility, since
+ * that compiles to the `animation` shorthand and would reset a duration set
+ * beside it. `motion-safe:` sits on the utility as well, so with the setting on
+ * no animation is applied at all and each deck is simply where it started.
+ */
+@keyframes cloud-drift {
+  to {
+    translate: -50% 0;
+  }
+}
