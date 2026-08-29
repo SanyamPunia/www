@@ -138,6 +138,14 @@ in the light tokens to sit it against.
   inside 5% of each other. **Only the boards invert here and the stage stays
   light**, which is the narrowest use of the set: it is one object on the page,
   not the ground under it.
+- `components/labs/window-shade/` is the one caller that does not pick an end.
+  **It reads both sets at once and asks for the point between them**, since the
+  whole experiment is a cabin crossing from lit to dark on the position of a
+  window shade. Every tone on that stage is
+  `color-mix(in oklab, <light token>, <inverse token>, shade)`, so nothing there
+  is a new colour and the crossing is the two sets the site already has. This is
+  still not dark mode: nothing outside that one demo changes, and the page around
+  it stays white. See its own section.
 
 The values are the previous dark build's, so the two versions of the site stay
 recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
@@ -873,21 +881,25 @@ experiment is a directory under `components/labs/`.
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
-  `stamp-collection`, `book-opening` and `folder-stack` use it.
+  `stamp-collection`, `book-opening`, `folder-stack` and `window-shade` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Five experiments define their own hues**, `tab-overview` per terminal
+- **Six experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
-  `stamp-collection` per print and `folder-stack` per record. Four of them are the
+  `stamp-collection` per print, `folder-stack` per record and `window-shade` for
+  the sky outside it. Four of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
   stamp is a printed object and its colours are the object. Each is scoped to its
   experiment, the values are not tokens, and nothing else may reach for them.
+  `window-shade`'s claim is the same shape as `stamp-collection`'s: daylight is
+  the thing its shade is for, so the blue is the subject rather than a tint on
+  one.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1808,8 +1820,10 @@ with the rotation already turning.
 A book on a table, fourteen sheets deep. Hovering it fans every leaf off the
 spine and lays the front board out to the left, and in cursor mode the same fan
 answers the pointer's distance left of the shut book's fore-edge instead.
-`lerp.ts` is the two functions the whole experiment runs on, `sheets.ts` the
-geometry, `index.tsx` the stage and the frame loop.
+`lib/lerp.ts` is the two functions the whole experiment runs on, `sheets.ts` the
+geometry, `index.tsx` the stage and the frame loop. Those two started here and
+moved out when `window-shade` needed the same pair, which is the rule about
+promoting a helper on its second caller rather than copying it.
 
 - **One inherited property drives fourteen transforms.** The stage carries
   `--book-open`, a plain number from 0 to 1, and every sheet is
@@ -2325,6 +2339,262 @@ the geometry, `index.tsx` the pile and the case.
   `transition-property` keeps its initial value of `all` and reduced motion gets a
   200ms transition on everything instead of none. Verified: `0s` under the
   setting.
+
+### `window-shade`
+
+A cabin window with a shade drawn down by hand, and a cabin that goes dark as it
+comes. `window.ts` is the geometry and the palette, `view.tsx` what is outside,
+`index.tsx` the stage, the gesture and the frame loop.
+
+- **One inherited property drives the panel and the whole palette.** The stage
+  carries `--shade`, a plain number from 0 to 1, written once per frame. The
+  panel's `translate` is that number times its own travel, and every tone on the
+  stage is `color-mix(in oklab, <light token>, <inverse token>, that number)`.
+  Same claim `book-opening` makes about its fourteen sheets, one level up: there
+  one property carried the transforms, here it carries the colour as well.
+  Nothing in the component renders while the shade moves.
+- **So the theme is a position rather than a state.** Half way down is a place a
+  reader can stop, and the whole stage reports it. That is also the only reason a
+  deliberately light-only site has anything to say here: the two ends are the
+  site's own `--color-*` and `--color-inverse-*` sets, so the lab invents no
+  colour and the page around it never changes. See the `inverse-*` note in Colour
+  tokens.
+- **`oklab`, not the default `srgb`.** A straight sRGB ramp from a light grey to
+  near black is already dark for most of its travel and lurches at the end.
+  Measured, the wall's oklab lightness runs 0.967 at rest to 0.145 closed, and
+  half travel lands at 0.556.
+
+**The drawing: line art, with light as the one exception.** The first build was
+a render of a plane window, which is what the reference is: a gradient bezel
+under three stacked drop shadows, a recess made of two more, a photographic sky.
+All of it is gone.
+
+- **Structure is flat fills and a hairline where two faces meet.** The hairline
+  is an `outline` rather than a ring so an inline `boxShadow` cannot overwrite
+  it, and every one carries a negative offset, so it paints on the face it
+  belongs to rather than on the wall. That is also why it needs no flip: on the
+  bezel it is 1.30:1 open and 4.6:1 closed.
+- **Four things are still soft, and they are all light**: the pool on the wall,
+  the falloff away from it, the bloom under the panel's foot and the leak round a
+  seated one. Light is soft, so it is drawn soft, and nothing else on the stage
+  is. Same call `folder-stack` makes when it gives exactly one card in a pile a
+  shadow. The pool's wide layer was 0.42 over 58% and read as a halo tight enough
+  round the bezel to be the drop shadow the redraw exists to remove.
+- **The wall is `fill` and not `fill-active`, and the redraw is what allows
+  it.** The darker ground was `book-opening`'s call for its table and it was
+  right while this was a render: the bezel is white, and separating it from the
+  wall was a job only tone could do. With every face carrying a drawn hairline
+  the drawing separates them, so the wall can be the quiet ground `folder-stack`
+  uses and sit a step closer to the white page the frame is on, where the heavier
+  grey read as a slab dropped onto it.
+- **The view splits by distance: air is soft and objects are drawn.** The first
+  pass over-corrected the reference's render into flat plates with hard stops
+  everywhere, which reads as a chart of a sky rather than as one. So the sky's
+  steps blend, the cloud has no edge anywhere on it and the sun carries a bloom,
+  while the horizon is a hard line and the wing has a hairline round it, since it
+  is the one thing out there near enough to have an outline. The sky keeps its
+  band structure through all of that, so the panel still has values to travel
+  against and only the transitions between them soften.
+- **One field of sky and then a graduation, not equal stripes.** Evenly spaced
+  bands at evenly spaced values is a test card, which is what an earlier pass
+  was. The top fifth is one colour and the steps compress downward, which is what
+  haze does.
+- **The horizon is at 0.46 and the lower half is what is under it**, which is
+  where a seat actually looks. It was at 0.70 with the cloud straddling it, and
+  that put every cloud in the palest part of the sky, where a white shape has
+  nothing to be seen against: the deck was there and invisible. Below the horizon
+  the ground haze is a mid blue, so the same cloud reads without being drawn any
+  harder. The haze holds to 45.4 and the ground starts at 46, about a pixel
+  apart, and that is the one hard edge in the drawing, since a horizon is where
+  the air stops. **The glass takes it back**, since the whole view sits behind
+  the blur: what a reader sees is a hard edge through a hazy pane, which is what
+  a horizon out of a cabin window is.
+- **The cloud is `feTurbulence`, and it took three tries to get there.** It was
+  overlapping ellipses, hard-edged and then soft-edged, and a lump is a lump:
+  four white ovals in a row read as a cartoon at any falloff, which is what made
+  the whole view look like clip art. Cloud is not made of ovals, it is made of
+  turbulence, and there is a turbulence generator in every SVG filter. One
+  `feColorMatrix` after it throws the colour away and keeps a biased slice of one
+  channel as alpha, which is what turns a grey field into cloud and clear air:
+  the slope is the contrast and the bias is how much sky is left between. **The
+  frequency is anisotropic, lower across than down**, since a deck seen at a
+  shallow angle is stretched along the line of sight and equal frequencies give a
+  field of round puffs, which is the cartoon arriving by another door. The
+  vertical fade lives inside the tile rather than in a CSS `mask-image`, so the
+  whole deck is one rasterised image and the drift costs no filter work per
+  frame.
+- **The sun is a bloom with no disc in it**, for the same reason and because it
+  is also what is true: the sun through two panes of acrylic at altitude is far
+  too bright to hold an edge. Near-white rather than yellow, since only a low sun
+  is warm.
+- **A vignette and a film grain over the whole pane.** A photograph through a
+  window has darker corners and noise in it, and a drawing has neither. The grain
+  ties the sky, the cloud and the wing into one image rather than three layers.
+- **Everything beyond the glass sits behind one blur, and that is what makes it a
+  window rather than a picture.** A view drawn this precisely competes with the
+  panel that is the actual demo, and it is a lie besides: the inner pane of a
+  cabin window is scratched acrylic, so nothing out there is ever sharp. At twice
+  the value it carries, the wing was an unreadable smudge and the horizon had
+  dissolved, which is a window with nothing out of it rather than a window you
+  cannot focus through. The wing then wanted a second tonal step, since a blur is
+  a contrast reduction and that is the one thing in the pane which still has to
+  read as solid.
+  - **The blur is on the outside alone.** The sheen, the vignette and the grain
+    are the glass and the lens, which are the two things in the frame that are in
+    focus. Grain especially: it belongs to the film plane and not to the subject,
+    so a sharp grain over a soft image is what a photograph looks like.
+  - **The blurred layer overhangs the pane on every side, and that is not
+    padding.** A filter samples transparent outside its own element, so without
+    it the sky goes clear against the pane's border all the way round and leaves
+    a soft halo of the recess showing through. Twice the radius covers it, since
+    a CSS blur's visible reach is about 1.5 times the value it is given.
+  - The wing's SVG sits back at the pane's own box inside that overhang, so its
+    viewBox keeps the pane's aspect and it is not letterboxed, and it is
+    `overflow-visible` so its own paths run out into the overhang instead.
+- **The glass highlight is one soft band and low.** At 0.15 with hard edges it
+  was a pair of shafts crossing the wing and it owned the view, which is what a
+  highlight does when it is the sharpest thing in a frame of air.
+- **The wing reads by tone, not by outline, and that was the last cartoon in the
+  frame.** A flat plate with a dark line round it is clip art whatever shape the
+  plate is. A wing at cruise is a ramp from a lit leading edge to a shaded
+  trailing one with a hot line along the very front, so that is what it is, and
+  the outline drops to a faint edge that only holds the silhouette where the
+  tonal contrast runs out. The ramp then had to go a step darker once the cloud
+  became a real cloud, since against a white deck a pale wing is a ghost and this
+  is the one thing in the pane that has to read as solid. It is shallow and it
+  tapers, and both were wrong first: at 26 degrees on a near-constant chord it
+  read as a blade laid across the window.
+- **The panel is a plain rectangle that starts above the pane, and both halves of
+  that are one correction.** It was inset by its clearance on all four sides,
+  which put a strip of sky above it, and that strip is only ever uncovered at the
+  instant the panel seats: at every other position the panel's own top edge is
+  above the pane. So the head of the window stayed dark through the whole travel
+  and lit in a single frame at the end, which is nothing a shade does. There is
+  no sky above a shade at all, since it comes down out of a slot, so the leak is
+  the sides and the foot and that is the whole of it. Squaring it follows: with
+  the head above the clip and the foot cut back to the pane's own curve, no
+  corner of this panel is ever on screen, and a rectangle in a rounded aperture is
+  what a shade is anyway. Measured seated: the head overhangs by 1.89px where the
+  sides and the foot each keep 1.89px of clearance. A rounded foot was also wrong
+  for its own reason, reading as a blob sliding down rather than as an edge.
+
+**The cabin and the scale.** The window sits off centre at 0.37 of the stage and
+is 0.62 of its height rather than the 0.68 it started at, and both numbers are
+the wall's doing: at 0.68 there was nowhere to put a panel joint that did not
+land on the frame's own edge, and centred there was nowhere for the scale to be.
+
+- **A joint is a groove, so it is drawn as one: a shadow on one side and a lit
+  lip on the other, never a tone.** This is the one line on the stage that
+  escapes the flip below, and the reason generalises. A tone crossing dark to
+  light has to pass through the ground crossing the other way, and it is not a
+  matter of picking better endpoints: with the best pair the tokens offer,
+  solving `0.689 - 0.454t = 0.967 - 0.823t` puts the meeting at t of 0.76 and the
+  seam simply is not there. A groove has the shadow carrying it on the light
+  wall, the lip carrying it on the dark one, and both faintly through the middle,
+  which is what a groove in a half-lit surface looks like. Measured against the
+  wall, shadow then lip: 1.22 and 1.01 open, 1.00 and 1.35 closed, 1.17 and 1.14
+  at the flip. That is the shared rule about shading with light rather than
+  palette, arriving at a case the palette cannot solve at all.
+- **The scale spans the panel's exact travel**, from its foot when stowed to its
+  foot when seated, both derived from the geometry rather than placed by eye, so
+  the marker rides the edge it is measuring. **Its two ends name the tokens the
+  wall is mixed from**, and it derives them from the wall rather than restating
+  them: they said `fill-active` for one build after the wall had moved to `fill`,
+  which is the drift a derived value exists to stop. It is the move
+  `book-opening` makes when it prints its own lerp on the cover it is turning.
+- **Every length is `cqw` and the `container-type` is on the stage alone.** So
+  nothing is measured in JS and the window holds whatever the column is. An
+  element is a query container for its descendants and never for itself, the trap
+  `document-pocket` documents at length. Each radius is the bezel's minus the
+  inset that box sits at, which is what concentric rounded rectangles are:
+  scaling a radius with its box leaves the gap between two edges wider at the
+  corners than along the sides.
+
+**Text is the one thing that cannot interpolate, and it flips.**
+
+- A colour crossing from dark to light passes through the ground it is sitting
+  on, and the ground is crossing the other way at the same time, so the two meet.
+  `text-secondary` and the wall are the same value at half travel to a rounding
+  error, and even `text-primary` against that wall is 3.2:1. So the ink steps
+  over 0.04 of travel, at the point where the two sides are least unequal.
+  **That point moves with the wall**, and it did move when the light end went
+  from `fill-active` to `fill`: setting the two contrasts equal solves for a wall
+  luminance of 0.196, which the lighter ramp reaches at 0.47 rather than at 0.42.
+  Both sides then measure 4.1:1 for the width of one drag frame, against 15.8:1
+  open and 19.0:1 closed. The step is derived from `--shade` in CSS rather than
+  decided in JS, so one number still drives everything.
+- **How much a flipping tone keeps at the crossing is decided by how far its
+  endpoints sit from mid grey and by nothing else, so a hairline may be quiet and
+  a word may not.** The scale's labels had a quieter pair of their own,
+  `text-secondary` to `inverse-text-secondary`, which measured 4.0 and 6.1 at the
+  ends and 1.3 through the flip: a quiet tone has nowhere to be. Everything
+  typographic takes the same ink as the readout now, and only the rule and its
+  ticks stay quiet, since a hairline at 1.5:1 is still a line.
+- **The focus ring is the same argument from accessibility, and it is why this is
+  not the project's own focus pattern.** That pattern pins a colour,
+  `ring-text-primary/15`, which composites to a 1.1:1 step on the open wall and
+  is a near-black ring on near-black at the other end, and Tailwind's ring also
+  paints a 2px offset in `--tw-ring-offset-color`, which defaults to white, so
+  the closed cabin would carry a bright band round the control. It is an
+  `outline` at the same width and offset in the flipped ink. The rule this bends
+  says never to use a *weaker* ring than the declared one, and this is stronger
+  at both ends.
+
+**The gesture.**
+
+- **Grab and pull, not aim and jump, which is why this is not a native `range`.**
+  The signature player's scrubber is one and the shared rules would point at
+  another, but a range moves its thumb to the click and a shade that leaps to
+  meet your finger is not a shade. So it is `role="slider"` with the keys spelled
+  out: arrows, page keys, Home and End, plus Enter and Space to throw it.
+  `aria-valuenow` and `aria-valuetext` are written beside `--shade` rather than
+  rendered, or a drag would be a state update per frame.
+- **A release leaves the panel where it was let go**, which is what a real shade
+  does and is what makes the crossing a continuum. Only a press that travelled
+  less than 4px is read as a throw to the far end.
+- **What holds the closed state is a gap, not an effect.** The panel is inset
+  from the pane by the clearance it needs to slide at all, so a seated shade
+  leaves hairlines of daylight down its sides and along its foot, and that is the
+  brightest thing in the frame exactly when the frame has nothing else. The glow
+  over it is only the scatter off that gap: it was 3.4cqw at 40% first, which lit
+  the panel from its own perimeter and read as a screen rather than as a leak,
+  and it carries a small negative vertical offset, since an inset shadow then
+  reaches further at the foot than at the head, which is the shape of the gap it
+  stands for.
+- **`touch-action: pan-y` on the control and `none` on the grip alone.** The
+  window is most of the stage on a phone, so a control that took the whole
+  gesture would trap a thumb scrolling past the demo. **On touch the panel is
+  therefore pulled by its grip and thrown by a tap anywhere else**, which is what
+  a real shade offers too and is why the grip is drawn at all. That region is
+  sized for the trade rather than for the drawing: the grip is 12px on a 390px
+  viewport and its hit region is 30. A touch that becomes a scroll is cancelled
+  rather than lifted, so it never reaches the release and never counts as a tap,
+  which is `folder-stack`'s slop arriving from the browser instead of measured.
+- `cursor-grab`, the third place the shared "cursor-pointer on every clickable
+  element" rule is off, after `tether-button` and `event-stacking`.
+- **A cloud deck is one tile repeated, and the element is twice the pane wide.**
+  So travelling half the element is travelling exactly one tile and the loop has
+  no seam, **and that holds whatever the element's width is**, which is what lets
+  a deck overhang the pane for the blur: at `left: -B` and `200% + 4B` wide its
+  right edge finishes the cycle a clear `B` past the pane rather than exactly on
+  it, so neither edge is ever inside the filter's reach. **`stitchTiles` is what
+  makes the noise itself wrap** at the tile's own edge, which replaced the
+  hand-placed duplicate lumps the ellipse version needed to hide the straight
+  vertical cut that slid past once per loop. The keyframe is `cloud-drift` in
+  `globals.css` and carries no numbers of its own.
+- **The two decks run at a 2.8 ratio, not a 1.7, and both are quick enough to
+  see.** Parallax is the whole reason there are two, and closer together they
+  read as one thing moving rather than as depth. At 96s and 34s the near deck
+  covers about 4px a second on a wide column and the far one 1.3, which is
+  measurable rather than guessed: sampled 3s apart, 4.41% of the element against
+  1.56%. **Each deck names its own duration inside the same `animate-[...]`
+  utility**, since that compiles to the `animation` shorthand and would reset a
+  duration set beside it in `style`, which is `disc-spin`'s trap from the other
+  side. `motion-safe:` sits on that utility, so under the setting no animation is
+  applied at all.
+- Reduced motion still opens the shade and still crosses the cabin, which is the
+  demo. It just does not travel, the line `book-opening` draws. Verified: the
+  first frame after End reads 1.0000 and both decks report `animation-name: none`.
 
 ## Motion
 
@@ -3051,7 +3321,8 @@ package, no provider component and no per-route call.
   `work.ts` work data, `favicons.ts` the host-to-mark registry,
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
   `markdown.ts` the markdown variant of every page, `profile.ts` the one block
-  of copy in the whole site that no page renders, `utils.ts`.
+  of copy in the whole site that no page renders, `lerp.ts` the interpolation
+  two labs drive their own frame loops with, `utils.ts`.
 - `proxy.ts` at the root, the only file there that runs per request. It exists
   for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
