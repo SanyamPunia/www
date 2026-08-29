@@ -300,6 +300,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-08-29",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/window-shade/index.tsx",
+    reference: "https://x.com/mjbarton_/status/2093354383379399012",
     hint: "Drag the shade down by its grip, or tap the window.",
     flush: true,
   },
