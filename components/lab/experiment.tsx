@@ -100,6 +100,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "window-shade": dynamic(() => import("@/components/labs/window-shade"), {
     ssr: false,
   }),
+  "rain-splatter": dynamic(() => import("@/components/labs/rain-splatter"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

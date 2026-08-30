@@ -304,6 +304,25 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Drag the shade down by its grip, or tap the window.",
     flush: true,
   },
+  {
+    slug: "rain-splatter",
+    title: "Rain Splatter",
+    description: [
+      "Coloured rain over a floor drawn in perspective, and the floor keeps everything that hits it. Each drop picks a depth on the way in, which sets how big it is, how hard it falls and how far up the stage it lands, so the near ones are fat and quick and go off the bottom edge while the far ones are specks that land near the horizon.",
+      "Key insight: the stage is two canvases and the split is the whole thing. One is cleared every frame and holds what is moving, the other is never cleared and holds what has landed. A mark is drawn exactly once, at the moment it is made, so the piece can accumulate a poster's worth of splatter and still cost one clear and a few hundred small fills a frame. Redrawing the accumulation every frame is the version that gets slower the longer you watch it, and it is also the version that cannot be right, since two overlapping opaque marks have an order and the order is when they landed.",
+      "Nothing authored a single ray. A splash throws specks, most of them high and a handful of them flat, and each one hops on its own gravity while the floor drags at it. What it leaves on landing is whatever speed it has left: one that came down slow beads into a dot, one that came in flat and fast skids into a stroke pointing back at the splash. The radiating look is that one rule, and the outriders past the end of a long ray are one bounce, capped at one so a splash cannot rattle its way across the floor.",
+      "The fall is a stretch, not a circle. A drop at full pelt covers about 20px between two frames at 60Hz, so a round one paints as a dotted line however smooth the arithmetic under it is. It is drawn from its leading edge instead, stretched back along its own travel and narrowed a little as it goes, which is both the motion blur a camera gets for free and what a falling drop actually looks like. It arrives already moving, since it has been falling for as long as it took to reach the top of the frame.",
+      "Fading laid paint has to be done in visible steps. A canvas holds 8 bits a channel, so an erase at an alpha under about 1/255 rounds to nothing and the oldest splatter never leaves. The stage owes itself a fade and spends it in whole 3% steps, which costs one `fillRect` every few frames and cannot round away.",
+      "The affordance is a preview rather than a cursor. A crosshair says the surface answers a pointer and stops there, so the stage draws a ring instead, at the size of the splash a press would make at that depth: move up the stage and it shrinks and flattens, which is the perspective explaining itself before you commit. The stage is a real button rather than a div holding a `tabIndex`, so the arrows aim the same ring and Enter drops on it, and Space is swallowed because a button swallows it rather than because this demo asked to.",
+      "The six inks sit beside the simulation rather than in the token file, the same exception `stamp-collection` gets for a printed stamp: colour is the subject here and not a tint on one. The one lie is that a sixth of every splash is thrown in someone else's ink, because a real cluster of this many colours is many splats layered over hours, and at any rate a demo can run at, that layering never happens.",
+    ],
+    createdAt: "2026-08-29",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/rain-splatter/index.tsx",
+    reference: "https://x.com/okazz_/status/2092923357931176017",
+    hint: "Press the stage to aim a drop, or tab in and use the arrows.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -371,6 +390,7 @@ export const IMPLEMENTED_LABS = [
   "book-opening",
   "folder-stack",
   "window-shade",
+  "rain-splatter",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
