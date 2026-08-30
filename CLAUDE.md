@@ -881,17 +881,18 @@ experiment is a directory under `components/labs/`.
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
-  `stamp-collection`, `book-opening`, `folder-stack` and `window-shade` use it.
+  `stamp-collection`, `book-opening`, `folder-stack`, `window-shade` and
+  `rain-splatter` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Six experiments define their own hues**, `tab-overview` per terminal
+- **Seven experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
-  `stamp-collection` per print, `folder-stack` per record and `window-shade` for
-  the sky outside it. Four of them are the
+  `stamp-collection` per print, `folder-stack` per record, `window-shade` for
+  the sky outside it and `rain-splatter` for the ink it throws. Four of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -899,7 +900,8 @@ experiment is a directory under `components/labs/`.
   experiment, the values are not tokens, and nothing else may reach for them.
   `window-shade`'s claim is the same shape as `stamp-collection`'s: daylight is
   the thing its shade is for, so the blue is the subject rather than a tint on
-  one.
+  one. `rain-splatter`'s is the strongest of the three, since the piece is a
+  painting and its six inks are what it is made of.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2595,6 +2597,165 @@ land on the frame's own edge, and centred there was nowhere for the scale to be.
 - Reduced motion still opens the shade and still crosses the cabin, which is the
   demo. It just does not travel, the line `book-opening` draws. Verified: the
   first frame after End reads 1.0000 and both decks report `animation-name: none`.
+
+### `rain-splatter`
+
+A painting that makes itself, and the first experiment on the site with a
+panel of numbers under it.
+
+- **The stage is two canvases and that split is the whole design.** One is
+  cleared every frame and holds what is moving, the other is never cleared and
+  holds what has landed. A mark is drawn onto the second exactly once, at the
+  moment it is made, and then it costs nothing for the rest of the demo, which
+  is what lets the piece accumulate thousands of marks on one clear and a few
+  hundred small fills a frame. **Do not rebuild it as one canvas redrawn from a
+  list.** That version gets slower the longer it is watched, and it is also
+  wrong: two overlapping opaque marks have an order, and the order is when they
+  landed, which a redraw from a list has to store and replay.
+- **The floor is a plane in perspective, not the bottom edge.** Every drop picks
+  a depth on arrival and that one number sets four things: where it lands
+  between the horizon and a little past the bottom edge, how big it is, how hard
+  its own gravity pulls, and how much its splash is foreshortened. Take the
+  perspective out and every splash reads as a sticker on a wall.
+- **Nothing in a splash is authored.** A landing throws specks on a heavy-tailed
+  speed curve, each one hops on its own gravity and drags across the floor, and
+  what it leaves on landing is decided by the speed it has left: slow beads into
+  a dot, flat and fast skids into a stroke pointing back at where it came from.
+  Every ray in the piece is that one rule.
+- **The spread on the throw height is the control that decides what the whole
+  thing looks like, and both ways of getting it wrong look nothing like rain.**
+  Height is airtime, airtime is how long the drag has to work, so a speck thrown
+  high comes down slow and beads while the same speck thrown flat comes down
+  fast and skids. Rolling it so most specks go flat makes every splash a
+  dandelion with no body in it. Taking the length off the distance flown instead
+  of the landing speed does the same thing, since drag is gentle here and nearly
+  everything covers enough ground to earn a ray that way. It is a squared roll,
+  which sits near zero most of the time, so most of a splash goes up and about
+  one speck in seven comes down still moving.
+- **A drop is drawn from its leading edge, stretched back along its travel.** At
+  these accelerations a drop covers around 20px between two frames at 60Hz, so a
+  round one paints as a dotted line however smooth the arithmetic under it is.
+  Drawing from the tip rather than the centre is what keeps the splash on the
+  frame the drop actually reaches the floor: from the centre it either punches
+  through or fires a body length early. It also enters the frame already moving,
+  since it has been falling for as long as it took to get there.
+- **The fade is spent in whole steps because a canvas holds 8 bits a channel.**
+  An erase at an alpha under about 1/255 rounds to nothing, so the oldest
+  splatter never leaves and the layer silently stops fading. The world owes
+  itself a fade and pays it in 3% steps, which is one `fillRect` every few
+  frames and cannot round away. `destination-out` rather than a wash of the
+  ground colour, so the layer stays transparent and the marks fade toward
+  whatever the stage is painted rather than toward a second copy of that value.
+- **The panel is closed by default, behind a `tune` pill in the bar.** Six
+  lanes under the stage read as a form with a painting on top rather than a
+  painting with a panel under it, and no amount of spacing fixes that: the
+  problem is the count, not the gaps. Grouping the six under two names was
+  tried and works, at the price of a strip taller than the thing it controls.
+  A disclosure costs nothing at rest.
+
+  **The bar sits above the lanes, not below them**, which is what makes the
+  disclosure work. The pill does not move when the panel arrives and neither
+  does the stage: the component grows from the edge nobody is looking at.
+
+  **The collapse is a grid row going `0fr` to `1fr`** with the panel inside an
+  `overflow-hidden` child. It animates to a height the browser works out, with
+  no measuring, no ref and no resize handling. `max-height` needs a number
+  nobody can write correctly at three column counts, and a height in JS is a
+  measurement that goes stale on the next reflow. The padding lives inside the
+  collapsing box, so a shut panel is genuinely zero pixels rather than zero
+  plus a gap, and the transition is `motion-safe:`.
+
+  **`inert` while shut, and it is not optional.** A `0fr` row is invisible and
+  its six range inputs are still in the tab order, so without it the first Tab
+  past `reset` lands on a slider nobody can see. Verified: with the panel shut
+  the order is stage, running, tune, clear, reset, and then out of the demo.
+  `aria-hidden` alone would not do it.
+
+  **The trigger holds its hover while it is open**, through `aria-expanded:`
+  classes on the quiet pill, which is the site's rule for anything that opens
+  something. They are inert on the pills that open nothing, since the variant
+  selector only matches a button carrying the attribute.
+- **The affordance is a preview, not a cursor.** A crosshair says the surface
+  answers a pointer, says nothing about what the answer is, and is invisible to
+  a touch reader. The stage draws a reticle instead, a ring at the size of the
+  splash a press would make at that depth, so moving up the stage shrinks and
+  flattens it and the perspective explains itself before anyone commits. It is
+  drawn on the live layer and never touches the paint.
+- **The stage is a `<button>`, not a div carrying `tabIndex` and
+  `role="application"`.** That pairing is what a first build reaches for, and
+  biome rejects it on sight for the right reason. A button is focusable,
+  focus-visible and activated by both Enter and Space natively, and it swallows
+  Space because it is a button rather than because a `preventDefault` in a demo
+  took the page's scroll key. Keyboard activation arrives at `onClick` with
+  `detail` 0, which is what separates it from the pointer path that has already
+  served its own press. The arrows aim, Shift is the fine step, and the first
+  arrow places the reticle rather than moving it, since a reader who has just
+  tabbed in has no idea where the aim is.
+- **`block` on that button is load-bearing.** A button is inline-block, an
+  inline-block sits on the text baseline, and the descender's worth of `bg-fill`
+  it leaves shows up as a seam between the stage and the hairline under it.
+- **The transport leads and the housekeeping follows.** `running` is the filled
+  dark pill the signature player's transport uses, `clear` and `reset` are quiet
+  ones. All three were the same pill, so the control that runs the piece looked
+  like the one that restores six defaults. The quiet pill carries its hover on
+  the text rather than on the fill: `bg-fill` to `bg-fill-hover` is 1.04:1,
+  which is a step that exists in the token table and not on the screen, while
+  `text-secondary` to `text-primary` is 5.28 to 15.4. The background step stays
+  under it in the documented order, supporting rather than carrying.
+- **The six are six numbers, and that does not reopen the mode selector rule.**
+  The site's answer to a mode is one control whose label is its current value,
+  which `book-opening` documents and which the transport here still follows.
+  These are continuous ranges with nothing to swap between, so each gets a lane,
+  its own live readout and the native `range` behind an inert track, the same
+  build as the signature player's scrubber. The number takes `text-primary` and
+  the label `text-secondary`, which is the way round it has to be: the label is
+  a fixed word and the number is the thing under the hand. It also separates the
+  two kinds of number in the strip, since what the piece reports about itself
+  stays `text-muted` in the row below. The range carries `rounded-full` for the
+  focus ring alone, or the ring is a hard rectangle around a fully rounded track
+  and the only square corner in the piece.
+
+  **The lane is `spray` and the readout is `specks`.** Both were `specks`, one
+  row apart, one meaning how many pieces a splash throws and the other how many
+  are in the air. One word cannot do both.
+
+  **The gutters between lanes are wide on purpose.** A lane is a label, a number
+  and a track, so three across the column put nine things on one line, and at
+  0.8 scale, where a step is 3.2px, the gaps that look tidy are the ones that
+  leave a readout closer to the next lane's label than to its own track. The
+  column gutter is what says which number belongs to which word, so the strip is
+  spaced like a form rather than like a toolbar.
+- **Nothing in the loop re-renders.** The settings live in state because the
+  sliders read them, the loop reads a ref mirroring that state, and the two
+  counts under the panel are written straight to their nodes. A drag on a slider
+  changes the physics from the next frame rather than after a respawn.
+- **The loop stops when the stage is off screen.** This is one block on a page a
+  reader scrolls past, and rain falling into a canvas nobody is looking at is a
+  fan spinning for nothing. `requestAnimationFrame` covers the hidden tab on its
+  own. `dt` is clamped at 50ms for the frame after a stall, which at these
+  accelerations would otherwise put every drop through the floor in one step.
+- **A resize copies the paint layer out and draws it back.** Writing either
+  dimension of a canvas wipes its bitmap, which is what the live layer wants and
+  what the paint layer cannot have.
+- **The stage starts on clean paper, and `seed` has exactly one caller.** The
+  piece is the filling, so a canvas that arrives already painted gives away the
+  one thing anyone came to watch, and it fills on its own inside a second. An
+  earlier build seeded seven splats into every first frame and it was wrong for
+  that reason.
+
+  Reduced motion is the exception, and gets the piece as a picture: paused, with
+  eighteen splats behind it, since nothing is going to fall there at all. The
+  seed is the same simulation with no time passing, so what is on the paper is
+  what would have landed had you watched it arrive. The play control still
+  works, since the preference is about what starts on its own.
+
+  It is called from two places for one reason: the preference has to have
+  resolved and the stage has to have a size, either can be last, and whichever
+  arrives second does the work.
+- The one thing on the stage that is not physical is that a sixth of every
+  splash is thrown in another ink. A real cluster of this many colours is many
+  splats layered over hours, and at any rate a demo can run at, that layering
+  never happens.
 
 ## Motion
 
