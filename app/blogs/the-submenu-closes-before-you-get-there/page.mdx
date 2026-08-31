@@ -1,0 +1,39 @@
+import Sandboxes, { Replay } from "./sandboxes";
+
+Every menu with a submenu has this bug. You open it, aim at something near the
+bottom, and it shuts on you halfway there. So you learn to move sideways first
+and then down, in an L, like you are defusing a bomb. Nobody taught you that.
+
+Two menus below. Identical rows, identical submenu. One of them has a fix in it.
+
+<Sandboxes />
+
+## the fix
+
+Your cursor crossed Copy link and Add label on the way. Those are real hovers,
+and a menu that answers them closes the submenu, because that is what pointing at
+another row means. The bug is that being right about each event adds up to being
+wrong about the hand.
+
+So while the cursor is on its way to the submenu, the rows it crosses stop
+counting. On its way is a triangle: the point it left the row, and the submenu's
+near edge. Three cross products decide whether a point is inside it.
+
+```ts
+const side = (a: Point, b: Point, p: Point) =>
+  (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+
+export function inGrace(p: Point, g: Grace): boolean {
+  const a = side(g.from, g.top, p);
+  const b = side(g.top, g.bottom, p);
+  const c = side(g.bottom, g.from, p);
+  return (a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0);
+}
+```
+
+The usual answer instead is a timer, three hundred milliseconds before anything
+closes, and it is worse in both directions: it shuts on you if you pause to read
+a label, and it hangs around after you have plainly left. Time is not the signal.
+Direction is, and a timer cannot see direction.
+
+<Replay />
