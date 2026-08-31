@@ -620,6 +620,66 @@ for one section instead of the whole post.
 - `BlogPost` mounts one `TooltipProvider` around the article, rather than one
   per heading.
 
+### `the-submenu-closes-before-you-get-there`
+
+Two menus side by side, one question, and almost no prose. The reader tries the
+same move in both, says which one let them, and is told what the difference was.
+
+- **The comparison is the argument, so the boxes break the column and nothing
+  else does.** Two menus at 288px will not sit next to each other inside a
+  537px measure, and stacking them is not a comparison. Only the grid escapes,
+  by half the parent to the left and back by half its own width, with the width
+  taking a gutter off `100vw` so the scrollbar cannot cause a second one.
+  Running the instruction and the question out there too was the first build,
+  and it put two measures on one page with nothing lining up.
+- **Everything is derived from `menu.ts`.** The layout and the hit tests read the
+  same constants, which for a piece about which region the pointer is in is the
+  difference between a demo and a trick. Measuring the DOM would put the answer
+  a frame behind the question.
+- **The wedge is armed once, on the sample that leaves the row.** Arming it on
+  any sample outside the row re-anchors it to the pointer every time, so it never
+  expires and moving straight down cannot close the submenu at all. The apex is
+  the last point known to be inside the row, not the first known to be outside
+  it, since a fast diagonal samples a row or more apart.
+- **Every hit test is one `pointermove`.** Per-row `pointerenter` and
+  `pointerleave` cannot express this: falling out of the wedge while already
+  inside a row fires no event, so the menu freezes in a state nothing corrects.
+- **There is no open state.** An open submenu is what a highlighted parent row
+  means, not a fact of its own.
+- **The menus have no motion.** A native menu marks the row under the cursor on
+  the frame it arrives, and anything softer reads as the menu thinking about it,
+  which is the one thing a demo about hover cannot look like.
+- **The submenu's seat is drawn dashed while it is empty.** The block reserves
+  that width so nothing moves when one opens, and the reserve read as a void with
+  the menu shoved into a corner. Five children rather than seven for the same
+  reason: at seven the reserve stood 96px below the menu.
+- **The question is a card, because that is how a question looks.** A heading, a
+  row of chips and a button loose on the page said nothing about belonging
+  together, and horizontal chips read as filters and go ragged, since "both" and
+  "only the right one" are nowhere near the same width. Stacked full-width rows,
+  real radios visually hidden inside labels, and the action in a footer.
+- **It grades with weight and `danger`, because there is no green.** The site
+  ships one status tone and it means wrong. Correct is carried by the emphatic
+  neutral instead, a filled row with a solid check, which in a monochrome set
+  already reads as "this is the one". Inventing a success token for one quiz
+  would put a colour in the table nothing else can use.
+- **The captions say nothing about whether the reader managed it.** They did, and
+  it was both a spoiler and a lie: the unfixed box can be beaten by going
+  sideways, so a reader who did that saw "you got there" under both and was then
+  graded wrong for answering "both".
+- The closing `Replay` is a loop with nobody driving it, and a separate component
+  rather than the interactive one behind a flag: `Sandbox` is all hit testing and
+  state, none of which a loop needs. Its wedge apex is computed from where the
+  drawn path crosses the row's bottom edge, since eyeballing it puts the apex
+  clear of the row and the wedge tells a small lie.
+- `select-none` on the stages and the illustration. Dragging across a menu is the
+  gesture the piece is about, and without it a text selection paints over every
+  row on the way past.
+- **No tables in this MDX pipeline.** There is no `remark-gfm`, so pipe syntax
+  renders as literal pipes. Adding one means the plugin plus `table`, `thead`,
+  `th` and `td` in `mdx-components.tsx`, which is worth doing deliberately rather
+  than smuggling in behind one table.
+
 ### The signature player
 
 `app/blogs/turning-a-signature-into-two-pen-strokes/` is the post that came out
