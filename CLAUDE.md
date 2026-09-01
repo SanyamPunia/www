@@ -917,9 +917,11 @@ experiment is a directory under `components/labs/`.
   rather than an empty frame. An entry in the registry with no component 404s.
 - `file-tree-explorer` is the one slug whose directory is named differently
   (`file-tree`), carried over from the old repo.
-- **No preview images.** The old registry pointed at screenshots of the dark
-  build, wrong on a white page and wrong about what the components look like
-  now. The detail page runs the real component.
+- **No preview images, and one preview clip per experiment.** The old registry
+  pointed at screenshots of the dark build, wrong on a white page and wrong
+  about what the components look like now. The detail page runs the real
+  component, and the index plays a recording of one being used. See The hover
+  preview below.
 - **`bare: true` on a registry entry drops the `Demo` frame**, so that
   experiment gets the column's full width. It is for a demo that draws its own
   container: the frame's hairline then sits a padding-width outside the
@@ -967,6 +969,133 @@ experiment is a directory under `components/labs/`.
   signature player's two stroke hues are the same exception outside the lab, and
   the narrowest use of it on the site, being two values behind a toggle that is
   off by default.
+
+### The hover preview
+
+Hovering a row on the lab index plays a clip of that experiment beside the
+pointer. Scrolling with the pointer held still swaps the clip for whichever row
+moved under it, running the same way the page did.
+`components/lab/lab-preview.tsx` is the card and the hit testing,
+`lib/lab-previews.ts` says which experiments have a clip,
+`scripts/record-lab-previews.mjs` records them, and each is an mp4 and a webp
+still in `public/assets/labs`.
+
+A row's title says what an experiment is called and nothing about what it does,
+and every one of them answers to a gesture, so there is no still that shows one
+working.
+
+- **One `pointermove` on the list, hit tested against measured bands, never a
+  `pointerenter` per row.** A scroll moves the list under a pointer that has not
+  moved, so no pointer event fires at all, and per-row events cannot express
+  "the row under the cursor changed because the page did". One test answers both,
+  off the last pointer position the list saw.
+- **The bands are page coordinates and the pointer is viewport coordinates**,
+  since a scroll changes one and not the other. The rows are a static list, so
+  they are measured on the first move and again on a resize, the same
+  measure-once call `event-stacking` makes for its grid.
+- **Each gap goes to whichever row it is nearer.** Rows sit at `gap-1`, which is
+  3.2px on this scale. Left as a real gap the card blinks shut and open again on
+  the way past, and a scroll can stop in one and close the card under a pointer
+  that never moved.
+- **The row's own mark comes from that same test, written to the node as a data
+  attribute.** A browser is not required to re-run `:hover` until the pointer
+  moves again, so on a scroll the marked row and the clip could disagree about
+  which experiment is being read, which is the one thing this cannot do.
+  `hover:bg-fill` stays alongside `data-[active=true]:bg-fill`, since `MoreLabs`
+  renders the same list with no wrapper around it. Writing to the node rather
+  than to state is the bar `book-opening` and the signature player set: a pointer
+  crossing twenty rows renders nothing.
+- **The sides come from a row's own box, not the container's.** A row is the
+  whole `-mx-4` pill, so it reaches 12.8px past the column the wrapper sits in,
+  and testing the wrapper left the outer edge of every row dead.
+- **The card is portalled into `body`, and it is `pointer-events-none`.**
+  `RevealItem` animates a transform, and an element with one is the containing
+  block for a fixed descendant, so a card left inside the list could never leave
+  it, which is why `portrait.tsx` portals too. Transparent to the pointer because
+  it lies over the rows it is reading: taking the pointer would drop the hover
+  that put it there.
+- **The clip is fetched on the first hover that needs it.** Nothing is
+  preloaded, so the index costs its own markup and no video at all until someone
+  points at a row. The still is the clip's `poster`, so the card paints the right
+  picture for the frame or two before the video can.
+- **A fresh card is put where the pointer already is, and only a move springs.**
+  Otherwise it flies in from the row last read, or from the corner on the first
+  open.
+- **Near an edge the card flips to the other side of the pointer rather than
+  being clamped**, so it never sits under the cursor. Measured on a 1040px
+  viewport: a pointer on a row's right edge puts the card's right edge 18px to
+  its left.
+- **No `initial={false}` on the `AnimatePresence` that swaps the clips.** That is
+  the obvious way to stop the first clip sliding in and it stops every later one
+  as well: Motion says it by putting `initial: false` on a context every motion
+  component below reads, so a keyed child mounts at `animate` rather than at
+  `initial`. `tab-overview` documents the same trap at length. So the first clip
+  arrives the way the rest do, under the card's own fade.
+- **The swap spring is critically damped.** What the card does is replace one
+  clip with the next, and an overshoot on a full-height slide reads as the strip
+  being thrown.
+- **Not `ring-inset` on the card.** The clip is `size-full` and paints over an
+  inset ring, which leaves the card with no edge at all, the trap `now-playing`
+  documents for the album cover. It needs one, since half the clips are a white
+  demo on a white ground.
+- **Hover is gated on `pointerType`**, mouse and pen only, the call
+  `folder-stack` documents: a touch has no hover to take back, so a tap would
+  leave a card on screen with nothing to close it. **On a phone the index is the
+  list it always was.**
+- **Reduced motion gets the still and no travel.** A clip looping until the
+  pointer leaves is the motion that setting is about, and nobody asked for it:
+  the reader pointed at a row, they did not press play. The card still appears,
+  and it appears where the pointer is rather than travelling there.
+- **Which experiments have a clip is read off `public/assets/labs`, not declared
+  in `labsRegistry`.** The recorder is what writes them, so the directory is the
+  only thing that knows. A lab with no clip renders no preview, which is the
+  trade a post with no `meta.json` makes. `/lab` is prerendered, so the directory
+  is read once at build time.
+
+### Recording the previews
+
+`pnpm previews` records every clip and `pnpm previews <slug>` one of them. It
+drives the dev server already listening on `PREVIEW_BASE`, port 3100 by default,
+so `pnpm dev` has to be up. An experiment whose component changes is re-recorded.
+Nothing else in the repo reproduces these files, so they are checked in as
+assets.
+
+- **It drives the real page in a real browser.** `playwright-core` with
+  `channel: "chrome"`, so nothing downloads a browser, and one scripted gesture
+  per lab in a table keyed by slug. `ffmpeg` cuts and encodes, `cwebp` writes the
+  still.
+- **The clip is one video pixel per CSS pixel and there is no way to ask for
+  more.** Playwright only ever scales a page *down* to fit `recordVideo.size`, so
+  a larger size pads the frame rather than enlarging the page, and
+  `deviceScaleFactor` does not reach the screencast at all. So the 537px column
+  is captured at 537px and upscaled to 640x400 at encode time, which is still
+  1.75x what the 307px card paints.
+- **A `focus` rect per lab, in the demo's own coordinates**, corrected to the
+  card's 8:5 inside the demo box and padded in white where the demo is the wrong
+  shape for it. Cropping past the demo's edge pulls in the heading and the
+  description, which is page chrome rather than the experiment.
+- **Three labs measure their crop instead of declaring one.**
+  `file-tree-explorer` and `multi-step-form` both grow as they are used, so the
+  rect is the demo's own ink at its largest, and `sonner-extended-toast` has its
+  subject at the viewport's corner, since the toaster is mounted in the root
+  layout. A gesture that returns a rect overrides its entry's `focus`.
+- **Every press is a mouse click at a coordinate, never `locator.click()`**,
+  which scrolls its target into view first. The crop is a fixed rect in viewport
+  coordinates, so a page that moves under it lands the clip on the prose below
+  the demo, which is what four of the first clips were. The scroll is pinned as
+  well, since a focused control that grows the page can move it too.
+- **The clip is trimmed to the gesture**, off wall-clock offsets from the page's
+  own creation, which is where Playwright starts recording. Every gesture opens
+  and closes on a settled demo, so a trim a frame out shows a still rather than
+  the page arriving.
+- **`spring-image` suppresses `selectstart` for the recording.** A drag across
+  the copy beside the photo selects it, and the site paints a selection in
+  `#34d399` with a caret at each end, so a clip about a spring turned into a clip
+  about the selection colour. The gesture itself is unchanged.
+- **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
+  measured against.** A wrapper rather than an attribute on `Demo`, since a
+  `bare` entry has no frame and the recorder still has to find the same box.
+- Twenty clips, 884KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -2904,6 +3033,12 @@ reveal.
   Removing that flag breaks `next dev` with an unhandled rejection.
 - **Biome 2.5.** `css.parser.tailwindDirectives` must stay on or Biome fails to
   parse `@theme` in `app/globals.css`.
+- **`playwright-core` is a devDependency and downloads nothing.** It is only for
+  `scripts/record-lab-previews.mjs`, and it drives the installed Google Chrome
+  through `channel: "chrome"` rather than a bundled browser. That script also
+  wants `ffmpeg` and `cwebp` on the path, which are host tools rather than
+  packages. The ffmpeg on this machine is built without libwebp, which is why the
+  still goes through `cwebp` instead of straight out of ffmpeg.
 
 ## The portrait
 
@@ -3543,11 +3678,17 @@ package, no provider component and no per-route call.
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
   `markdown.ts` the markdown variant of every page, `profile.ts` the one block
   of copy in the whole site that no page renders, `lerp.ts` the interpolation
-  two labs drive their own frame loops with, `utils.ts`.
+  two labs drive their own frame loops with, `lab-previews.ts` which
+  experiments have a recorded preview, `utils.ts`.
 - `proxy.ts` at the root, the only file there that runs per request. It exists
   for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
   reference. Anything untyped from npm gets its `.d.ts` here.
+- `scripts/` build-time tooling that is not part of the app and never imported
+  by it. Plain `.mjs` run with `node`, one file per job, each documenting what it
+  produces and what has to be running for it to work. Currently just
+  `record-lab-previews.mjs`, which writes the lab index's hover clips into
+  `public/assets/labs`. See Recording the previews above.
 
 ## Keeping this current
 
