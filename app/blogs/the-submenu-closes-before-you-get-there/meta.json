@@ -1,6 +1,6 @@
 {
-  "title": "the submenu closes before you get there",
-  "description": "Aim at the bottom of a submenu and your cursor cuts across three rows on the way. Every one is a hover, and the menu believes all of them. The fix is a triangle.",
+  "title": "safe triangles, and the submenu you cannot reach",
+  "description": "Aim at the bottom of a submenu and your cursor cuts across three rows on the way. Every one is a real hover, and the menu believes all of them. The fix is a triangle, and it has a name.",
   "date": "2026-08-31",
   "readTime": "4 min read"
 }

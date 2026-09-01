@@ -31,6 +31,19 @@ export function inGrace(p: Point, g: Grace): boolean {
 }
 ```
 
+It has a name. [Ben Kamens](https://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown)
+reverse-engineered it out of Amazon's mega dropdown in 2013 and shipped it as a
+jQuery plugin called menu-aim, and it is usually called a **safe triangle**. You
+will also see safe area, safe polygon, or Amazon's own prediction cone. Component
+libraries tend to say polygon rather than triangle, because a submenu that can
+open above or below its trigger needs more than three points. Ours only opens to
+the right, so three is enough. None of it is new: hierarchical menus on the Mac
+were doing this in the mid-eighties.
+
+Do not confuse it with hover intent, which is the other family and the one this
+post is arguing against. Those measure how long or how fast you have hovered. Same
+problem, opposite signal.
+
 The usual answer instead is a timer, three hundred milliseconds before anything
 closes, and it is worse in both directions: it shuts on you if you pause to read
 a label, and it hangs around after you have plainly left. Time is not the signal.
