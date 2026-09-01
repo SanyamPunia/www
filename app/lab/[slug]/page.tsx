@@ -79,13 +79,19 @@ export default async function LabDetailPage({
               would stack on the flex gap and push the link away from the thing
               it labels. */}
           <RevealItem className="flex flex-col gap-2">
-            {lab.bare ? (
-              <Experiment slug={slug} />
-            ) : (
-              <Demo className={cn("my-0", lab.flush && "p-0")}>
+            {/* `data-lab-demo` is the box `scripts/record-lab-previews.mjs`
+                crops its recording to. A wrapper rather than an attribute on
+                `Demo`, since a `bare` entry has no frame and the recorder still
+                has to find the same box. */}
+            <div data-lab-demo="">
+              {lab.bare ? (
                 <Experiment slug={slug} />
-              </Demo>
-            )}
+              ) : (
+                <Demo className={cn("my-0", lab.flush && "p-0")}>
+                  <Experiment slug={slug} />
+                </Demo>
+              )}
+            </div>
 
             {/* the hint says what to do with the demo and the links say where it
                 came from, so the two share one row from opposite ends. `ml-auto`
