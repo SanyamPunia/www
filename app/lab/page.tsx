@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { LabIndex } from "@/components/lab/lab-index";
+import { LabPreview } from "@/components/lab/lab-preview";
 import { BackLink } from "@/components/ui/back-link";
 import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
+import { labPreviewSlugs } from "@/lib/lab-previews";
 import { labsRegistry } from "@/lib/labs";
 import { collectionSchema } from "@/lib/schema";
 
@@ -51,8 +53,13 @@ export default function LabPage() {
             </div>
           </RevealItem>
 
+          {/* `LabPreview` passes the list straight through, the same way
+              `Reveal` does, so `LabIndex` stays a server component and no row
+              data crosses to the browser beyond the slug it hit tests with. */}
           <RevealItem>
-            <LabIndex labs={labs} markNewest />
+            <LabPreview previews={labPreviewSlugs()}>
+              <LabIndex labs={labs} markNewest />
+            </LabPreview>
           </RevealItem>
         </Reveal>
       </PageShell>

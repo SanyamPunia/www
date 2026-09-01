@@ -9,6 +9,11 @@ import { formatLabDate, type LabMetadata } from "@/lib/labs";
  * every one of those was a still of the dark build, so they were both wrong on
  * a white page and wrong about what the components now look like. The detail
  * page renders the live thing, which is a better preview than any image.
+ *
+ * The moving preview came back as something beside the row rather than inside
+ * it: `data-lab-slug` is what `LabPreview` hit tests against, and
+ * `data-active` is what it marks the row it is reading with. Both are inert
+ * anywhere the list renders without that wrapper, which is `MoreLabs`.
  */
 export function LabIndex({
   labs,
@@ -24,7 +29,8 @@ export function LabIndex({
         <li key={lab.slug}>
           <Link
             href={`/lab/${lab.slug}`}
-            className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
+            data-lab-slug={lab.slug}
+            className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill data-[active=true]:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
           >
             {/*
               First child, so the badge joins the link's accessible name and a
@@ -47,7 +53,7 @@ export function LabIndex({
 
             <span
               aria-hidden="true"
-              className="h-px min-w-4 flex-1 bg-stroke-soft transition-colors duration-200 group-hover:bg-stroke"
+              className="h-px min-w-4 flex-1 bg-stroke-soft transition-colors duration-200 group-hover:bg-stroke group-data-[active=true]:bg-stroke"
             />
 
             <time
