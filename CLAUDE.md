@@ -943,18 +943,19 @@ experiment is a directory under `components/labs/`.
   which removes the frame: a demo that redefines the cursor needs the hairline to
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
-  `stamp-collection`, `book-opening`, `folder-stack`, `window-shade` and
-  `rain-splatter` use it.
+  `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
+  `rain-splatter` and `sticker-peel` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Seven experiments define their own hues**, `tab-overview` per terminal
+- **Eight experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
-  `stamp-collection` per print, `folder-stack` per record, `window-shade` for
-  the sky outside it and `rain-splatter` for the ink it throws. Four of them are the
+  `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
+  sticker, `window-shade` for the sky outside it and `rain-splatter` for the ink
+  it throws. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1095,7 +1096,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty clips, 884KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-one clips, 931KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -2946,6 +2947,181 @@ panel of numbers under it.
   splats layered over hours, and at any rate a demo can run at, that layering
   never happens.
 
+### `sticker-peel`
+
+Five die-cut stickers loose on a board. Press one and pull, and the paper under
+your hand folds back over the rest of itself so what is on top of the sticker is
+the back of the same sticker. Keep pulling and the last of it lets go, after
+which it follows the hand with the fold trailing behind and lies down flat
+wherever it is dropped. `peel.ts` is the fold, `motifs.tsx` the five stickers,
+`sticker.tsx` one of them, `index.tsx` the board and the frame loop.
+
+- **The fold is a reflection, and a gesture is one direction and one number.**
+  Mirroring the sticker across a crease square to the peeling edge and half the
+  peel in front of it carries that edge exactly onto the hand, which is what a
+  fold is: the paper behind the crease is the same paper, seen from behind,
+  standing in front of the crease. Advance the number and the crease sweeps
+  across on its own. Nothing here interpolates a peel or keyframes one.
+- **One polygon clips both layers, and that is the whole of the drawing.** The
+  face is clipped to the half of the board the sticker still lies on, so the
+  peeled part stops painting where it left. The flap is that same sticker
+  reflected and clipped to that same half, because a reflection carries the
+  peeled half exactly onto it, so clipping the mirrored sticker there gives back
+  its image with nothing left over. Two layers, one clip, and no second clip to
+  keep in step with the first.
+- **Sharing that clip means a flat sticker has to be handed the whole of itself
+  back, and forgetting it is a bug with a very quiet tell.** When the peel closes
+  the flap is hidden and nothing looks wrong, so the polygon was left holding the
+  last crease and the face stayed silently cut along it for the rest of the
+  session. What it looks like is a sticker that keeps a sliver of itself missing
+  where it was dragged from, which reads as a rendering fault rather than as a
+  clip. `UNCUT` is written back on the same frame the fold goes away.
+- **The clip, the shadow and the matrix are three nested groups rather than
+  three attributes on one.** A filter and a clip on one element are applied in an
+  order the engine decides, and the shadow has to be cast by the reflected
+  drawing and then cut at the crease, in that order. Nesting says so.
+- **The peel runs from an edge, never from the point that was pressed.**
+  Anchoring it at the press is the obvious build and it is exact: it reads
+  correctly for a corner and is nonsense for the middle, where the crease is the
+  bisector through the sticker's own centre and half of it folds on the first
+  millimetre, leaving a sliver on the board. An edge is also what actually gives,
+  since a sticker dragged one way lifts from the other. `EDGE` sits a shade
+  outside every silhouette in the set, so a peel of nothing has its crease clear
+  of the paper.
+- **That edge is picked once a gesture and then held, and this is the difference
+  between a sticker and a trick.** Deriving it from the pull every frame is what
+  a first version does, and it is wrong in the way that matters: a sticker
+  carried across the board turns as the hand does, so the lifted corner hops from
+  one side of it to another every time the drag changes direction. A corner that
+  has come up has come up. Verified across two hard turns mid-carry: the crease
+  normal holds at the same three decimal places it was armed with.
+- **It is armed at 5 units of pull rather than at the first pixel.** The edge is
+  the pull's own direction, and at a pixel of drag that direction is whichever
+  way the hand jittered.
+- **One vector is the whole input and it arrives from three directions.** While a
+  sticker is stuck its body cannot move, so the gap between the hand and the
+  press is the whole of the pull. Once it is off the board the body chases the
+  hand, so the same gap becomes the body's own lag. Once it is let go the gap is
+  a value decaying to zero. What reaches the crease is that gap's component along
+  the frozen edge, so a drag that veers off it advances the peel more slowly and
+  one that comes back does not advance it at all.
+- **Which way the peel may move is three lines, because a peel is three
+  situations.** Stuck under a hand it only opens, since adhesive does not
+  re-stick when a hand relaxes. Off the board under a hand the paper is free to
+  relax, so it eases to `CARRY` or to whatever the drag is adding, whichever is
+  more. Let go, it eases shut. Without that floor the carried curl is the lag
+  alone, which goes to nothing every time the hand turns a corner, and a flap
+  that shuts and opens on every turn is the thing a frozen edge was for. Without
+  the relax it stays at whatever pulled it off, which is most of the sticker and
+  hides what is printed on it for the length of the carry.
+- **A travelling sticker wants the distance it still has to cover, and only a
+  stuck one is special.** That one rule covers a carry, a landing and an arrow
+  key without knowing which of the three it is, and it is why holding an arrow
+  down builds a real peel: the target keeps running ahead of the body, so the lag
+  stops being a flick and becomes a pull. Handing the keyboard its own peel
+  instead was the first build and it is two behaviours where there is one.
+- **So placing one is not a drop and then an unfold.** Releasing changes nothing
+  except that the hand stops being written. The body finishes arriving where it
+  was already heading and the flap closes over it on the way, and the two read as
+  one movement because they are one movement.
+- **The pull is eased rather than set, even while the hand is on it, and that is
+  the one place this stops being geometry.** Adhesive gives way, it does not
+  teleport. At 45ms the crease is a frame or two behind a fast drag and exactly on
+  a slow one, and it is also what keeps the moment a sticker comes free from being
+  a jump, since the same value simply stops being the pull and starts being the
+  lag.
+- **The flap's own shadow is tight and faint, and it was neither.** A lifted
+  sticker already carries a shadow, and the flap is part of that silhouette, so a
+  flap given a full drop shadow of its own is shadowed twice and what lands on
+  the face is a dark band along the crease rather than a fold. This is a sheet of
+  vinyl a fraction of a millimetre off the paper under it: a line of contact, not
+  a cast.
+- **The board stays light, which is what makes this one different from its four
+  neighbours.** `document-pocket`, `stamp-collection`, `book-opening` and
+  `folder-stack` all had paper as the object, and paper on a white page is the fog
+  those sections each document. Vinyl is not paper: the face is saturated, the
+  only white on it is the die cut and that carries its own hairline, so the ground
+  can be the quiet `fill` `folder-stack` uses.
+- **The backing is warm rather than white for the same reason, and it is one
+  material for all five.** A flap spends half its life overhanging onto the board,
+  where a paper-white one is invisible, and the darkest fill token is
+  `stroke-strong` at 86% lightness so there is no light answer to reach for. It
+  sits at 1.31:1 on the board, inside the 1.20 to 1.62 band `folder-stack`'s
+  papers hold, and like those it carries a full hairline, so the drawing separates
+  it and the tone does not have to. Making it the same for every sticker is what
+  lets a flap read as the back of a sticker rather than as another face, and the
+  print bleeding through at 14% is the only thing on it that says which one.
+- **Every sticker carries its own hue, which is the exception five other
+  experiments already take**, since five shapes built from the same few parts
+  need colour to tell them apart. Three values each: the vinyl, the lit end of
+  its gloss and the cut edge, plus whatever is printed on it. Measured: a print
+  clears 3.7 to 6.9 on its own face, which is the floor a meaningful graphic
+  needs, and a cut edge clears 3.4 to 8.5 on the white die cut it draws round.
+  The amber is the one that had to be deepened, since a bright yellow face is
+  1.8:1 on the board and its edge was doing all the work.
+- **The board carries a printed dot grid, which is texture rather than
+  information.** What it buys is that every white edge on a sticker reads by
+  interrupting it rather than by its own tone.
+- **The face is the die cut scaled about its own middle, not a second path.**
+  That is exact for shapes centred on their own centre, which every one of these
+  is, so adding a sticker is one path rather than two that have to agree.
+- **The hit region is the die cut and not the box round it.** The button is
+  `pointer-events-none` with the cut path turned back on, the call `folder-stack`
+  documents. A hexagon's bounding box claims a quarter of its own area in corners
+  the shape does not have, and with five stickers loose on one board those corners
+  decide which one a press reaches.
+- **A press focuses the button on its own, and calling `focus()` from the
+  handler paints the focus ring on every click.** A browser focuses the nearest
+  focusable ancestor of whatever was hit, and the die cut has none of its own, so
+  the explicit call was never doing anything but confusing the engine's
+  focus-visible heuristic, which judges script focus rather than the press that
+  led to it. Measured: with the call gone the button is still `document.activeElement`
+  after a press and no longer matches `:focus-visible`, and a Tab still rings it.
+- **Only the lifted sticker carries a shadow**, which is `folder-stack`'s claim
+  arriving at a different object: a sticker stuck flat to a board is flush with
+  it, so at rest the pile is line art. It outlasts the release by the length of
+  the landing, since a shadow that goes out while the sticker is still travelling
+  says it has arrived before it has.
+- **The board keeps the pointer.** One `setPointerCapture` on the board at the
+  press, so a hand that runs off the sticker, or off the frame, is still the hand
+  carrying it, and the board is where the move and the release are heard.
+- **The mark a sticker was peeled from sits under every sticker, so the peel is
+  what uncovers it.** That is the whole reason it is a clean patch rather than a
+  label: at rest it is hidden by the sticker that made it, and what opens it is
+  the front face being clipped away. A dashed hairline, the same thing
+  `portrait.tsx` draws for the same claim, and it keeps its last position rather
+  than following, so a sticker put down elsewhere fades its old place out where it
+  stood.
+- **One rect read a frame, at the top, before anything is written.** The board
+  scrolls with the page while a drag is running, so the offset cannot be measured
+  once at the press the way `event-stacking` measures its grid, and reading it
+  after the frame's writes is what turns a cheap read into a forced reflow.
+- **Nothing renders while a sticker moves.** The pile order is the only state in
+  the file, and it changes once per gesture. Ten attributes are written for the
+  sticker being moved and a single `display` for the four that are not. The loop
+  cancels and reschedules rather than skipping a request while a handle is set,
+  which is `book-opening`'s call and for its reason, and it stops when everything
+  has settled. Measured: 0 frames requested over 1.5s at rest, and 0 again 1.2s
+  after a drop.
+- **A resize rescales the arrangement rather than re-seeding it.** The bodies are
+  kept in board pixels, since that is what every frame reads, and putting five
+  stickers back where they started because a window was dragged wider is the one
+  thing this cannot do.
+- **The scatter is placed by hand.** A generator has to be rejected and re-rolled
+  until nothing overlaps and nothing lines up, which is a designer's eye run in a
+  loop, and the run that survives is then the layout whether it was chosen or not.
+- **Reduced motion keeps the peel and drops the travel.** The peel is direct
+  manipulation and it is the demo, so pulling still folds the sticker. The body
+  arrives instantly instead of chasing, so there is no lag for a carried sticker
+  to curl by and no landing to unfold through. Verified: the flap is drawn while
+  stuck and gone while carried.
+- **`touch-none` on the stickers and `pan-y` on the board.** A drag on a sticker
+  is the sticker's and a thumb anywhere else still scrolls the page, which is the
+  trade `window-shade` documents for its own grip.
+- `cursor-grab`, the fourth place the shared "cursor-pointer on every clickable
+  element" rule is off, after `tether-button`, `event-stacking` and
+  `window-shade`.
+
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
@@ -3678,7 +3854,7 @@ package, no provider component and no per-route call.
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
   `markdown.ts` the markdown variant of every page, `profile.ts` the one block
   of copy in the whole site that no page renders, `lerp.ts` the interpolation
-  two labs drive their own frame loops with, `lab-previews.ts` which
+  three labs drive their own frame loops with, `lab-previews.ts` which
   experiments have a recorded preview, `utils.ts`.
 - `proxy.ts` at the root, the only file there that runs per request. It exists
   for one thing, content negotiation for the markdown variants.
