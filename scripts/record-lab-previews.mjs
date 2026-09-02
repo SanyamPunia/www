@@ -431,6 +431,28 @@ const LABS = {
       await wait(1600);
     },
   },
+
+  "sticker-peel": {
+    focus: [0, 0, 538, 336],
+    // the peel is slow and the carry is quick, which is what the gesture is: a
+    // sticker gives way gradually and then all at once
+    async run({ m }) {
+      await m.move(108, 104, 8);
+      await wait(500);
+      await m.down();
+      await wait(160);
+      await m.move(138, 126, 10);
+      await wait(300);
+      await m.move(172, 152, 10);
+      await wait(360);
+      await m.move(272, 214, 12);
+      await wait(180);
+      await m.move(352, 248, 10);
+      await wait(220);
+      await m.up();
+      await wait(1300);
+    },
+  },
 };
 
 function crop(rect, bounds) {
