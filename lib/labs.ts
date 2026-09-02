@@ -323,6 +323,26 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Press the stage to aim a drop, or tab in and use the arrows.",
     flush: true,
   },
+  {
+    slug: "sticker-peel",
+    title: "Sticker Peel",
+    description: [
+      "Five die-cut stickers loose on a board. Press one and pull, and the paper under your hand folds back over the rest of itself, so what is on top of the sticker is the back of the same sticker. Keep pulling and the last of it lets go, after which it follows the hand with the fold trailing behind it and lies down flat wherever it is dropped.",
+      "Key insight: the fold is a reflection, and a whole gesture is one direction and one number. Mirroring the sticker across a crease square to the peeling edge and half the peel in front of it carries that edge exactly onto the hand, which is what a fold is: the paper behind the crease is the same paper, seen from behind, standing in front of the crease. Advance the number and the crease sweeps across on its own.",
+      "The peeling edge is picked once and then held for the rest of the gesture, which is the difference between a sticker and a trick. Deriving it from the pull every frame is what a first version does, and it is wrong in the way that matters: a sticker carried across the board turns as the hand does, so the lifted corner hops from one side of it to another every time the drag changes direction. A corner that has come up has come up.",
+      "One vector is the whole input and it arrives from three directions. While a sticker is stuck its body cannot move, so the gap between the hand and the press is the whole of the pull. Once it is off the board the body chases the hand, so the same gap is the body's own lag. Once it is let go the gap decays to nothing. What reaches the crease is that gap's component along the frozen edge, so a drag that veers off it advances the peel more slowly and one that comes back does not advance it at all.",
+      "Which way the peel may move is three lines, because a peel is three situations. Stuck under a hand it only opens, since adhesive does not re-stick when a hand relaxes. Off the board under a hand the paper is free to relax, so it eases back to a carried fold or to whatever the drag is adding, whichever is more. Let go, it eases shut. Without that floor the carried curl is the lag alone, which goes to nothing every time the hand turns a corner.",
+      "So placing one is not a drop followed by an unfold. Releasing changes nothing except that the hand stops being written, and the body finishes arriving where it was already heading while the flap closes over it on the way. The two read as one movement because they are one movement.",
+      "One polygon clips both layers, which is the whole of the drawing. The face is clipped to the half of the board the sticker still lies on, so the peeled part stops painting where it left. The flap is the same sticker reflected and clipped to that same half, because a reflection carries the peeled half exactly onto it. Two layers, one clip, and nothing to keep in step with anything.",
+      "The board stays light, which four experiments before this one could not manage. `document-pocket`, `stamp-collection`, `book-opening` and their neighbours all had paper as the object, and paper on a white page is fog. Vinyl is not paper: the face is saturated, the only white on it is the die cut and that carries its own hairline, so the ground can be the quiet grey `folder-stack` uses. The backing is warm rather than white for the same reason, since a flap spends half its life overhanging onto the board.",
+      "The hit region is the die cut and not the box round it. A hexagon's bounding box claims a quarter of its own area in corners the shape does not have, and with five stickers loose on one board those corners are what decides which one a press reaches. A keyboard gets the same peel rather than a second code path: an arrow press takes hold of the leading edge and carries it a step, and the body catching up is the lag the fold is made of.",
+    ],
+    createdAt: "2026-09-02",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/sticker-peel/index.tsx",
+    hint: "Press a sticker and pull to peel it off, then drop it anywhere.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -391,6 +411,7 @@ export const IMPLEMENTED_LABS = [
   "folder-stack",
   "window-shade",
   "rain-splatter",
+  "sticker-peel",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
