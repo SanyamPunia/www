@@ -343,6 +343,23 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Press a sticker and pull to peel it off, then drop it anywhere.",
     flush: true,
   },
+  {
+    slug: "halftone-ripple",
+    title: "Halftone Ripple",
+    description: [
+      "A pill toggle with a count. Press it and a ripple of dots runs out across the button from under the pointer, on a fixed grid, so what spreads is a halftone screen being run rather than a glow.",
+      "Key insight: the ripple is a continuous field read at fixed points, and the grid is the whole of the pixelation. No dot ever moves. Every frame asks each point of the grid how far it is from the crest, and the answer is how big the dot there is, so the wave passes through the grid the way a wave passes through water, which stays where it is. Scaling a drawing of a ring would carry its dots along with it, and dots that travel are a texture sliding, not a print.",
+      "A dot has six sizes, not a continuum. The field under it is smooth, but a dot steps from one size to the next as the crest passes rather than sliding through every size between, so a frozen frame shows rings of dots at one size each and the motion reads as a screen being run. The radius goes with the square root of the field, since what the eye reads off a halftone is the ink's area and area goes with the square of the radius. On a straight line the small end of the field was nearly empty.",
+      "The crest sets out fast and slows as it goes, reaching the pill's far corner in about a second. The band it raises widens as it travels, which is dispersion and is what keeps the late ripple from thinning to a single ring, and the trailing half of the band is longer than the leading half, so a hole opens behind the crest a beat after it passes. The reference showed both: a disc around the press, then a band at the far end with clean paper behind it.",
+      "The ink is the state, not a decoration. A press that turns the button on sends the ripple out in the one hue this experiment owns, and the heart fills and takes the same hue while it is on. A press that turns it off sends the same ripple in the muted text tone, so the colour of the dots says which way the press went. The hue is a hot pink at 3.79:1 on the resting pill and 3.16 on the pressed one, which clears a graphic's floor on every ground the button paints while staying loud enough to be the show, and it lives in the component rather than in the token table.",
+      "A pointer's ripple leaves the point that was pressed, and a keyboard's leaves the heart, since Space has no point to start from and the heart is what the press is about. The rest of the states are the site's own: hover lifts the label a tone as well as the fill, because the fill's own hover step is 1.04:1 and exists in the token table more than on the screen, the press is the darker fill step, instant in and timed out, focus is the shared ring, and nothing scales. The count is corrected rather than swapped, so its digit morphs.",
+      "Nothing renders while a ripple runs. The canvas sits under the label and is clipped by the pill, a press pushes one record into a list, and one frame loop paints the list until it is empty and then stops asking for frames. Measured: 364 dots sampled a frame, no frames requested at rest, 64 for one ripple and none after it, and under a 4x CPU throttle with three ripples in the air at once 72 frames with the longest at 16.8ms.",
+      "Reduced motion keeps the press and drops the travel. The field still appears, as a soft disc around the finger that fades where it is rather than a crest crossing the pill. The toggle, the count and the hue all change as they would have, which is what happened, and the ripple was only how it looked.",
+    ],
+    createdAt: "2026-09-03",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/halftone-ripple/index.tsx",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -412,6 +429,7 @@ export const IMPLEMENTED_LABS = [
   "window-shade",
   "rain-splatter",
   "sticker-peel",
+  "halftone-ripple",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -106,6 +106,12 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "sticker-peel": dynamic(() => import("@/components/labs/sticker-peel"), {
     ssr: false,
   }),
+  "halftone-ripple": dynamic(
+    () => import("@/components/labs/halftone-ripple"),
+    {
+      ssr: false,
+    },
+  ),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
