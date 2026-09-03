@@ -453,6 +453,24 @@ const LABS = {
       await wait(1300);
     },
   },
+  "halftone-ripple": {
+    focus: [169, 59, 200, 125],
+    // hover first, so the label's step shows, then a press at each end of the
+    // pill: one in the hue turning it on, one in grey turning it off, one more
+    // on. Each ripple is a second long and the gesture waits for it.
+    async run({ m }) {
+      await m.move(269, 60, 6);
+      await wait(300);
+      await m.move(269, 121, 8);
+      await wait(600);
+      await m.click(252, 121);
+      await wait(1250);
+      await m.click(300, 124);
+      await wait(1250);
+      await m.click(240, 118);
+      await wait(1400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
