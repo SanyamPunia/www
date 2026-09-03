@@ -346,9 +346,11 @@ glyph could not serve.
 - Sizing is `size-*`, never the `size` prop, so the Tailwind scale stays the one
   source of truth. Inline-in-text icons use `size-[0.9em]` so they track the
   copy they sit in.
-- Weight stays at the `regular` default. Do not pass `weight` per call site. The
-  one exception is the signature player's transport, where the glyphs are player
-  symbols rather than UI icons and take `fill`.
+- Weight stays at the `regular` default. Do not pass `weight` per call site. Two
+  exceptions: the signature player's transport, where the glyphs are player
+  symbols rather than UI icons and take `fill`, and `halftone-ripple`'s heart,
+  where a filled heart is what a like button's on state has always looked like
+  and the fill is the state rather than a style.
 
 ## Inline links
 
@@ -951,11 +953,11 @@ experiment is a directory under `components/labs/`.
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Eight experiments define their own hues**, `tab-overview` per terminal
+- **Nine experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
-  sticker, `window-shade` for the sky outside it and `rain-splatter` for the ink
-  it throws. Five of them are the
+  sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
+  it throws and `halftone-ripple` for a press that turns its button on. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -964,7 +966,10 @@ experiment is a directory under `components/labs/`.
   `window-shade`'s claim is the same shape as `stamp-collection`'s: daylight is
   the thing its shade is for, so the blue is the subject rather than a tint on
   one. `rain-splatter`'s is the strongest of the three, since the piece is a
-  painting and its six inks are what it is made of.
+  painting and its six inks are what it is made of. `halftone-ripple`'s is the
+  narrowest in the lab: one value, and it is a state rather than a subject,
+  since the same ripple goes out in `text-muted` when a press turns the button
+  off. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1096,7 +1101,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-one clips, 931KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-two clips, 840KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -3121,6 +3126,108 @@ wherever it is dropped. `peel.ts` is the fold, `motifs.tsx` the five stickers,
 - `cursor-grab`, the fourth place the shared "cursor-pointer on every clickable
   element" rule is off, after `tether-button`, `event-stacking` and
   `window-shade`.
+
+### `halftone-ripple`
+
+A pill toggle with a heart and a count. Pressing it sends a ripple of dots out
+across the button from under the pointer, on a fixed grid. `ripple.ts` is the
+field and the painter, pure maths on a 2D context, and `index.tsx` is the
+button, the canvas and the frame loop.
+
+- **The ripple is a field sampled on a grid, and no dot ever moves.** Every
+  frame asks each grid point how far it is from each crest, and the answer is
+  the size of the dot there. The grid is the whole of the pixelation: a wave
+  passing through points that stay put is what a halftone screen being run looks
+  like, where scaling a drawing of a ring carries its dots along and reads as a
+  texture sliding.
+- **A dot has six sizes.** The field is continuous and the dot steps through
+  `LEVELS` rather than sliding, so a frozen frame shows rings of dots at one size
+  each and the motion reads as a print rather than a blur. **The radius goes with
+  the square root of the field**, since the eye reads a halftone's ink area and
+  area goes with the square of the radius. On a straight line the small end of
+  the field was nearly empty.
+- **The crest sets out fast and slows, the band widens as it goes, and the tail
+  is longer than the front.** `crest` is `1 - (1 - p)^2` over `LIFE`, so the far
+  corner is reached in about a second. `BAND` runs 18 to 44px, which is
+  dispersion and is what keeps the late ripple from thinning to one ring of
+  dots. `TAIL` stretches the trailing half by 1.7, so a hole opens behind the
+  crest a beat after it passes, which is the reference's second frame: a band at
+  the far end with clean paper behind it.
+- **Ripples add and a dot takes the ink of whichever lifts it most.** Two
+  crests crossing lift a dot further, capped at one, so a flurry of presses
+  reads as interference rather than as the last press replacing the rest.
+- **The ink is the state.** `INK` is the one hue this experiment owns, and it
+  paints the ripple of a press that turns the button on and the heart while it
+  is on. A press that turns it off sends the same ripple in `text-muted`, so the
+  dots say which way the press went. A hot pink rather than a muted crimson,
+  which is where it started: the ripple is the whole show, and at 4.68:1 the
+  quieter ink read as a stain. 3.79:1 on the resting pill and 3.16 on
+  `fill-active`, a graphic's floor on every ground the button paints.
+  - **The off ink is read off the token at mount**, through `getComputedStyle`
+    on the root, since a canvas fill cannot take a `var()`. Same reason the
+    signature player's nib halo goes through `style`.
+  - **The heart's hue is inline `style`**, since it is not a token and no class
+    can name it. Off, the span inherits the button's tone and steps with it.
+  - **The heart fills while it is on, as a second glyph fading in over the
+    outline** rather than a weight swap on one, so the fill arrives on the same
+    200ms as the hue and the outline stays under it as the edge. This is the
+    second place the codebase passes an icon `weight`, after the signature
+    player's transport, and the Icons section names both.
+- **The dots are at 0.82, not solid.** Full ink under the digits made the count
+  hard to read for the frame or two the crest sat on it, and a print on grey
+  paper sits a little into the paper anyway.
+- **The canvas sits under the label, and tree order is what stacks them.** Both
+  are positioned, so the later one paints on top, and the dots pass beneath the
+  digits the way a print sits under type. `overflow-hidden` on the pill clips
+  the grid to it, `isolate` keeps the canvas's stacking inside the button, and
+  the focus ring survives the clip because a ring is a box-shadow.
+- **The canvas is sized off the button's own rect, never the observer's
+  `contentRect`.** That is the content box and leaves the padding out, where the
+  canvas covers the whole pill. The pill has no border, so its box is the padding
+  box. The device pixel ratio is capped at 2 and goes back on as the transform
+  after every resize, since setting a canvas's size resets it.
+- **A pointer's ripple leaves the point that was pressed and a keyboard's
+  leaves the heart.** `detail === 0` is what tells them apart, the call
+  `tether-button` and `book-opening` make. Space has no point to start from and
+  the heart is what the press is about.
+- **It fires on `click`, not on `pointerdown`.** The state changes on the
+  click, and the ripple's ink reports which way it went, so the two have to
+  happen in the same moment. A ripple on the press would have to guess.
+- **Hover lifts the label a tone as well as the fill.** `bg-fill` to
+  `bg-fill-hover` is 1.04:1, a step that exists in the token table more than on
+  the screen, so the label goes `text-secondary` to `text-primary` with it,
+  `rain-splatter`'s call for its quiet pills. On, the label holds the primary
+  tone through `aria-pressed:` whatever the pointer does.
+- **The press is the darker fill step, instant in and timed out.**
+  `active:bg-fill-active` with `active:duration-0`, `tether-button`'s asymmetry:
+  at 200ms both ways a quick click never reaches its own colour. Nothing scales,
+  per the site's own override.
+- **The tooltip names what a press will do**, "Like this" or "Remove like",
+  since the label is the value and not the action, the signature player's rate
+  pill argument. Radix closes it on click, so the changed copy is seen on the
+  next hover, which `heading-anchor` documents.
+- **The count morphs through `torph`** at `book-opening`'s numbers, 200ms on
+  the pill's own ease. What a press does to a count is correct it. An `sr-only`
+  "likes" after the digits gives the button the name "127 likes", and
+  `aria-pressed` carries the state.
+- **Nothing renders while a ripple runs.** A press pushes one record into a
+  ref, and one frame loop paints the list until it is empty and then stops
+  asking for frames. Measured: 364 dots sampled a frame, 0 frames requested at
+  rest, 64 for one ripple and 0 after it, and under a 4x CPU throttle with three
+  ripples in the air at once 72 frames with the longest at 16.8ms.
+- **Reduced motion keeps the press and drops the travel.** The field appears as
+  a soft disc around the finger, `radius` 0 with a band of 0.42 of the reach,
+  and fades over `STILL_LIFE` where it is. Read with `useReducedMotion` into a
+  ref, since the loop reads it outside render and `MotionProvider` governs
+  motion components and never a canvas.
+- **`select-none` on the button.** A flurry of presses on a control anchors a
+  selection on the nearest text otherwise, the portrait's problem at a smaller
+  scale.
+- **Biome rejects `aria-hidden` on a canvas**, counting it focusable, and the
+  attribute was not doing anything: an empty canvas contributes nothing to the
+  button's name. `rain-splatter`'s canvases carry none either.
+- Not `flush`: it is a component sitting on a surface, the same stage
+  `cursor-origin-button` and `tether-button` use.
 
 ## Motion
 
