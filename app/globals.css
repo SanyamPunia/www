@@ -92,6 +92,20 @@
   --breakpoint-rail: 68rem;
 
   /*
+   * The one shadow on the site, for a stage a reader pokes.
+   *
+   * Three layers, each faint on its own: a contact line, a short cast for
+   * form, and a wide ambient one for lift. A single shadow dark enough to read
+   * at this size looks like a drop shadow rather than like light, which is the
+   * argument `document-pocket` makes for its own three. Black at alpha rather
+   * than a token, since a shadow is the ground darkened and not a colour.
+   * Nothing else may reach for it: a card is still not a thing on this site.
+   */
+  --shadow-stage:
+    0 1px 2px rgb(0 0 0 / 0.03), 0 3px 8px -3px rgb(0 0 0 / 0.05),
+    0 18px 32px -20px rgb(0 0 0 / 0.1);
+
+  /*
    * The whole design sits at 0.8 of a conventional scale. That factor is baked
    * into the tokens below rather than applied once at the root, so every value
    * here is the size it actually paints. Tailwind derives every `gap-*`,
