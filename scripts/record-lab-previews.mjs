@@ -471,6 +471,23 @@ const LABS = {
       await wait(1400);
     },
   },
+  "notch-drop": {
+    focus: [0, 0, 538, 307],
+    // lift the first card, wander so the notch is seen opening, then carry it
+    // up to the notch, hold there so the shrink and the plus show, and let go
+    async run({ m }) {
+      await m.move(180, 100, 6);
+      await wait(300);
+      await m.down();
+      await wait(120);
+      await m.move(230, 150, 10);
+      await wait(500);
+      await m.move(269, 40, 14);
+      await wait(700);
+      await m.up();
+      await wait(1600);
+    },
+  },
 };
 
 function crop(rect, bounds) {

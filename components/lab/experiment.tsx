@@ -112,6 +112,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
       ssr: false,
     },
   ),
+  "notch-drop": dynamic(() => import("@/components/labs/notch-drop"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

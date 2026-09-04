@@ -360,6 +360,21 @@ export const labsRegistry: LabMetadata[] = [
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/halftone-ripple/index.tsx",
   },
+  {
+    slug: "notch-drop",
+    title: "Notch Drop",
+    description: [
+      "A notch hanging from the top edge of a page, and a page of things to carry to it. Lift one and the notch opens and asks for it. Hold it over the notch and the notch asks louder while the thing in your hand shrinks to fit. Let go and it is swallowed, a black drop leaving the card and merging into the notch, which says so and then closes back to its resting word.",
+      "Key insight: the notch is a liquid, and a liquid is two shapes under one filter. A blur wide enough to bleed the shapes into each other, then an alpha threshold hard enough to cut the bleed back to an edge, and any two black shapes that come within a few pixels grow a neck between them. The notch's body and the drop that leaves a card sit under that filter. Nothing with an edge worth keeping does, so the label is a separate layer over it.",
+      "The opening is a spring that overshoots, and the overshoot is the point. A box that resizes on an ease reads as a box resizing. A box that goes past its size and comes back reads as something soft giving way, which is what a notch that wants your card should look like. The thing in your hand is on a tighter spring, since a thing in a hand should feel held, and it shrinks to about half over the notch so the notch reads as the bigger mouth.",
+      "The drop is tested against the notch's box with some reach past its edge, and the hand's release is heard on the stage rather than on the card, with the pointer captured at the lift, so a hand that runs off the card or off the notch is still the hand carrying it. Escape and a lost window put the card back. A focused card and Enter go straight into the notch, on the same path, so the keyboard sees the same capture the pointer does.",
+    ],
+    createdAt: "2026-09-04",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/notch-drop/index.tsx",
+    hint: "Drag a card up to the notch, or focus one and press Enter.",
+    flush: true,
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -430,6 +445,7 @@ export const IMPLEMENTED_LABS = [
   "rain-splatter",
   "sticker-peel",
   "halftone-ripple",
+  "notch-drop",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
