@@ -30,7 +30,7 @@ import { paint, type Ripple } from "./ripple";
  * the button paints. Scoped to this experiment, not a token, and nothing else
  * may reach for it.
  */
-const INK = "#f01d5d";
+export const INK = "#f01d5d";
 
 /** the count before anyone has pressed */
 const BASE = 127;
