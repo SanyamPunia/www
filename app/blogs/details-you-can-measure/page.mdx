@@ -1,0 +1,226 @@
+import { PressDemo, TapDemo } from "./press";
+import { SpringDemo, FirstFramesDemo } from "./springs";
+import { HoverDemo, EventsDemo } from "./pointer";
+import { RenderDemo } from "./render";
+import { ReducedMotionDemo } from "./motion";
+import { ContrastDemo } from "./contrast";
+import { DigitsDemo, WrapDemo, DotsDemo, LowercaseDemo } from "./type";
+
+Every interface I ship has a file next to it that says why. Why the press is a
+colour and not a scale, why a heart is this pink. Nearly every entry ends the
+same way. Somebody measured.
+
+Jakub Krehel wrote a good list of
+[details that make interfaces feel better](https://jakub.kr/writing/details-that-make-interfaces-feel-better).
+Mine is the list I keep relearning, with the number that settled each one and a
+demo to push on.
+
+## a press is a colour, not a size
+
+Most advice says a button should shrink 2% when pressed. A pill here is 35px
+tall, so each edge moves 0.35px. Too little to read as motion, enough to change
+the antialiasing. The label smears.
+
+Layer promotion did not help, since an inline button sits wherever text puts it
+and the shift is sub-pixel by definition. So the press is a fill step, and
+nothing moves.
+
+<PressDemo />
+
+## instant in, timed out
+
+A click is press and release inside about 90ms. A 200ms transition is under
+half way there when the finger leaves, so the press never reaches its colour.
+The step in has to be instant.
+
+The asymmetry runs everywhere a surface answers a hand. My icon morphing manual
+gives tall rows no hover fade at all, and my component library runs every exit
+shorter than its entrance.
+
+<TapDemo />
+
+## a spring does not know how far it is going
+
+A spring's clock is its stiffness and damping. Distance is not in the equation.
+That is the appeal for a card thrown across a calendar, and a trap for the same
+spring moving 7px, which took 181ms.
+
+Every move the drag is not holding now gets a stiffer spring that lands in
+about 96ms. My component library goes further and picks the spring by travel,
+under 20px, 20 to 200, and over.
+
+<SpringDemo />
+
+## lag lives in the first two frames
+
+A hover lift felt slow and I fixed it four times. Its own curve, a transform,
+a memoised drawing, a value driven from the handler. Settle time went 235, 141,
+141, 91ms, and two of the fixes did not move it.
+
+The complaint was the shape. A spring spends most of its time on the last
+pixel. A sharp ease-out covers 5.7px in the first 29ms where the spring covered
+5px in 103ms. The hand feels the first two frames.
+
+The chess bot has an answer in 4ms and waits 1200ms. A reply that fast reads as
+a glitch.
+
+<FirstFramesDemo />
+
+## hit test the thing that does not move
+
+A card that lifts on hover lifts away from the pointer. The hover ends, the
+card comes back, the hover begins again. The browser is right about every
+event and wrong about the hand, which has not moved.
+
+The document pocket lab tried two DOM versions before testing its own geometry
+with nothing hovered. The cheaper form is a region that only grows, so a lifted
+card still covers what it covered.
+
+<HoverDemo />
+
+## nothing renders per frame
+
+A drag fires an event every frame. Through React state, each one is a render.
+The signature player writes six values to the DOM per frame and renders
+nothing.
+
+Where React has to know, quantise into steps and guard the setter, so a hold to
+confirm renders 20 times rather than 108.
+
+```ts
+// 20 renders across 1800ms, not one per frame
+const STEPS = 20;
+
+function onFrame(progress: number) {
+  const step = Math.round(progress * STEPS);
+  setStep((prev) => (prev === step ? prev : step));
+}
+```
+
+The knobs below end their drag on the window, which is the pen game's rule.
+Only `pointerdown` sits on the knob. A move with no button held counts as the
+release that never arrived.
+
+<RenderDemo />
+
+## the tap, the click and the key
+
+A mouse click is `pointerdown`, `pointerup`, then `click` with `detail` 1. A
+finger is the same three inside 60ms, or `pointercancel` if it drifts into a
+scroll. A key sends `click` alone, with `detail` 0.
+
+So a tap is heard on `pointerup` and a key on `click` with `detail === 0`. A
+touch `pointerleave` is a lift, not a departure. And `(hover: hover)` is true
+for a laptop's finger, so read `pointerType` off the event.
+
+<EventsDemo />
+
+## reduced motion is about what nobody asked for
+
+The line I use is whether anyone asked. A loop nobody started, an autoplay on
+arrival and a hover lift all go. A press is a request, so the panel still
+arrives. What it loses is the trip.
+
+Two traps. An idle animation should assume the setting is on until the media
+query says otherwise. And a scroll call that says `behavior: "smooth"`
+overrides the query, so leave the behaviour off.
+
+<ReducedMotionDemo />
+
+## contrast is a floor you compute
+
+Every hue here has a number. The danger red is 4.91:1 and its first pick
+failed at 4.31. The like button's pink is 3.79:1 at rest and 3.16 pressed. iOS
+pink and rose-500 both drop under 3:1 during the press.
+
+Text clears at 4.5:1 and a graphic at 3:1, on every ground the control paints,
+or the colour is legal for all but the 150ms it is in use.
+
+Between subtle and legible, legible wins. A hairline at 7 percent reads as
+refined in a mockup and as broken on a screen.
+
+<ContrastDemo />
+
+## digits that hold still
+
+A 1 is narrower than an 8, so a number that updates reflows everything after
+it. `tabular-nums` gives every digit one width. Inter's tabular digits change
+shape a little, which is the price.
+
+The related trap is a pill whose label changes. `width: auto` does not
+transition, so the book opening lab morphs its label through `torph`, which
+sets the box to the target width so CSS can move it.
+
+<DigitsDemo />
+
+## lines that wrap on purpose
+
+`text-wrap: balance` evens out a title's lines and `text-wrap: pretty` stops a
+paragraph ending on a lone word. Every paragraph and title here carries one,
+and Jakub has this one too.
+
+My addition is a number. Below `sm` the body leading goes from 1.6 to 1.85,
+since a narrow column puts a favicon pill on nearly every line and 1.44px
+between two reads as touching.
+
+<WrapDemo />
+
+## a dot is an element, not a character
+
+The middot is a glyph. It takes the font's weight and sits where the font puts
+it, heavy at meta size and a speck at lead size. A `size-1` element in a flex
+row is 4px at every size and sits where the row centres it.
+
+Arrows, checks and chevrons come from the icon set for the same reason. The one
+exception is a native `<option>`, which cannot hold an element.
+
+<DotsDemo />
+
+## lowercase is the stylesheet's job
+
+Everything here is lowercase and none of the copy is. One `text-transform` on
+`body` does it, and the markup keeps its casing, so a screen reader hears the
+sentence and what you copy is what was written.
+
+Two traps. Form controls do not inherit `text-transform`, and Tailwind's
+preflight does not carry it, so buttons need it spelled out. And a room code is
+data, so it stays uppercase because it is typed back.
+
+<LowercaseDemo />
+
+## the ones with no demo
+
+- Outer radius equals inner radius plus the padding between them. Derived,
+  never guessed.
+- Skeleton heights are measured. Every guessed one in a docs site was wrong,
+  a 36px row against a real 49.
+- A scroll lock moves the page by the scrollbar's width. `scrollbar-gutter:
+  stable` plus cancelling the lock's margin takes 5px to 0.
+- Collapse a panel with `grid-template-rows` and write `minmax(0, 0fr)`. A
+  bare `0fr` keeps the content's height as its floor.
+- `sr-only` is absolutely positioned, so its row needs `position: relative`.
+  One version hung 67px below the fold.
+- Tailwind's `scale-*` sets the standalone `scale` property, so a transition on
+  `transform` never touches it.
+- `animate-[…]` compiles to the shorthand, which resets `animation-play-state`.
+  Write the longhands.
+- tailwind-merge reads `text-*` by value, so a named size lands in the colour
+  group and loses. Declare the group once.
+- Never render a relative time on the server. One page served `age: 29129`
+  while saying "4 minutes ago".
+- Node count is the cost. 100,000 nodes land at 647ms or worse. Mounting 36
+  lands at 9.5ms.
+- A probe that cannot answer counts as yes. The real operation reports its own
+  refusal.
+- A placeholder renders at the browser's base size. A `text-sm` input needs
+  `placeholder:text-sm`.
+- Build the audio context on the press and play on the release. A suspended
+  clock queues sounds and fires them together.
+- Write a lerp as `a * (1 - t) + b * t`. The other form is not exact at both
+  ends.
+
+## what they have in common
+
+A 0.35px edge, a 90ms tap, 181ms for 7px, 3.16:1 on the pressed fill. Every
+one was decided by a number the eye could not see. When something feels wrong
+now, I find the number first and argue with that.
