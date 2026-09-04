@@ -138,6 +138,10 @@ in the light tokens to sit it against.
   inside 5% of each other. **Only the boards invert here and the stage stays
   light**, which is the narrowest use of the set: it is one object on the page,
   not the ground under it.
+- `components/labs/notch-drop/` is a notch, which is black because the thing
+  it stands in for is a piece of hardware, and it is the only dark object on
+  its stage. The page under it stays light. Same shape as `book-opening`'s
+  boards: one object opts in, not the ground.
 - `components/labs/window-shade/` is the one caller that does not pick an end.
   **It reads both sets at once and asks for the point between them**, since the
   whole experiment is a cabin crossing from lit to dark on the position of a
@@ -151,6 +155,10 @@ The values are the previous dark build's, so the two versions of the site stay
 recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 `inverse-text-secondary` is 6.12:1. Check any new pairing: `#6f6f6f` was the
 first choice for the secondary tone and fails at 3.94.
+
+**`--shadow-stage` is the one shadow token**, declared beside the colours in
+`@theme` for the demo stage in `app/blogs/details-you-can-measure/`. See that
+post's section. Nothing else casts a shadow.
 
 **Shading a dark surface is light, not palette.** Nothing in the set is a lit
 edge or a sheen, and neither wants a token: they are the same material catching
@@ -682,6 +690,157 @@ same move in both, says which one let them, and is told what the difference was.
   `th` and `td` in `mdx-components.tsx`, which is worth doing deliberately rather
   than smuggling in behind one table.
 
+### `details-you-can-measure`
+
+Thirteen demos and a list, one per lesson, each with the number that settled
+it. The post is this site's notes and the other projects' notes read back, with
+Jakub Krehel's list of interface details as the prompt. `frame.tsx` holds the
+parts every demo is built from and the demos are colocated, one file per
+section or pair.
+
+- **A demo mounts as `<Name />` alone on a line, with every knob inside the
+  component.** `lib/markdown.ts` only recognises that shape, so a prop on the
+  mount line would leak into the markdown variant as a stray tag. Verified on
+  `/blogs/details-you-can-measure.md`: thirteen notes, no stray tags.
+- **`Frame` is a stage.** The `Demo` frame's hairline box, white, in three
+  fixed rows: the gesture in two to four words in the top left corner, the
+  subject centred, the demo's controls bottom right. Every stage puts its
+  subject in the same place, so the stages line up down the post.
+  - **No task sentence, no caption, no material.** Earlier versions carried a
+    sentence above the box and a paragraph under it, then header and footer
+    bands, which read as a card with a form in it, then a dot grid borrowed
+    from `sticker-peel`, which read as chrome. The prose makes the argument.
+    The stage shows the thing and reports the number.
+  - **The subject area is a flex column**, so a lane that wants the stage's
+    width gets it and a pair of pills still centres. As a centring row the
+    spring lane collapsed to nothing.
+  - **The stage is lifted by `shadow-stage`, the one shadow token on the
+    site.** Three faint layers in `globals.css`, a contact line, a short cast
+    and a wide ambient, since one shadow dark enough to read at this size
+    looks like a drop shadow rather than like light. The ring stays: a shadow
+    this faint draws no edge on white and the top of a lifted box has none.
+    Nothing else may reach for the token.
+  - **Every discrete text change on a stage morphs through `torph`**, on the
+    book opening lab's 200ms and ease: the mode switches, the two toggle pills,
+    the pass and fail words, and any `Readout` handed a string. A `Readout`
+    handed a node does not morph, which is how the contrast ratio and the
+    per-frame counters opt out. Morphing a value that ticks every frame is a
+    smear.
+  - **The stage is `select-none`.** Every gesture on it is a press or a drag
+    across type, and a drag that misses paints a selection and two carets
+    over the demo. The lowercase demo used to ask the reader to select and
+    copy a label, which that forbids, so a control copies the node's text for
+    them and a readout shows what the clipboard got.
+  - It moves to `components/blogs/` the day a second post wants it.
+- **Every stage reports bottom left and is driven bottom right.** `Frame`
+  takes `readouts` and `controls`, and every demo puts its numbers in the one
+  and its buttons in the other, so the eye learns the two places once.
+- **The thirteen demos, and what each one had to become.** The first build of
+  every one was the subject and a number. Each now shows the mechanism.
+  - **Press and hold** carries a loupe under each pill: the label rasterised
+    once at device resolution, drawn again through a 0.98 transform with
+    smoothing on, which is what a compositor does to a scaled layer, then a
+    16 by 9px window round the first glyph blown up twelve times with smoothing
+    off. The fill side draws the label crisp on the darker ground. A `press
+    both` control holds the press for a reader with no mouse.
+  - **Tap fast** traces each pill's colour per frame through a 90ms press and
+    the 480ms after it, as a line under the pill, with the release marked. The
+    timed step reads about 65% at release, the instant one 100%.
+  - **Press move** traces both knobs on one time axis as a share of their own
+    distance. On one spring the two curves lie on each other, which is the
+    claim. `by distance` hands the 8px move the stiffer spring and its curve
+    lands early. `SNAPPY` and `TRAVEL` are event-stacking's two springs.
+  - **Hover** stamps a rail beside each card with the card's position on every
+    frame of the lift. The spring's stamps bunch at the start and the
+    ease-out's spread there. `lift both` holds a lift for touch.
+  - **Park on a bottom edge** hit tests both rows itself, against each box's
+    current rect on every pointer move, which is what `:hover` does, so one
+    mechanism serves the real hand and the drawn one. `park a hand` puts a
+    cursor icon on each first card's bottom edge with a pixel of jitter for
+    three seconds. Measured: 58 hovers on the moving box against 1 on the
+    still one. The hit boxes carry a dashed outline so the reader sees which
+    one moves.
+  - **Drag** fills each lane behind its knob and counts renders through
+    `useTextMorph`, morphing every fifth render and once more at the drag's
+    end, since a morph per frame is a smear. The drag ends on the window, on
+    nib's rules.
+  - **Click, tab, tap** shows the three sequences as ghost rows at rest, and
+    the first real event replaces them. The grey slab is gone.
+  - **Switch the setting** is one sync notice: its icon loops, its bar fills
+    itself on arrival and the notice slides in when asked for. Reduced motion
+    stops the first two and keeps the third without its trip. The readouts say
+    the three durations under each setting.
+  - **Drag the swatch** makes the swatch the control, `role="slider"` with
+    pointer capture, up and down for lightness and left and right for hue, the
+    arrow keys doing the same. The ratio is a needle on a 1 to 8 scale with the
+    3.0 and 4.5 floors marked, the text floor labelled above the axis and the
+    graphic floor below, since one row of labels collides at the column's
+    width. A failed floor's label takes `danger`.
+  - **Run** puts a hairline after each number, which jumps with proportional
+    digits and holds with tabular ones, and reads the widths of a 1 and an 8
+    off hidden spans in the pill's own type: 6.7px and 9.3px against 9.1px for
+    both tabular.
+  - **Drag an edge** makes the column's dashed edges the handles, each a
+    `role="slider"` with arrow keys, narrowing about the centre. The last word
+    is marked with a dotted `danger` underline whenever its rect's top differs
+    from the word before it, which is a lone last line measured rather than
+    guessed.
+  - **Hover a row** draws the row's baseline off a zero-width inline-block
+    probe, and marks each separator's centre. The middot's centre is measured
+    off its ink, drawn to a canvas at the row's font and scanned, since a
+    span's rect is the line box and says nothing about where the glyph sits.
+    Measured at body size: the middot's ink sits 3.8px above the baseline and
+    the element 5.5px, where the line box put both at 5.5. `show guides` pins
+    them for touch.
+  - **Copy** is unchanged: a control copies the node's text and a readout shows
+    what the clipboard got.
+- **A readout that changes on hover holds a fixed width, and this was a bug
+  of the post's own fifth kind.** The dots demo's readouts arrived on hover and
+  wrapped the bottom row to a second line. The taller row shrank the centred
+  middle row, the hovered row shifted up out from under a pointer that had not
+  moved, the hover ended, the readouts emptied, and the row came back under it.
+  Instrumented: `enter 1, leave 1` alternating on every pointer step, with the
+  guides never on screen for a whole frame. The hover, park and dots demos give
+  their readouts `w-28` to `w-48`, so their arrival cannot reflow the stage.
+- **Measured on the dots stage at body size**: the middot's ink centre sits
+  3.8px above the baseline and the element's 5.5px, where reading the span's
+  line box had put both at 5.5. At lead size the middot is 4.3px up and 4.6px
+  wide against the element's 5.4 and 3.2.
+- **`Cycle` is the site's mode selector**, the value as the label and two
+  arrows saying a press swaps it, `book-opening`'s call.
+- **An empty readout is a `MinusIcon`, never a dash.** The first pass used an
+  em dash as the placeholder, which is the glyph the frontend rules ban.
+- **The lowercase demo's cased pill is an inline style, not a utility.**
+  `button { text-transform: inherit }` in `globals.css` is unlayered and beats
+  any `@layer utilities` class, so `[text-transform:none]` lost silently and
+  the pill rendered lowercase. The list at the end of the post carries the same
+  lesson from two other projects.
+- **The contrast demo's preset is `INK` imported from
+  `components/labs/halftone-ripple`**, converted to OKLCH at module load, so
+  the readout says 3.79 rather than the 3.71 a hand-copied approximation gave.
+  The hue stays scoped to the lab and the post only reads it.
+- **The hover flicker needs a moving hand.** Headless Chrome does not
+  re-evaluate `:hover` under a pointer that has not moved after the element
+  beneath it transforms away, so a parked pointer counted one hover. With 1px
+  of jitter for a second it counted 15 against 2 on the fixed row, and the task
+  line says a hand is never quite still.
+- **Motion's settle time does depend on distance**, through its absolute
+  `restDelta`, so the spring demo measures 263ms for 8px against about 414ms
+  for the lane rather than equal times. The copy says not much quicker, not the
+  same.
+- **The spring lanes are measured once per press, so the readouts beside them
+  hold a fixed width.** A readout growing from the icon to `462ms` shrank the
+  lane after the knob had been sent to the old end, and the knob overran into
+  the label. `KNOB` is 12.8 and `INSET` 3.2, since `size-4` and `left-1` are
+  on the 0.2rem scale.
+- **The render demo shows nothing until a drag arms it.** Dev's double effect
+  counted 2 renders before anyone touched a knob.
+- **The drag follows nib's rules**: `pointerdown` on the knob, move, up,
+  cancel and blur on the window, and `buttons === 0` ends it.
+- Measured on the page: 13 frames, no console errors, the tap demo reads 45%
+  against 100%, the render demo 20 against none, the first-frames demo 1.7px
+  against 11.9px after 33ms.
+
 ### The signature player
 
 `app/blogs/turning-a-signature-into-two-pen-strokes/` is the post that came out
@@ -946,18 +1105,20 @@ experiment is a directory under `components/labs/`.
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
-  `rain-splatter` and `sticker-peel` use it.
+  `rain-splatter`, `sticker-peel` and `notch-drop` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Nine experiments define their own hues**, `tab-overview` per terminal
+- **Eleven experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
-  it throws and `halftone-ripple` for a press that turns its button on. Five of them are the
+  it throws, `halftone-ripple` for a press that turns its button on and
+  `notch-drop` for a state icon once a drop is going to happen and for each
+  kind of card on its page. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1101,7 +1262,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-two clips, 840KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-three clips, 919KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -3168,6 +3329,9 @@ button, the canvas and the frame loop.
     signature player's nib halo goes through `style`.
   - **The heart's hue is inline `style`**, since it is not a token and no class
     can name it. Off, the span inherits the button's tone and steps with it.
+  - **`INK` is exported for one reader**, the contrast demo in
+    `app/blogs/details-you-can-measure/`, which converts it and reports its
+    ratio. Nothing else may paint with it.
   - **The heart fills while it is on, as a second glyph fading in over the
     outline** rather than a weight swap on one, so the fill arrives on the same
     200ms as the hue and the outline stays under it as the edge. This is the
@@ -3228,6 +3392,119 @@ button, the canvas and the frame loop.
   button's name. `rain-splatter`'s canvases carry none either.
 - Not `flush`: it is a component sitting on a surface, the same stage
   `cursor-origin-button` and `tether-button` use.
+
+### `notch-drop`
+
+A notch hanging from the top edge of a page of cards. Lift a card and the
+notch opens and asks for it, hold the card over it and it asks louder while
+the card shrinks, let go and a black drop leaves the card and merges into the
+notch, which says `captured` and closes to `capture 1`. `items.ts` is what is
+on the page, `index.tsx` the notch, the drag and the goo.
+
+- **The notch is a liquid, which is two black shapes under one SVG filter.**
+  `feGaussianBlur` at 6 bleeds the shapes into each other and an
+  `feColorMatrix` alpha row of `22 -10` cuts the bleed back to an edge, so two
+  shapes within a few pixels grow a neck. The notch's body and the drop that
+  leaves a captured card are the two shapes. **The label is not under the
+  filter**, since the threshold destroys any edge worth keeping, so the face is
+  a second layer animated to the same box.
+- **Four boxes, one per phase**, `NOTCH` in stage px: rest 104 by 26, open 224
+  by 72, over 248 by 84, captured 200 by 64, each with its own bottom radius.
+  The top corners stay square, since the notch hangs from the edge.
+- **The opening spring overshoots on purpose**, stiffness 340 and damping 22.
+  A box resizing on an ease is a box resizing. A box going past its size and
+  coming back is something soft giving way. The ghost rides a tighter spring,
+  700 and 42, since a thing in a hand should feel held.
+- **The ghost shrinks to 0.55 over the notch and wears a plus**, so the notch
+  reads as the bigger mouth and the plus says what letting go does. The plus is
+  `inverse-bg` on `inverse-text`, the notch's own palette in reverse. It
+  shrinks toward the hand, with `transformOrigin` at the grab point, rather
+  than toward its own middle.
+- **Three layers: goo at `z-20`, face at `z-30`, the card in your hand at
+  `z-40`.** The carried card sits over the notch, the way a drag image sits
+  over the thing it is about to be dropped on, and it is shrunk to 0.55 so
+  the label still reads around it. A version with the card under the goo, going
+  in behind the black, was tried and rejected: what you are holding has to stay
+  in view until you let go.
+- **The drop is tested against the notch's box with 16px of reach**, and only
+  on a pointer move that crosses the edge, so the phase flips once per crossing
+  rather than per frame.
+- **The release is heard on the stage with the pointer captured at the lift**,
+  so a hand that runs off the card or the notch still carries it. Escape and a
+  window `blur` cancel, which is nib's rule for a drag that must never get
+  stuck. A release away from the notch springs the ghost back to its origin and
+  the notch shuts.
+- **Putting a card back is a crossfade, and this was a flicker.** The ghost
+  used to be unmounted in one frame after 320ms while the card under it was
+  still at 30% and took 200ms to fade up. Sampled per frame: ghost gone at
+  313ms, card at 0.36 at 358ms and 1.0 at 509ms, so the reader saw a dim
+  placeholder with nothing on top, then a fade. Now `settling` brings the
+  placeholder back to full at once, the ghost fades out over it after a 160ms
+  wait so the spring has it nearly home, and it is unmounted at 380ms when
+  both have finished.
+- **Capture is three things on two clocks.** The ghost flies to the notch's
+  centre and scales to nothing, the drop forms at the ghost's centre at 0.55 of
+  the card's height and merges into the notch's foot, and at 260ms the card
+  leaves the list on a `layout` spring while the count goes up. The notch says
+  `captured` for 900ms and closes.
+- **Enter on a focused card is the same capture without the drag.** The notch
+  opens first and the card leaves 180ms later, so the eye sees where it went.
+  The cards are real buttons with a label saying what Enter does.
+- **The label morphs through `torph`**, so `capture` becomes `drop to capture`
+  by growing rather than swapping, and `capture 1` after the first drop is the
+  word being corrected.
+- **The notch is the one dark object on a light stage**, the narrow use of the
+  `inverse-*` set that `book-opening`'s boards make: a notch is hardware and
+  hardware is black. See Colour tokens.
+- **Reduced motion keeps every phase and drops the travel.** The notch still
+  opens, the card still leaves and the count still goes up, all in one step.
+- **The page is a two by two grid of cards above `sm` and one column below**,
+  since two columns at 390px truncate every title to two words. Each card
+  carries real content in its preview: the note's first three lines, the
+  screenshot itself, which is one of this site's own lab stills, the link's
+  mark from the favicon registry and its host, and the report's three figures.
+  Grey bars were tried first and rejected: a bar standing in for a thing is
+  not worth carrying and says nothing about what the notch is for. One `Card`
+  component draws the grid and the ghost, so the thing in your hand is the
+  thing you picked up. The meta line keeps its casing, since a filename, a size
+  and a host are data rather than copy, the room code argument from
+  `sixtyfour`.
+- **The stage carries its own `ring-1 ring-stroke ring-inset`.** It is
+  `flush`, so it sits edge to edge in the `Demo` frame, and its white covers
+  the frame's own inset ring, the trap the album cover documents. Without it
+  the lab had no edge at all.
+- **Each kind of card has a hue, `TONE` in `items.ts`**: a tinted face and a
+  saturated mark for the icon and the meta line, the folder stack's split.
+  Amber for the note, blue for the screenshot, violet for the link, rose for
+  the report. The faces sit at 1.25 to 1.42 on white, the band the folder
+  stack's papers hold, so a card gains a hue without gaining weight, and
+  `text-primary` clears 12:1 on every one. The marks clear 4:1 on their own
+  face. `text-secondary` measures 3.75 to 4.28 on the tints, under the text
+  floor, which is why the meta line takes the mark rather than the grey. The
+  preview is white paper on the face and needs no hairline there.
+- **The empty page holds one icon button, an anticlockwise arrow with a
+  tooltip**, per the shared rule for icon-only controls. It was a `put them
+  back` pill first, which was a sentence where a glyph would do. It is centred
+  in the whole stage rather than in the card area under the notch, since
+  against the box the eye reads the card area's centre sits 48px low. It is
+  not a grid item either: as one it sat in the row after the last card while
+  that card was still leaving, then jumped to the first row when the card
+  unmounted. It fades up after a 240ms wait, so the card has gone before it
+  arrives. Pressing it brings the cards back with a rise, 50ms apart, so the
+  page refills rather than snapping, and the button leaves in 120ms so it is
+  gone before they land. `AnimatePresence` carries `initial={false}`, which is
+  what keeps that entrance off the first paint.
+- **`GO` is the state hue**, a green the state icon takes from the
+  moment a drop can happen to the moment it did: the arrow over the notch, the
+  plus on the card, the check on capture. The glyph on the disc is the notch's
+  own black. The site ships no success tone and this does not add one, it is
+  the scoped exception nine other experiments take. 9.9:1 on `inverse-bg`.
+- **The stage is `h-148` and the grid starts at `top-28`**, which is past the
+  notch's widest open height of 84px. The cards are `p-4` with a `h-24`
+  preview and `gap-4` between them, since at `p-3` and `h-20` they read as
+  congested. An open notch hangs over air. The first
+  build started the list at `top-14`, and the notch opened over the first card
+  and covered its title.
 
 ## Motion
 
