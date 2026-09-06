@@ -488,6 +488,22 @@ const LABS = {
       await wait(1600);
     },
   },
+  "island-menu": {
+    // the bar sits at the foot of a fixed stage, so the crop starts 34px down
+    // to hold the open menu's top and the bar's bottom with equal margins
+    focus: [0, 34, 538, 336],
+    // open, let the menu settle, hover a link, then close and let the pill
+    // land, so the clip holds both unfoldings
+    async run({ m, pick }) {
+      await wait(300);
+      await m.press(pick("Menu"));
+      await wait(1400);
+      await m.move(150, 120, 8);
+      await wait(500);
+      await m.press(pick("Close"));
+      await wait(1300);
+    },
+  },
 };
 
 function crop(rect, bounds) {
