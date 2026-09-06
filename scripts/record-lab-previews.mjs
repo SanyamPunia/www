@@ -488,6 +488,31 @@ const LABS = {
       await wait(1600);
     },
   },
+  "custom-cursor": {
+    // the cards sit centred in a 448px stage, so the crop takes the middle
+    // 336px and keeps 56px of bare ground above and below them
+    focus: [0, 56, 538, 336],
+    // come in from the left so the dot appears under the hand, visit the four
+    // cards so the pill morphs between their names, then leave
+    async run({ m }) {
+      await m.move(-40, 224);
+      await wait(300);
+      await m.move(50, 224, 8);
+      await wait(500);
+      await m.move(173, 158, 10);
+      await wait(700);
+      await m.move(365, 158, 14);
+      await wait(700);
+      await m.move(365, 290, 12);
+      await wait(700);
+      await m.move(173, 290, 14);
+      await wait(700);
+      await m.move(269, 224, 8);
+      await wait(400);
+      await m.move(600, 224, 10);
+      await wait(600);
+    },
+  },
   "island-menu": {
     // the bar sits at the foot of a fixed stage, so the crop starts 34px down
     // to hold the open menu's top and the bar's bottom with equal margins
