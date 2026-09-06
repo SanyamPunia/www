@@ -65,8 +65,19 @@ const TIMING = {
  * that width to the menu's, and a bar already at the menu's width has no
  * second beat: the first build set both to 380 and the width never moved.
  */
-const BAR = { w: 340, h: 56, r: 28 };
+const BAR = { w: 340, h: 56, r: 28, min: 252 };
 const MENU = { w: 460, h: 300, r: 22 };
+
+/**
+ * `BAR.min` is measured, not chosen. Below `sm` the bar's row runs at `gap-2
+ * px-3` and its three controls come to 250.5px: the brand at 49.9, the toggle
+ * at 75.5, Get started at 93.1, two 6.4px gaps and 19.2px of padding. 252 is
+ * the narrowest bar that does not clip Get started's right edge.
+ *
+ * It exists so a phone keeps the second beat. The bar has to be narrower than
+ * the menu or the width tween has nowhere to go, which is the failure the
+ * first build shipped with both boxes at 380.
+ */
 
 /**
  * Each link owns a picture, and hovering a link shows its picture. The
@@ -228,24 +239,54 @@ export default function IslandMenu() {
   /** when the content may start, on open: as the width move is landing */
   const contentIn = second + TIMING.grow * (1 - TIMING.lap) + TIMING.settle;
 
+  /*
+   * The two widths, both derived from the room rather than taken from the
+   * constants.
+   *
+   * The bar keeps its share of the menu's width, so a narrow stage shrinks
+   * both and the second beat survives instead of being squeezed out: at the
+   * 313px a 390px phone leaves, the menu opens to 313 and the bar sits at its
+   * 252 floor, which is 61px of travel. `barW` is capped at `menuW` as well,
+   * so a stage narrower than the floor degrades to one move rather than
+   * overflowing.
+   */
+  const menuW = Math.min(MENU.w, room);
+  const barW = Math.min(
+    menuW,
+    Math.max(BAR.min, Math.min(BAR.w, Math.round(menuW * (BAR.w / MENU.w)))),
+  );
+
   return (
     <div
       ref={stage}
-      className="flex h-114 w-full items-end justify-center pb-10"
+      /*
+       * `min-w-0` is what makes the measurement above mean anything.
+       *
+       * Without it the stage is a flex item at `min-width: auto`, so its used
+       * width is its own min-content, and its min-content is the box's inline
+       * width. The box was 340px, so the stage became 340px, so the room read
+       * 340px, so `Math.min` never bound and the bar stayed 340 however narrow
+       * the frame was. Measured on a 390px viewport: a 351.6px frame, a 340px
+       * stage whose right edge sat 7.6px past the frame's border, and on a
+       * 360px one the page scrolled 18px sideways. The ruler was elastic and
+       * it was being stretched by the thing it was measuring.
+       */
+      className="flex h-114 w-full min-w-0 items-end justify-center pb-10"
     >
       <motion.div
         ref={menu}
         initial={false}
         animate={{
-          width: open ? room : Math.min(BAR.w, room),
+          width: open ? menuW : barW,
           height: open ? MENU.h : BAR.h,
           borderRadius: open ? MENU.r : BAR.r,
         }}
         transition={reduce ? instant : box}
-        /* the width is measured against the stage, since a 460px menu in a
-           352px phone stage pushed its flex parent to 498 and scrolled the
-           page sideways. `max-w-full` alone did not hold it: a flex item's
-           `min-width: auto` lets the child's width win. */
+        /* Both widths come from `room`, which is the stage's width and is
+           only trustworthy because the stage carries `min-w-0`. `max-w-full`
+           here does not hold it: a flex item's `min-width: auto` lets the
+           child's width win, which is the same rule that made the stage lie
+           about how much room there was. */
         className="relative overflow-hidden bg-inverse-bg text-inverse-text"
       >
         {/* the menu, in the room above the bar */}
@@ -388,10 +429,12 @@ export default function IslandMenu() {
 
         {/* the bar, pinned to the foot so it rides the growing box */}
         <div
-          className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 px-4"
+          /* tighter below sm, which is what lets the bar reach `BAR.min`
+             and keep a second beat on a phone */
+          className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4"
           style={{ height: BAR.h }}
         >
-          <span className="pl-2 font-mono text-body font-semibold tracking-tight text-inverse-text [text-transform:none]">
+          <span className="font-mono text-body font-semibold tracking-tight text-inverse-text sm:pl-2 [text-transform:none]">
             SANYAM
           </span>
 
