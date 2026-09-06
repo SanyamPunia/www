@@ -3553,13 +3553,41 @@ backwards. `index.tsx` is the whole thing, with the storyboard at the top.
 - **The bar is narrower than the menu, and the first build was not.** Both
   were 380px, the width tween had nowhere to go, and the second beat did not
   exist. Measured: 380x56 to 380x300 with no horizontal move. Now 340 opens
-  to 460.
-- **The menu's width is measured against the stage**, the constant or the
-  stage's width, whichever is less, through a `ResizeObserver`. A 460px menu
-  in a 352px phone stage pushed its flex parent to 498px and scrolled the page
-  108px sideways. `max-w-full` alone did not hold it, since a flex item's
-  `min-width: auto` lets the child's width win. Below `sm` the grid drops to
-  one column and the picture goes, since at 340px it ran off the menu's edge.
+  to 460 wherever there is room for it.
+- **Both widths derive from the stage, and the bar keeps its share.** `menuW`
+  is the constant or the room, whichever is less, and `barW` is the same
+  fraction of `menuW` that 340 is of 460, floored at `BAR.min` and capped at
+  `menuW`. Pinning the bar at 340 while only the menu shrank squeezed the
+  second beat out on a phone: at the 313px a 390px viewport leaves, both boxes
+  would have been 313 and the width tween would have had nowhere to go, which
+  is the first build's bug arriving from the other direction. Measured travel:
+  0px at 320, 31px at 360, 61px at 390, 92px at 430, 120px at 768 and above.
+  A stage narrower than the floor degrades to one move rather than
+  overflowing, which is the 320px row.
+- **`BAR.min` is 252 and it is measured.** Below `sm` the bar's row runs at
+  `gap-2 px-3`, where its three controls come to 250.5px: the brand at 49.9,
+  the toggle at 75.5, Get started at 93.1, two 6.4px gaps and 19.2px of
+  padding. 252 is the narrowest bar that does not clip Get started's right
+  edge. The row tightens below `sm` for exactly this reason, since at the
+  full `gap-4 px-4` the floor is 276 and there is not enough left over to be
+  a second beat.
+- **The width is measured against the stage, and the stage carries `min-w-0`
+  so that it can be measured at all.** Without it the stage is a flex item at
+  `min-width: auto`, so its used width is its own min-content, and its
+  min-content is the box's inline width. The box was 340px, so the stage
+  became 340px, so the room read 340px, so the `Math.min` against it never
+  bound and the bar stayed 340 however narrow the frame was. The ruler was
+  elastic and the thing it measured was stretching it.
+
+  This shipped. Measured on a 390px viewport: a 351.6px frame, a 340px stage
+  whose right edge sat 7.6px past the frame's border, and on a 360px one the
+  page scrolled 18px sideways. The earlier note claimed the `ResizeObserver`
+  had solved it, and it had only moved it: clamping the menu against a stage
+  that reports its child's width is clamping against nothing. `max-w-full` on
+  the box does not hold it either, for the same `min-width: auto` reason.
+
+  Below `sm` the grid drops to one column and the picture goes, since at 340px
+  it ran off the menu's edge. That much was right.
 - **The content arrives as the box is landing**, 60ms after the width move
   passes its own overlap point, the links 50ms apart over 420ms on a rise and a
   blur, the picture after the second link. On close the content leaves first,
