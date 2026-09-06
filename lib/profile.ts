@@ -48,6 +48,7 @@ Sanyam Punia is a full-stack web developer from Bangalore, India.
 - **unique-forge**: Type-safe nanoid alternative to generate secure IDs, with sync/async/cryptographically-secure variants and prefix/suffix support (npm package)
 - **rbac-ui**: Resource-based access control framework for modern frontend apps with tree-based permission evaluation and React bindings like \`AccessProvider\`, \`useAccess\`, \`AccessGate\`, \`useGuard\` (npm package, co-created with aviral)
 - **Profanity API**: Profanity check at scale using Hono, Upstash Vector DB, and Cloudflare Workers
+- **nine**: A very small tic tac toe game. Play the bot at three difficulties, or a friend on the same screen. Next.js App Router, with the perfect-play search, the mark geometry, the sound and every animation written in the project rather than pulled in
 - **pageo.me**: Simplest way to share all your links. Sleek personal pages with multiple layouts, analytics, GitHub sync, custom domains, and built-in contact forms (co-built with aviral and ojus)
 - **clyp**: Create better screenshots with custom backgrounds and styling, built with Next.js, shadcn, Tailwind, and PostHog
 - **on-snip.org**: Real-time collaborative messaging rooms built with Next.js, Express, Socket.io, and Redis
