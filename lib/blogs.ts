@@ -31,6 +31,10 @@ export function getAllBlogs(): BlogMeta[] {
 
   for (const entry of fs.readdirSync(BLOGS_DIR, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
+    // an underscore folder is private to the App Router and has no route, so
+    // it is not a post either. It is how a finished post is taken down
+    // without deleting it.
+    if (entry.name.startsWith("_")) continue;
 
     const metaPath = path.join(BLOGS_DIR, entry.name, "meta.json");
     if (!fs.existsSync(metaPath)) continue;
