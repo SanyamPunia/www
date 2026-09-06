@@ -36,7 +36,7 @@ pnpm check        # all three, this is the gate
 |---|---|
 | Package manager | `pnpm` |
 | Icon library | `@phosphor-icons/react` v2, see Icons below |
-| Motion library | `motion` (imported from `motion/react`), **not** `framer-motion` |
+| Motion library | `motion` (imported from `motion/react`), **not** `framer-motion`. `gsap` is installed for exactly one lab, `custom-cursor`, see its section. Nothing else imports it, and a component never mixes the two. |
 | Color system | A fixed **light** theme. Semantic tokens only, see below. |
 | Type scale | Named tokens `text-lead` / `text-body` / `text-action` / `text-meta` |
 | Default radius | `rounded-full` pills and avatars, `rounded-lg` cards, `rounded-md` inputs |
@@ -1118,20 +1118,21 @@ experiment is a directory under `components/labs/`.
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
-  `rain-splatter`, `sticker-peel` and `notch-drop` use it.
+  `rain-splatter`, `sticker-peel`, `notch-drop` and `custom-cursor` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Eleven experiments define their own hues**, `tab-overview` per terminal
+- **Twelve experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
-  it throws, `halftone-ripple` for a press that turns its button on and
+  it throws, `halftone-ripple` for a press that turns its button on,
   `notch-drop` for a state icon once a drop is going to happen and for each
-  kind of card on its page. Five of them are the
+  kind of card on its page, and `custom-cursor` for the badge over each of
+  its cards, drawn from the still the card shows. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1275,7 +1276,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-four clips, 961KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-five clips, 998KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -3648,6 +3649,181 @@ backwards. `index.tsx` is the whole thing, with the storyboard at the top.
   `tabIndex={-1}` so a keyboard cannot reach a menu that is not there.
 - Reduced motion runs every tween at zero, so the box, the glyph, the content
   and a swapped picture all arrive in one step.
+
+### `custom-cursor`
+
+A gallery of four cards under a cursor of its own. Crossing into the stage
+swaps the arrow for a dot that chases the hand a beat behind, and hovering a
+card grows the dot into a pill naming the lab whose still the card shows.
+`index.tsx` is the whole thing. **It is the one lab on GSAP**, at the user's
+request, and the only file that imports it. Everything else stays on Motion,
+and a component never mixes the two, since both want to own the same
+transform.
+
+- **Two positions, not one.** The hand is where the browser says it is, and
+  the drawn cursor is a tween chasing it: one `gsap.quickTo` per axis, which
+  keeps a single tween and retargets it on every move, so the cursor always
+  heads for the latest point from wherever it is. `expo.out` over 0.6s covers
+  most of the gap at once and spends the rest settling, which is what reads as
+  smooth. Measured after a fast stop: 27px behind at 15ms, 8px at 115ms, 2px
+  at 214ms and under a pixel by 280ms.
+- **The hand is read once a frame, at the front of GSAP's tick.** A
+  `pointermove` only records the client point and adds the write to the
+  ticker with `once` and `prioritize`, guarded so a second event in the same
+  frame does not add it twice. So however many events arrive at 120Hz the
+  stage's rect is measured once per frame, before the tweens write, where a
+  layout read between their writes forces a layout per event. Measured through
+  a fast sweep under a 4x CPU throttle: 73 frames, the longest 19.6ms and the
+  median 16.7.
+- **The lean is read off the chase, not the hand, on the ticker.** Each tick
+  reads the drawn cursor's own x, smooths its velocity on a 50ms time constant
+  and walks the angle toward `velocity / 120` degrees, clamped at 12, on an
+  80ms one, through `approach` from `lib/lerp.ts`, which is the third caller
+  after `book-opening` and `window-shade`. 1/120 rather than
+  `event-stacking`'s 1/180, since an `expo.out` chase moves slower than the
+  hand for most of a sweep and read 4 degrees at the old rate. A sweep across
+  two cards now peaks at 5.6 degrees and reads 0 a beat after the hand stops.
+  **The tick is on the ticker only while the cursor is out**, so an idle page
+  requests no frames: measured, 0 `requestAnimationFrame` calls in the second
+  after the pointer left.
+- **A fresh cursor appears under the hand.** The stage's `pointerenter` calls
+  each `quickTo` with the point as both start and end, which jumps the tween
+  there, or the dot flies in from wherever the last one was left, which on a
+  first entry is the stage's corner.
+- **The dot and the pill are one element, and nothing scales. This was a
+  bug.** The first build scaled a dot out and a pill in, and every so often
+  the name showed at full size beside a background the size of the dot.
+  `torph` sizes its box off `getBoundingClientRect`, which reports the
+  transformed size, so a label that changed while the pill was small got a
+  box a fraction of its text's width, held for the length of the morph. So
+  the pill is always there and a `clip-path` decides how much of it shows. A
+  clip is not a transform, so the text and its background cannot disagree.
+  Measured through the reported crossing: the text overflows its box by at
+  most 2px, inside the pill's own padding, where it used to overflow by the
+  width of the word.
+- **The clip is a pill-shaped window, not a circle, and the circle read as a
+  pop.** At rest the clip is a 6.4px hole, the dot. Opening grows it into the
+  pill's own box as an `inset()` with fully round corners, so what shows is a
+  small pill inflating into the badge and revealing its word from the middle
+  out, and the window's edges reach the box exactly at the tween's end, so
+  the whole duration is visible growth. The first shape was a circle run out
+  to 84px: a circle covers a wide pill long before its radius reaches the
+  corners, so the visible part of a 280ms open was its first 50ms, three
+  frames, and a circle growing out of a pill is a wipe rather than a badge
+  expanding. Measured now, `power3.out` over 220ms: the first frame shows
+  45px of a 120px pill, the biggest step after it is 18px, and it is whole at
+  146ms. That is the snappy end of watchable, asked for twice: 400ms on
+  `power2.out` was the first pick and read as slow, 300 read as soft, and the
+  280ms circle that showed for three frames read as a pop, which is the other
+  side of the line. Closing runs the same window back to the hole on
+  `power2.out` over 140ms, and is at the dot in about 130.
+- **GSAP tweens a number for the clip, never the string, because the browser
+  normalises `inset()`.** GSAP reads a tween's start value back off the
+  element, and `inset(11.2px 56.8px 11.2px 56.8px round 999px)` comes back
+  as `inset(11.2px 56.8px round 999px)` while an all-zero end comes back with
+  one value. GSAP pairs the numbers by position, so the right inset went to
+  zero on the first frame and the corner radius tweened toward an inset: the
+  pill opened from its left edge in one 77px jump. So the tween is on a
+  progress from 0 to 1 in a plain object, and `onUpdate` writes the window
+  from that number and the pill's current box, one layout read a frame. At 0
+  the clip goes back to a `circle()` hole, which is independent of the word's
+  width, so a word swapped while the pill is shut cannot move or resize the
+  dot.
+- **The word fades with the window, and this was a glyph inside the dot.**
+  The hole sits at the pill's centre, which is the middle of the word, and the
+  word stays through a close so the pill never empties mid-exit. So after
+  every hover the dot showed white letter strokes through its 6.4px hole,
+  which read as a shape drawn on it. `paint` writes the word's opacity off the
+  same progress as the window: gone below a quarter open, so the dot is solid,
+  and whole by 60%, when the window is about half the pill. Traced through an
+  open, width against opacity per frame: 31px at 0, 40 at 0.13, 54 at 0.49,
+  67 at 0.8 and 78 at 1, so the badge inflates as a black pill for a few
+  frames and its label arrives into it. A fresh word is mounted at opacity 0,
+  since it lands a frame before the window's first paint would hide it.
+- **The clip is driven from the pointer handlers, never through state and an
+  effect, and this was the lag.** A hover that went event, render, commit,
+  passive effect, tween was two to three frames before anything moved, on
+  every dot-to-chip change, and the leave's one-frame deferral sat on top of
+  that on the way out. `enterCard` and `closePill` start the tweens
+  themselves, and React state carries only the word. Measured from the
+  `pointerover` itself, warm: the window moves on the next frame with its
+  word already in it, and the close is visibly shrinking on the next frame.
+- **The cursor comes and goes at the stage's edge on a 150ms fade**, on the
+  root rather than the clip, so entering never depends on the word's width
+  and leaving mid-open does not have to close the window first. The hide
+  resets the clip to the hole once it is gone.
+- **A word arriving on a fresh open swaps at once, and only a word arriving
+  while the pill is still open morphs.** `torph` morphs on every change, so a
+  fresh open used to morph the last card's word into the new one and stretch
+  the background from the old width to the new over 200ms while the chip was
+  still arriving. The word carries a key that changes on a fresh open, which
+  remounts the morph with the new word and no animation, and the update is
+  `flushSync`ed so the word is in the DOM before the window moves:
+  `pointerenter` is a continuous event to React, and without the flush the
+  render landed a frame after the tween and the first frame of the open showed
+  a sliver of the old word. The remount costs 7ms in the handler once warm,
+  against 4ms for a morph, and 22ms on the session's first hover, which is the
+  module warming up. The word stays through a close, so the pill never empties
+  mid-exit.
+- **The name morphs while the pill is open.** Crossing straight from one card
+  to the next morphs the label through `torph` rather than popping it out and
+  back in, and the window stays whole through it: traced, the visible width
+  never left the box. A card's leave is answered one frame out,
+  `folder-stack`'s call, so two cards that touch swap names with no dip. A
+  crossing through the 19px gap closes the window part way and reopens it on
+  the new word.
+- **The name and the link come from the registry.** Each card is a real link to
+  the lab whose still it shows, and the pill says that lab's title, so neither
+  can drift from the page it points at. The still's `alt` is the same title,
+  which is what a keyboard reader gets instead of the pill.
+- **The badge takes a hue per card, and the dot stays black.** `TONE` in
+  `index.tsx` maps each card to a colour drawn from its still: the stamps'
+  cobalt, the lightning sticker's amber, the shade's sky and a coral for the
+  pocket, each with a text colour that clears 4.5:1 on it, 6.13, 9.26, 8.92
+  and 6.79. The pill tweens from the dot's `text-primary` into the hue as it
+  opens and back as it closes, on the window's own durations, so the resting
+  dot is always the site's black whatever was hovered last. The rest colours
+  are read off the tokens at mount, since a GSAP colour tween cannot take a
+  `var()`, `halftone-ripple`'s call for its off ink. This is the twelfth lab
+  to scope a hue and it makes the same claim as the others: the colour says
+  which card the pointer is on.
+- **The pill carries a white hairline at 20%.** The stamp collection's still
+  is a near-black table, and before the hues the black pill had no edge there.
+  On the light stage and on the light pills the ring is invisible.
+- **`cursor-none` on the whole subtree**, the call `tether-button` documents:
+  the UA stylesheet sets a real `cursor` on a link, which beats an inherited
+  value. So the links drop `cursor-pointer`, the fifth place that shared rule is
+  off, after `tether-button`, `event-stacking`, `window-shade` and
+  `sticker-peel`. Verified: the stage, a card and its image all compute
+  `cursor: none`. A white shape seen inside the dot after a hover looked like
+  the OS arrow over the bare stage and was not: it was the word's strokes
+  through the hole, see the next bullet. The cursor rule was never the
+  problem.
+- **The drawn cursor is `pointer-events-none`**, or it would take the hover
+  from the card under it and drop the pill that put it there.
+- **Hover is gated on `pointerType`**, mouse and pen only, the call
+  `folder-stack` documents. A touch has no hover to take a cursor from and no
+  arrow to replace, so a finger gets the cards as plain links and nothing is
+  drawn. Verified on a 390px phone with a real touch context: a finger dragged
+  across the stage leaves the cursor hidden and the page where it was.
+- **Reduced motion keeps the dot and the pill and drops the chase.** It is
+  read with `matchMedia` in an effect, since `MotionProvider` governs Motion
+  components and this file has none. Each move then jumps the tweens to the
+  hand, the lean's target is 0 and the window and the fade run at zero
+  duration. Verified on a frame boundary: the cursor sits 0px from the hand
+  with the pill already open. Reading it before GSAP's next tick says 36px, which is
+  the previous event's point, not a lag.
+- **It is `flush`, white, with its own inset ring**, the notch drop's stage,
+  since its white covers the frame's own ring. The stage is where the native
+  cursor stops, so the hairline has to be there.
+- **The cards take a third less than the column, centred in a fixed `h-140`
+  stage.** The first build filled the column with them under `p-6`, and the
+  dot had nowhere to be a dot: every position in the stage was a card or a
+  gap. The grid is capped at `max-w-110` at `gap-10`, which leaves 93px of
+  ground either side and 108px above and below on a wide column, 32px between
+  the cards, and the cards are still 160 by 100. On a 390px phone the grid
+  meets the stage's own padding and the stage stays 448px tall, which is room
+  nothing uses, since a finger draws no cursor there.
 
 ## Motion
 
