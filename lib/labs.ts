@@ -390,6 +390,20 @@ export const labsRegistry: LabMetadata[] = [
     reference: "https://annnimate.com/",
     hint: "Press Menu to open it, and Close or Escape to shut it.",
   },
+  {
+    slug: "custom-cursor",
+    title: "Custom Cursor",
+    description: [
+      "A gallery of four cards under a cursor of its own. Crossing into the stage swaps the arrow for a dot that follows the hand a beat behind, and hovering a card grows the dot into a pill naming the lab the card opens. Move to the next card and the name morphs into the next one rather than popping out and back in.",
+      "Key insight: a custom cursor is two positions, not one. The hand is where the browser says it is, and the drawn cursor is a tween chasing that point, retargeted on every move, so it arrives a beat late and settles rather than stopping dead. The lag is the whole feel of it, and it is also why the pill leans: its tilt is read off the speed of that chase, so a fast sweep tips it over and a stop swings it level.",
+      "It is desktop only by the pointer's own account. A touch has no hover to take a cursor from and no arrow to replace, so a finger gets the cards as plain links and nothing is drawn. Reduced motion keeps the dot and the pill and drops the chase: the cursor sits exactly on the hand and the pill arrives without the overshoot.",
+    ],
+    createdAt: "2026-09-07",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/custom-cursor/index.tsx",
+    flush: true,
+    hint: "Hover the cards with a mouse. Touch gets the plain links.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -462,6 +476,7 @@ export const IMPLEMENTED_LABS = [
   "halftone-ripple",
   "notch-drop",
   "island-menu",
+  "custom-cursor",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

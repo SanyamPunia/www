@@ -118,6 +118,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "island-menu": dynamic(() => import("@/components/labs/island-menu"), {
     ssr: false,
   }),
+  "custom-cursor": dynamic(() => import("@/components/labs/custom-cursor"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
