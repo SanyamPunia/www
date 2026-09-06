@@ -138,6 +138,9 @@ in the light tokens to sit it against.
   inside 5% of each other. **Only the boards invert here and the stage stays
   light**, which is the narrowest use of the set: it is one object on the page,
   not the ground under it.
+- `components/labs/island-menu/` is a nav bar that opens into a menu, black
+  for the same reason as the notch: the reference is a slab of hardware and
+  the page it sits on stays light.
 - `components/labs/notch-drop/` is a notch, which is black because the thing
   it stands in for is a piece of hardware, and it is the only dark object on
   its stage. The page under it stays light. Same shape as `book-opening`'s
@@ -1262,7 +1265,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-three clips, 919KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-four clips, 961KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -3505,6 +3508,108 @@ on the page, `index.tsx` the notch, the drag and the goo.
   congested. An open notch hangs over air. The first
   build started the list at `top-14`, and the notch opened over the first card
   and covered its title.
+
+### `island-menu`
+
+A pill of a nav bar that opens into a menu in two moves. Tall first, a black
+slab rising off the bar with its three controls pinned to the foot, then wide,
+and only then does the menu arrive in it. Closing runs the three moves
+backwards. `index.tsx` is the whole thing, with the storyboard at the top.
+
+- **The box is two tweens that overlap, and the order flips with the
+  direction.** Opening: height over 360ms, width starting at 252ms while the
+  height is in its last third. Closing: content out over 200ms, then width,
+  then height on the same overlap. A menu that grew tall then wide has to
+  shrink wide then short, or the shape it passes through on the way out is one
+  it never had on the way in. A spring would run both axes together, which is
+  a rectangle scaling, which the eye reads as a zoom.
+- **Butted end to end, the two moves read as two animations.** The first
+  build ran them at 260ms each with no overlap and the box stopped dead at the
+  corner between them and started again. `lap` is 0.3: the second move starts
+  when the first has 30% left, and the corner becomes a curve. Sampled per
+  frame: six frames where both axes move, on open and on close.
+- **One curve, and it arrives slowly.** `[0.4, 0, 0.2, 1]` on the box, the
+  links, the picture and the panel's fade. The earlier `[0.22, 1, 0.36, 1]`
+  arrived hard, which is right for a hover and wrong for a box the eye is
+  following, and the panel used to appear in a 10ms step. It fades over 260ms
+  now, measured 585ms to 785ms into the open. The largest single-frame step
+  on the box is 31px of a 244px move.
+- **The pace went up once, by about a seventh, and every duration moved
+  together.** 420ms to 360ms on a move, 240 to 200 on the content's exit, 500
+  to 420 on a link, 60 to 50 between links. The overlap is a share of the move
+  rather than a number of its own, so it moved with them. Measured after: the
+  height runs 43ms to 351ms, the width 268ms to 585ms, and the panel is in by
+  785ms. On close the width runs 226ms to 543ms and the height 459ms to 809ms.
+- **The bar is narrower than the menu, and the first build was not.** Both
+  were 380px, the width tween had nowhere to go, and the second beat did not
+  exist. Measured: 380x56 to 380x300 with no horizontal move. Now 340 opens
+  to 460.
+- **The menu's width is measured against the stage**, the constant or the
+  stage's width, whichever is less, through a `ResizeObserver`. A 460px menu
+  in a 352px phone stage pushed its flex parent to 498px and scrolled the page
+  108px sideways. `max-w-full` alone did not hold it, since a flex item's
+  `min-width: auto` lets the child's width win. Below `sm` the grid drops to
+  one column and the picture goes, since at 340px it ran off the menu's edge.
+- **The content arrives as the box is landing**, 60ms after the width move
+  passes its own overlap point, the links 50ms apart over 420ms on a rise and a
+  blur, the picture after the second link. On close the content leaves first,
+  in 200ms, so the box never resizes around text that is still there.
+- **Each link carries a picture, and hovering a link swaps it.** Four of this
+  site's own lab stills: the sticker board, the folder drawer, the stamps and
+  the book. The window shade was tried first and read as a diagram inside a
+  menu. The swap is an `AnimatePresence` in `mode="sync"`, so the arriving
+  picture fades in over the leaving one and the frame is never empty. Sampled
+  per frame: 12 frames carry both pictures and the lowest combined opacity is
+  0.99. It runs 180ms, since a hover is a pointer waiting and a longer
+  crossfade reads as the menu thinking about it, and the arriving picture
+  settles from a 1.04 scale, which is what says it is new rather than redrawn.
+  Focus swaps it as well, so the keyboard sees the same menu. `initial={false}`
+  on that presence only blocks the first picture, which the panel's own fade
+  already covers: each key is its own `PresenceChild`, so later pictures still
+  mount at `initial`, which is the case `tab-overview` documents from the other
+  side.
+- **The bar's controls never move.** Pinned to the foot with `absolute
+  bottom-0`, they ride the growing box, so the hand is still on the button
+  that opened it when it is time to close.
+- **The stage is a fixed height, `h-114`, and it was `min-h-96`.** The box is
+  anchored to the stage's foot and grows upward to 300px, and with 32px of
+  padding under it that is 332px in a 307px minimum, so every open pushed the
+  frame 25px taller and the page below it down with it. 365px leaves 33px above
+  the open menu against the 32px under the bar. Measured: the frame holds
+  403px at rest and open, on a 1280px viewport and on a 390px one.
+- **The label follows the box, not the press.** `Menu` becomes `Close` as the
+  height move hands over to the width move, and back half way through the
+  closing height move, through a 320ms `torph` morph on the box's own curve,
+  so the word describes the shape the button sits in.
+- **The glyph beside it is a drawing of the box, and it moves the way the box
+  does.** An SVG path rather than a bordered span, since a CSS border draws a
+  pill and a rounded rectangle and nothing between them. At rest it is a
+  stadium, 16 by 10 in a 22 unit box, and open it is a 20 by 20 squircle, with
+  each corner a cubic whose handles sit at 0.55 of the radius for a circular
+  arc and at 0.85 for the fuller curve. Two motion values carry the two axes on
+  the box's own two clocks, height then width on open and width then height on
+  close, lapped the same way, and every change writes one `d` to the node, so
+  nothing renders while it moves. Measured against the box: the glyph's height
+  starts on the same frame as the box's, and each 4 unit move registers one
+  frame after the box's, which is the first frame of the curve sitting under
+  the sampler's threshold.
+- **It sits 0.09em below the row's centre, on purpose.** The flex row centres
+  it on the line box, and the label is lowercase, so its visual centre is the
+  x-height centre. For Inter at 1.5 leading the baseline is 1.113em from the
+  line's top and the x-height 0.546em, which puts that centre at 0.840em
+  against a line centre of 0.75em. Measured: the glyph's centre lands 0.02px
+  from the label's x-height centre, at rest and open.
+- **The Get started button's ring is white at 20%, not `inverse-stroke`.** The
+  stroke token on `inverse-fill` is 1.13:1 and was not there at all. White at
+  20% is 1.85:1, and the hover steps it to 30%.
+- **The toggle carries an `aria-label`.** `torph` renders the label as
+  aria-hidden character spans, so without it the button had no name at all.
+  The links are buttons rather than anchors, since a menu on a stage goes
+  nowhere and Biome refuses a dead `href`.
+- **Escape closes from anywhere on the page.** The hidden panel's links take
+  `tabIndex={-1}` so a keyboard cannot reach a menu that is not there.
+- Reduced motion runs every tween at zero, so the box, the glyph, the content
+  and a swapped picture all arrive in one step.
 
 ## Motion
 
