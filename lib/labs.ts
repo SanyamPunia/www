@@ -387,7 +387,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-06",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/island-menu/index.tsx",
-    reference: "https://www.vanta.com",
+    reference: "https://annnimate.com/",
     hint: "Press Menu to open it, and Close or Escape to shut it.",
   },
 ];
