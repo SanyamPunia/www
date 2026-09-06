@@ -375,6 +375,21 @@ export const labsRegistry: LabMetadata[] = [
     hint: "Drag a card up to the notch, or focus one and press Enter.",
     flush: true,
   },
+  {
+    slug: "island-menu",
+    title: "Island Menu",
+    description: [
+      "A pill of a nav bar that opens into a menu in two moves. It grows tall first, a black slab rising off the bar with the bar's three controls still pinned to its foot, then wide, and only once it is the size of a menu does the menu arrive in it, the links one after another and the picture after them. Closing is the same three moves backwards.",
+      "Key insight: a box that grows in one axis at a time is a box you can watch grow. Height and width on one clock is a rectangle scaling, which the eye reads as a zoom and cannot follow. One axis, then the other, is a thing unfolding, and the order carries information: up first says the menu comes out of the bar rather than out of nowhere.",
+      "The order has to flip on the way out. A menu that grew tall then wide shrinks wide then short, or the shape it passes through on the way out is a shape it never had on the way in, and the close reads as a different object leaving. The content goes first in both directions, since a box should not resize around text that is still there.",
+      "The bar's three controls never move. They sit pinned to the foot of the box and ride it up as it grows, so the reader's hand is still on the button that opened it when it is time to close it. The button's glyph turns from a pill into a square on the same clock as the box, and its label morphs from Menu to Close.",
+    ],
+    createdAt: "2026-09-06",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/island-menu/index.tsx",
+    reference: "https://www.vanta.com",
+    hint: "Press Menu to open it, and Close or Escape to shut it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -446,6 +461,7 @@ export const IMPLEMENTED_LABS = [
   "sticker-peel",
   "halftone-ripple",
   "notch-drop",
+  "island-menu",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
