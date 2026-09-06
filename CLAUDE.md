@@ -3708,6 +3708,14 @@ reveal.
   Removing that flag breaks `next dev` with an unhandled rejection.
 - **Biome 2.5.** `css.parser.tailwindDirectives` must stay on or Biome fails to
   parse `@theme` in `app/globals.css`.
+- **`.next/types/validator.ts` is written by `next build`, not by `next dev`.**
+  The dev server writes its own types under `.next/dev/types`, and
+  `tsconfig.json` includes both. So after a route directory is renamed or
+  removed, `pnpm tc` fails on the build's copy, which still imports the old
+  path, until the next `pnpm build` rewrites it. Restarting `next dev` does not
+  help. Run the build, which is the gate anyway, and it is safe beside a running
+  dev server: Next 16 gave the two separate output directories for that, see
+  `node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`.
 - **`playwright-core` is a devDependency and downloads nothing.** It is only for
   `scripts/record-lab-previews.mjs`, and it drives the installed Google Chrome
   through `channel: "chrome"` rather than a bundled browser. That script also
