@@ -160,7 +160,7 @@ recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 first choice for the secondary tone and fails at 3.94.
 
 **`--shadow-stage` is the one shadow token**, declared beside the colours in
-`@theme` for the demo stage in `app/blogs/details-you-can-measure/`. See that
+`@theme` for the demo stage in `app/blogs/_details-you-can-measure/`. See that
 post's section. Nothing else casts a shadow.
 
 **Shading a dark surface is light, not palette.** Nothing in the set is a lit
@@ -534,7 +534,13 @@ files:
   is what says what kind of token it is, the same exception the brand marks get.
   Punctuation and comments stay grey so they recede.
 - A missing `meta.json` hides a directory from the index, so a draft can sit
-  in the tree unpublished.
+  in the tree unpublished. Its route is still live.
+- **A directory starting with `_` has no route and is not a post.** Next
+  treats it as a private folder, and `getAllBlogs` skips it, or the index
+  would link to a 404. It is how a finished post is taken down without
+  deleting it: rename the directory, and rename it back to publish. The
+  relative imports inside it survive the rename, so nothing else changes.
+  `_details-you-can-measure` is unpublished this way.
 - A post's demo component is **colocated** in the post directory when only that
   post uses it, and lives in `components/blogs/` when it might not be. Its
   import goes at the top of `page.mdx`.
@@ -694,6 +700,10 @@ same move in both, says which one let them, and is told what the difference was.
   than smuggling in behind one table.
 
 ### `details-you-can-measure`
+
+**Unpublished for now, under `app/blogs/_details-you-can-measure/`.** The
+underscore takes the route away and keeps the post out of the index, see
+Blogs above. Rename the directory to publish it again.
 
 Thirteen demos and a list, one per lesson, each with the number that settled
 it. The post is this site's notes and the other projects' notes read back, with
@@ -3333,7 +3343,7 @@ button, the canvas and the frame loop.
   - **The heart's hue is inline `style`**, since it is not a token and no class
     can name it. Off, the span inherits the button's tone and steps with it.
   - **`INK` is exported for one reader**, the contrast demo in
-    `app/blogs/details-you-can-measure/`, which converts it and reports its
+    `app/blogs/_details-you-can-measure/`, which converts it and reports its
     ratio. Nothing else may paint with it.
   - **The heart fills while it is on, as a second glyph fading in over the
     outline** rather than a weight swap on one, so the fill arrives on the same
