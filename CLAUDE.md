@@ -3738,8 +3738,8 @@ transform.
   and whole by 60%, when the window is about half the pill. Traced through an
   open, width against opacity per frame: 31px at 0, 40 at 0.13, 54 at 0.49,
   67 at 0.8 and 78 at 1, so the badge inflates as a black pill for a few
-  frames and its label arrives into it. A fresh word is mounted at opacity 0,
-  since it lands a frame before the window's first paint would hide it.
+  frames and its label arrives into it. The word starts at opacity 0, so a
+  first hover cannot show it through the hole before the first paint.
 - **The clip is driven from the pointer handlers, never through state and an
   effect, and this was the lag.** A hover that went event, render, commit,
   passive effect, tween was two to three frames before anything moved, on
@@ -3752,26 +3752,35 @@ transform.
   root rather than the clip, so entering never depends on the word's width
   and leaving mid-open does not have to close the window first. The hide
   resets the clip to the hole once it is gone.
-- **A word arriving on a fresh open swaps at once, and only a word arriving
-  while the pill is still open morphs.** `torph` morphs on every change, so a
-  fresh open used to morph the last card's word into the new one and stretch
-  the background from the old width to the new over 200ms while the chip was
-  still arriving. The word carries a key that changes on a fresh open, which
-  remounts the morph with the new word and no animation, and the update is
-  `flushSync`ed so the word is in the DOM before the window moves:
-  `pointerenter` is a continuous event to React, and without the flush the
-  render landed a frame after the tween and the first frame of the open showed
-  a sliver of the old word. The remount costs 7ms in the handler once warm,
-  against 4ms for a morph, and 22ms on the session's first hover, which is the
-  module warming up. The word stays through a close, so the pill never empties
-  mid-exit.
-- **The name morphs while the pill is open.** Crossing straight from one card
-  to the next morphs the label through `torph` rather than popping it out and
-  back in, and the window stays whole through it: traced, the visible width
-  never left the box. A card's leave is answered one frame out,
-  `folder-stack`'s call, so two cards that touch swap names with no dip. A
-  crossing through the 19px gap closes the window part way and reopens it on
-  the new word.
+- **There is no torph in this lab, and the second reason was the lean.**
+  torph measures its box with `getBoundingClientRect`, and a leaning pill's
+  rect is the bounding box of a rotated rectangle: at 5.6 degrees a 120 by
+  19px word measured about 30px tall. torph wrote that height onto the word
+  for the length of the morph and handed it back to `auto` at the end, so on
+  every card-to-card crossing the pill grew half as tall again and then
+  fitted. A crossing happens while the cursor is moving, so the pill is nearly
+  always leaning when a morph would start. A word change is a GSAP width tween
+  instead, from the old `offsetWidth` to the new one over 200ms with
+  `clearProps` at the end, and `offsetWidth` is a layout box that no transform
+  touches. The new word rises 3px into the box on a fade when the window is
+  open. Through a gap the window is still reopening and its own fade owns the
+  word, so the two never write the same opacity. Measured across a fast
+  crossing at a 5.9 degree lean: the layout height holds at 29px on every
+  frame while the rotated rect peaks at 38, the width runs 120, 112, 103, 96,
+  92, 90, and no inline width is left on the box. The word is committed
+  with `flushSync` so the box can be measured on the same tick and the open's
+  first frame carries it: `pointerenter` is a continuous event to React, and
+  without the flush the render landed a frame after the tween. A fresh open
+  swaps the word with no tween at all, since the old word was never on screen
+  in this hover, and the first build's morph from it stretched the background
+  from the old width to the new while the chip was still arriving. The word
+  stays through a close, so the pill never empties mid-exit.
+- **The name changes in place while the pill is open.** Crossing straight
+  from one card to the next resizes the box to the new word rather than
+  popping the pill out and back in, and the window stays whole through it. A
+  card's leave is answered one frame out, `folder-stack`'s call, so two cards
+  that touch swap names with no dip. A crossing through the 32px gap closes
+  the window part way and reopens it on the new word.
 - **The name and the link come from the registry.** Each card is a real link to
   the lab whose still it shows, and the pill says that lab's title, so neither
   can drift from the page it points at. The still's `alt` is the same title,
