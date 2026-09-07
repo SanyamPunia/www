@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { PointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { TextMorph } from "torph/react";
 import { getLabBySlug } from "@/lib/labs";
 import { approach } from "@/lib/lerp";
 
@@ -21,12 +20,13 @@ import { approach } from "@/lib/lerp";
  * retargeted by `quickTo` on every move, so it arrives a beat late and settles
  * rather than stopping dead. The lean is read off that chase on GSAP's ticker.
  *
- * The dot and the pill are one element. The pill is always there, and a
- * circular clip decides how much of it shows: a 3.2px hole at rest, which is
- * the dot, and the whole pill over a card. Nothing scales, and that is the
- * fix for a bug: torph sizes its box from `getBoundingClientRect`, which
- * reports the transformed size, so a pill measured mid-scale got a background
- * a fraction of its text's width for the length of the morph.
+ * The dot and the pill are one element. The pill is always there, and a clip
+ * decides how much of it shows: a 3.2px hole at rest, which is the dot, and
+ * the whole pill over a card. Nothing scales, and there is no torph here:
+ * torph sizes its box from `getBoundingClientRect`, which is the transformed
+ * rect, so a pill measured mid-scale got a background a fraction of its word's
+ * width, and a leaning pill measured half as tall again. A word change is a
+ * width tween read off `offsetWidth`, which no transform touches.
  */
 
 /** the cards, one lab still each. The registry supplies the name and the link */
@@ -86,6 +86,9 @@ const OPEN = { duration: 0.22, ease: "power3.out" } as const;
 const CLOSE = { duration: 0.14, ease: "power2.out" } as const;
 /** the fade at the stage's edge, where the cursor comes and goes */
 const FADE = { duration: 0.15, ease: "power2.out" } as const;
+/** a word replacing another while the pill is open: the box tweens to the
+ * new width and the new word rises into it */
+const SWAP = { duration: 0.2, ease: "power2.out" } as const;
 /** the resting hole, independent of the word's width */
 const HOLE = `circle(${DOT}px at 50% 50%)`;
 /**
@@ -142,15 +145,12 @@ export default function CustomCursor() {
   const pill = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
   /*
-   * The pill's word, and a key that decides whether a change morphs. A word
-   * arriving while the pill is still open from the last card morphs into
-   * place, torph's job. A word arriving on a fresh open swaps at once, since
-   * the old word was never on screen in this hover, and morphing from it
-   * stretched the background from the old width to the new one over 200ms
-   * while the chip was still arriving. The word stays through a close, so the
-   * pill never empties mid-exit.
+   * The pill's word. It stays through a close, so the pill never empties
+   * mid-exit, and it is written with `flushSync` so the box can be measured
+   * on the same tick the word changes.
    */
-  const [text, setText] = useState({ value: "", key: 0 });
+  const [text, setText] = useState("");
+  const word = useRef<HTMLSpanElement>(null);
   /* whether the pill is open or still closing, read by the handlers */
   const pillOpen = useRef(false);
   /* the window's progress, the one thing GSAP tweens for the clip */
@@ -359,14 +359,45 @@ export default function CustomCursor() {
   ) => {
     if (!hovers(event)) return;
     cancelAnimationFrame(clearing.current);
-    const fresh = !pillOpen.current;
-    // a fresh word is committed before the clip moves, or the first frame of
-    // the open shows a sliver of the last card's word. `pointerenter` is a
-    // continuous event to React, so without the flush the render lands a
-    // frame later than the tween.
-    flushSync(() => {
-      setText((t) => ({ value: title, key: fresh ? t.key + 1 : t.key }));
-    });
+    const p = pill.current;
+    const w = word.current;
+    const swapping = pillOpen.current && title !== text;
+    const from = p?.offsetWidth ?? 0;
+    // the word is committed before anything moves, so the box can be measured
+    // now and the open's first frame carries the new word. `pointerenter` is a
+    // continuous event to React, and without the flush the render lands a
+    // frame after the tween.
+    flushSync(() => setText(title));
+    if (swapping && p && w) {
+      // from the old width to the new one, both read off the layout box, and
+      // the box goes back to sizing itself when the tween lands
+      gsap.fromTo(
+        p,
+        { width: from },
+        {
+          width: p.offsetWidth,
+          duration: seconds(SWAP.duration),
+          ease: SWAP.ease,
+          clearProps: "width",
+          overwrite: "auto",
+        },
+      );
+      // only when the window is open. While it is still opening, `paint`
+      // owns the word's opacity and the two would fight
+      if (clip.current.t >= 1) {
+        gsap.fromTo(
+          w,
+          { opacity: 0, y: 3 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: seconds(SWAP.duration),
+            ease: SWAP.ease,
+            overwrite: "auto",
+          },
+        );
+      }
+    }
     openPill(tone);
   };
   const leaveCard = () => {
@@ -447,16 +478,10 @@ export default function CustomCursor() {
           style={{ clipPath: HOLE }}
           className="absolute top-0 left-0 -translate-1/2 whitespace-nowrap rounded-full bg-text-primary px-3 py-1.5 text-action font-medium text-bg ring-1 ring-bg/20"
         >
-          {/* hidden at mount, since a fresh word is mounted a frame before the
-              window's first paint sets its opacity, and the hole is over it */}
-          <TextMorph
-            key={text.key}
-            duration={200}
-            ease="cubic-bezier(0.4, 0, 0.2, 1)"
-            style={{ opacity: 0 }}
-          >
-            {text.value}
-          </TextMorph>
+          {/* hidden until the window has room for it, see `WORD` */}
+          <span ref={word} style={{ opacity: 0 }} className="inline-block">
+            {text}
+          </span>
         </div>
       </div>
     </div>
