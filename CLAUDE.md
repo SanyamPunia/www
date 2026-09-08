@@ -481,11 +481,23 @@ A crossfade between routes, via React's `<ViewTransition>`.
   root layout's children. A layout's children slot keeps its position in the
   tree across a navigation, so React reconciles it as an update rather than an
   unmount and a mount, and `enter`/`exit` never fire.
-- **It is propless on purpose.** A bare `<ViewTransition>` uses the browser
-  default, which is a crossfade, so there are no keyframes to maintain and
-  nothing depends on `::view-transition-old(.class)` selectors, which need
+- **It is nearly propless on purpose.** A bare `<ViewTransition>` uses the
+  browser default, which is a crossfade, so there are no keyframes to maintain
+  and nothing depends on `::view-transition-old(.class)` selectors, which need
   Chrome 125+ and diverge in Safari. Only the duration is tuned, against
   `root`, in `app/globals.css`.
+- **`update="none"` is the one prop, and it fixed a bug every lab had.**
+  React animates the boundary for every non-urgent commit inside it, which is
+  any state update that did not come straight from a discrete event: a timer,
+  an animation's completion callback, a frame loop. Each one ran a 300ms view
+  transition nobody could see, since the old and new pages were identical,
+  and the document's snapshot sat over the live DOM for its duration, so hit
+  testing landed on the root and every pointer event in that window was lost.
+  The flip clock found it, ticking once a second: 36 of 133 frames with
+  nothing under the pointer and 5 of 16 presses on a card lost, and the
+  halftone ripple's like ran one after its ripple ended. Navigations mount and
+  unmount this boundary, so `enter` and `exit` still crossfade the pages, and
+  `update` had nothing left to do.
 - Directional slides keyed off a Link's `transitionTypes` were built and then
   removed. They are a bigger effect than these pages need and they cost that
   class-selector dependency. Re-adding means a types map on the boundary,
