@@ -404,6 +404,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Hover the cards with a mouse. Touch gets the plain links.",
   },
+  {
+    slug: "radial-menu",
+    title: "Radial Menu",
+    description: [
+      "A file on a stage. Press it and pull, and a wheel of formats opens around the place it was, the shape of a game's weapon wheel: the hand carries the file, the wedge under the hand fills in and its name reads out in the empty slot, and letting go there converts the file. Letting go over the middle, or anywhere off a wedge, puts it back unchanged.",
+      "Key insight: the wheel is centred on where the file was, never on the hand, so it holds still while the hand moves. Which wedge is under the hand is arithmetic on the hand's angle and distance from that centre rather than a hit test on the wedges, since the file is what the pointer is over and the wedges could never see it. Past the outer edge still counts: a wheel is a direction picker, and a hand that overshoots has still pointed.",
+      "The keyboard gets the same wheel without the drag. Enter opens it on the top wedge, the arrows walk round it, Enter picks and Escape puts the file back. Reduced motion keeps every state and drops the travel: the wheel appears in place and the file is home in one step.",
+    ],
+    createdAt: "2026-09-08",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/radial-menu/index.tsx",
+    flush: true,
+    hint: "Drag the file out. On a keyboard, press it and use the arrows.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -477,6 +491,7 @@ export const IMPLEMENTED_LABS = [
   "notch-drop",
   "island-menu",
   "custom-cursor",
+  "radial-menu",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
