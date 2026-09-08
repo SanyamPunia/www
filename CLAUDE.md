@@ -1130,23 +1130,23 @@ experiment is a directory under `components/labs/`.
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
-  `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor` and
-  `radial-menu` use it.
+  `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
+  `radial-menu` and `flip-clock` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Thirteen experiments define their own hues**, `tab-overview` per terminal
+- **Fourteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
   it throws, `halftone-ripple` for a press that turns its button on,
   `notch-drop` for a state icon once a drop is going to happen and for each
   kind of card on its page, `custom-cursor` for the badge over each of its
-  cards, drawn from the still the card shows, and `radial-menu` per format on
-  its wheel. Five of them are the
+  cards, drawn from the still the card shows, `radial-menu` per format on its
+  wheel, and `flip-clock` per card, since black hid the depth. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1303,7 +1303,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-six clips, 1351KB with their stills, 3.4 to 7.5 seconds each, at 60
+- Twenty-seven clips, 1422KB with their stills, 3.4 to 7.5 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -3993,6 +3993,126 @@ the drag, `portrait.tsx` the file, on Motion alone.
   phone opens the wheel without scrolling the page and converts on the lift,
   and under reduced motion the wheel is at full opacity on the frame it opens
   and the file is home 60ms after a release.
+
+### `flip-clock`
+
+A flip clock in 24-hour time: three cards for hours, minutes and seconds, a
+blue, a green and a terracotta with cream numerals, each a number split at a
+hinge across its middle. When a number
+changes, the top half falls forward through 180 degrees as a real flap,
+showing its back on the way down, and lands on the stop with a small bounce.
+`index.tsx` is the whole thing, on Motion alone.
+
+- **The flap is the only thing that moves, and everything else is what makes
+  that possible.** A card is two static halves and, while a number changes, a
+  flap over the top one. The static top already shows the next number and the
+  static bottom still shows the old one. The flap's front is the old number's
+  top and its back is the new number's bottom, pre-turned 180 degrees so it
+  reads upright once the flap has landed where the bottom half was. So the
+  card reads right on every frame of the fall, nothing fades and nothing
+  morphs, which is what a mechanical clock looks like.
+- **A half is a full glyph box clipped to half a card.** Each half is a box
+  half the card's height that clips a box twice its own height holding the
+  whole number: the top half shows it from the top, the bottom half slides
+  the same box up by its own height and shows the rest. Both halves of both
+  numbers then meet at the hinge to the pixel, whatever the glyph.
+- **The faces on the flap fill the flap, and this was a bug with a mirrored
+  tell.** `Face` sizes itself to half its container, and the flap is already
+  half the card, so the flap's faces came out a quarter of the card tall and
+  showed the wrong slice of the glyph: the back read as a vertically mirrored
+  number for the whole fall. A `fill` flag makes a face fill its box when the
+  box is the flap.
+- **The fall is gravity and the landing is a bounce, in one keyframe run.**
+  Rotation goes 0 to -180 over the first half on an ease-in, since a falling
+  card gathers speed, then -172, -180, -177, -180 on alternating ease-outs and
+  ease-ins, which is the flap coming off the stop by eight degrees, then three,
+  then resting. 720ms in all. The flap sits under `perspective: 700px` on the
+  card, so it foreshortens as it turns and is edge-on at the hinge. It is run
+  with `animate()` on a motion value rather than an `animate` prop, so the
+  shading can read the angle, and finished on `onComplete` and not the
+  promise: a stop resolves the promise too, and dev's double effect stops the
+  first run.
+- **A card only flips one step at a time, and it queues.** The change effect
+  starts a flap when the value differs from what the halves show and no flap
+  is in flight. When the flap lands, the halves take its number and the effect
+  runs again, so a value that moved twice during a flap gets one more flap to
+  the latest value rather than a backlog. The `key` on the flap is a counter,
+  so consecutive flips remount it and start the run from zero.
+- **The cards flip in from 00 on arrival**, hours first and the others 120ms
+  apart, which is the site's own stagger one level down, and only the first
+  flap of each card takes the delay. The seconds then keep the mechanism
+  moving, so nobody waits a minute to see it work.
+- **A press on a card sets it forward by one of its own unit**, an hour, a
+  minute or a second, by adding to an offset the clock is read through. So the
+  hour and minute flaps can be watched on demand, and the three cards stay one
+  consistent clock rather than three counters. The clock is read once a
+  second, aligned to the wall clock's own second boundary, so a flap starts
+  when the second turns and not up to a second late.
+- **The depth is light, on `document-pocket`'s rules for a dark surface.** The
+  first build was flat `inverse-fill` rectangles and read as a cartoon, and the
+  second greyed the numerals' lower halves under a shadow gradient a third of
+  the card tall, with a hard white stripe for a hinge, and read as fake. What
+  reads as a card: the numerals stay white top to bottom, the hinge is a soft
+  band of shadow where the light cannot reach the fold, 45% on the line and
+  gone within four pixels either side, with the upper card's shadow a narrow
+  band under it, 40% at the gap and gone by 16px, laid over the paint as well
+  since a shadow falls on everything. A one-pixel black hairline was tried for
+  the gap first and read as a drawn line. The light comes from the upper left, a
+  sheen across each face falling to a shadow at the lower right, with a lit
+  pixel along the top edge and a hairline bevel. Grain twice, the pocket's
+  noise at 30% in overlay for the tooth and at 9% in screen so the specks show
+  on a near-black, where overlay alone has nothing to lift. The surface layers
+  sit under the numeral, so the paint is clean, and the shadows sit over it.
+  The table is `bg` at the top falling to `fill`, so the shadows have a ground,
+  and each card is seated by a soft pool on the table and three faint shadows
+  of its own, a contact line, a short cast and a wide ambient, offset
+  downward. The light is white and black at alpha over the card's own hue.
+- **The flap is lit as it turns, and it throws a shadow.** Its rotation is a
+  motion value the card owns, so three shades read it: the flap's front
+  darkens from 0 to 50% as it turns edge-on at 90 degrees, its back starts at
+  50% and clears as it lands, and the lower card under it darkens by the sine
+  of the angle, nothing at either end and 45% with the flap edge-on over the
+  hinge, which is where a real card shades the one below. 55% each, on a
+  flap under `perspective: 700px`. A face that turns from the light and a
+  shadow that moves with it are most of what says the flap is a thing and not
+  a wipe.
+- **The axle's two tabs sit at the hinge in `inverse-stroke`** with a lit top
+  edge each, and three edges under the card, each a shade further back, are
+  the cards waiting on the reel.
+- **A hue per card, the fourteenth lab to scope its own colours.** The cards
+  were black first, the `notch-drop` claim that hardware is black, and black
+  hid everything the depth pass added: a sheen and a shadow on near-black are
+  the same near-black. The reference had the answer, the Zara flip clock's
+  blue and green cards with cream numerals. `HUES` in `index.tsx` gives hours
+  a blue, minutes a green and seconds a terracotta, all with one cream ink,
+  and the fittings, the axle's tabs and the reel's edges, are each card mixed
+  40% toward black in oklab. The cream clears 3:1 on every card, the
+  large-text floor: 3.62, 3.54 and 3.88. The light layers did not change,
+  white and black at alpha, and on a mid-tone they read. The numbers are
+  `text-[4.5rem]` at `font-medium`, which is off the type scale on purpose,
+  since they are the object and not copy, the standing the portrait and the
+  tether hands have.
+- **The flap is `pointer-events-none`**, since it never needs a pointer and a
+  singular transform mid-fall is nothing to hit test against.
+- **Its presses were being eaten, and the cause was the page, not the
+  clock.** Every tick ran a view transition on the page boundary that held a
+  snapshot over the live DOM for 300ms, and any press in that window landed
+  on the root. See Page transitions: the boundary now passes `update="none"`.
+  The flap, the 3D context and the hover transition were each ruled out
+  first by stripping them and counting misses, which is the order to try
+  again if a press ever goes missing here.
+- **Reduced motion swaps the number with no flap.** The halves take the new
+  value at once. The clock itself is not gated, since a clock that does not
+  change is not a clock.
+- **It is `flush`, on a lit table, and exactly the card's 8:5.** The stage is
+  `h-105`, 336px under the 538px column, which is the shape of the index's
+  preview card, so the recorded clip is the whole stage with nothing padded or
+  cut and a hover on the index shows the lab as it is. The table is `bg` at the
+  top falling to `fill`, with the frame's inset ring.
+- Verified in a browser: three flaps in flight through the first 600ms after
+  load and none after, a press on minutes flips it one forward with the halves
+  agreeing afterwards, under reduced motion no flap is ever mounted and the
+  cards still show the time, and no console errors.
 
 ## Motion
 
