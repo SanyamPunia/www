@@ -1243,16 +1243,29 @@ so `pnpm dev` has to be up. An experiment whose component changes is re-recorded
 Nothing else in the repo reproduces these files, so they are checked in as
 assets.
 
-- **It drives the real page in a real browser.** `playwright-core` with
-  `channel: "chrome"`, so nothing downloads a browser, and one scripted gesture
-  per lab in a table keyed by slug. `ffmpeg` cuts and encodes, `cwebp` writes the
-  still.
+- **It drives the real page in a real browser, and agent-browser records it.**
+  `agent-browser open` launches the installed Chrome through its
+  `--executable-path`, so nothing downloads a browser, and `playwright-core`
+  connects to that Chrome over the daemon's own CDP socket and performs one
+  scripted gesture per lab from a table keyed by slug. `agent-browser record`
+  captures it, `ffmpeg` crops and encodes, `cwebp` writes the still.
+  `agent-browser` is a host tool, `npm i -g agent-browser`, beside `ffmpeg` and
+  `cwebp`.
+- **The clips are 60 frames a second, and the capture is what decides that.**
+  Playwright's own recorder hands over about 25 frames a second whatever the
+  page does, and the first clips were that, encoded at 30. agent-browser's
+  `record` runs Chrome's screencast into ffmpeg at the rate it is asked for
+  and holds a frame only when Chrome produced none, and Chrome produces one
+  per compositor frame. Measured on the custom cursor lab at `--fps 60`: 298
+  distinct frames in 5.0s, and its own stop report says so, `frames` against
+  `capturedFrames`. The gesture table did not change, since Playwright still
+  drives it.
 - **The clip is one video pixel per CSS pixel and there is no way to ask for
-  more.** Playwright only ever scales a page *down* to fit `recordVideo.size`, so
-  a larger size pads the frame rather than enlarging the page, and
-  `deviceScaleFactor` does not reach the screencast at all. So the 537px column
-  is captured at 537px and upscaled to 640x400 at encode time, which is still
-  1.75x what the 307px card paints.
+  more.** Chrome's screencast returns frames at the viewport's CSS size
+  whatever the device scale factor, measured 1280x1000 with the page at a
+  factor of 2, and Playwright's recorder before it only ever scaled a page
+  down. So the 537px column is captured at 537px and upscaled to 640x400 at
+  encode time, which is still 1.75x what the 307px card paints.
 - **A `focus` rect per lab, in the demo's own coordinates**, corrected to the
   card's 8:5 inside the demo box and padded in white where the demo is the wrong
   shape for it. Cropping past the demo's edge pulls in the heading and the
@@ -1267,10 +1280,10 @@ assets.
   coordinates, so a page that moves under it lands the clip on the prose below
   the demo, which is what four of the first clips were. The scroll is pinned as
   well, since a focused control that grows the page can move it too.
-- **The clip is trimmed to the gesture**, off wall-clock offsets from the page's
-  own creation, which is where Playwright starts recording. Every gesture opens
-  and closes on a settled demo, so a trim a frame out shows a still rather than
-  the page arriving.
+- **The recording opens on the settled demo and closes on the gesture's end**,
+  started and stopped around the gesture rather than trimmed out of a longer
+  take. Every gesture begins with a short wait on a settled demo, so the first
+  frame is a still of the thing and not the page arriving.
 - **`spring-image` suppresses `selectstart` for the recording.** A drag across
   the copy beside the photo selects it, and the site paints a selection in
   `#34d399` with a caret at each end, so a clip about a spring turned into a clip
@@ -1278,7 +1291,8 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-six clips, 1039KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-six clips, 1351KB with their stills, 3.4 to 7.5 seconds each, at 60
+  frames a second.
 
 ### `tab-overview`
 
@@ -4064,11 +4078,13 @@ reveal.
   dev server: Next 16 gave the two separate output directories for that, see
   `node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`.
 - **`playwright-core` is a devDependency and downloads nothing.** It is only for
-  `scripts/record-lab-previews.mjs`, and it drives the installed Google Chrome
-  through `channel: "chrome"` rather than a bundled browser. That script also
-  wants `ffmpeg` and `cwebp` on the path, which are host tools rather than
-  packages. The ffmpeg on this machine is built without libwebp, which is why the
-  still goes through `cwebp` instead of straight out of ffmpeg.
+  `scripts/record-lab-previews.mjs`, where it connects over CDP to the Chrome
+  that `agent-browser` launched rather than launching one of its own. That
+  script wants `agent-browser`, `ffmpeg` and `cwebp` on the path, which are
+  host tools rather than packages: `agent-browser` is `npm i -g agent-browser`
+  and records the clips, see Recording the previews. The ffmpeg on this
+  machine is built without libwebp, which is why the still goes through
+  `cwebp` instead of straight out of ffmpeg.
 
 ## The portrait
 
