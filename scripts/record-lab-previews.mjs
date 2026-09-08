@@ -531,6 +531,22 @@ const LABS = {
       await wait(600);
     },
   },
+  "flip-clock": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage with nothing padded or cut
+    focus: [0, 0, 538, 336],
+    // let a few seconds flip, then set the minutes and the hours forward so
+    // all three flaps are seen
+    async run({ m, pick }) {
+      await wait(1800);
+      await m.press(pick(/^minutes/));
+      await wait(1400);
+      await m.press(pick(/^hours/));
+      await wait(1400);
+      await m.press(pick(/^minutes/));
+      await wait(1400);
+    },
+  },
   "radial-menu": {
     // the file sits at the centre of a 448px stage, so the crop takes the
     // middle 336px, which holds the whole wheel
