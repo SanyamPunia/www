@@ -15,7 +15,9 @@
  *   pnpm previews book-opening one lab
  *
  * It drives the dev server already listening on `BASE`, so start `pnpm dev`
- * first. Two Next servers cannot share one `.next`.
+ * first. Two Next servers cannot share one `.next`. It also needs
+ * `agent-browser` on the path, `npm i -g agent-browser`, which does the
+ * capture, and `ffmpeg` and `cwebp`, which cut and encode.
  */
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
@@ -30,6 +32,22 @@ const BASE = process.env.PREVIEW_BASE ?? "http://localhost:3100";
 const OUT = "public/assets/labs";
 
 /**
+ * The capture is agent-browser's, not Playwright's. Playwright's own recorder
+ * hands over about 25 frames a second whatever the page does. agent-browser's
+ * `record` runs Chrome's screencast into ffmpeg at the rate it is asked for
+ * and holds a frame only when Chrome produced none, and Chrome produces one
+ * per compositor frame: measured on the custom cursor lab, 298 distinct frames
+ * in 5.0s at `--fps 60`. Playwright still drives the gesture, connected over
+ * the daemon's own CDP socket, so nothing in the gesture table changed. It
+ * drives the installed Chrome, so it downloads nothing.
+ */
+const CHROME =
+  process.env.AGENT_BROWSER_EXECUTABLE_PATH ??
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const FPS = 60;
+const ab = async (...args) => (await run("agent-browser", args)).stdout.trim();
+
+/**
  * 8:5, twice the card's own 307x192 so it stays sharp on a 2x display. The
  * card's aspect lives in `lab-preview.tsx` and this is the same ratio: a clip
  * that does not match it is letterboxed by the card rather than distorted.
@@ -42,11 +60,11 @@ const ASPECT = CARD.w / CARD.h;
  * column is the same 537px a reader sees.
  *
  * The recording is one video pixel per CSS pixel, and asking for more does not
- * work: Playwright only ever scales a page *down* to fit `recordVideo.size`, so
- * a larger size pads the frame instead of enlarging the page, and
- * `deviceScaleFactor` does not reach the screencast either. So the crop is
- * upscaled to the card at encode time. The card is 307px wide, so a 537px crop
- * is already 1.75x what it paints.
+ * work: Chrome's screencast returns frames at the viewport's CSS size whatever
+ * the device scale factor, measured 1280x1000 with the page at a factor of 2,
+ * and Playwright's recorder before it only ever scaled a page down. So the
+ * crop is upscaled to the card at encode time. The card is 307px wide, so a
+ * 537px crop is already 1.75x what it paints.
  */
 const VIEWPORT = { width: 1280, height: 800 };
 
@@ -593,15 +611,7 @@ const VIEWPORT_BOUNDS = {
   height: VIEWPORT.height,
 };
 
-async function record(browser, slug, lab, tmp) {
-  const context = await browser.newContext({
-    viewport: VIEWPORT,
-    reducedMotion: "no-preference",
-    recordVideo: { dir: tmp, size: VIEWPORT },
-  });
-  const page = await context.newPage();
-  const clock = Date.now();
-
+async function record(page, slug, lab, tmp) {
   await page.goto(`${BASE}/lab/${slug}`, { waitUntil: "load" });
   await page.waitForFunction(() => {
     const demo = document.querySelector("[data-lab-demo]");
@@ -694,14 +704,14 @@ async function record(browser, slug, lab, tmp) {
   const pick = (name) =>
     page.locator("[data-lab-demo]").getByRole("button", { name });
 
-  const start = (Date.now() - clock) / 1000;
+  // the recording opens on the settled demo and closes on the gesture's end,
+  // so there is nothing to trim
+  const raw = join(tmp, `${slug}.mp4`);
+  await ab("--json", "record", "start", raw, "--fps", String(FPS));
+  const clock = Date.now();
   const measured = await lab.run({ page, m, pick, box });
-  const end = (Date.now() - clock) / 1000;
-
-  const video = page.video();
-  await page.close();
-  await context.close();
-  const raw = await video.path();
+  const seconds = (Date.now() - clock) / 1000;
+  await ab("--json", "record", "stop");
 
   const region = measured
     ? crop(measured, VIEWPORT_BOUNDS)
@@ -720,18 +730,14 @@ async function record(browser, slug, lab, tmp) {
   const mp4 = join(OUT, `${slug}.mp4`);
   await run("ffmpeg", [
     "-y",
-    "-ss",
-    String(start),
     "-i",
     raw,
-    "-t",
-    String(end - start),
     "-vf",
     [
       `crop=${region.w}:${region.h}:${region.x}:${region.y}`,
       `scale=${CARD.w}:${CARD.h}:force_original_aspect_ratio=decrease:flags=lanczos`,
       `pad=${CARD.w}:${CARD.h}:-1:-1:white`,
-      "fps=30",
+      `fps=${FPS}`,
     ].join(","),
     "-an",
     "-c:v",
@@ -768,7 +774,7 @@ async function record(browser, slug, lab, tmp) {
 
   await rm(raw, { force: true });
   const size = (await readFile(mp4)).byteLength;
-  return { seconds: (end - start).toFixed(1), kb: Math.round(size / 1024) };
+  return { seconds: seconds.toFixed(1), kb: Math.round(size / 1024) };
 }
 
 const only = process.argv.slice(2);
@@ -782,17 +788,31 @@ if (slugs.length === 0) {
 
 await mkdir(OUT, { recursive: true });
 const tmp = await mkdtemp(join(tmpdir(), "lab-previews-"));
-const browser = await chromium.launch({ channel: "chrome" });
+
+// one daemon, one Chrome, one tab, driven over the daemon's own CDP socket. A
+// session left from a crashed run is closed first, and the daemon needs a beat
+// to go before it can come back
+await ab("close", "--all").catch(() => {});
+await wait(1500);
+await ab("--executable-path", CHROME, "open", "about:blank");
+const browser = await chromium.connectOverCDP(await ab("get", "cdp-url"));
+const page = browser.contexts()[0].pages().at(-1);
+await page.setViewportSize(VIEWPORT);
+const emulation = await page.context().newCDPSession(page);
+await emulation.send("Emulation.setEmulatedMedia", {
+  features: [{ name: "prefers-reduced-motion", value: "no-preference" }],
+});
 
 for (const slug of slugs) {
   process.stdout.write(`${slug.padEnd(24)}`);
   try {
-    const { seconds, kb } = await record(browser, slug, LABS[slug], tmp);
+    const { seconds, kb } = await record(page, slug, LABS[slug], tmp);
     console.log(`${seconds}s  ${kb}KB`);
   } catch (error) {
     console.log(`failed: ${error.message.split("\n")[0]}`);
   }
 }
 
-await browser.close();
+await browser.close().catch(() => {});
+await ab("close", "--all").catch(() => {});
 await rm(tmp, { recursive: true, force: true });
