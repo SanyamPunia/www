@@ -1118,21 +1118,23 @@ experiment is a directory under `components/labs/`.
   say where the new cursor stops, and one that pushes a card off its own edge
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
-  `rain-splatter`, `sticker-peel`, `notch-drop` and `custom-cursor` use it.
+  `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor` and
+  `radial-menu` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twelve experiments define their own hues**, `tab-overview` per terminal
+- **Thirteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
   it throws, `halftone-ripple` for a press that turns its button on,
   `notch-drop` for a state icon once a drop is going to happen and for each
-  kind of card on its page, and `custom-cursor` for the badge over each of
-  its cards, drawn from the still the card shows. Five of them are the
+  kind of card on its page, `custom-cursor` for the badge over each of its
+  cards, drawn from the still the card shows, and `radial-menu` per format on
+  its wheel. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1276,7 +1278,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-five clips, 998KB with their stills, 3.7 to 7.5 seconds each.
+- Twenty-six clips, 1039KB with their stills, 3.7 to 7.5 seconds each.
 
 ### `tab-overview`
 
@@ -3833,6 +3835,138 @@ transform.
   the cards, and the cards are still 160 by 100. On a 390px phone the grid
   meets the stage's own padding and the stage stays 448px tall, which is room
   nothing uses, since a finger draws no cursor there.
+
+### `radial-menu`
+
+A file on a stage. Press it and pull, and a wheel of five formats, png, jpg,
+gif, avif and pdf, opens
+around the place it was, the game weapon wheel's shape: the hand carries the
+file, the wedge under the hand fills in and its name reads out in the empty
+slot, and letting go there converts the file. Letting go over the middle, or
+anywhere off a wedge, puts it back unchanged. `index.tsx` is the wheel and
+the drag, `portrait.tsx` the file, on Motion alone.
+
+- **The wedge under the hand previews its format on the portrait, and the
+  file keeps the look it was last converted to.** The art is drawn once and
+  reused through `<use>` under an SVG filter, faded over the original so a
+  change of look is a crossfade. jpg is pixelated into 5 unit blocks by the
+  flood, tile, mask and dilate trick and then softened, which is what block
+  compression does to flat colour. gif has fine noise added and each channel
+  cut to six levels, which is dither and a palette: four turned the skin pink,
+  honest about a small palette and the loudest tile of the five. avif is softened a touch,
+  the most a good codec gives away. png is the art as drawn, and pdf sets it
+  small on a white page with a hairline edge. So the wheel is not a list of
+  names but a demo of what the names mean, and after a pick the tile carries
+  the result until the next one.
+- **The readout says what the file would weigh, from a table.** Nothing here
+  converts anything, so `WEIGHT` holds one plausible figure per format for a
+  portrait this size and the readout sets it under the name in `text-muted`,
+  which is where mock data sits on this site.
+- **The file is a drawn portrait, `portrait.svg`, and the formats are what a
+  vector gets rasterised to.** A bust with no face, which is what a portrait
+  reduced to a 64px tile can carry, painted in the lab's own hues so the file
+  and the wheel read as one set: the ground is the amber wash and the sweater
+  the sky mark, with the skin and hair the drawing's own. It is artwork rather
+  than a UI icon, the standing `tether-button`'s hands have. The first build
+  reused the stamp collection's still, which made the tile a photo of another
+  lab and the conversion a lie, since a webp is not what anyone turns into a
+  pdf.
+
+- **A hue per format, the thirteenth lab to scope its own colours.** The first
+  build was `fill` wedges with the one under the hand in `text-primary`, and
+  it read as a grey dial. `HUES` in `index.tsx` gives each wedge a `tint` at
+  rest, a wash in the 1.25 to 1.38 band on white that `folder-stack`'s papers
+  hold, so a wedge gains a hue without gaining weight, and a `mark` under the
+  hand, with an `ink` for the label that can read on it: white on the sky,
+  violet and green, the site's black on amber and coral, since no white clears
+  4.5:1 on those. Measured label on mark: 4.72, 9.26, 5.22, 4.69 and 6.79.
+  Rest labels are `text-primary` at 12.6:1 or better on every tint. The
+  readout in the empty slot takes the pick's own mark where that mark clears
+  4.5:1 on white, the sky, violet and green, and stays `text-primary` for
+  amber and coral, which sit at 1.9 and 2.6. The hues are inline, since they
+  are not tokens, and nothing else may paint with them.
+- **The wedge under the hand pops.** It scales to 1.05 about the wheel's
+  centre, which is the SVG's origin, so it steps outward as well as growing,
+  on a spring with a little overshoot. The wheel's arrival and the file's
+  return overshoot a little too, since a wheel of sweets should bounce.
+- **A magnet on the wedge under the hand.** The file's position is the hand's
+  offset plus a pull, two springs, and with a wedge under the hand the pull
+  is 12% of the way from the hand to that wedge's centre, so the file drifts
+  into the wedge ahead of the hand. The wheel tips toward where the hand sits
+  inside the wedge, 0.08 degrees per degree off the wedge's own angle, so a
+  hand near a seam sees the wheel lean to meet it and a hand crossing the seam
+  sees it swing the other way. Both unwind to zero in the dead zone and on
+  release, which is a dial catching a detent and letting go. The hand's
+  offset and the pull are separate motion values summed by a transform, so
+  the drag still writes the hand directly and only the pull is sprung.
+- **A pick is a beat, not a snap home.** On release over a wedge the file
+  darts into that wedge's centre, takes the new look and name there, and only
+  then springs home, with the wheel held open and the wedge lit until it has
+  landed. The dart is a 160ms tween and not a spring: a spring aimed at a
+  point the file was already on still ran its settle, which was a 330ms hold
+  with nothing moving. Measured from a release near the rim: 136px out to
+  105 in two frames, renamed and closed at 211ms, home by 644ms with the
+  return's bounce. A release with no pick goes straight home. Under reduced
+  motion the pick is instant and there is no dart.
+
+- **The wheel is centred on where the file was, never on the hand.** So it
+  holds still while the hand moves, which is what makes it a target. The
+  file's centre is read once at the press, before it has moved, and every
+  later sample is measured against that.
+- **Which wedge is under the hand is arithmetic, not a hit test.** The file is
+  what the pointer is over, so the wedges could never see it, and the wheel is
+  `pointer-events-none` besides. `wedgeAt` takes the hand's offset from the
+  centre, maps its angle clockwise from the top onto five 72 degree slices and
+  returns null inside the inner radius, which is the dead zone that lets go
+  without picking. Past the outer edge still counts: a wheel is a direction
+  picker, and a hand that overshoots has still pointed. The same maths serves
+  a mouse, a finger and the arrow keys.
+- **A wedge is an annular sector drawn once as a path**, from the outer arc to
+  the inner one, and the seam between wedges is a 4px stroke in the stage's
+  own colour with round joins, so the wedges part without a border and their
+  corners soften a little where the stroke rounds them. Labels sit at the
+  ring's mid radius on each wedge's own angle.
+- **The press opens nothing until it has moved 6px.** A click on the file is a
+  click, and the wheel arrives on the first move past the slop, so the hand is
+  already heading somewhere when it appears. The drag is on nib's rules: down
+  on the file, move, up, cancel and blur on the window, `buttons === 0` ends a
+  drag whose lift was never heard, and Escape cancels a drag in flight.
+- **The selection is a ref first and state second.** The handlers read and
+  write `activeRef`, and `select` only renders when the wedge actually
+  changes, so a sweep across the wheel renders once per wedge crossed and not
+  once per move.
+- **The pick is the file's own name changing.** The extension morphs through
+  `torph` under the tile as it springs home, and the readout in the empty slot
+  morphs between wedge names during the sweep. Both elements only ever
+  translate, which is why torph is safe here where `custom-cursor` had to drop
+  it: a translate leaves `getBoundingClientRect`'s size alone, and a scale or a
+  rotation does not.
+- **The keyboard gets the same wheel without the drag.** Enter or Space opens
+  it on the top wedge, the arrows walk round it, Enter picks and Escape puts
+  the file back. The file stays put while choosing, since there is no hand to
+  follow, and darts into the wedge on the pick like any other. A
+  keyboard-opened wheel ignores the pointer and a pointer drag ignores the
+  keys, so the two cannot fight over one selection. Losing focus closes a
+  keyboard wheel without a pick.
+- **The button is the thumbnail alone**, so its centre is the wheel's centre,
+  and the name hangs under it absolutely and rides along. The name hides while
+  the file is out, since over the dark wedge a grey name had no contrast, and
+  it comes back with its new extension as the file lands, which is also when
+  the morph is worth watching. `touch-none` on the button so a finger's pull is
+  the file's and not the page's, and `cursor-grab`, the sixth place the shared
+  `cursor-pointer` rule is off.
+- **Reduced motion keeps every state and drops the travel.** The wheel
+  appears in place and the file is home in one step.
+- It is `flush`, white, with its own inset ring, the notch drop's stage.
+- Verified in a browser: a click opens nothing, a 24px pull opens the wheel
+  with nothing chosen, the hand at 0, 72, 144, 216 and 288 degrees reads png,
+  jpg, gif, avif and pdf and at 36 degrees reads jpg, the middle reads
+  nothing, a release on jpg renames the file and puts it back within a pixel,
+  a release in the middle leaves the name alone, Enter then two rights then
+  Enter picks gif, Escape leaves the name alone, a finger's pull on a 390px
+  phone opens the wheel without scrolling the page and converts on the lift,
+  and under reduced motion the wheel is at full opacity on the frame it opens
+  and the file is home 60ms after a release.
 
 ## Motion
 
