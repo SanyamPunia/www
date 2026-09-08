@@ -513,6 +513,32 @@ const LABS = {
       await wait(600);
     },
   },
+  "radial-menu": {
+    // the file sits at the centre of a 448px stage, so the crop takes the
+    // middle 336px, which holds the whole wheel
+    focus: [0, 56, 538, 336],
+    // press the file, pull it up into the top wedge, sweep to the next one and
+    // let go, then pull it down to the left and let go again
+    async run({ m }) {
+      await wait(300);
+      await m.move(269, 224, 4);
+      await m.down();
+      await wait(150);
+      await m.move(269, 118, 12);
+      await wait(600);
+      await m.move(370, 191, 12);
+      await wait(600);
+      await m.up();
+      await wait(1000);
+      await m.move(269, 224, 6);
+      await m.down();
+      await wait(150);
+      await m.move(207, 310, 12);
+      await wait(600);
+      await m.up();
+      await wait(1000);
+    },
+  },
   "island-menu": {
     // the bar sits at the foot of a fixed stage, so the crop starts 34px down
     // to hold the open menu's top and the bar's bottom with equal margins
