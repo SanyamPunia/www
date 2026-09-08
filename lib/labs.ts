@@ -418,6 +418,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Drag the file out. On a keyboard, press it and use the arrows.",
   },
+  {
+    slug: "flip-clock",
+    title: "Flip Clock",
+    description: [
+      "A flip clock in 24-hour time. Three cards, hours in blue, minutes in green and seconds in terracotta, each a number split at a hinge across its middle. When a number changes, the top half falls forward through 180 degrees as a real flap, showing its back on the way down, and lands on the stop with a small bounce. The cards flip in from 00 when the page arrives, and the seconds keep the mechanism moving.",
+      "Key insight: the flap is the only thing that moves. Behind it the top half already shows the next number and the bottom half still shows the old one, so the card reads right on every frame of the fall: the flap's front is the old number's top, its back is the new number's bottom, and it lands exactly where the bottom half was. Nothing fades and nothing morphs, which is what a mechanical clock looks like.",
+      "The fall is gravity and the landing is a bounce. The first half of the run is an ease-in, since a falling card gathers speed, and the rest is the flap coming off the stop by eight degrees, then three, then resting. A press on a card sets it forward by one, so the hour and minute flaps can be watched without waiting for them.",
+    ],
+    createdAt: "2026-09-08",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/flip-clock/index.tsx",
+    flush: true,
+    hint: "Press a card to set it forward by one.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -492,6 +506,7 @@ export const IMPLEMENTED_LABS = [
   "island-menu",
   "custom-cursor",
   "radial-menu",
+  "flip-clock",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

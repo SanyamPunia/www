@@ -124,6 +124,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "radial-menu": dynamic(() => import("@/components/labs/radial-menu"), {
     ssr: false,
   }),
+  "flip-clock": dynamic(() => import("@/components/labs/flip-clock"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
