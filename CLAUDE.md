@@ -1206,14 +1206,14 @@ experiment is a directory under `components/labs/`.
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
-  `radial-menu` and `flip-clock` use it.
+  `radial-menu`, `flip-clock` and `wrapped-pattern` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Fourteen experiments define their own hues**, `tab-overview` per terminal
+- **Fifteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1221,7 +1221,8 @@ experiment is a directory under `components/labs/`.
   `notch-drop` for a state icon once a drop is going to happen and for each
   kind of card on its page, `custom-cursor` for the badge over each of its
   cards, drawn from the still the card shows, `radial-menu` per format on its
-  wheel, and `flip-clock` per card, since black hid the depth. Five of them are the
+  wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
+  per column of dots on its sheet. Five of them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1378,7 +1379,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-seven clips, 1422KB with their stills, 3.4 to 7.5 seconds each, at 60
+- Twenty-eight clips, 1513KB with their stills, 3.4 to 7.5 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -4195,6 +4196,114 @@ showing its back on the way down, and lands on the stop with a small bounce.
   load and none after, a press on minutes flips it one forward with the halves
   agreeing afterwards, under reduced motion no flap is ever mounted and the
   cards still show the time, and no console errors.
+
+### `wrapped-pattern`
+
+A printed sheet that rolls into a column. Flat, it is a drawing. Press the
+mode and it curls until its two edges meet behind it, and from there a drag
+turns the column, it coasts when let go, and it idles on a slow turn.
+`pattern.ts` is the print, `index.tsx` the sheet, the roll and the drag.
+
+- **The print is generated in the file, not loaded**, so the page makes no
+  request for it and every strip shares one decode. It is a half-drop grid of
+  dots with a hairline rule every third column and a hue that cycles every
+  fifth. **The paper and the rule are the site's own `fill` and
+  `stroke-strong`**, written out because an SVG in a data URI cannot read a
+  custom property, and the five hues are the lab's own, each at least 4:1 on
+  the paper. Three richer prints were built and thrown away: a folk band of
+  rosettes and stars, then a three-ink screen print whose overprints made every
+  other colour on it, then a zoetrope strip with nine drawings on its reverse.
+  The demo is the roll, and a print with more in it than the roll reads as the
+  subject instead.
+- **Everything on it repeats on a period that divides the sheet's width**, the
+  dots at 20 and the colour cycle at 100, which is what lets the column close:
+  the run leaving the right edge is the run arriving at the left, so the
+  wrapped sheet has no seam to find and turning it walks through the five hues
+  in order.
+- **The sheet is seventy-two strips sharing that one image**, each 4.17px wide
+  and showing its own slice through `background-position`. Half a pixel wider
+  than its pitch, since the seams between strips otherwise show as hairlines
+  once they turn. 72 puts a strip every 5 degrees round the column, at which
+  the facets do not show at its edge.
+- **The roll is a bend, and the first build was not.** Each strip turned about
+  its own centre, translated to `(1 - t) * x`, turned `t * theta` and pushed
+  out `t * R`, which has the right two ends and nothing right between them: the
+  strips' edges left each other and the print tore into ragged verticals for
+  the length of the roll. Now the sheet lies on a cylinder whose radius closes
+  from infinite to `R`. At `t` the radius is `R / t`, a strip `x` along the
+  sheet sits `t * x / R` radians round it, its place is that radius times the
+  sine across and the cosine minus one back, and it turns by that angle. At
+  every `t` the strips lie edge to edge on one curved surface.
+  - **The front face never leaves the plane the flat sheet was in.** The axis
+    is what moves, from infinitely far behind the sheet to one radius behind
+    it, so the container's `transform-origin` carries a z of `-R` and the turn
+    is about that axis. A column whose front came forward by `R` under the
+    1100px perspective grew by 4.5% on arrival, which read as the sheet
+    lurching at the reader.
+  - **The division needs a floor.** `R / t` at a `t` of 0 is infinity, infinity
+    times `sin(0)` is not a number, and a transform with a NaN in it is
+    invalid, so every strip would vanish on the flat sheet. `--tt` is
+    `max(var(--t), 0.0001)`, at which the radius is 477000px and the error
+    against the flat position is under a thousandth of a pixel.
+- **Two numbers drive everything and nothing renders.** `--t` and `--rot` are
+  written to the scene by two motion values through `setProperty`, and every
+  strip's transform, its shade and the shadow's width are `calc()` off them.
+  `book-opening`'s claim, with seventy-two transforms instead of fourteen.
+  Measured: 84 to 86 frames across the 1.4s around a roll, longest gap 33 to
+  44ms.
+- **The light is the cosine of the angle a strip has actually turned to**, its
+  bearing plus the column's turn, both scaled by `--tt`, as a black overlay per
+  strip at `(1 - cos) * SHADE / 2`. Flat, every strip is at zero and unshaded.
+  On the column the sides go to 0.21, and the back, which
+  `backface-visibility` hides, would go to 0.42.
+- **A pixel of hand is a pixel of the column's surface**, so the drag turns
+  `180 / (pi * R)` degrees a pixel, which is 1.2. Measured: 120px of drag turns
+  123.5 degrees against 124.0 expected, the gap being the idle turn that ran
+  during the press. On nib's rules: down on the scene, move, up, cancel and
+  blur on the window, `buttons === 0` ends it, and the pointer is captured.
+- **The coast aims at where it will end, and it was skipped when it aimed at
+  where the column was.** `animate(rot, rot.get(), { type: "inertia",
+  velocity })` finished in 2ms and moved nothing. Motion skips an animation
+  whose final keyframe is the value it already holds, and it does so before the
+  inertia generator, which ignores the target and works from the velocity,
+  gets to run. The target is now `rot + power * velocity`, which is the number
+  the generator computes for itself.
+  - **`power` equals the time constant in seconds**, 0.5 and 500, because an
+    inertia leaves at `power / tau` of its velocity, and at Motion's defaults
+    of 0.8 and 325 the column left the hand at 2.5 times the hand's speed.
+  - **The velocity is Motion's own**, which reads zero once a value has been
+    still for a frame or two, so a hand that stopped before letting go throws
+    nothing.
+- **The idle turn is a linear repeat at 14 degrees a second**, held in a ref,
+  stopped by a press and resumed 1.6s after the hand is gone, the coast
+  counting as the hand. Measured: 7.0 degrees per 500ms.
+- **Arrow keys turn the column from the mode control's focus**, 15 degrees a
+  step on the roll's own ease, since the drag is the only other way to turn it
+  and a pointer-only path is the thing `event-stacking`'s hint argues against.
+  Measured: 15.0.
+- **The mode control is the site's own**, one pill whose label is the current
+  state, `flat` or `wrapped`, morphed through `torph`, with the `aria-label`
+  naming what a press does, `book-opening`'s call.
+- **The shadow under it is one ellipse whose width is a `calc()` off `--t`**,
+  the sheet's width flat and the column's diameter plus a margin rolled.
+- **`cursor-grab` and `touch-none` only once wrapped.** A flat sheet takes no
+  drag, so a thumb on it still scrolls the page. Seventh place the shared
+  "cursor-pointer on every clickable element" rule is off.
+- **`shrink-0` on the scene.** It is a 300px box in a centred flex column, and
+  a narrower frame would otherwise squeeze it and take every strip's `left`,
+  which is measured off the sheet's own width, off centre with it.
+- **Reduced motion takes the roll in one step, and neither coasts nor idles.**
+  The roll is the demo and still happens, the drag is direct manipulation and
+  still turns the column, and the two motions nobody asked for go. Measured:
+  `--t` reads 1 within 80ms of the press and `--rot` holds 0deg two seconds
+  later.
+- The sheet is 300px wide and the stage `h-164`, so it sits inside the 352px
+  stage a 390px phone gets with 26px either side, and the page does not scroll
+  sideways. The stage was `h-140` first, which centred the sheet, the gap and
+  the control in 9px of slack and left the sheet all but touching the frame.
+  525px leaves 43px above it and below the control.
+- Verified in a browser: the roll settles at 1.00 by 1.1s, the label swaps,
+  laying it flat returns both numbers to 0, and no console errors.
 
 ## Motion
 
