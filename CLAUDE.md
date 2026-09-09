@@ -26,9 +26,22 @@ pnpm lint         # biome check
 pnpm format       # biome format --write
 pnpm tc           # tsc --noEmit
 pnpm check        # all three, this is the gate
+pnpm test:agents  # the agent-readiness checks, against a running server
 ```
 
 `pnpm check` must be green before any push.
+
+`pnpm test:agents` is the one test suite in the repo. It drives a server that is
+already listening rather than starting one, since two Next servers cannot share
+one `.next`, and it defaults to the dev port the recorder uses:
+
+```bash
+pnpm dev && pnpm test:agents                       # localhost:3100
+AGENT_BASE=http://localhost:3200 pnpm test:agents  # a `next start` build
+AGENT_BASE=https://sanyam.sh pnpm test:agents      # production
+```
+
+See Agent readiness below for what it covers.
 
 ## Stack declaration
 
@@ -410,6 +423,13 @@ sweeping underline says "link" for 450ms on load and nothing after that.
 - Under reduced motion the wash still appears, it just does not travel, the same
   line `book-opening` draws.
 
+- **`external` is derived from the href, and `resource` asks for the same
+  treatment by hand.** A path that is a file rather than a page, `/llms.txt`,
+  `/robots.txt`, `/cv`, gets a plain anchor instead of `next/link`, since the
+  router would try to navigate to one as a route and fall back to a hard load.
+  It is a flag on the segment in `lib/pages.ts` and a prop at a JSX call site
+  like `not-found.tsx`. Deriving it from the presence of a dot was the other
+  option and gets `/cv` wrong.
 - The pill is the same `rounded-full bg-fill` shape as the primary button, sized
   entirely in `em` so it tracks the text it sits in. Never give it a fixed
   height or a per-call-site size.
@@ -473,6 +493,56 @@ pieces, `lib/work.ts` the data.
   own background gets clipped into the circle, a bare mark sits inside it
   against `bg-fill`. Greyscale-at-rest was tried and rejected.
 
+## About, contact and privacy
+
+Three pages that are prose and nothing else. `lib/pages.ts` is the copy,
+`components/ui/static-page.tsx` is the layout all three render through, and
+`app/about/page.tsx`, `app/contact/page.tsx` and `app/privacy/page.tsx` are the
+routes, each holding its own `metadata` and its own JSON-LD type.
+
+They exist because an agent deciding whether a site is worth citing looks for
+them, and because the site had nowhere to say what it collects. The audit that
+prompted them asked for at least 500 characters on each. Measured: 2573, 1178
+and 2097 characters of visible text.
+
+- **The copy is data, for the reason the home page's is.** A page of plain prose
+  is also exactly what its markdown variant needs, so it lives where both can
+  read it and `lib/markdown.ts` keeps its rule that nothing there restates a
+  page's copy. `staticPage` in that file renders the same array as `##` sections.
+- **A section is a label and its paragraphs, and that is the whole structure.**
+  The label is an `h2` at `text-meta` muted, the site's own section label, the
+  same call `WorkSection` makes. `text-lead` stays the page title.
+- **One layout, not three pages that look alike.** Three copies of the same
+  skeleton drift, and each route file is then metadata and a schema type. A slug
+  with no entry in `lib/pages.ts` throws at module scope, so it is a build error
+  rather than an empty page, which is the call `IMPLEMENTED_LABS` makes for the
+  labs.
+- **No prose link to `/work`, `/blogs` or `/lab`.** `InlineLink` derives a hue
+  for those three from the href, and that exception is scoped to the home page's
+  own paragraph. Navigation to them is `PageNav` at the foot of the page
+  instead, which is also the only way out of these three.
+- **A link may name a file rather than a page**, through `resource` on the
+  segment. See Inline links.
+- **Body copy can carry a code span**, through `{ code }` on the segment, which
+  is `ProseSegment` widening the home page's `Segment`. `/privacy` names a route
+  prefix and an extension, and a path set in running prose reads as prose. The
+  home page has nothing to mark up that way, which is why the variant is added
+  in `lib/pages.ts` rather than in `lib/site.ts`: adding it to the shared union
+  would force `app/page.tsx` to handle a case it can never receive.
+- **`siteRoutes` is the one list of pages**, and two things read it: `PageNav`
+  at the foot of a static page, minus the page it is on, and the `## Pages`
+  section of `/llms.txt`, with each note. A page added there appears in both.
+  The note is written for the index rather than for the nav, since the nav shows
+  the title alone, which is why it is not the `description`.
+- **The three are linked from the home page's footer and nowhere else.** The
+  home copy already links `/work`, `/blogs` and `/lab`, so these had no way in.
+  It is the only navigation on the site that is a nav rather than a sentence.
+- **Every claim on `/privacy` is checked against the code, not written from
+  memory.** No cookies, no `localStorage`, `sessionStorage` or IndexedDB
+  anywhere in the repo, one third-party script, self-hosted fonts, local favicon
+  copies, and the album art as the one image a browser fetches from another
+  origin. Anything that changes on that list changes the page.
+
 ## Page transitions
 
 A crossfade between routes, via React's `<ViewTransition>`.
@@ -535,6 +605,11 @@ files:
 
 - `mdx-components.tsx` is the one place prose is styled. Everything there sits
   on the project's type scale and tone tokens, never a Tailwind default size.
+  **Inline code is the one exception, and it lives in
+  `components/ui/code-span.tsx`.** Four surfaces render one: a post's prose and
+  its `_emphasis_`, a lab description through `RichText`, a static page's
+  `{ code }` segment and the 404's note about the `.md` convention. The class
+  string had been typed out at the first two before there was a third.
   `strong` renders as a tone step, not bold, since nothing on this site is
   bold. List bullets are `before:` dots for the same reason as elsewhere: a
   flex parent blockifies its children and kills a real marker.
@@ -4678,7 +4753,27 @@ Environment, all server-only except the last:
 `lib/schema.ts` builds the JSON-LD, `components/ui/json-ld.tsx` renders it. Every
 route emits exactly one block: `Person` + `WebSite` in a `@graph` on the home
 page, `ProfilePage` on `/work`, `CollectionPage` with an `ItemList` on the two
-indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment.
+indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment,
+`AboutPage`, `ContactPage` and `WebPage` on the three prose pages.
+
+- **`Person` carries a description, and the omission was the bug.** The node had
+  a name and a job title and nothing saying what the person does, so a parser
+  that found the identity still could not read it. It takes `DESCRIPTION` from
+  `lib/site.ts`, which is the sentence the page's own `<meta>` carries, and
+  `WebSite` takes the same one. `image` is the portrait the home page renders,
+  and `worksFor` and `knowsAbout` are the two claims that were only in prose.
+- **`EMPLOYER` and `SUBJECTS` are literals in `lib/schema.ts`, beside `ROLE`.**
+  Nothing exported from `lib/work.ts` carries a company on its own, since
+  `workSections` is flattened into rows, and expertise is a claim about a person
+  rather than something the code can check.
+- **`WebSite.about` points at the `Person`.** A personal site is about its
+  person, and saying so is what makes the primary entity unambiguous to a parser
+  that finds two nodes in one graph and has to pick.
+- **One builder for the three prose pages**, `staticPageSchema`, since the only
+  thing that differs is the `WebPage` subtype. `AboutPage` gets `mainEntity:
+  person()`, the other two get `about` by reference, because only the about page
+  is about the person. Privacy has no subtype of its own in schema.org, so it
+  stays `WebPage`.
 
 - **Everything is derived, never restated.** Titles, dates and lists come from
   `meta.json`, `labsRegistry` and `getAllBlogs`, the same data the page renders.
@@ -4687,8 +4782,10 @@ indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment.
 - **`dateModified` is deliberately absent.** Nothing records when a post was
   last edited, so stamping `datePublished` there would assert "never edited
   since" as fact.
-- **The email is deliberately absent.** It is already public on the page, but
-  machine-readable markup hands it to scrapers for no ranking benefit.
+- **The email is deliberately absent.** It is already public on the page, and it
+  is the content of `/contact`, but machine-readable markup hands it to scrapers
+  for no ranking benefit. So `ContactPage` describes the page and points at the
+  person rather than carrying the address.
 - The renderer escapes `<` as a unicode escape. A `</script>` inside any string value
   would otherwise close the tag early, and `JSON.stringify` does not do this.
 
@@ -4713,6 +4810,7 @@ looking at it. Three ways in:
 - **`Accept: text/markdown` at the page's own path.** `proxy.ts` rewrites it.
 - **`/llms.txt`**, the index, and **`/llms-full.txt`**, every document in one
   file, both per the llmstxt.org convention.
+- **`/agents.md`**, the agent instruction file. See Agent readiness below.
 
 `lib/markdown.ts` builds the documents, `app/md/[...path]/route.ts` serves them,
 `proxy.ts` does the header half, and `next.config.ts` holds the rewrites.
@@ -4733,7 +4831,10 @@ already says the same thing where a crawler reads it.
   anything, it is the one surface listing them all.
 - **A directory named `llms.txt` is how the App Router serves a dotted path.**
   The proxy never sees either file, since its matcher excludes anything
-  containing a dot.
+  containing a dot. `app/agents.md/` is the same shape, and it survives the
+  `.md` rewrite for a second reason: `next.config.ts` returns its rewrites as a
+  plain array, which Next treats as `afterFiles`, so a real route wins and
+  `/agents.md` is not turned into `/md/agents`. Verified on a production build.
 
 - **Nothing in `lib/markdown.ts` restates a page's copy.** Every document is
   built from the same source its page renders from: `meta.json` and `page.mdx`
@@ -4743,6 +4844,10 @@ already says the same thing where a crawler reads it.
   Extracting the root description into `lib/site.ts` was part of this, and it
   was already written out twice inside `app/layout.tsx` before anything else
   needed it.
+- **The three prose pages are transcripts too**, off `lib/pages.ts`, through the
+  same `inline` call the home page's paragraphs go through. `inline` is typed on
+  `segments` alone rather than on `Paragraph`, since the home page's carry a
+  tone and those do not.
 - **The home page's four paragraphs live in `lib/site.ts` as segments**, which
   is what lets `/index.md` be the page rather than a summary of it. A segment is
   a plain string, a `{ text, href }` link, or `{ name }` for the one slot
@@ -4799,6 +4904,53 @@ already says the same thing where a crawler reads it.
   pass that could not see where a fence began stripped lines out of the middle
   of the examples the posts exist to show.
 
+## Agent readiness
+
+What the site tells an agent, and how a wrong guess recovers. It came out of an
+Is Agentic audit that scored 90 and named four gaps: a 404 with no recovery
+body, no when-to-use guidance, no trust pages, and identity markup missing a
+description. The trust pages are their own section above, the markup is under
+Structured data, and the other two are here.
+
+`scripts/agent-readiness.test.mjs` is the check, `pnpm test:agents`. It is the
+one test suite in the repo, and it asserts every claim in this section against a
+running server, including the paths that already worked, so a change to the
+markdown pipeline cannot quietly break them.
+
+- **When-to-use guidance is one constant, `AGENT_WHEN_TO_USE` in
+  `lib/profile.ts`, read by both `/llms.txt` and `/agents.md`.** A second copy
+  would drift, and an agent that read both would get two answers.
+  - **It names topics rather than post titles.** A title copied there is a
+    second copy of a title, which is the drift `lib/profile.ts` exists to
+    document. The current titles sit beside it in the same file, off
+    `getAllBlogs`.
+  - **It says when not to use the site as well.** Library documentation, other
+    people, an API that does not exist, and current availability. Without those,
+    a caller has to infer the boundary from what is listed.
+  - **In `/llms.txt` it comes before the link lists.** A client that reads the
+    top and stops should already know whether a second request is worth making.
+- **`/agents.md` is the same guidance with the counts and the paths.** What is
+  here, in pages, posts and experiments, all derived, then every
+  machine-readable path with what it answers. It is indexable, unlike the
+  per-page markdown documents, since it is not a second copy of a page.
+- **A 404 answers with somewhere to go.** The status was already right and the
+  body was the word "Not found", which is a dead end: a client that guessed a
+  path has spent a request and has no way to learn that an index exists.
+  - `notFoundMarkdown` in `lib/markdown.ts` is the markdown half, served with a
+    real 404 by `app/md/[...path]/route.ts`, so it answers both `<path>.md` and
+    any unknown path with `Accept: text/markdown`. It names `/llms.txt`,
+    `/agents.md`, the sitemap and every page.
+  - **The path is echoed back, sanitised.** It comes from the route's own params
+    and the response is markdown rather than HTML, so nothing there can execute.
+    It is narrowed to `[\w./-]` and capped at 120 characters anyway, since a body
+    that quotes a request is a body that can be made to say anything.
+  - `not-found.tsx` is the HTML half, and its second paragraph names `llms.txt`
+    and `sitemap.xml` for the same reason. That took the page from two
+    `RevealItem`s to three, so `revealSettled` moved from 630 to 710.
+  - The markdown 404 carries the same three headers a document that exists does,
+    `x-robots-tag: noindex` and `Vary: Accept` included, since it is reachable
+    the same two ways.
+
 ## SEO routes
 
 `robots.ts`, `sitemap.ts` and `not-found.tsx`, all reading `SITE_URL`.
@@ -4810,7 +4962,9 @@ already says the same thing where a crawler reads it.
 - **No invented timestamps.** The old sitemap stamped `new Date()` on the four
   static routes, so every crawl saw them claim they had changed that second.
   `lastModified` is omitted where nothing real backs it, and `/blogs` and
-  `/lab` borrow the newest date from the content they list.
+  `/lab` borrow the newest date from the content they list. `/about`, `/contact`
+  and `/privacy` are mapped off `staticPages` and get none for the same reason:
+  their copy is in `lib/pages.ts` and nothing records when it last changed.
 - **`robots.ts` allows `/` rather than enumerating routes.** The old version
   listed every blog and lab path into `allow`, which `allow: "/"` already
   covers and which went stale on every new post. `/api/` is the one real
@@ -4819,7 +4973,8 @@ already says the same thing where a crawler reads it.
 - **`not-found.tsx` sets `robots: { index: false }`.** An indexed 404 competes
   with the real pages for the same terms. It centres rather than aligning top,
   since there is no content to scroll, and it carries no `BackLink` because the
-  copy already names every route worth reaching.
+  copy already names every route worth reaching. Its second paragraph is for a
+  reader that is not a person, see Agent readiness above.
 
 ## Analytics
 
@@ -4851,29 +5006,38 @@ package, no provider component and no per-route call.
   stack and everything it does, `use-falling.ts` is one falling body and
   `poke-sound.ts` is the click a poke makes. See The portrait above.
   A per-surface component moves to `components/ui/` the moment a second
-  surface needs it, which is how `reveal.tsx` got there.
+  surface needs it, which is how `reveal.tsx` got there, and why
+  `static-page.tsx` and `page-nav.tsx` were written there: three pages render
+  through the first and two surfaces use the second.
 - `app/api/` route handlers. Only Spotify lives here, see below. Everything
   under it is `Disallow`ed in `robots.ts`.
 - `app/md/` the markdown variant of every page, reached through the rewrites in
   `next.config.ts` and through `proxy.ts`. Not linked from anywhere a reader
-  goes, and every response is `noindex`. `app/llms.txt/` and `app/llms-full.txt/`
-  sit beside it. See Markdown variants above.
+  goes, and every response is `noindex`. `app/llms.txt/`, `app/llms-full.txt/`
+  and `app/agents.md/` sit beside it. See Markdown variants above.
+- `app/about/`, `app/contact/` and `app/privacy/` the three prose pages. Each is
+  metadata and a schema type over `components/ui/static-page.tsx`, and the copy
+  is `lib/pages.ts`. See About, contact and privacy above.
 - `lib/` no React. `constants.ts` layout tokens, `site.ts` copy and URLs,
-  `work.ts` work data, `favicons.ts` the host-to-mark registry,
+  `pages.ts` the three prose pages and `siteRoutes`, `work.ts` work data,
+  `favicons.ts` the host-to-mark registry,
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
-  `markdown.ts` the markdown variant of every page, `profile.ts` the one block
-  of copy in the whole site that no page renders, `lerp.ts` the interpolation
+  `markdown.ts` the markdown variant of every page, `profile.ts` the two blocks
+  of copy in the whole site that no page renders, the profile and the agent
+  guidance, `lerp.ts` the interpolation
   three labs drive their own frame loops with, `lab-previews.ts` which
   experiments have a recorded preview, `utils.ts`.
 - `proxy.ts` at the root, the only file there that runs per request. It exists
   for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
   reference. Anything untyped from npm gets its `.d.ts` here.
-- `scripts/` build-time tooling that is not part of the app and never imported
-  by it. Plain `.mjs` run with `node`, one file per job, each documenting what it
-  produces and what has to be running for it to work. Currently just
-  `record-lab-previews.mjs`, which writes the lab index's hover clips into
-  `public/assets/labs`. See Recording the previews above.
+- `scripts/` tooling that is not part of the app and never imported by it. Plain
+  `.mjs` run with `node`, one file per job, each documenting what it produces and
+  what has to be running for it to work. `record-lab-previews.mjs` writes the lab
+  index's hover clips into `public/assets/labs`, see Recording the previews
+  above, and `agent-readiness.test.mjs` is the `node --test` suite behind
+  `pnpm test:agents`, see Agent readiness above. Both drive a server that is
+  already listening rather than starting one.
 
 ## Keeping this current
 
