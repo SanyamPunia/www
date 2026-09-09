@@ -157,7 +157,7 @@ function Face({
       <div
         style={{ color: hue.ink }}
         className={cn(
-          "absolute inset-x-0 flex h-[200%] items-center justify-center font-medium text-[4.5rem] tabular-nums leading-none",
+          "absolute inset-x-0 flex h-[200%] items-center justify-center font-medium text-[10.7cqw] tabular-nums leading-none",
           part === "top" ? "top-0" : "-top-full",
         )}
       >
@@ -293,7 +293,7 @@ function Card({
         type="button"
         onClick={onNudge}
         aria-label={`${label} ${value}, press to set forward`}
-        className="relative h-44 w-36 cursor-pointer select-none rounded-lg transition-opacity duration-200 [perspective:700px] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
+        className="relative h-[26.2cqw] w-[21.4cqw] cursor-pointer select-none rounded-lg transition-opacity duration-200 [perspective:700px] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
       >
         {/* the card seated on the stage: a soft pool on the table, then the
             card's own three shadows */}
@@ -330,14 +330,14 @@ function Card({
           }}
         />
         <div
-          className="absolute top-1/2 left-0 h-5 w-1.5 -translate-y-1/2 rounded-r-sm"
+          className="absolute top-1/2 left-0 h-[3cqw] w-[1.1cqw] -translate-y-1/2 rounded-r-sm"
           style={{
             backgroundColor: dark,
             boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.14)",
           }}
         />
         <div
-          className="absolute top-1/2 right-0 h-5 w-1.5 -translate-y-1/2 rounded-l-sm"
+          className="absolute top-1/2 right-0 h-[3cqw] w-[1.1cqw] -translate-y-1/2 rounded-l-sm"
           style={{
             backgroundColor: dark,
             boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.14)",
@@ -387,13 +387,16 @@ export default function FlipClock() {
 
   return (
     <div
-      className="relative flex h-105 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset"
+      className="@container relative flex aspect-8/5 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset"
       style={{
         backgroundImage:
           "linear-gradient(to bottom, var(--color-bg), var(--color-fill))",
       }}
     >
-      <div className="flex items-start gap-4">
+      {/* every length here is a share of the stage's width, `window-shade`'s
+          call, so three cards fit a 352px phone stage as they fit the column.
+          The values reproduce the column's own 115 by 141px cards */}
+      <div className="flex items-start gap-[2.4cqw]">
         <Card
           value={time.hh}
           label="hours"
