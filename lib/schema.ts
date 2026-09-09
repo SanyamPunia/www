@@ -1,7 +1,7 @@
 import type { BlogMeta } from "./blogs";
 import { SITE_URL } from "./constants";
 import type { LabMetadata } from "./labs";
-import { socials } from "./site";
+import { DESCRIPTION, links, socials } from "./site";
 
 /**
  * JSON-LD builders. Pure, so they stay in `lib`, and rendered by
@@ -18,8 +18,10 @@ import { socials } from "./site";
  * the repo records when a post was last edited, and stamping the publish date
  * there would assert "never edited since" as a fact.
  *
- * The email is absent too. It is public on the page already, but putting it in
- * machine-readable markup hands it to every scraper for no ranking benefit.
+ * The email is absent too. It is public on the page already, and it is the
+ * content of `/contact`, but putting it in machine-readable markup hands it to
+ * every scraper for no ranking benefit. `ContactPage` therefore describes the
+ * page and points at the person rather than carrying the address.
  */
 
 const PERSON_ID = `${SITE_URL}/#person`;
@@ -28,14 +30,52 @@ const SITE_ID = `${SITE_URL}/#website`;
 const NAME = "Sanyam Punia";
 const ROLE = "Full-stack developer";
 
+/**
+ * The current employer, named here because nothing exported from `lib/work.ts`
+ * carries a company on its own: `workSections` is flattened into rows the work
+ * page can render. Same standing as `ROLE` above.
+ */
+const EMPLOYER = { name: "Oliv AI", url: links.oliv };
+
+/**
+ * What the expertise actually is, which is a claim about a person rather than
+ * something the code can check. It is the short form of the list in
+ * `lib/profile.ts`, and it is what lets a parser answer "what is this person
+ * for" without reading the prose.
+ */
+const SUBJECTS = [
+  "Frontend engineering",
+  "React",
+  "Next.js",
+  "TypeScript",
+  "Real-time web applications",
+  "Design systems",
+  "Developer tooling",
+];
+
 type Json = Record<string, unknown>;
 
 const person = (): Json => ({
   "@type": "Person",
   "@id": PERSON_ID,
   name: NAME,
+  /*
+   * The site's own one-line summary, off `lib/site.ts`, so the sentence a
+   * parser reads is the sentence the `<meta name="description">` carries. It
+   * was missing entirely, which left the identity node with a name and a job
+   * title and nothing saying what the person does.
+   */
+  description: DESCRIPTION,
   url: SITE_URL,
+  /** the portrait the home page renders, so the markup shows what the page does */
+  image: `${SITE_URL}/assets/sanyam.png`,
   jobTitle: ROLE,
+  worksFor: {
+    "@type": "Organization",
+    name: EMPLOYER.name,
+    url: EMPLOYER.url,
+  },
+  knowsAbout: SUBJECTS,
   // every profile that is verifiably the same person, which is what `sameAs`
   // is for: it lets a crawler merge these into one entity
   sameAs: Object.values(socials),
@@ -47,8 +87,16 @@ const website = (): Json => ({
   "@id": SITE_ID,
   url: SITE_URL,
   name: NAME,
+  /** the same sentence the root `metadata` carries, for the same reason */
+  description: DESCRIPTION,
   inLanguage: "en-US",
   publisher: { "@id": PERSON_ID },
+  /*
+   * A personal site is *about* its person, and saying so is what makes the
+   * primary entity of the graph unambiguous to a parser that finds two nodes
+   * and has to pick one.
+   */
+  about: { "@id": PERSON_ID },
 });
 
 /** `@graph` so Person and WebSite are one document that can cross-reference. */
