@@ -3,14 +3,15 @@ import path from "node:path";
 import { getAllBlogs } from "./blogs";
 import { SITE_URL } from "./constants";
 import { isImplemented, labsRegistry } from "./labs";
-import { PROFILE } from "./profile";
 import {
-  DESCRIPTION,
-  EMAIL,
-  type Paragraph,
-  paragraphs,
-  socials,
-} from "./site";
+  type ProseSegment,
+  type StaticPage,
+  siteRoutes,
+  staticPageFor,
+  staticPages,
+} from "./pages";
+import { AGENT_WHEN_TO_USE, PROFILE } from "./profile";
+import { DESCRIPTION, EMAIL, paragraphs, socials } from "./site";
 import { workSections } from "./work";
 
 /*
@@ -54,6 +55,8 @@ export function markdownRoutes(): MarkdownRoute[] {
     ...labsRegistry
       .filter((lab) => isImplemented(lab.slug))
       .map((lab) => ["lab", lab.slug]),
+    // about, contact, privacy, in `siteRoutes`' own order
+    ...staticPages.map((page) => [page.slug]),
   ];
 }
 
@@ -66,6 +69,10 @@ export function markdownFor(route: MarkdownRoute): string | null {
     if (first === "work") return work();
     if (first === "blogs") return blogIndex();
     if (first === "lab") return labIndex();
+
+    const page = staticPageFor(first);
+    if (page) return staticPage(page);
+
     return null;
   }
 
@@ -109,17 +116,22 @@ function doc(...blocks: (string | undefined)[]): string {
 const url = (route: string) => `${SITE_URL}${route}`;
 
 /**
- * A home page paragraph, rendered as the markdown it already is.
+ * A paragraph of segments, rendered as the markdown it already is.
  *
  * The segments join with nothing between them, the same as the page does, since
  * each one carries its own spacing. An internal href is made absolute, because a
  * markdown file has no page to be relative to.
+ *
+ * Typed on `segments` alone rather than on `Paragraph`, since the home page's
+ * paragraphs carry a tone and the static pages' do not, and neither shape's
+ * extra fields mean anything here.
  */
-function inline(paragraph: Paragraph): string {
+function inline(paragraph: { segments: ProseSegment[] }): string {
   return paragraph.segments
     .map((segment) => {
       if (typeof segment === "string") return segment;
       if ("name" in segment) return segment.name;
+      if ("code" in segment) return `\`${segment.code}\``;
       const href = segment.href.startsWith("http")
         ? segment.href
         : url(segment.href);
@@ -143,6 +155,21 @@ function home(): string {
   );
 }
 
+/** a page's own path as its markdown path. The root is `/index.md`. */
+const mdPath = (href: string) => (href === "/" ? `/${HOME}` : href);
+
+/** one `- [Title](url): note` row, which is the shape llmstxt.org asks for */
+const entry = (title: string, route: string, note: string) =>
+  `- [${title}](${url(`${route}.md`)}): ${note}`;
+
+/**
+ * The same row for a file that is not a page. The label is the path rather than
+ * a title, since the path is the thing being named, and the target is absolute
+ * so a client that read this document out of context can still follow it.
+ */
+const file = (route: string, note: string) =>
+  `- [${route}](${url(route)}): ${note}`;
+
 /**
  * The index an agent looks for first, per the llmstxt.org convention: an `h1`, a
  * blockquote summary, then `##` sections of links with a note after each.
@@ -151,22 +178,24 @@ function home(): string {
  * this file is to avoid parsing HTML. `llms-full.txt` is under `Optional`,
  * because the convention reserves that heading for what a client short of
  * context can skip, and one file holding every page is exactly that.
+ *
+ * **The guidance comes before the link lists.** A client that reads the top of
+ * this file and stops should already know whether the site is worth a second
+ * request, so `AGENT_WHEN_TO_USE` sits directly under the summary rather than at
+ * the end beside the profile. `/agents.md` is the same guidance on its own, for
+ * anything that looks for an agent instruction file by name instead.
  */
 export function llmsIndex(): string {
-  const entry = (title: string, route: string, note: string) =>
-    `- [${title}](${url(`${route}.md`)}): ${note}`;
-
   return doc(
     "# Sanyam Punia",
     `> ${DESCRIPTION}`,
-    "Every page is served as markdown at its own path plus `.md`, and at its own path for a request sending `Accept: text/markdown`.",
+    "Every page is served as markdown at its own path plus `.md`, and at its own path for a request sending `Accept: text/markdown`. Nothing here needs a key, and nothing needs JavaScript to render.",
+    AGENT_WHEN_TO_USE,
     "## Pages",
-    [
-      entry("Home", "/index", "who this is, and everything below in one place"),
-      entry("Work", "/work", "companies and side projects, newest first"),
-      entry("Blogs", "/blogs", "the writing index"),
-      entry("Lab", "/lab", "the UI experiment index"),
-    ].join("\n"),
+    // off `siteRoutes`, so a page added there is listed here with its own note
+    siteRoutes
+      .map((route) => entry(route.title, mdPath(route.href), route.note))
+      .join("\n"),
     "## Blogs",
     getAllBlogs()
       .map((blog) => entry(blog.title, `/blogs/${blog.slug}`, blog.description))
@@ -179,10 +208,104 @@ export function llmsIndex(): string {
       .map((lab) => entry(lab.title, `/lab/${lab.slug}`, lab.description[0]))
       .join("\n"),
     "## Optional",
-    `- [Every page in one file](${url("/llms-full.txt")}): the same documents concatenated`,
+    [
+      `- [Agent instructions](${url("/agents.md")}): the guidance above on its own, with the fetch conventions`,
+      `- [Every page in one file](${url("/llms-full.txt")}): the same documents concatenated`,
+      `- [Sitemap](${url("/sitemap.xml")}): the same set of pages as XML`,
+    ].join("\n"),
     // the hand-written half, which is everything about the person rather than
     // about a page. See `lib/profile.ts` for what this replaced.
     PROFILE,
+  );
+}
+
+/**
+ * `/agents.md`, the agent instruction file.
+ *
+ * It is `llms.txt`'s guidance without the link lists, plus the two things that
+ * belong in an instruction file rather than an index: what is actually here, in
+ * counts, and every machine-readable path with what it answers.
+ *
+ * **The guidance itself is one constant shared with `llms.txt`.** A second copy
+ * would drift, and an agent that read both would get two answers. The counts
+ * below are derived for the same reason.
+ */
+export function agentInstructions(): string {
+  const posts = getAllBlogs().length;
+  const labs = labsRegistry.filter((lab) => isImplemented(lab.slug)).length;
+
+  return doc(
+    frontmatter({ title: "Agent instructions", url: url("/agents.md") }),
+    "# Agent instructions for sanyam.sh",
+    `> ${DESCRIPTION}`,
+    "This is the whole of the agent-facing configuration for this site. There is no key to hold, no rate plan and no login.",
+    "## What is here",
+    [
+      `- ${siteRoutes.length} pages: ${siteRoutes.map((route) => route.title).join(", ")}.`,
+      `- ${posts} write-ups, each with a date and a description.`,
+      `- ${labs} lab experiments, each with a build note.`,
+    ].join("\n"),
+    AGENT_WHEN_TO_USE,
+    "## Machine-readable paths",
+    [
+      file(
+        "/llms.txt",
+        "the index. Every page with a line on each. Fetch this first.",
+      ),
+      file("/agents.md", "this file."),
+      file(
+        "/llms-full.txt",
+        "every page in one file. Large, and only worth it if you want all of it.",
+      ),
+      file(
+        "/sitemap.xml",
+        "the same pages as XML, with a date wherever a real one exists.",
+      ),
+      file("/robots.txt", "crawl rules. Everything is allowed except `/api/`."),
+      "- Any page plus `.md`, or any page with `Accept: text/markdown`: that one page as markdown.",
+    ].join("\n"),
+    "## Contact",
+    `Questions about the content, about usage, or a request to take something down: ${EMAIL}. ${url("/contact.md")} says what else is worth writing about.`,
+  );
+}
+
+/**
+ * The body a 404 answers with when the client wanted markdown.
+ *
+ * A real 404 status is the important half and the site already returned one. The
+ * other half is that an agent which guessed a path wrongly has no way to recover
+ * from the word "Not found": it does not know the index exists, and it has spent
+ * a request to learn nothing. So the body names the index, the sitemap and every
+ * page, which makes a wrong guess cost one more request rather than a dead end.
+ *
+ * **The path is echoed back, sanitised.** It comes from the route's own params
+ * rather than from a header, and this is served as `text/markdown` rather than
+ * HTML, so nothing here can execute. It is narrowed and capped anyway, since a
+ * body that quotes a request is a body that can be made to say anything.
+ */
+export function notFoundMarkdown(route: MarkdownRoute = []): string {
+  const asked = route
+    .join("/")
+    .replace(/[^\w./-]/g, "")
+    .slice(0, 120);
+
+  return doc(
+    frontmatter({ title: "Not found", status: "404" }),
+    "# Not found",
+    asked
+      ? `\`/${asked}\` is not a page on this site. This response is a real HTTP 404.`
+      : "That is not a page on this site. This response is a real HTTP 404.",
+    "## Where to look instead",
+    [
+      `- [llms.txt](${url("/llms.txt")}): every page on this site, with a line on each`,
+      `- [agents.md](${url("/agents.md")}): when to use this site, and how to fetch it`,
+      `- [sitemap.xml](${url("/sitemap.xml")}): the same set as XML`,
+    ].join("\n"),
+    "## Pages",
+    siteRoutes
+      .map((page) => entry(page.title, mdPath(page.href), page.note))
+      .join("\n"),
+    "Every page is served as markdown at its own path plus `.md`, and at its own path for a request sending `Accept: text/markdown`.",
   );
 }
 
@@ -211,6 +334,32 @@ function work(): string {
         section.rows
           .map((row) => `- [${row.name}](${row.href}), ${row.meta}`)
           .join("\n"),
+      ].join("\n"),
+    ),
+  );
+}
+
+/**
+ * One of the three prose pages, off the same array the page renders from.
+ *
+ * A section is a `##` and its paragraphs, which is the whole structure those
+ * pages have, so this is a transcript rather than a summary. Same `inline` call
+ * the home page's paragraphs go through, since both carry the same segments.
+ */
+function staticPage(page: StaticPage): string {
+  return doc(
+    frontmatter({
+      title: page.title,
+      url: url(`/${page.slug}`),
+      description: page.description,
+    }),
+    `# ${page.title}`,
+    page.lead,
+    ...page.sections.map((section) =>
+      [
+        `## ${section.label}`,
+        "",
+        section.paragraphs.map(inline).join("\n\n"),
       ].join("\n"),
     ),
   );

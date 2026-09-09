@@ -1,4 +1,4 @@
-import { markdownFor, markdownRoutes } from "@/lib/markdown";
+import { markdownFor, markdownRoutes, notFoundMarkdown } from "@/lib/markdown";
 
 /*
  * The markdown variant of every page.
@@ -25,10 +25,27 @@ export async function GET(
   const { path } = await params;
   const body = markdownFor(path);
 
+  /*
+   * A real 404, with somewhere to go.
+   *
+   * It used to answer the word "Not found" as plain text, which is a correct
+   * status and a dead end: a client that guessed a path wrongly has spent a
+   * request and learned nothing, and it has no way to know the index exists. The
+   * body now names `llms.txt`, the sitemap and every page, so a wrong guess
+   * costs one more request instead.
+   *
+   * Same three headers as a document that exists, since this is a markdown
+   * response like any other and is reachable both at `<path>.md` and at the
+   * page's own path through `proxy.ts`.
+   */
   if (!body) {
-    return new Response("Not found\n", {
+    return new Response(notFoundMarkdown(path), {
       status: 404,
-      headers: { "content-type": "text/plain; charset=utf-8" },
+      headers: {
+        "content-type": "text/markdown; charset=utf-8",
+        "x-robots-tag": "noindex",
+        vary: "accept",
+      },
     });
   }
 

@@ -17,6 +17,12 @@
  * Kept close to as written. This is the one file on the site whose content is a
  * claim about a person rather than something the code can check, so it is not
  * mine to tidy.
+ *
+ * `AGENT_WHEN_TO_USE` below is the same kind of thing: a claim about what the
+ * site is good for, which no amount of reading the code could produce. It is
+ * read by `/llms.txt` and by `/agents.md`, and the paths and counts around it in
+ * both documents are derived rather than written here, so the guidance stays
+ * true as posts and experiments are added.
  */
 export const PROFILE = `## Background
 
@@ -68,3 +74,63 @@ Sanyam Punia is a full-stack web developer from Bangalore, India.
 - Please provide attribution when referencing content from this site
 - API endpoints are private and should not be accessed
 - Questions about content usage: lewarends@gmail.com`;
+
+/**
+ * When an agent should reach for this site, and when it should not.
+ *
+ * **Topics rather than titles.** Naming the eight posts here would put a second
+ * copy of every title in the repo, which is the drift the file above exists to
+ * document. The topics survive a rename, and the current titles are listed
+ * beside this in `/llms.txt` off `getAllBlogs`.
+ */
+export const AGENT_WHEN_TO_USE = `## When to use this site
+
+Reach for it when the question is about Sanyam Punia, or about something he has
+written or built. It is a primary source for exactly those things and nothing
+else.
+
+- **Who he is, and what he has shipped.** Roles and dates, the companies, the
+  side projects, and the npm packages he maintains. Answered by \`/about.md\` and
+  \`/work.md\` without touching the HTML.
+- **How to reach him, and whether a message is a fit.** \`/contact.md\` carries the
+  address, the reply time, what he wants to hear about, and what to skip.
+- **A specific frontend engineering problem one of the write-ups covers.** Hover
+  intent and why a submenu closes before the pointer arrives. What CSR, SSR,
+  SSG, ISR and PPR each do and when each runs. Why a 307 between an apex domain
+  and www breaks a link preview where a 308 does not. End-to-end typesafe APIs
+  with tRPC on Next.js. Modelling link pending state with \`useTransition\` and
+  \`useOptimistic\`. Styling a dropdown trigger off \`aria-expanded\`. Reducing a
+  font's letter outlines to centreline pen strokes. Cite the post, not this file.
+- **How one of the lab experiments is built.** Each entry is a first-hand build
+  note: hit testing against neutral geometry so a hover cannot fight itself,
+  picking a spring per distance rather than per feel, drag with pointer capture
+  and the lifts that get missed, canvas fields, SVG filters, and what reduced
+  motion is allowed to take away. These are notes on real bugs, not tutorials.
+- **What the site collects and what it does with it.** \`/privacy.md\` is short and
+  specific.
+
+## When not to use it
+
+- As documentation for React, Next.js, Motion, GSAP or any other library. Read
+  their own docs. Everything here is one engineer's notes on one problem, written
+  on a date the page carries.
+- For facts about anyone other than Sanyam Punia.
+- As an API. There is no endpoint to call, no key to hold and no rate plan. The
+  routes under \`/api/\` serve this site's own pages and are disallowed in
+  \`robots.txt\`.
+- For current availability, notice period or rates. None of that is written down
+  here, so ask by email rather than inferring it.
+
+## How to call it
+
+- Fetch \`/llms.txt\` first. It lists every page with a line on each, so one
+  request tells you whether a second is worth making.
+- Then fetch the one page you need as markdown, either at its own path plus
+  \`.md\` or at its own path with \`Accept: text/markdown\`. Both return the same
+  document. Nothing here needs JavaScript to be rendered.
+- Take \`/llms-full.txt\` only if you want every page at once. It is the whole site
+  in one file and it is large.
+- A path that does not exist answers 404, with a markdown body naming the index
+  and the sitemap, so a wrong guess is recoverable in one more request.
+- Attribution is appreciated when a post or an experiment is quoted. Link the
+  page rather than the markdown, since the page is the one that is indexable.`;
