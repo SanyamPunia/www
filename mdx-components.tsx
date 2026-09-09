@@ -2,6 +2,7 @@ import type { MDXComponents } from "mdx/types";
 import type { ComponentPropsWithoutRef } from "react";
 import { HeadingAnchor } from "@/components/blogs/heading-anchor";
 import { CodeBlock } from "@/components/ui/code-block";
+import { CodeSpan } from "@/components/ui/code-span";
 import { InlineLink } from "@/components/ui/inline-link";
 
 /**
@@ -52,16 +53,6 @@ function Subsection({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
       <span className="min-w-0">{children}</span>
       {props.id ? <HeadingAnchor id={props.id} /> : null}
     </h3>
-  );
-}
-
-/** Inline code. Shared by `code` and by `em`, see the note at its call site. */
-function Code(props: ComponentPropsWithoutRef<"code">) {
-  return (
-    <code
-      className="rounded-xs bg-fill px-1 py-0.5 font-mono text-[0.9em] text-text-primary"
-      {...props}
-    />
   );
 }
 
@@ -116,8 +107,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
      * It also fixes casing. `code` is exempt from the lowercase transform, so
      * as emphasis `_useAnimatedText_` rendered "useanimatedtext".
      */
-    em: (props: ComponentPropsWithoutRef<"em">) => <Code {...props} />,
-    code: (props: ComponentPropsWithoutRef<"code">) => <Code {...props} />,
+    em: (props: ComponentPropsWithoutRef<"em">) => <CodeSpan {...props} />,
+    code: (props: ComponentPropsWithoutRef<"code">) => <CodeSpan {...props} />,
     pre: ({ children }: ComponentPropsWithoutRef<"pre">) => {
       // MDX nests the fence's <code> inside <pre>. CodeBlock renders its own
       // <pre>, so unwrap rather than nesting two.

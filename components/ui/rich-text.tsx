@@ -1,4 +1,5 @@
 import type React from "react";
+import { CodeSpan } from "@/components/ui/code-span";
 
 const TOKEN = /(\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
 const LINK = /^\[([^\]]+)\]\(([^)]+)\)$/;
@@ -45,14 +46,7 @@ export function RichText({ text }: { text: string }): React.ReactNode {
     }
 
     if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code
-          key={key}
-          className="rounded-xs bg-fill px-1 py-0.5 font-mono text-[0.9em] text-text-primary"
-        >
-          {part.slice(1, -1)}
-        </code>
-      );
+      return <CodeSpan key={key}>{part.slice(1, -1)}</CodeSpan>;
     }
 
     return <span key={key}>{part}</span>;
