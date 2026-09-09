@@ -432,6 +432,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press a card to set it forward by one.",
   },
+  {
+    slug: "wrapped-pattern",
+    title: "Wrapped Pattern",
+    description: [
+      "A printed sheet that rolls into a column. Flat, it is a drawing: a half-drop grid of dots on pale paper, a hairline rule every third column and a hue that cycles every fifth. Press the mode and it curls until its two edges meet behind it, and from there a drag turns the column, it coasts when let go, and it idles on a slow turn.",
+      "Key insight: the roll is a bend rather than seventy-two strips each turning on their own. The sheet lies on a cylinder whose radius closes from infinite to the column's, so at every moment of the roll the strips lie edge to edge on one curved surface. One number carries all of them and one more turns the whole column, so the browser interpolates seventy-two transforms off two custom properties and nothing renders while the sheet rolls or the column turns.",
+      "The light is arithmetic on the same two numbers. A strip darkens by the cosine of the angle it has turned to, its bearing plus the column's own turn, computed in CSS, so the column is shaded on every frame of a drag without a script touching a strip. Everything printed on the sheet repeats on a period that divides its width, the dots at 20 and the colour cycle at 100, so the seam where the two edges meet has nothing to show and turning the column walks through the five hues in order.",
+    ],
+    createdAt: "2026-09-09",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/wrapped-pattern/index.tsx",
+    flush: true,
+    hint: "Press the mode to roll it, then drag the column to turn it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -507,6 +521,7 @@ export const IMPLEMENTED_LABS = [
   "custom-cursor",
   "radial-menu",
   "flip-clock",
+  "wrapped-pattern",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
