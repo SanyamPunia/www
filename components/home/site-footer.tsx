@@ -5,7 +5,9 @@ import { Gmail } from "@/components/icons/gmail";
 import { LinkedIn } from "@/components/icons/linkedin";
 import { Pageo } from "@/components/icons/pageo";
 import { X } from "@/components/icons/x";
+import { PageNav } from "@/components/ui/page-nav";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { staticPages } from "@/lib/pages";
 import { EMAIL, socials } from "@/lib/site";
 
 // Same set and order the old site carried. GitHub, X and LinkedIn are svgl.app
@@ -38,33 +40,53 @@ const PRESS = "hover:bg-fill active:bg-fill-hover";
 const ICON_BUTTON = "size-[1.5rem]";
 const ICON_GLYPH = "size-[0.75rem]";
 
+/*
+ * about, contact and privacy, off the one array those pages are built from.
+ *
+ * They are here because the home page's own paragraph links `/work`, `/blogs`
+ * and `/lab` and these three have nowhere else to be reached from. It is the
+ * only navigation on the site that is a nav rather than a sentence, which is why
+ * it sits under the rule with the marks rather than in the copy.
+ */
+const pages = staticPages.map((page) => ({
+  href: `/${page.slug}`,
+  title: page.title,
+}));
+
 export function SiteFooter() {
   return (
-    <footer className="flex items-center justify-between gap-4 text-meta">
-      {/* the signature anchors the left of the row where the page nav used to */}
-      {/* translate, not margin: the row is items-center, so a margin would be
+    <footer className="flex flex-col gap-6 text-meta">
+      <div className="flex items-center justify-between gap-4">
+        {/* the signature anchors the left of the row where the page nav used to */}
+        {/* translate, not margin: the row is items-center, so a margin would be
           split by the centring and only shift it half as far */}
-      <Signature className="h-10 shrink-0 translate-y-1.5" />
+        <Signature className="h-10 shrink-0 translate-y-1.5" />
 
-      <TooltipProvider delayDuration={200}>
-        {/* 4px, not gap-1's 3.2px, so each button's left edge lands on a whole
+        <TooltipProvider delayDuration={200}>
+          {/* 4px, not gap-1's 3.2px, so each button's left edge lands on a whole
             pixel instead of accumulating a fractional offset along the row */}
-        <div className="flex items-center gap-1.25">
-          {accounts.map(({ href, label, icon: Icon }) => (
-            <Tooltip key={href} label={label}>
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className={`inline-flex ${ICON_BUTTON} items-center justify-center rounded-md text-text-muted cursor-pointer transition-all duration-200 hover:text-text-primary ${PRESS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15`}
-              >
-                <Icon aria-hidden="true" className={`${ICON_GLYPH} shrink-0`} />
-              </a>
-            </Tooltip>
-          ))}
-        </div>
-      </TooltipProvider>
+          <div className="flex items-center gap-1.25">
+            {accounts.map(({ href, label, icon: Icon }) => (
+              <Tooltip key={href} label={label}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className={`inline-flex ${ICON_BUTTON} items-center justify-center rounded-md text-text-muted cursor-pointer transition-all duration-200 hover:text-text-primary ${PRESS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15`}
+                >
+                  <Icon
+                    aria-hidden="true"
+                    className={`${ICON_GLYPH} shrink-0`}
+                  />
+                </a>
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
+      </div>
+
+      <PageNav items={pages} label="More pages" />
     </footer>
   );
 }

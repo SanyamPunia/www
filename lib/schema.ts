@@ -1,6 +1,7 @@
 import type { BlogMeta } from "./blogs";
 import { SITE_URL } from "./constants";
 import type { LabMetadata } from "./labs";
+import type { StaticPage } from "./pages";
 import { DESCRIPTION, links, socials } from "./site";
 
 /**
@@ -112,6 +113,36 @@ export function workSchema(): Json {
     url: `${SITE_URL}/work`,
     isPartOf: { "@id": SITE_ID },
     mainEntity: person(),
+  };
+}
+
+/**
+ * One builder for the three prose pages, since the only thing that differs is
+ * which `WebPage` subtype each one is.
+ *
+ * `AboutPage` and `ContactPage` are real schema.org types and say what those
+ * pages are for. Privacy has no subtype of its own, so it stays `WebPage`.
+ *
+ * Everything else is read off `lib/pages.ts`, which is the same data the page
+ * renders, so the name and description in the markup are the ones on screen.
+ * `about` rather than `mainEntity` on the contact and privacy pages: only the
+ * about page is *about* the person.
+ */
+export function staticPageSchema(
+  page: StaticPage,
+  type: "AboutPage" | "ContactPage" | "WebPage",
+): Json {
+  return {
+    "@context": "https://schema.org",
+    "@type": type,
+    url: `${SITE_URL}/${page.slug}`,
+    name: page.title,
+    description: page.description,
+    isPartOf: { "@id": SITE_ID },
+    inLanguage: "en-US",
+    ...(type === "AboutPage"
+      ? { mainEntity: person() }
+      : { about: { "@id": PERSON_ID }, publisher: person() }),
   };
 }
 

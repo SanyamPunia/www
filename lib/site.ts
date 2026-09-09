@@ -29,6 +29,7 @@ export const links = {
   enclave: "https://www.enclave.money/",
   bitscale: "https://bitscale.ai/",
   uniqueForge: "https://www.npmjs.com/package/unique-forge",
+  envt: "https://www.npmjs.com/package/envt",
   easeful: "https://easeful.sanyam.sh",
   morphrig: "https://morphrig.dev",
 } as const;
@@ -42,7 +43,18 @@ export const links = {
  */
 export type Segment =
   | string
-  | { text: string; href: string }
+  | {
+      text: string;
+      href: string;
+      /**
+       * A same-origin path that is a file rather than a page: `/llms.txt`,
+       * `/robots.txt`, `/cv`. It gets a plain anchor rather than `next/link`,
+       * since the router would try to navigate to one as a route and fall back
+       * to a hard load. Nothing on the home page needs it, and `lib/pages.ts`
+       * does.
+       */
+      resource?: boolean;
+    }
   /** swept by `DiaText` on the page, plain text everywhere else */
   | { name: string };
 

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllBlogs } from "@/lib/blogs";
 import { SITE_URL } from "@/lib/constants";
 import { IMPLEMENTED_LABS, labsRegistry } from "@/lib/labs";
+import { staticPages } from "@/lib/pages";
 
 /**
  * Two rules this follows that the previous version did not.
@@ -45,6 +46,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    /*
+     * about, contact and privacy. Same standing as the home page: no
+     * `lastModified`, because their copy lives in `lib/pages.ts` and nothing in
+     * the repo records when it last changed. Lower priority than the indexes,
+     * since they are what a reader checks rather than what they came for.
+     */
+    ...staticPages.map((page) => ({
+      url: `${SITE_URL}/${page.slug}`,
+      changeFrequency: "yearly" as const,
+      priority: 0.5,
+    })),
     ...blogs.map((blog) => ({
       url: `${SITE_URL}/blogs/${blog.slug}`,
       lastModified: new Date(blog.date),
