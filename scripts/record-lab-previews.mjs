@@ -547,6 +547,22 @@ const LABS = {
       await wait(1400);
     },
   },
+  "wrapped-pattern": {
+    // the sheet is centred in a 525px stage, so the crop is centred on it
+    focus: [0, 62, 538, 336],
+    // roll the sheet, let the column start its idle turn, then grab it and
+    // throw it the other way
+    async run({ m, pick }) {
+      await wait(500);
+      await m.press(pick(/^Roll/));
+      await wait(2200);
+      await m.move(269, 190, 4);
+      await m.down();
+      await m.move(120, 190, 16);
+      await m.up();
+      await wait(1800);
+    },
+  },
   "radial-menu": {
     // the file sits at the centre of a 448px stage, so the crop takes the
     // middle 336px, which holds the whole wheel
