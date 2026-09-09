@@ -4104,11 +4104,18 @@ showing its back on the way down, and lands on the stop with a small bounce.
 - **Reduced motion swaps the number with no flap.** The halves take the new
   value at once. The clock itself is not gated, since a clock that does not
   change is not a clock.
-- **It is `flush`, on a lit table, and exactly the card's 8:5.** The stage is
-  `h-105`, 336px under the 538px column, which is the shape of the index's
-  preview card, so the recorded clip is the whole stage with nothing padded or
-  cut and a hover on the index shows the lab as it is. The table is `bg` at the
-  top falling to `fill`, with the frame's inset ring.
+- **It is `flush`, on a lit table, and the card's 8:5 at every width.** The
+  stage is `aspect-8/5`, 538 by 336 under the column, which is the shape of the
+  index's preview card, so the recorded clip is the whole stage with nothing
+  padded or cut and a hover on the index shows the lab as it is. The table is
+  `bg` at the top falling to `fill`, with the frame's inset ring.
+- **Every length on the stage is a share of its width**, `window-shade`'s
+  call: the stage is the `@container`, and the cards are `21.4cqw` by
+  `26.2cqw` at `2.4cqw` apart, with numerals at `10.7cqw` and the axle's tabs
+  scaled the same way. The values reproduce the column's own 115 by 141px
+  cards, and on a 390px phone, where three fixed cards and their gaps came to
+  371px in a 352px stage and clipped, they measure 75 by 92 in a 352 by 220
+  stage with nothing overflowing.
 - Verified in a browser: three flaps in flight through the first 600ms after
   load and none after, a press on minutes flips it one forward with the halves
   agreeing afterwards, under reduced motion no flap is ever mounted and the
