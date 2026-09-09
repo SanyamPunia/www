@@ -11,7 +11,8 @@
     "format": "biome format --write",
     "tc": "tsc --noEmit",
     "check": "biome check && tsc --noEmit && next build --turbopack",
-    "previews": "node scripts/record-lab-previews.mjs"
+    "previews": "node scripts/record-lab-previews.mjs",
+    "test:agents": "node --test scripts/agent-readiness.test.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
