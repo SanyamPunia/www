@@ -127,6 +127,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "flip-clock": dynamic(() => import("@/components/labs/flip-clock"), {
     ssr: false,
   }),
+  "book-shelf": dynamic(() => import("@/components/labs/book-shelf"), {
+    ssr: false,
+  }),
   "wrapped-pattern": dynamic(
     () => import("@/components/labs/wrapped-pattern"),
     { ssr: false },

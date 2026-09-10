@@ -447,6 +447,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the mode to roll it, then drag the column to turn it.",
   },
+  {
+    slug: "book-shelf",
+    title: "Book Shelf",
+    description: [
+      "A shelf of twelve books. Press a spine and that book comes out of the row, turns to face you and lands in the middle of the stage with a scrim behind it, which is what a modal opening looks like. Press the scrim, press the book again, or press Escape, and it goes back to its slot.",
+      "Key insight: the thing arriving in the centre is the same object that was on the shelf, turned. A modal grown out of a card is two elements and a crossfade, and it reads as a card being replaced. A book is a box, so the spine is one face of it and the cover another: bringing the cover to the reader is a rotation of ninety degrees, nothing is faded into anything, and the cover lands centred on the box's own middle, so the travel to the centre is a plain translation the layout already knows.",
+      "The scrim is a plane inside the same 3D scene rather than a layer over it. A preserve-3d context paints by depth and ignores z-index, so an overlay stacked on top would sit behind the shelf whatever order it was given. At sixty pixels toward the reader it is in front of the row and behind the book, which is what a scrim is, and it needs no z-index at all.",
+    ],
+    createdAt: "2026-09-11",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/book-shelf/index.tsx",
+    flush: true,
+    hint: "Press a spine to take the book out, Escape to put it back.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -523,6 +537,7 @@ export const IMPLEMENTED_LABS = [
   "radial-menu",
   "flip-clock",
   "wrapped-pattern",
+  "book-shelf",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
