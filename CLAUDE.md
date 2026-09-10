@@ -1206,14 +1206,14 @@ experiment is a directory under `components/labs/`.
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
-  `radial-menu`, `flip-clock` and `wrapped-pattern` use it.
+  `radial-menu`, `flip-clock`, `wrapped-pattern` and `book-shelf` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Fifteen experiments define their own hues**, `tab-overview` per terminal
+- **Sixteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1222,7 +1222,8 @@ experiment is a directory under `components/labs/`.
   kind of card on its page, `custom-cursor` for the badge over each of its
   cards, drawn from the still the card shows, `radial-menu` per format on its
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
-  per column of dots on its sheet. Five of them are the
+  per column of dots on its sheet, and `book-shelf` per book on it. Five of
+  them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
   brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
@@ -1379,7 +1380,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-eight clips, 1513KB with their stills, 3.4 to 7.5 seconds each, at 60
+- Twenty-nine clips, 1614KB with their stills, 3.4 to 7.5 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -4304,6 +4305,154 @@ turns the column, it coasts when let go, and it idles on a slow turn.
   525px leaves 43px above it and below the control.
 - Verified in a browser: the roll settles at 1.00 by 1.1s, the label swaps,
   laying it flat returns both numbers to 0, and no console errors.
+
+### `book-shelf`
+
+A shelf of twelve books. Press a spine and that book comes out of the row,
+turns to face the reader and lands in the middle of the stage with a scrim
+behind it, which is what a modal opening looks like. `books.ts` is what is on
+the shelf, `index.tsx` the shelf, the turn and the scrim.
+
+- **The thing arriving in the centre is the object that was on the shelf,
+  turned.** A modal grown out of a card is two elements and a crossfade
+  between them, and it reads as a card being replaced by a bigger card. A book
+  is a box: the spine is one face of it and the cover another, so bringing the
+  cover to the reader is a rotation, and nothing is faded into anything. The
+  frame halfway through, with the spine falling away and the cover coming
+  round, is the whole argument for building it this way.
+- **The spine is the front face and the cover is the right face**, at
+  `rotateY(90deg) translateZ(t / 2)`, so turning the box by -90 squares the
+  cover to the reader and drops the spine to the left, which is where a spine
+  is when a book is held. Turning +90 instead puts the spine on the right,
+  which no held book does.
+- **The cover lands centred on the box's own middle, and that is what makes
+  the travel arithmetic.** A face at `x = t / 2` maps to `z = t / 2` under
+  that rotation, so the cover's centre finishes on the box's centre line. The
+  offset to the stage's centre is then `ROW_WIDTH / 2 - (left + t / 2)`, which
+  the layout already knows, so nothing is measured and no ref is read.
+- **It comes out of the row before it turns, and the way back is the reverse.**
+  The rotation carries an 80ms delay against the travel on the way out, which
+  is the order a hand does it in: a book that turns while it is still between
+  its neighbours is a book passing through them. Coming back, the depth is
+  what is delayed instead, by 160ms, or the book drops level with the row
+  while it is still travelling and cuts through the books it is rejoining.
+  That was visible on the way back long before anyone looked for it.
+- **The scrim is a plane in the same 3D scene, not a layer over it.** A
+  `preserve-3d` context paints by depth and ignores `z-index`, so an overlay
+  stacked on top sits behind the shelf whatever order it is given. At
+  `translateZ(100px)` it is in front of the row and behind the book, which is
+  what a scrim is.
+  - **It has to clear the board as well as the spines.** The board's front
+    edge stands at half a cover's depth, 62, so a scrim at 60 left it lit
+    while everything around it dimmed, which reads as a hole in the scrim
+    rather than as a scrim. 100 covers both.
+  - It is twice the stage in each direction, since perspective magnifies a
+    plane that far forward and a scrim with a visible corner is not one.
+  - **No `backdrop-filter` on it, and that is not a taste.** With one, Chrome
+    cut the backdrop it captures where the book in front of it sits and left
+    two seams running the whole height of the stage. Measured as one-column
+    spikes 97.5px either side of the centre, which is the cover's own 158
+    magnified by the perspective at the depth it comes out to. The dim does
+    the work instead.
+- **The picked book was drawn twice at first and does not need to be.** The
+  first build rendered a second copy after the scrim in document order, on the
+  assumption that being later in the tree is what puts it in front. Depth
+  sorting already does that, and the duplicate cost a second identical
+  animation and a third `Put the book back` in the accessibility tree.
+- **The lift under a picked book is a `box-shadow`, never a `filter`.** A
+  filter makes its element a containing block and flattens the 3D context, so
+  `drop-shadow` on the book would lay the box flat and take the turn with it.
+- **The neighbours lean into the hole.** A book stands up because the books
+  either side of it do, so a row that stays perfectly upright with one book
+  missing is the one thing a shelf never does. The lean falls off with
+  distance and stops after three, and the two nearest do nearly all of it.
+  - **It is capped, and a book that already leans takes none of it.** A lean
+    pivots on the corner the book stands on, so it swings its head sideways
+    by its own height times the sine: at this scale ten degrees is 43px,
+    which is two neighbours away. The leaning book at the end of the row,
+    tipped further into its neighbour, drew straight across it.
+- **Every book carries its own cloth, ink and band**, which is the exception
+  the other fifteen labs take: twelve objects built from the same three
+  rectangles need colour to tell them apart. The ink is whichever of cream or
+  near-black clears 4.5:1 on its own cloth, checked for all twelve, and every
+  band clears 1.6 on the same cloth, which is a visible step rather than a
+  second colour.
+- **A spine under 18px carries no title**, which is what a thin book does.
+  Thickness and height are the other two differences, and they are what make
+  a row of spines read as a shelf rather than as a bar chart.
+- **One book leans at rest**, since a shelf with room left in it always has
+  one, and it stands up as it comes out. Its `transform-origin` is the corner
+  it is standing on rather than its centre, or it pivots in mid-air.
+- **That origin carries a z, and without it the hover ate the foot.** The
+  corner a book stands on is at the front of the board, not through the
+  middle of it, so a tip about `bottom` alone rotates around the centre plane
+  and swings the foot of the spine backwards and down, where the board it is
+  standing on then covers it. `bottom ${COVER / 2}px` pivots on the front
+  edge and only the head comes forward.
+- **It closes three ways: the book again, the scrim, or Escape**, which is
+  what the shared rules ask of a modal, and the scrim is a real button rather
+  than a div with a handler so the keyboard reaches it.
+- **A hovered book tips its head out rather than sliding forward**, which is
+  how a hand takes one off a shelf and, more to the point, is the only
+  version of it that can be seen. Coming forward on its own is almost
+  nothing: at this perspective 18px of z moves a spine about a pixel and a
+  half, and a probe across all twelve boxes measured no box moving at all.
+  A seven degree tip about the corner it stands on reads. Hover is gated on
+  `pointerType`, mouse and pen only, the call `folder-stack` documents.
+  - **The tip is the one thing here not on the pick's spring**, which is the
+    lesson `stamp-collection` writes up at length. That spring carries a book
+    across the stage, and seven degrees on it spends most of its time on the
+    last fraction of a degree, which reads as the shelf being slow rather
+    than as a short move being short. On a sharp ease-out over 160ms the tip
+    measures 6.14 of its 7 degrees by 100ms and is done by 200.
+- **The stage is a wall, not a white page.** Three of the twelve books are
+  bound in cream, and on `bg` they were a hairline and a shadow: a pale cloth
+  needs a ground that sits off white to read against. It is a radial from
+  `bg` through `surface` to `fill`, centred above the shelf, so the row is
+  the brightest thing in the frame and the corners fall away, which is
+  `flip-clock`'s call for its own lit table.
+- **Depth is drawn as light, not as fills.** The spine carries a gradient
+  along its width for the round of the board, grain over the cloth, and blind
+  rules pressed above and below its panel. The cover carries the same grain, a
+  blind border pressed into the board, a pasted paper label with its own
+  shadow, and a stamp at the foot. Every one of those is white and black at
+  low alpha over the book's own colour, which is the rule `document-pocket`
+  sets for shading a surface.
+- **The label is one paper and one ink for all twelve.** A label is a label:
+  the cloth under it is what tells the books apart, and a per-book ink on a
+  cream paper would be twelve contrast checks for no gain. Near-black on it is
+  13.6:1.
+- **Nothing on the board follows the pointer.** A tilt toward the pointer was
+  built and removed, and so was the version that pressed the corner being
+  pointed at, with a light tracking the hand and the label drifting against
+  it. The demo is a book coming off a shelf, and a cover that answers every
+  pointer move competes with the one movement it is about.
+- **The page block is the face opposite the spine**, at `rotateY(180deg)`,
+  and it is edge on once the cover is square to the reader, so it costs
+  nothing there. It is most of what the book looks like halfway through the
+  turn: without it the book is two boards with nothing between them.
+- **Reduced motion keeps every state and drops the travel.** Verified: 60ms
+  after a press the picked book already carries its finished matrix.
+- **The row is 428px wide against a 538px column, and the whole scene scales
+  to whatever the frame gives it, less a margin.** A `ResizeObserver` writes
+  one number and the perspective container carries `scale(var(--fit))`, so
+  the shelf is sized for the column rather than for the narrowest screen it
+  has to survive, and the 70px held back at each side is what keeps it off
+  the frame's edges. Since the scale is about the stage's own centre, that
+  margin buys height at the top and bottom as well.
+  - **Everything is centred on the overhang, not on the boxes.** A lean
+    pivots on the corner the book stands on, so the leaning book's head
+    reaches 36px past the row the layout knows about. Centring the boxes left
+    55px of frame on one side against 41 on the other. Centring on the row
+    plus the overhang, and moving the picked book's target with it, makes
+    both 56.
+  - **A 24px nudge downward evens the frame vertically.** The scale pulls the
+    shelf toward the stage's centre, and the books stand on a board near the
+    foot rather than filling the box, so it ends up sitting high: measured at
+    rest, 93px above against 134 below, and 113 against 114 after.
+- Verified in a browser: twelve spines at rest, a press leaves eleven and one
+  put-back plus the scrim's, the scrim closes it, Escape closes it, and no
+  console errors.
 
 ## Motion
 
