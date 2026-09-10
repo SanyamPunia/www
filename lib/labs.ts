@@ -443,6 +443,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-09",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/wrapped-pattern/index.tsx",
+    reference: "https://x.com/joshpuckett/status/2095686863634006120",
     flush: true,
     hint: "Press the mode to roll it, then drag the column to turn it.",
   },
