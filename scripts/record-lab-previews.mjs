@@ -547,6 +547,25 @@ const LABS = {
       await wait(1400);
     },
   },
+  "book-shelf": {
+    // the stage is 538 by 500, and the crop is the card's own 8:5 centred on
+    // the band the shelf and a picked cover both live in
+    focus: [0, 66, 538, 336],
+    // run along the spines so they tip out, take one book, put it back, take
+    // another and leave it out
+    async run({ page, m, pick }) {
+      await wait(400);
+      await m.move(180, 250, 10);
+      await m.move(330, 250, 14);
+      await wait(200);
+      await m.press(pick(/^Open Cold Type/));
+      await wait(1500);
+      await page.keyboard.press("Escape");
+      await wait(1100);
+      await m.press(pick(/^Open Slow Light/));
+      await wait(1500);
+    },
+  },
   "wrapped-pattern": {
     // the sheet is centred in a 525px stage, so the crop is centred on it
     focus: [0, 62, 538, 336],
