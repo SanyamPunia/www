@@ -481,9 +481,10 @@ export const labsRegistry: LabMetadata[] = [
     slug: "crack-button",
     title: "Crack Button",
     description: [
-      "A Save button made of glass. Every press cracks it from the point you hit, each one does a little more damage than the last, and the eleventh takes the face apart. Repair it at any point, half cracked or in pieces.",
+      "A Save button made of glass. Every press cracks it from the point you hit, each one does a little more damage than the last, and the eleventh takes the face apart. Repair it half cracked and the cracks run back into the points they came from. Repair it in pieces and a new pane is set down, because a pane on the floor cannot be mended.",
       "Key insight: a crack is two strokes, not one. A fracture is a gap in a solid, so one face of it catches the light and the other is in shadow, which is white at low alpha alongside black at low alpha half a pixel apart. A single stroke of either is a scratch drawn on a button.",
       "A crack is also a walk rather than a curve. It leaves the impact in a direction, wanders either side of it as it follows whatever flaw is in front of it, and throws off branches that do the same, so a branch here is a step, a small turn, a step, with a chance at each joint of spawning a child that leaves at an angle and dies sooner.",
+      "And a crack stops where it meets an older crack. A fracture cannot cross a free surface, since the stress driving it has nothing to pull against once it reaches an opening, so real broken glass is one connected web of T-junctions and never a pile of independent stars laid over each other. Truncating every walk at its first intersection is most of the difference between this reading as glass and reading as scribble.",
       "The break is a partition of the face rather than a pile of shapes. Every shard is the wedge between two walks out of the last impact, so each edge is one walk shared by the two shards either side of it: nothing is drawn twice and no gap can open between neighbours.",
     ],
     createdAt: "2026-09-13",
