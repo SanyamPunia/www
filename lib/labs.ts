@@ -461,6 +461,22 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press a spine to take the book out, Escape to put it back.",
   },
+  {
+    slug: "shelf-drop",
+    title: "Shelf Drop",
+    description: [
+      "Six prints standing on a picture ledge. Press one and it is knocked off, tumbling as it goes. Some fall in front of the ledge and some fall behind it, and which one you get is the whole experiment.",
+      "Key insight: front and back are the same fall with a different sign on one number. The scene is `preserve-3d`, which paints by depth and ignores stacking order, so the ledge is a plane at a fixed depth and a card either travels to a depth in front of it or to one behind. A card going forward grows on the way down and passes over the fascia. One going back shrinks, is covered by the fascia for a few frames, and comes out underneath smaller than it went in. No z-index is involved in either.",
+      "Gravity accelerates and a tumble does not. A falling body covers ground as the square of the time, which is a quadratic ease-in, while it keeps whatever spin it left with, which is linear. Put both on one curve and the spin appears to wind up as the card falls, and the throw reads as a card being flung rather than dropped, so the vertical travel eases in and the rotation, the drift and the depth all run linear.",
+      "Which side comes next is drawn from a shuffled bag rather than a coin. A coin gives runs, and five backs in a row reads as a rule rather than as chance, which is the opposite of the thing being shown.",
+    ],
+    createdAt: "2026-09-12",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/shelf-drop/index.tsx",
+    reference: "https://x.com/Jaytel/status/2098595800427487324",
+    flush: true,
+    hint: "Press a print to knock it off the ledge.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -538,6 +554,7 @@ export const IMPLEMENTED_LABS = [
   "flip-clock",
   "wrapped-pattern",
   "book-shelf",
+  "shelf-drop",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

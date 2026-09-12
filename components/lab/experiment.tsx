@@ -134,6 +134,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/wrapped-pattern"),
     { ssr: false },
   ),
+  "shelf-drop": dynamic(() => import("@/components/labs/shelf-drop"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
