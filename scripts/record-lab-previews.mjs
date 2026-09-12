@@ -571,25 +571,28 @@ const LABS = {
     // which holds the button and the room the shards fly into
     focus: [0, 12, 538, 336],
     /*
-     * Five presses at five points, since a crack leaves the place it was hit and
-     * all five in one spot reads as one star growing. Then the break plays out
-     * and the glass is repaired, because putting it back is the other half of
-     * the experiment.
+     * Eleven presses, walked round five points and nudged each time round, since
+     * a crack leaves the place it was hit and eleven in one spot reads as a
+     * single star growing. Then the break plays out and the glass is repaired,
+     * because putting it back is the other half of the experiment.
      */
     async run({ m }) {
+      const at = [
+        [232, 170],
+        [305, 192],
+        [266, 160],
+        [330, 178],
+        [210, 188],
+      ];
       await wait(400);
-      await m.click(232, 170);
-      await wait(560);
-      await m.click(305, 192);
-      await wait(560);
-      await m.click(266, 160);
-      await wait(560);
-      await m.click(330, 178);
-      await wait(560);
-      await m.click(210, 188);
-      await wait(1500);
+      for (let i = 0; i < 11; i++) {
+        const [x, y] = at[i % at.length];
+        await m.click(x + (i % 3) * 7, y - (i % 2) * 6);
+        await wait(300);
+      }
+      await wait(1100);
       await m.click(269, 328);
-      await wait(700);
+      await wait(600);
     },
   },
   "shelf-drop": {
