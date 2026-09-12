@@ -4550,6 +4550,15 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   `[0, 1.5, 0]` is the same array on every render, so Motion sees no change and
   the knock plays once and never again. A motion value animated from the handler
   replays on every press and renders nothing.
+- **A repaired pane is set down rather than switched on**, fading up and rising
+  the last seven pixels into place. It gets its own element, wrapping the one the
+  knock moves: both want `y`, and a motion value handed to `style` owns that
+  transform outright, so animating the same value from the reset handler set it
+  and never moved it again, measured at 7px on every frame of a 420ms rise. Two
+  elements is the whole fix, the same split the hover takes in `shelf-drop`.
+  Nothing arrives on the first paint, since `Reveal` already brings the demo in,
+  and the exit stays instant: the shards are what the reader follows out, and a
+  button fading under them is a second answer to one press.
 - **The repair arrives with the first crack, not with the break.** A reader who
   cracked the glass and stopped is exactly the reader who wants it. It sits under
   the button, where a press cannot land on it by accident.

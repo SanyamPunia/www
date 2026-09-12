@@ -112,6 +112,13 @@ export default function CrackButton() {
   const [shards, setShards] = useState<Shard[] | null>(null);
   /* a pressed slab sits into the table, which is the shadow closing up under it */
   const [down, setDown] = useState(false);
+  /*
+   * How many times the glass has been put back, which is the only thing that
+   * separates a repair from the first paint. The whole demo already arrives on
+   * the page's own stagger, so a button that also faded in on load would be two
+   * entrances for one object.
+   */
+  const [repairs, setRepairs] = useState(0);
   const face = useRef<HTMLButtonElement>(null);
   /**
    * The knock, driven from the press rather than declared.
@@ -159,6 +166,7 @@ export default function CrackButton() {
   const reset = useCallback(() => {
     setShards(null);
     setCracks([]);
+    setRepairs((count) => count + 1);
   }, []);
 
   return (
@@ -185,28 +193,59 @@ export default function CrackButton() {
         <div className="relative" style={{ width: FACE.w, height: FACE.h }}>
           <AnimatePresence>
             {!broken && (
-              <motion.button
+              <motion.div
                 key="face"
-                ref={face}
-                type="button"
-                onClick={press}
-                aria-label={
-                  hits === 0
-                    ? "Save. This button is made of glass"
-                    : `Save. Cracked, ${hits} of ${LIMIT}`
+                className="absolute inset-0"
+                /*
+                 * The arrival is its own element, wrapping the one the knock
+                 * moves.
+                 *
+                 * Both want `y`, and a motion value handed to `style` owns that
+                 * transform outright: animating the same value from the reset
+                 * handler set it and never moved it again, measured at 7px on
+                 * every frame of a 420ms rise. Two elements is the whole fix,
+                 * the same split the hover takes in `shelf-drop`.
+                 *
+                 * Nothing on the first paint, since `Reveal` already brings the
+                 * demo in and a second entrance for one object is one too many.
+                 * The exit stays instant: the shards are what the reader follows
+                 * out, and a button fading under them is a second answer to one
+                 * press.
+                 */
+                initial={
+                  repairs === 0
+                    ? false
+                    : reduce
+                      ? { opacity: 0 }
+                      : { opacity: 0, y: 7 }
                 }
-                className="group absolute inset-0 cursor-pointer rounded-full bg-text-primary text-bg transition-shadow duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
-                style={{ boxShadow: down ? SLAB_PRESSED : SLAB, y: knock }}
-                initial={false}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0 }}
-                onPointerDown={() => setDown(true)}
-                onPointerUp={() => setDown(false)}
-                onPointerLeave={() => setDown(false)}
-                onPointerCancel={() => setDown(false)}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, transition: { duration: 0 } }}
+                transition={{
+                  duration: reduce ? 0.2 : 0.42,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
               >
-                <Glass hits={hits} cracks={cracks} reduce={reduce ?? false} />
-              </motion.button>
+                <motion.button
+                  ref={face}
+                  type="button"
+                  onClick={press}
+                  aria-label={
+                    hits === 0
+                      ? "Save. This button is made of glass"
+                      : `Save. Cracked, ${hits} of ${LIMIT}`
+                  }
+                  className="group absolute inset-0 cursor-pointer rounded-full bg-text-primary text-bg transition-shadow duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
+                  style={{ boxShadow: down ? SLAB_PRESSED : SLAB, y: knock }}
+                  initial={false}
+                  onPointerDown={() => setDown(true)}
+                  onPointerUp={() => setDown(false)}
+                  onPointerLeave={() => setDown(false)}
+                  onPointerCancel={() => setDown(false)}
+                >
+                  <Glass hits={hits} cracks={cracks} reduce={reduce ?? false} />
+                </motion.button>
+              </motion.div>
             )}
           </AnimatePresence>
 
