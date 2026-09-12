@@ -137,6 +137,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "shelf-drop": dynamic(() => import("@/components/labs/shelf-drop"), {
     ssr: false,
   }),
+  "crack-button": dynamic(() => import("@/components/labs/crack-button"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
