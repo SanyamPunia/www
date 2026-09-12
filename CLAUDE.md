@@ -4468,9 +4468,28 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   repo already sets for shading a surface. Dark glass is also what a hairline
   fracture reads best on: the reference is a blue pill, and on one the lit half of
   every crack had nowhere to be.
+- **The slab is drawn entirely in light, and nothing in it is a colour.** The body
+  gathers light under its top face and pools shadow at its foot, which is what
+  gives a flat fill a belly. The rim is three hairlines, a lit top edge, a
+  shadowed bottom one and a faint ring all round, which is the thickness seen edge
+  on. Then three shadows under it, a contact line, a short cast and a wide
+  ambient, since one shadow dark enough to read at this size looks like a drop
+  shadow rather than like light. `document-pocket` sets that recipe.
+- **The two rounded caps are the brightest part of it.** At a curved edge the
+  light crossing the glass has further to travel and leaves at a shallower angle.
+  Without them the radius reads as a shape the fill happens to stop at rather than
+  as glass turning a corner.
+- **A press seats the slab into the table.** The travel is a pixel and a half and
+  the cast shadow closes from 18px to 9px, measured. Keeping the lift while the
+  button moves down reads as a sticker sliding rather than as a slab being struck.
+- **Hover is optical and nothing moves.** The sheen brightens and a second one
+  comes up from the foot. The site scales nothing on hover, and a slab that rises
+  under a pointer is a slab that is not resting on anything.
 - **A crack is two strokes, not one.** A fracture is a gap in a solid, so one face
   of it catches the light and the other is in shadow, half a pixel apart. One
-  stroke of either is a scratch drawn on a button.
+  stroke of either is a scratch drawn on a button. A third, wider and much fainter,
+  sits behind them for the fracture plane running down into the glass, which is
+  what a crack in a slab shows and a crack in a sheet of paper does not.
 - **A crack is a walk, not a curve.** It leaves the impact in a direction, wanders
   either side of it as it follows whatever flaw is in front of it, and throws off
   branches that do the same: a step, a small turn, a step, and a chance at each
@@ -4490,10 +4509,24 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   pieces slid out of and vanished at, which reads as the button being wiped rather
   than broken: measured at 680ms into the break, four of the nine shards were
   painting nothing at all.
-- **Every piece leaves.** At a throw of 26 the widest wedge, which is whatever sits
-  opposite a press near one end, moved about seven pixels in the first six frames
-  and read as the button failing to break rather than as a heavy piece going
-  slowly.
+- **A pane comes apart, it does not blow up.** What separates two pieces is the
+  width of the crack between them and nothing else, so the sideways travel is a
+  few pixels and gravity does the rest. The first build threw them 44 to 102 with
+  up to 55 degrees of spin, which is a cartoon of breaking rather than breaking.
+  They do not all let go together either: a crack runs through the pane and one
+  piece drops before the one beside it, which is most of what separates a pane
+  failing from a sheet being deleted.
+- **The pieces fall out of frame rather than fading where they are.** A fade is the
+  pane being deleted, and what happened is that it fell. The stage clips, so
+  leaving is something the geometry can do on its own.
+- **One light across the pane, not one per piece.** The shard gradient is
+  `userSpaceOnUse`, since the default resolves against each shape's own box: on
+  nine pieces of one pane that is nine separate lights, and a small shard was lit
+  top to bottom across four pixels while its neighbour was lit across forty.
+- **Each shard carries its own side wall**, the same piece offset by the glass's
+  thickness and drawn under the face, so what shows is the edge nearest the reader.
+- **There is no separate shadow under the button.** It had one, and once the slab
+  carried its own three-layer stack that was a second shadow under one object.
 - **The shards fly on two curves.** A thrown piece keeps whatever sideways speed
   it left with, which is linear, while gravity accelerates, which is a quadratic
   ease-in. `shelf-drop` documents the same split.
