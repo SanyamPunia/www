@@ -4459,7 +4459,7 @@ the shelf, `index.tsx` the shelf, the turn and the scrim.
 ### `crack-button`
 
 A Save button made of glass. Every press cracks it from the point it was hit,
-the cracks accumulate, and the fifth takes the face apart. `crack.ts` is the
+the cracks accumulate, and the eleventh takes the face apart. `crack.ts` is the
 fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
 
 - **It invents no colour, which is rare for a lab this visual.** The face is the
@@ -4490,6 +4490,14 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   stroke of either is a scratch drawn on a button. A third, wider and much fainter,
   sits behind them for the fracture plane running down into the glass, which is
   what a crack in a slab shows and a crack in a sheet of paper does not.
+- **Every crack scales with the damage already done.** Eleven identical stars is
+  eleven of the same event, and the face is an unreadable web by the fourth. A
+  pane under repeated blows gives a little at first and a lot at the end, as each
+  press finds the flaws the last one left, so an early press is two short arms and
+  a late one is five long ones that fork. The label gives way on the same ramp:
+  two steps was enough over five presses and over eleven it sat at one value for
+  six of them, which left the thing that is supposed to be failing as the one
+  thing on the face not changing.
 - **A crack is a walk, not a curve.** It leaves the impact in a direction, wanders
   either side of it as it follows whatever flaw is in front of it, and throws off
   branches that do the same: a step, a small turn, a step, and a chance at each
