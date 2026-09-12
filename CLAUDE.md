@@ -4553,6 +4553,15 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
 - **The repair arrives with the first crack, not with the break.** A reader who
   cracked the glass and stopped is exactly the reader who wants it. It sits under
   the button, where a press cannot land on it by accident.
+- **`select-none` on the whole stage, not on the label alone.** The gesture is
+  eleven presses in a flurry, and a rapid multi-click anchors a selection on the
+  nearest text it can find. On the label that is the word on the button, and once
+  the glass has gone the presses land on bare stage, which is the case
+  `portrait.tsx` documents: with nothing selectable under the pointer the
+  selection reaches into the prose below and the page grows a highlight and a pair
+  of `SelectionPins` carets for a gesture aimed at a button. Measured on sixteen
+  rapid presses, a triple click and a drag right across the stage: no ranges at
+  all, and the description under the demo still selects.
 - A keyboard activation reports no coordinates, which arrives as a `detail` of 0,
   the call `book-opening` and `halftone-ripple` both make, and lands in the middle.
 - **Reduced motion keeps every crack and every break and drops the travel.** The

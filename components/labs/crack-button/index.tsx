@@ -164,7 +164,22 @@ export default function CrackButton() {
   return (
     <TooltipProvider delayDuration={200}>
       <div
-        className="relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-bg ring-1 ring-stroke ring-inset"
+        /*
+         * `select-none` on the whole stage, not on the label alone.
+         *
+         * The gesture here is eleven presses in a flurry, and a rapid
+         * multi-click anchors a selection on the nearest text it can find. On
+         * the label that is the word on the button. Once the glass has gone the
+         * presses land on bare stage, which is the case `portrait.tsx`
+         * documents: with nothing selectable under the pointer the selection
+         * reaches out into the prose below and the page grows a highlight and a
+         * pair of `SelectionPins` carets for a gesture aimed at a button.
+         *
+         * The whole region rather than the button, since a press that misses is
+         * exactly the one that goes looking elsewhere. The description under the
+         * demo stays selectable, because it is prose and somebody may want it.
+         */
+        className="relative flex w-full select-none items-center justify-center overflow-hidden rounded-lg bg-bg ring-1 ring-stroke ring-inset"
         style={{ height: STAGE }}
       >
         <div className="relative" style={{ width: FACE.w, height: FACE.h }}>
