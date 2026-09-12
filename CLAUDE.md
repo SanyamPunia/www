@@ -4498,6 +4498,14 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   two steps was enough over five presses and over eleven it sat at one value for
   six of them, which left the thing that is supposed to be failing as the one
   thing on the face not changing.
+- **A crack stops where it meets an older crack, and this is the one that makes it
+  read as glass.** A fracture cannot cross a free surface: the stress driving it
+  has nothing to pull against once it reaches an opening, so real broken glass is
+  one connected web of T-junctions and never a pile of independent stars laid over
+  each other, which is what this was until the eighth press made it obvious. Every
+  walk is truncated at its first intersection with anything already open,
+  including the branches of its own press, with the first segment exempt so a fork
+  does not terminate on its own parent.
 - **A crack is a walk, not a curve.** It leaves the impact in a direction, wanders
   either side of it as it follows whatever flaw is in front of it, and throws off
   branches that do the same: a step, a small turn, a step, and a chance at each
@@ -4559,6 +4567,29 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   Nothing arrives on the first paint, since `Reveal` already brings the demo in,
   and the exit stays instant: the shards are what the reader follows out, and a
   button fading under them is a second answer to one press.
+- **Putting it back is two different things.** A cracked pane is mended, the
+  cracks running back into the points they came out of, newest first, which is the
+  draw-on played in reverse and the only chance anyone gets to watch a fracture
+  move: on the way out it is over in 140ms and this takes 340. A broken one cannot
+  be mended, since it is on the floor, so that gets a new pane set down. Saying so
+  is most of why the repair is worth watching at all.
+- **The glass is synthesised, not recorded.** `poke-sound.ts` decodes one mp3 and
+  plays a source node per press, which is right for a click, and this is eleven
+  sounds that have to get sharper as the pane gives plus a shatter that is a
+  scatter of them. So a crack is a filtered noise burst with a fast decay, the
+  filter climbs and the decay shortens with the damage, and a shatter is the same
+  burst twelve times on a falling curve over a low body. The page fetches nothing.
+  The clock is unlocked on `pointerdown` and played on the release, the two-step
+  `poke-sound.ts` documents: a context made outside a gesture starts suspended and
+  queues what is started on it, so resuming later fires the lot at once.
+- **The cracks are masked by the sheen.** They were painting at one brightness
+  through a face that has a highlight running across it, which is the tell that
+  they are drawn on rather than in. The mask bottoms out well short of black,
+  since a crack in the dark part of a pane is dimmer and not absent.
+- **Each impact leaves a crush zone.** A struck pane goes opaque in a small halo
+  before any crack leaves it, which is the glass powdering rather than parting. It
+  is the one part of the drawing that is not a line, and it retreats with the
+  cracks when the pane is mended.
 - **The repair arrives with the first crack, not with the break.** A reader who
   cracked the glass and stopped is exactly the reader who wants it. It sits under
   the button, where a press cannot land on it by accident.
