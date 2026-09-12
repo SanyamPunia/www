@@ -41,7 +41,60 @@ function walk(from: Point, angle: number, length: number): Point[] {
   return points;
 }
 
-function toPath(points: Point[]): string {
+/**
+ * Where two segments cross, as a fraction along the first, or null.
+ *
+ * The standard parametric test. Parallel segments are reported as no crossing,
+ * which is right here: two cracks running alongside each other never meet.
+ */
+function crossing(a: Point, b: Point, c: Point, d: Point): number | null {
+  const rx = b[0] - a[0];
+  const ry = b[1] - a[1];
+  const sx = d[0] - c[0];
+  const sy = d[1] - c[1];
+  const denom = rx * sy - ry * sx;
+  if (denom === 0) return null;
+  const t = ((c[0] - a[0]) * sy - (c[1] - a[1]) * sx) / denom;
+  const u = ((c[0] - a[0]) * ry - (c[1] - a[1]) * rx) / denom;
+  if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+  return t;
+}
+
+/**
+ * Cut a walk short where it first meets something already cracked.
+ *
+ * **This is what makes the face read as broken glass rather than as scribble.**
+ * A fracture cannot cross a free surface: the stress that drives it has nothing
+ * to pull against once it reaches an opening, so a crack running into an older
+ * crack stops dead there. Real broken glass is therefore one connected web of
+ * T-junctions, and never a pile of independent stars laid over each other, which
+ * is what this was until the eighth press made it obvious.
+ *
+ * The first segment is exempt, since a fork leaves its own parent and would
+ * otherwise terminate on the frame it was born.
+ */
+function truncate(points: Point[], against: Point[][]): Point[] {
+  for (let i = 1; i < points.length - 1; i++) {
+    let nearest: number | null = null;
+    for (const other of against) {
+      for (let j = 0; j < other.length - 1; j++) {
+        const t = crossing(points[i], points[i + 1], other[j], other[j + 1]);
+        if (t !== null && (nearest === null || t < nearest)) nearest = t;
+      }
+    }
+    if (nearest !== null) {
+      const [x0, y0] = points[i];
+      const [x1, y1] = points[i + 1];
+      return [
+        ...points.slice(0, i + 1),
+        [x0 + (x1 - x0) * nearest, y0 + (y1 - y0) * nearest],
+      ];
+    }
+  }
+  return points;
+}
+
+export function toPath(points: Point[]): string {
   return points
     .map(
       ([x, y], index) =>
@@ -65,26 +118,34 @@ function toPath(points: Point[]): string {
  * as a scratch. What the clip cuts is the part a reader was never going to
  * believe anyway.
  */
-export function crackAt([cx, cy]: Point, damage: number): string[] {
-  const paths: string[] = [];
+export function crackAt(
+  [cx, cy]: Point,
+  damage: number,
+  existing: Point[][],
+): Point[][] {
+  const made: Point[][] = [];
   const arms = 2 + Math.round(damage * 3);
   const offset = Math.random() * Math.PI * 2;
+  /* a new branch stops on what this press has already drawn as well as on the rest */
+  const against = () => [...existing, ...made];
 
   for (let i = 0; i < arms; i++) {
     /* spread them round the impact, jittered, or the star is a snowflake */
     const angle =
       offset + (i / arms) * Math.PI * 2 + (Math.random() - 0.5) * 0.9;
     const length = 15 + damage * 26 + Math.random() * (26 + damage * 44);
-    const points = walk([cx, cy], angle, length);
-    paths.push(toPath(points));
+    const points = truncate(walk([cx, cy], angle, length), against());
+    made.push(points);
 
     if (Math.random() < 0.3 + damage * 0.4 && points.length > 3) {
       const at = points[1 + Math.floor(Math.random() * (points.length - 2))];
       const side = Math.random() < 0.5 ? -1 : 1;
-      paths.push(toPath(walk(at, angle + side * FORK, length * FORK_LIFE)));
+      made.push(
+        truncate(walk(at, angle + side * FORK, length * FORK_LIFE), against()),
+      );
     }
   }
-  return paths;
+  return made;
 }
 
 export interface Shard {
