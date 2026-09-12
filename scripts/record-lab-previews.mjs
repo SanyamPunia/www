@@ -566,6 +566,32 @@ const LABS = {
       await wait(1500);
     },
   },
+  "crack-button": {
+    // the stage is 538 by 360, and the crop is the card's own 8:5 centred on it,
+    // which holds the button and the room the shards fly into
+    focus: [0, 12, 538, 336],
+    /*
+     * Five presses at five points, since a crack leaves the place it was hit and
+     * all five in one spot reads as one star growing. Then the break plays out
+     * and the glass is repaired, because putting it back is the other half of
+     * the experiment.
+     */
+    async run({ m }) {
+      await wait(400);
+      await m.click(232, 170);
+      await wait(560);
+      await m.click(305, 192);
+      await wait(560);
+      await m.click(266, 160);
+      await wait(560);
+      await m.click(330, 178);
+      await wait(560);
+      await m.click(210, 188);
+      await wait(1500);
+      await m.click(269, 328);
+      await wait(700);
+    },
+  },
   "shelf-drop": {
     // the stage is 538 by 400, and the crop is the card's own 8:5 taken from
     // just above the prints down to the foot of the frame, so the ledge and the
