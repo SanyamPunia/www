@@ -85,9 +85,10 @@ export interface Shard {
   d: string;
   /** the direction its own mass leaves in, which is its mid-angle */
   toward: Point;
-  /** how hard it is thrown and how fast it turns, rolled once when the glass goes */
+  /** how far it parts, how far it turns, and when it lets go, rolled once when the glass goes */
   throwBy: number;
   spin: number;
+  delay: number;
 }
 
 /**
@@ -133,13 +134,20 @@ export function shardsFrom([cx, cy]: Point): Shard[] {
       d: `${toPath(polygon)}Z`,
       toward: [Math.cos(mid), Math.sin(mid)],
       /*
-       * Every piece leaves. At 26 the widest wedge, which is whatever is
-       * opposite a press near one end, moved about seven pixels in the first
-       * six frames and read as the button failing to break rather than as a
-       * heavy piece going slowly.
+       * A pane comes apart, it does not blow up. What separates two pieces is
+       * the width of the crack between them and nothing else, so the sideways
+       * travel is a few pixels and gravity does the rest. At 44 to 102 with up
+       * to 55 degrees of spin the pieces left like shrapnel, which is a cartoon
+       * of breaking rather than breaking.
        */
-      throwBy: 44 + Math.random() * 58,
-      spin: (Math.random() - 0.5) * 110,
+      throwBy: 5 + Math.random() * 16,
+      spin: (Math.random() - 0.5) * 13,
+      /*
+       * And they do not all let go together. A crack runs through the pane and
+       * one piece drops before the one beside it, which is most of what
+       * separates a pane failing from a sheet being deleted.
+       */
+      delay: Math.random() * 0.11,
     };
   });
 }

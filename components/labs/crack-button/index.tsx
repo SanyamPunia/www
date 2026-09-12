@@ -46,14 +46,70 @@ import {
 /** the stage, and where the button sits in it */
 const STAGE = 360;
 
-/** how long a fracture front takes to cross the face, and how long the shards fly */
+/**
+ * The slab, drawn entirely in light.
+ *
+ * Nothing here is a colour. Every layer is white or black at low alpha over the
+ * button's own token, which is the rule this repo sets for shading a surface,
+ * and it is also what glass is: a material with no colour of its own that reads
+ * only by what it does to the light crossing it.
+ *
+ * Read outward from the middle. The body gathers light under its top face and
+ * pools shadow at its foot, which is what gives a flat fill a belly. The rim is
+ * three hairlines, a lit top edge, a shadowed bottom one and a faint ring all
+ * round, which is the slab's own thickness seen edge on. Then three shadows
+ * under it, a contact line, a short cast and a wide ambient, since one shadow
+ * dark enough to read at this size looks like a drop shadow rather than like
+ * light. `document-pocket` sets that recipe and `flip-clock` uses it too.
+ */
+const SLAB = [
+  "inset 0 14px 22px -14px rgb(255 255 255 / 0.20)",
+  "inset 0 -16px 24px -13px rgb(0 0 0 / 0.62)",
+  "inset 0 1.5px 0 rgb(255 255 255 / 0.28)",
+  "inset 0 -1.5px 0 rgb(0 0 0 / 0.55)",
+  "inset 0 0 0 1px rgb(255 255 255 / 0.09)",
+  "0 1px 1px rgb(0 0 0 / 0.16)",
+  "0 6px 12px -4px rgb(0 0 0 / 0.22)",
+  "0 18px 32px -12px rgb(0 0 0 / 0.26)",
+].join(", ");
+
+/**
+ * A pressed slab sits into what it is standing on.
+ *
+ * The site scales nothing on press, so the knock is travel and the shadow
+ * closing up under it. Keeping the lift while the button moves down is what
+ * makes a press read as a sticker sliding rather than as a slab being struck.
+ */
+const SLAB_PRESSED = [
+  "inset 0 14px 22px -14px rgb(255 255 255 / 0.14)",
+  "inset 0 -16px 24px -13px rgb(0 0 0 / 0.62)",
+  "inset 0 1.5px 0 rgb(255 255 255 / 0.20)",
+  "inset 0 -1.5px 0 rgb(0 0 0 / 0.55)",
+  "inset 0 0 0 1px rgb(255 255 255 / 0.09)",
+  "0 1px 1px rgb(0 0 0 / 0.16)",
+  "0 3px 7px -3px rgb(0 0 0 / 0.22)",
+  "0 9px 18px -8px rgb(0 0 0 / 0.26)",
+].join(", ");
+
+/** how long a fracture front takes to cross the face, and how long a piece takes to fall */
 const PROPAGATE = 0.14;
-const FLY = 0.9;
+const FLY = 0.66;
+
+/**
+ * Far enough below the stage that every piece is gone.
+ *
+ * The pieces fall out of frame rather than fading where they are. A fade is the
+ * pane being deleted, and what happened is that it fell: the stage clips, so
+ * leaving is something the geometry can do on its own.
+ */
+const FALL = 240;
 
 export default function CrackButton() {
   const reduce = useReducedMotion();
   const [cracks, setCracks] = useState<string[][]>([]);
   const [shards, setShards] = useState<Shard[] | null>(null);
+  /* a pressed slab sits into the table, which is the shadow closing up under it */
+  const [down, setDown] = useState(false);
   const face = useRef<HTMLButtonElement>(null);
   /**
    * The knock, driven from the press rather than declared.
@@ -112,20 +168,6 @@ export default function CrackButton() {
         style={{ height: STAGE }}
       >
         <div className="relative" style={{ width: FACE.w, height: FACE.h }}>
-          {/* what the button casts, which goes with the button */}
-          <AnimatePresence>
-            {!broken && (
-              <motion.span
-                key="seat"
-                aria-hidden="true"
-                className="absolute inset-x-4 -bottom-1 h-3 rounded-[50%] bg-black/18 blur-md"
-                initial={false}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduce ? 0 : 0.18 }}
-              />
-            )}
-          </AnimatePresence>
-
           <AnimatePresence>
             {!broken && (
               <motion.button
@@ -138,25 +180,15 @@ export default function CrackButton() {
                     ? "Save. This button is made of glass"
                     : `Save. Cracked, ${hits} of ${LIMIT}`
                 }
-                className="absolute inset-0 cursor-pointer rounded-full bg-text-primary text-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
+                className="group absolute inset-0 cursor-pointer rounded-full bg-text-primary text-bg transition-shadow duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
+                style={{ boxShadow: down ? SLAB_PRESSED : SLAB, y: knock }}
                 initial={false}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0 }}
-                /*
-                 * The recoil is the press, and it is the one thing here that is
-                 * not a crack. The site does not scale anything on press, so the
-                 * glass takes the knock instead: a few pixels of travel into the
-                 * screen and back, which is what a surface being struck does.
-                 */
-                animate={
-                  reduce
-                    ? {}
-                    : {
-                        y: [0, 1.5, 0],
-                        transition: { duration: 0.16, times: [0, 0.3, 1] },
-                      }
-                }
-                key-press={hits}
+                onPointerDown={() => setDown(true)}
+                onPointerUp={() => setDown(false)}
+                onPointerLeave={() => setDown(false)}
+                onPointerCancel={() => setDown(false)}
               >
                 <Glass hits={hits} cracks={cracks} reduce={reduce ?? false} />
               </motion.button>
@@ -216,13 +248,43 @@ function Glass({
 }) {
   return (
     <>
-      {/* the light across a pane, which is what says the face is glass and not paint */}
+      {/*
+       * The two rounded caps, where the slab is seen through its own thickness.
+       *
+       * At a curved edge the light crossing the glass has further to travel and
+       * leaves at a shallower angle, so the ends of a pill are the brightest part
+       * of it. Without them the radius reads as a shape the fill happens to stop
+       * at rather than as glass turning a corner.
+       */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-full"
         style={{
           background:
-            "linear-gradient(146deg, rgb(255 255 255 / 0.16) 0%, transparent 42%, transparent 68%, rgb(255 255 255 / 0.06) 100%)",
+            "radial-gradient(42% 118% at 1% 50%, rgb(255 255 255 / 0.18) 0%, transparent 72%), radial-gradient(42% 118% at 99% 50%, rgb(255 255 255 / 0.18) 0%, transparent 72%)",
+        }}
+      />
+      {/* the sheen across the pane, which is what says the face is glass and not paint */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-full"
+        style={{
+          background:
+            "linear-gradient(158deg, rgb(255 255 255 / 0.20) 0%, rgb(255 255 255 / 0.05) 24%, transparent 48%, transparent 66%, rgb(255 255 255 / 0.05) 100%)",
+        }}
+      />
+      {/*
+       * What a pointer does to it: the sheen brightens and a second one comes up
+       * from the foot, which is the surface catching a little more light. There
+       * is nothing to move, since the site scales nothing on hover and a slab
+       * that rises under a pointer is a slab that is not resting on anything.
+       */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(158deg, rgb(255 255 255 / 0.10) 0%, transparent 36%), linear-gradient(0deg, rgb(255 255 255 / 0.07) 0%, transparent 42%)",
         }}
       />
       <span
@@ -272,6 +334,26 @@ function Fracture({ paths, reduce }: { paths: string[]; reduce: boolean }) {
     <>
       {paths.map((d) => (
         <g key={d}>
+          {/*
+           * The fracture plane behind the line. A crack in a thick pane is a
+           * surface running down into the glass, and what a reader sees of it is
+           * a soft glow either side of the line where that surface catches the
+           * light. Two hairlines alone read as a scratch on the top face, which
+           * is a crack in a sheet of paper rather than in a slab.
+           */}
+          <motion.path
+            d={d}
+            pathLength={1}
+            fill="none"
+            stroke="rgb(255 255 255 / 0.09)"
+            strokeWidth={4}
+            strokeLinecap="round"
+            initial={
+              reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
+            }
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: reduce ? 0 : PROPAGATE, ease: "linear" }}
+          />
           <motion.path
             d={d}
             pathLength={1}
@@ -326,30 +408,54 @@ function Break({ shards, reduce }: { shards: Shard[]; reduce: boolean }) {
         <clipPath id="shard-face">
           <rect width={FACE.w} height={FACE.h} rx={FACE.r} ry={FACE.r} />
         </clipPath>
+        {/*
+         * The same light the face had, in the face's own coordinates.
+         *
+         * `userSpaceOnUse` rather than the default, which resolves a gradient
+         * against each shape's own box: on nine pieces of one pane that is nine
+         * separate lights, so a small shard was lit top to bottom across four
+         * pixels while its neighbour was lit across forty. They were one sheet
+         * a moment ago, so there is one light and each piece carries the part
+         * of it that fell where the piece was.
+         */}
+        <linearGradient
+          id="shard-light"
+          gradientUnits="userSpaceOnUse"
+          x1={0}
+          y1={0}
+          x2={FACE.w * 0.4}
+          y2={FACE.h}
+        >
+          <stop offset="0%" stopColor="rgb(255 255 255 / 0.22)" />
+          <stop offset="46%" stopColor="rgb(255 255 255 / 0.03)" />
+          <stop offset="100%" stopColor="rgb(0 0 0 / 0.35)" />
+        </linearGradient>
       </defs>
       {shards.map((shard, index) => (
         <motion.g
           // biome-ignore lint/suspicious/noArrayIndexKey: shards are a fixed set generated once, in order
           key={index}
-          initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+          initial={{ x: 0, y: 0, rotate: 0 }}
           animate={
             reduce
               ? { opacity: 0 }
               : {
                   x: shard.toward[0] * shard.throwBy,
-                  y: shard.toward[1] * shard.throwBy + 130,
+                  y: shard.toward[1] * shard.throwBy + FALL,
                   rotate: shard.spin,
-                  opacity: 0,
                 }
           }
           transition={
             reduce
               ? { duration: 0.2 }
               : {
-                  x: { duration: FLY, ease: "linear" },
-                  rotate: { duration: FLY, ease: "linear" },
-                  y: { duration: FLY, ease: [0.45, 0, 0.9, 0.72] },
-                  opacity: { duration: FLY, ease: [0.7, 0, 0.9, 1] },
+                  x: { duration: FLY, ease: "linear", delay: shard.delay },
+                  rotate: { duration: FLY, ease: "linear", delay: shard.delay },
+                  y: {
+                    duration: FLY,
+                    ease: [0.45, 0, 0.9, 0.72],
+                    delay: shard.delay,
+                  },
                 }
           }
         >
@@ -365,11 +471,24 @@ function Break({ shards, reduce }: { shards: Shard[]; reduce: boolean }) {
            * its own shape out of the frame.
            */}
           <g clipPath="url(#shard-face)">
+            {/*
+             * The side wall, which is the same piece offset by the glass's own
+             * thickness. It is drawn first, so the face lands on top of it and
+             * what is left showing is the edge nearest the reader, which is
+             * exactly what a piece of a thick pane turning in the air shows.
+             */}
             <path
               d={shard.d}
-              fill="var(--color-text-primary)"
-              stroke="rgb(255 255 255 / 0.22)"
-              strokeWidth={0.75}
+              transform={`translate(${shard.toward[0] * 2.4} ${shard.toward[1] * 2.4 + 1.6})`}
+              fill="rgb(0 0 0 / 0.55)"
+            />
+            <path d={shard.d} fill="var(--color-text-primary)" />
+            <path d={shard.d} fill="url(#shard-light)" />
+            <path
+              d={shard.d}
+              fill="none"
+              stroke="rgb(255 255 255 / 0.3)"
+              strokeWidth={0.8}
             />
           </g>
         </motion.g>
