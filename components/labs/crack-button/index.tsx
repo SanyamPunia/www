@@ -10,7 +10,6 @@ import {
 } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import {
   crackAt,
   FACE,
@@ -91,6 +90,9 @@ const SLAB_PRESSED = [
   "0 9px 18px -8px rgb(0 0 0 / 0.26)",
 ].join(", ");
 
+/** what the label is down to after `hits` presses, shared by the face and the shards */
+const LABEL_AT = (hits: number) => 1 - (hits / LIMIT) * 0.5;
+
 /** how long a fracture front takes to cross the face, and how long a piece takes to fall */
 const PROPAGATE = 0.14;
 const FLY = 0.66;
@@ -146,12 +148,10 @@ export default function CrackButton() {
               ((event.clientY - box.top) / box.height) * FACE.h,
             ];
 
-      if (hits + 1 >= LIMIT) {
-        setCracks((current) => [...current, crackAt(at)]);
-        setShards(shardsFrom(at));
-        return;
-      }
-      setCracks((current) => [...current, crackAt(at)]);
+      /* 0 on the first press and 1 on the last, which is what every crack scales by */
+      const damage = hits / (LIMIT - 1);
+      setCracks((current) => [...current, crackAt(at, damage)]);
+      if (hits + 1 >= LIMIT) setShards(shardsFrom(at));
     },
     [broken, hits, knock, reduce],
   );
@@ -289,16 +289,15 @@ function Glass({
             "linear-gradient(158deg, rgb(255 255 255 / 0.10) 0%, transparent 36%), linear-gradient(0deg, rgb(255 255 255 / 0.07) 0%, transparent 42%)",
         }}
       />
+      {/*
+       * The label goes with the glass, a little at every press. Two steps was
+       * enough over five presses and is not over eleven: it sat at one value for
+       * six of them, so the thing that is supposed to be giving way was the one
+       * thing on the face not changing.
+       */}
       <span
-        className={cn(
-          "relative z-10 text-action transition-opacity duration-200",
-          /* the label goes with the glass: by the last crack it is barely there */
-          hits >= LIMIT - 1
-            ? "opacity-55"
-            : hits > 1
-              ? "opacity-80"
-              : "opacity-100",
-        )}
+        className="relative z-10 text-action transition-opacity duration-200"
+        style={{ opacity: LABEL_AT(hits) }}
       >
         Save
       </span>
@@ -529,7 +528,7 @@ function Break({
                 fontSize={12.8}
                 fontWeight={500}
                 fill="var(--color-bg)"
-                opacity={0.55}
+                opacity={LABEL_AT(LIMIT - 1)}
                 className="lowercase"
               >
                 Save

@@ -15,7 +15,7 @@ export type Point = [number, number];
 export const FACE = { w: 168, h: 56, r: 28 } as const;
 
 /** how many presses the glass takes before it lets go */
-export const LIMIT = 5;
+export const LIMIT = 11;
 
 /** how far a walk turns at each joint, and how far it steps */
 const WANDER = 0.42;
@@ -53,25 +53,32 @@ function toPath(points: Point[]): string {
 /**
  * One impact: a few branches leaving it, and the odd child off those.
  *
+ * **It takes `damage`, which is how far along the glass already is, and every
+ * number here scales with it.** Eleven identical stars is eleven of the same
+ * event, and the face is an unreadable web by the fourth. What a pane under
+ * repeated blows does is give a little at first and a lot at the end, as each
+ * press finds the flaws the last one left, so an early press is two short arms
+ * and a late one is five long ones that fork.
+ *
  * The lengths are generous against a 168 by 56 face on purpose, since the
  * drawing is clipped to the pill and a branch that stops short of the edge reads
  * as a scratch. What the clip cuts is the part a reader was never going to
  * believe anyway.
  */
-export function crackAt([cx, cy]: Point): string[] {
+export function crackAt([cx, cy]: Point, damage: number): string[] {
   const paths: string[] = [];
-  const arms = 3 + Math.floor(Math.random() * 3);
+  const arms = 2 + Math.round(damage * 3);
   const offset = Math.random() * Math.PI * 2;
 
   for (let i = 0; i < arms; i++) {
     /* spread them round the impact, jittered, or the star is a snowflake */
     const angle =
       offset + (i / arms) * Math.PI * 2 + (Math.random() - 0.5) * 0.9;
-    const length = 26 + Math.random() * 62;
+    const length = 15 + damage * 26 + Math.random() * (26 + damage * 44);
     const points = walk([cx, cy], angle, length);
     paths.push(toPath(points));
 
-    if (Math.random() < 0.6 && points.length > 3) {
+    if (Math.random() < 0.3 + damage * 0.4 && points.length > 3) {
       const at = points[1 + Math.floor(Math.random() * (points.length - 2))];
       const side = Math.random() < 0.5 ? -1 : 1;
       paths.push(toPath(walk(at, angle + side * FORK, length * FORK_LIFE)));
