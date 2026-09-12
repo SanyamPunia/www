@@ -195,7 +195,9 @@ export default function CrackButton() {
             )}
           </AnimatePresence>
 
-          {broken && <Break shards={shards} reduce={reduce ?? false} />}
+          {broken && (
+            <Break shards={shards} cracks={cracks} reduce={reduce ?? false} />
+          )}
         </div>
 
         {/*
@@ -396,7 +398,16 @@ function Fracture({ paths, reduce }: { paths: string[]; reduce: boolean }) {
  * accelerates, which is a quadratic ease-in. On one curve the whole thing reads
  * as being sucked downward rather than as breaking.
  */
-function Break({ shards, reduce }: { shards: Shard[]; reduce: boolean }) {
+function Break({
+  shards,
+  cracks,
+  reduce,
+}: {
+  shards: Shard[];
+  cracks: string[][];
+  reduce: boolean;
+}) {
+  const drawn = cracks.flat();
   return (
     <svg
       aria-hidden="true"
@@ -430,6 +441,19 @@ function Break({ shards, reduce }: { shards: Shard[]; reduce: boolean }) {
           <stop offset="46%" stopColor="rgb(255 255 255 / 0.03)" />
           <stop offset="100%" stopColor="rgb(0 0 0 / 0.35)" />
         </linearGradient>
+        {/*
+         * A clip per wedge, so the label can be drawn whole inside each piece
+         * and cut to that piece. It is printed on the glass, so a break takes it
+         * apart rather than switching it off: cutting to the shards is what
+         * keeps every letter where it was and lets each fragment leave with the
+         * piece it was sitting on.
+         */}
+        {shards.map((shard, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: shards are a fixed set generated once, in order
+          <clipPath key={index} id={`shard-${index}`}>
+            <path d={shard.d} />
+          </clipPath>
+        ))}
       </defs>
       {shards.map((shard, index) => (
         <motion.g
@@ -483,6 +507,66 @@ function Break({ shards, reduce }: { shards: Shard[]; reduce: boolean }) {
               fill="rgb(0 0 0 / 0.55)"
             />
             <path d={shard.d} fill="var(--color-text-primary)" />
+            {/*
+             * The label, whole, cut to this piece. Laid out the same way the
+             * face lays it out, so the swap from the button to the shards
+             * changes nothing about where a letter sits: the glass is simply in
+             * pieces from that frame on. It takes the tone the face had left it
+             * at, which by the last crack is most of the way gone.
+             */}
+            <g clipPath={`url(#shard-${index})`}>
+              {/*
+               * `lowercase` spelled out, because SVG text does not pick up the
+               * `text-transform` the stylesheet puts on `body`. Without it the
+               * label came back capitalised on the frame the glass broke, which
+               * is the one frame nothing about it is allowed to change.
+               */}
+              <text
+                x={FACE.w / 2}
+                y={FACE.h / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={12.8}
+                fontWeight={500}
+                fill="var(--color-bg)"
+                opacity={0.55}
+                className="lowercase"
+              >
+                Save
+              </text>
+              {/*
+               * And every crack the glass already had, on the piece it was on.
+               * A pane that breaks into clean wedges is a pane that was never
+               * cracked: without these the four presses it took to get here are
+               * wiped on the frame the fifth lands.
+               */}
+              {drawn.map((d) => (
+                <g key={d}>
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="rgb(255 255 255 / 0.09)"
+                    strokeWidth={4}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="rgb(0 0 0 / 0.55)"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    transform="translate(0.5 0.5)"
+                  />
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="rgb(255 255 255 / 0.65)"
+                    strokeWidth={1}
+                    strokeLinecap="round"
+                  />
+                </g>
+              ))}
+            </g>
             <path d={shard.d} fill="url(#shard-light)" />
             <path
               d={shard.d}

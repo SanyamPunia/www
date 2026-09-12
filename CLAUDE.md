@@ -4527,6 +4527,14 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
   thickness and drawn under the face, so what shows is the edge nearest the reader.
 - **There is no separate shadow under the button.** It had one, and once the slab
   carried its own three-layer stack that was a second shadow under one object.
+- **Nothing is switched off on the frame the glass breaks.** The label is printed
+  on the glass, so every piece carries it whole and clipped to its own wedge, and
+  every crack the pane already had is drawn on the piece it was on. Without
+  either, five presses of damage and the word on the button were wiped in one
+  frame and the pane broke into clean wedges it had never had. `lowercase` is
+  spelled out on that text, since SVG text does not pick up the `text-transform`
+  the stylesheet puts on `body`, and the label came back capitalised on the one
+  frame nothing about it is allowed to change.
 - **The shards fly on two curves.** A thrown piece keeps whatever sideways speed
   it left with, which is linear, while gravity accelerates, which is a quadratic
   ease-in. `shelf-drop` documents the same split.
