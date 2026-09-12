@@ -17,7 +17,9 @@ import {
   type Point,
   type Shard,
   shardsFrom,
+  toPath,
 } from "./crack";
+import { armGlass, playCrack, playRepair, playShatter } from "./crack-sound";
 
 /*
  * A button made of glass. Press it and it cracks, press it enough and it goes.
@@ -95,6 +97,17 @@ const LABEL_AT = (hits: number) => 1 - (hits / LIMIT) * 0.5;
 
 /** how long a fracture front takes to cross the face, and how long a piece takes to fall */
 const PROPAGATE = 0.14;
+
+/**
+ * Mending is slower than cracking, and deliberately.
+ *
+ * A fracture front is the fastest thing in this demo and a mend is not a
+ * physical event at all, so it has no speed it has to respect. Running it slower
+ * than the break is also the only chance a reader gets to watch a crack move: on
+ * the way out it is over in 140ms.
+ */
+const HEAL = 0.34;
+const HEAL_STEP = 0.045;
 const FLY = 0.66;
 
 /**
@@ -108,7 +121,13 @@ const FALL = 240;
 
 export default function CrackButton() {
   const reduce = useReducedMotion();
-  const [cracks, setCracks] = useState<string[][]>([]);
+  /**
+   * One press worth of damage: where it landed and what it opened.
+   *
+   * Kept as points rather than as path strings, since a new crack has to be able
+   * to ask where the old ones run so it can stop when it meets one.
+   */
+  const [cracks, setCracks] = useState<Damage[]>([]);
   const [shards, setShards] = useState<Shard[] | null>(null);
   /* a pressed slab sits into the table, which is the shadow closing up under it */
   const [down, setDown] = useState(false);
@@ -119,6 +138,8 @@ export default function CrackButton() {
    * entrances for one object.
    */
   const [repairs, setRepairs] = useState(0);
+  /* true while the cracks are running back into the points they came from */
+  const [healing, setHealing] = useState(false);
   const face = useRef<HTMLButtonElement>(null);
   /**
    * The knock, driven from the press rather than declared.
@@ -157,16 +178,51 @@ export default function CrackButton() {
 
       /* 0 on the first press and 1 on the last, which is what every crack scales by */
       const damage = hits / (LIMIT - 1);
-      setCracks((current) => [...current, crackAt(at, damage)]);
-      if (hits + 1 >= LIMIT) setShards(shardsFrom(at));
+      setCracks((current) => [
+        ...current,
+        {
+          at,
+          branches: crackAt(
+            at,
+            damage,
+            current.flatMap((d) => d.branches),
+          ),
+        },
+      ]);
+      if (hits + 1 >= LIMIT) {
+        setShards(shardsFrom(at));
+        playShatter();
+      } else {
+        playCrack(damage);
+      }
     },
     [broken, hits, knock, reduce],
   );
 
+  /**
+   * Putting it back, which is two different things.
+   *
+   * A cracked pane is mended: the cracks run back into the points they came out
+   * of, newest first, which is the draw-on played in reverse and is the only
+   * chance to watch a fracture move slowly. A broken one cannot be mended, since
+   * it is on the floor, so that gets a new pane set down instead. Saying so is
+   * most of why the repair is worth watching at all.
+   */
   const reset = useCallback(() => {
-    setShards(null);
+    playRepair();
+    if (broken) {
+      setShards(null);
+      setCracks([]);
+      setRepairs((count) => count + 1);
+      return;
+    }
+    setHealing(true);
+  }, [broken]);
+
+  /* the mend runs on the cracks themselves, so the clear waits for it */
+  const onHealed = useCallback(() => {
+    setHealing(false);
     setCracks([]);
-    setRepairs((count) => count + 1);
   }, []);
 
   return (
@@ -238,12 +294,27 @@ export default function CrackButton() {
                   className="group absolute inset-0 cursor-pointer rounded-full bg-text-primary text-bg transition-shadow duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
                   style={{ boxShadow: down ? SLAB_PRESSED : SLAB, y: knock }}
                   initial={false}
-                  onPointerDown={() => setDown(true)}
+                  /*
+                   * The clock is unlocked on the press and the sound plays on the
+                   * release. A context made outside a gesture starts suspended and
+                   * queues whatever is started on it, so resuming later fires the
+                   * lot at once, which is the two-step `poke-sound.ts` documents.
+                   */
+                  onPointerDown={() => {
+                    setDown(true);
+                    armGlass();
+                  }}
                   onPointerUp={() => setDown(false)}
                   onPointerLeave={() => setDown(false)}
                   onPointerCancel={() => setDown(false)}
                 >
-                  <Glass hits={hits} cracks={cracks} reduce={reduce ?? false} />
+                  <Glass
+                    hits={hits}
+                    cracks={cracks}
+                    healing={healing}
+                    onHealed={onHealed}
+                    reduce={reduce ?? false}
+                  />
                 </motion.button>
               </motion.div>
             )}
@@ -292,14 +363,24 @@ export default function CrackButton() {
   );
 }
 
+/** one press worth of damage: where it landed and what it opened */
+export interface Damage {
+  at: Point;
+  branches: Point[][];
+}
+
 /** the face: the label, the sheen on it, and every crack so far */
 function Glass({
   hits,
   cracks,
+  healing,
+  onHealed,
   reduce,
 }: {
   hits: number;
-  cracks: string[][];
+  cracks: Damage[];
+  healing: boolean;
+  onHealed: () => void;
   reduce: boolean;
 }) {
   return (
@@ -366,11 +447,59 @@ function Glass({
           <clipPath id="crack-face">
             <rect width={FACE.w} height={FACE.h} rx={FACE.r} ry={FACE.r} />
           </clipPath>
+          {/*
+           * A crack only shows where light reaches it.
+           *
+           * The face has a sheen running across it and the cracks were painting
+           * at one brightness through all of it, which is the tell that they are
+           * drawn on rather than in. This is the same direction the sheen runs,
+           * as a mask, so a fracture flares where it crosses the lit corner and
+           * goes quiet in the shadowed foot. It bottoms out well short of black:
+           * a crack in the dark part of a pane is dimmer, not absent.
+           */}
+          <linearGradient
+            id="crack-sheen"
+            gradientUnits="userSpaceOnUse"
+            x1={0}
+            y1={0}
+            x2={FACE.w * 0.42}
+            y2={FACE.h}
+          >
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="52%" stopColor="#b4b4b4" />
+            <stop offset="100%" stopColor="#7a7a7a" />
+          </linearGradient>
+          <mask id="crack-light">
+            <rect width={FACE.w} height={FACE.h} fill="url(#crack-sheen)" />
+          </mask>
+          {/*
+           * The crush zone. A struck pane goes opaque in a small halo at the
+           * point of impact before any crack leaves it, which is the glass
+           * powdering rather than parting. It is the one part of this drawing
+           * that is not a line.
+           */}
+          <radialGradient id="crush">
+            <stop offset="0%" stopColor="rgb(255 255 255 / 0.5)" />
+            <stop offset="55%" stopColor="rgb(255 255 255 / 0.12)" />
+            <stop offset="100%" stopColor="rgb(255 255 255 / 0)" />
+          </radialGradient>
         </defs>
-        <g clipPath="url(#crack-face)">
-          {cracks.map((paths, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: a crack is identified by when it happened, and the list only ever grows
-            <Fracture key={index} paths={paths} reduce={reduce} />
+        <g clipPath="url(#crack-face)" mask="url(#crack-light)">
+          {cracks.map((damage, index) => (
+            <Fracture
+              // biome-ignore lint/suspicious/noArrayIndexKey: a crack is identified by when it happened, and the list only ever grows
+              key={index}
+              damage={damage}
+              healing={healing}
+              /*
+               * Newest first, so the glass mends in the order it broke and the
+               * last thing to go is the crack the first press left. The last one
+               * to finish is therefore the oldest, which is the one that reports.
+               */
+              delay={healing ? (cracks.length - 1 - index) * HEAL_STEP : 0}
+              onDone={index === 0 ? onHealed : undefined}
+              reduce={reduce}
+            />
           ))}
         </g>
       </svg>
@@ -384,60 +513,98 @@ function Glass({
  * Two strokes per branch, offset by half a pixel: the lit face of the fracture
  * and the shadowed one. `pathLength="1"` is what keeps the dash a plain number.
  */
-function Fracture({ paths, reduce }: { paths: string[]; reduce: boolean }) {
+function Fracture({
+  damage,
+  healing,
+  delay,
+  onDone,
+  reduce,
+}: {
+  damage: Damage;
+  healing: boolean;
+  delay: number;
+  onDone?: () => void;
+  reduce: boolean;
+}) {
+  /* out from the impact when it opens, back into it when it mends */
+  const offset = healing ? 1 : 0;
+  const move = {
+    duration: reduce ? 0 : healing ? HEAL : PROPAGATE,
+    ease: "linear" as const,
+    delay: reduce ? 0 : delay,
+  };
   return (
     <>
-      {paths.map((d) => (
-        <g key={d}>
-          {/*
-           * The fracture plane behind the line. A crack in a thick pane is a
-           * surface running down into the glass, and what a reader sees of it is
-           * a soft glow either side of the line where that surface catches the
-           * light. Two hairlines alone read as a scratch on the top face, which
-           * is a crack in a sheet of paper rather than in a slab.
-           */}
-          <motion.path
-            d={d}
-            pathLength={1}
-            fill="none"
-            stroke="rgb(255 255 255 / 0.09)"
-            strokeWidth={4}
-            strokeLinecap="round"
-            initial={
-              reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
-            }
-            animate={{ strokeDashoffset: 0 }}
-            transition={{ duration: reduce ? 0 : PROPAGATE, ease: "linear" }}
-          />
-          <motion.path
-            d={d}
-            pathLength={1}
-            fill="none"
-            stroke="rgb(0 0 0 / 0.55)"
-            strokeWidth={1.4}
-            strokeLinecap="round"
-            transform="translate(0.5 0.5)"
-            initial={
-              reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
-            }
-            animate={{ strokeDashoffset: 0 }}
-            transition={{ duration: reduce ? 0 : PROPAGATE, ease: "linear" }}
-          />
-          <motion.path
-            d={d}
-            pathLength={1}
-            fill="none"
-            stroke="rgb(255 255 255 / 0.65)"
-            strokeWidth={1}
-            strokeLinecap="round"
-            initial={
-              reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
-            }
-            animate={{ strokeDashoffset: 0 }}
-            transition={{ duration: reduce ? 0 : PROPAGATE, ease: "linear" }}
-          />
-        </g>
-      ))}
+      {/* where it was struck, which goes opaque before anything opens */}
+      <motion.circle
+        cx={damage.at[0]}
+        cy={damage.at[1]}
+        r={5}
+        fill="url(#crush)"
+        initial={reduce ? false : { scale: 0.4, opacity: 0 }}
+        animate={{ scale: healing ? 0.4 : 1, opacity: healing ? 0 : 1 }}
+        style={{ transformOrigin: `${damage.at[0]}px ${damage.at[1]}px` }}
+        transition={{
+          duration: reduce ? 0 : healing ? HEAL : 0.12,
+          ease: "easeOut",
+          delay: reduce ? 0 : delay,
+        }}
+      />
+      {damage.branches.map((points) => {
+        const d = toPath(points);
+        return (
+          <g key={d}>
+            {/*
+             * The fracture plane behind the line. A crack in a thick pane is a
+             * surface running down into the glass, and what a reader sees of it is
+             * a soft glow either side of the line where that surface catches the
+             * light. Two hairlines alone read as a scratch on the top face, which
+             * is a crack in a sheet of paper rather than in a slab.
+             */}
+            <motion.path
+              d={d}
+              pathLength={1}
+              fill="none"
+              stroke="rgb(255 255 255 / 0.09)"
+              strokeWidth={4}
+              strokeLinecap="round"
+              initial={
+                reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
+              }
+              animate={{ strokeDashoffset: offset }}
+              transition={move}
+            />
+            <motion.path
+              d={d}
+              pathLength={1}
+              fill="none"
+              stroke="rgb(0 0 0 / 0.55)"
+              strokeWidth={1.4}
+              strokeLinecap="round"
+              transform="translate(0.5 0.5)"
+              initial={
+                reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
+              }
+              animate={{ strokeDashoffset: offset }}
+              transition={move}
+            />
+            <motion.path
+              d={d}
+              pathLength={1}
+              fill="none"
+              stroke="rgb(255 255 255 / 0.65)"
+              strokeWidth={1}
+              strokeLinecap="round"
+              initial={
+                reduce ? false : { strokeDasharray: "1 1", strokeDashoffset: 1 }
+              }
+              animate={{ strokeDashoffset: offset }}
+              transition={move}
+              onAnimationComplete={healing ? onDone : undefined}
+            />
+          </g>
+        );
+      })}
     </>
   );
 }
@@ -457,10 +624,10 @@ function Break({
   reduce,
 }: {
   shards: Shard[];
-  cracks: string[][];
+  cracks: Damage[];
   reduce: boolean;
 }) {
-  const drawn = cracks.flat();
+  const drawn = cracks.flatMap((damage) => damage.branches.map(toPath));
   return (
     <svg
       aria-hidden="true"
