@@ -1206,8 +1206,8 @@ experiment is a directory under `components/labs/`.
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
-  `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf` and `shelf-drop`
-  use it.
+  `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop` and
+  `crack-button` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
@@ -4455,6 +4455,60 @@ the shelf, `index.tsx` the shelf, the turn and the scrim.
 - Verified in a browser: twelve spines at rest, a press leaves eleven and one
   put-back plus the scrim's, the scrim closes it, Escape closes it, and no
   console errors.
+
+### `crack-button`
+
+A Save button made of glass. Every press cracks it from the point it was hit,
+the cracks accumulate, and the fifth takes the face apart. `crack.ts` is the
+fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
+
+- **It invents no colour, which is rare for a lab this visual.** The face is the
+  site's own primary button, `text-primary` with a `bg` label, and the shards are
+  the same token. A crack is white and black at low alpha, which is the rule this
+  repo already sets for shading a surface. Dark glass is also what a hairline
+  fracture reads best on: the reference is a blue pill, and on one the lit half of
+  every crack had nowhere to be.
+- **A crack is two strokes, not one.** A fracture is a gap in a solid, so one face
+  of it catches the light and the other is in shadow, half a pixel apart. One
+  stroke of either is a scratch drawn on a button.
+- **A crack is a walk, not a curve.** It leaves the impact in a direction, wanders
+  either side of it as it follows whatever flaw is in front of it, and throws off
+  branches that do the same: a step, a small turn, a step, and a chance at each
+  joint of spawning a child that leaves at an angle and dies sooner.
+- **It draws on from the point pressed, in 140ms, linear.** A fracture front is
+  the fastest thing in this demo and it does not ease. `pathLength="1"` keeps the
+  dash a plain number rather than something `getTotalLength` has to measure, the
+  trick the signature player documents.
+- **The break is a partition of the face, not a pile of shapes.** Every shard is
+  the wedge between two walks out of the last impact, so each edge is one walk
+  shared by the two shards either side of it: nothing is drawn twice and no gap
+  can open between neighbours. The walk is jagged for the first 90px and straight
+  after, since only the first 90 is ever on screen.
+- **The clip is inside the thing that moves, and this was the bug worth
+  keeping.** A shard is the pill's own glass, so it is cut to the pill before it
+  goes anywhere. With the clip on the moving group the pill became a window the
+  pieces slid out of and vanished at, which reads as the button being wiped rather
+  than broken: measured at 680ms into the break, four of the nine shards were
+  painting nothing at all.
+- **Every piece leaves.** At a throw of 26 the widest wedge, which is whatever sits
+  opposite a press near one end, moved about seven pixels in the first six frames
+  and read as the button failing to break rather than as a heavy piece going
+  slowly.
+- **The shards fly on two curves.** A thrown piece keeps whatever sideways speed
+  it left with, which is linear, while gravity accelerates, which is a quadratic
+  ease-in. `shelf-drop` documents the same split.
+- **The recoil is driven from the press, not declared.** An `animate` prop holding
+  `[0, 1.5, 0]` is the same array on every render, so Motion sees no change and
+  the knock plays once and never again. A motion value animated from the handler
+  replays on every press and renders nothing.
+- **The repair arrives with the first crack, not with the break.** A reader who
+  cracked the glass and stopped is exactly the reader who wants it. It sits under
+  the button, where a press cannot land on it by accident.
+- A keyboard activation reports no coordinates, which arrives as a `detail` of 0,
+  the call `book-opening` and `halftone-ripple` both make, and lands in the middle.
+- **Reduced motion keeps every crack and every break and drops the travel.** The
+  cracks appear whole rather than propagating and the shards fade where they are.
+  Verified: `strokeDashoffset` reads 0 on the frame a crack appears.
 
 ## Motion
 
