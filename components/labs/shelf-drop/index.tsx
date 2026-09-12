@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { GAP, LEFT, PRINTS, type Print, ROW_WIDTH } from "./items";
@@ -352,6 +353,7 @@ function Card({
   reduce: boolean;
   onKnock: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   const down = FLOOR - (SURFACE - print.height);
 
   /*
@@ -402,6 +404,11 @@ function Card({
       type="button"
       aria-label={`Knock ${print.title} off the shelf`}
       onClick={onKnock}
+      /* touch fires a hover on tap that then sticks, so only a real pointer tips a print */
+      onPointerEnter={(event: ReactPointerEvent) => {
+        if (event.pointerType !== "touch") setHovered(true);
+      }}
+      onPointerLeave={() => setHovered(false)}
       disabled={Boolean(thrown)}
       className="absolute cursor-pointer transform-3d rounded-[5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 disabled:pointer-events-none"
       style={{
@@ -416,10 +423,37 @@ function Card({
       animate={animate}
       transition={transition}
     >
-      <span className="absolute inset-0 transform-3d">
+      {/*
+       * The hover lives on its own element, inside the one the fall moves.
+       * Both want `rotateX` and both want a different curve for it, and a
+       * knocked print is mid-fall on a linear tumble while the pointer is still
+       * over where it used to be. Two elements is the whole fix: the button
+       * owns the fall, this owns the nudge, and neither has to know about the
+       * other.
+       */}
+      <motion.span
+        className="absolute inset-0 transform-3d"
+        initial={false}
+        animate={{
+          rotateX: hovered && !thrown ? -5 : 0,
+          y: hovered && !thrown ? -3 : 0,
+        }}
+        transition={
+          reduce
+            ? { duration: 0 }
+            : /*
+               * Front-loaded rather than a spring. This is a short move, and a
+               * spring spends most of a 5 degree travel on the last fraction of
+               * a degree, which reads as the shelf being slow rather than as a
+               * small move being small. `book-shelf` makes the same call for
+               * the tip on its spines.
+               */
+              { duration: 0.16, ease: [0.16, 1, 0.3, 1] as const }
+        }
+      >
         <Picture print={print} />
         <Back />
-      </span>
+      </motion.span>
     </motion.button>
   );
 }
