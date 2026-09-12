@@ -566,6 +566,32 @@ const LABS = {
       await wait(1500);
     },
   },
+  "shelf-drop": {
+    // the stage is 538 by 400, and the crop is the card's own 8:5 taken from
+    // just above the prints down to the foot of the frame, so the ledge and the
+    // whole visible fall are both in it
+    focus: [0, 64, 538, 336],
+    /*
+     * Knock four off. Which side a print falls on comes from a bag holding
+     * three of each, so four presses cannot all land on the same side and the
+     * clip is guaranteed to show one going forward and one going back, which is
+     * the thing the experiment is about. Then put them back, since the refill
+     * staggering across the row is the other half of it.
+     */
+    async run({ m, pick }) {
+      await wait(400);
+      await m.press(pick(/^Knock Dune/));
+      await wait(430);
+      await m.press(pick(/^Knock Pine/));
+      await wait(430);
+      await m.press(pick(/^Knock Kiln/));
+      await wait(430);
+      await m.press(pick(/^Knock Meadow/));
+      await wait(1600);
+      await m.press(pick(/^Put them back/));
+      await wait(1300);
+    },
+  },
   "wrapped-pattern": {
     // the sheet is centred in a 525px stage, so the crop is centred on it
     focus: [0, 62, 538, 336],
