@@ -1206,14 +1206,15 @@ experiment is a directory under `components/labs/`.
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
-  `radial-menu`, `flip-clock`, `wrapped-pattern` and `book-shelf` use it.
+  `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf` and `shelf-drop`
+  use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Sixteen experiments define their own hues**, `tab-overview` per terminal
+- **Seventeen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1222,7 +1223,8 @@ experiment is a directory under `components/labs/`.
   kind of card on its page, `custom-cursor` for the badge over each of its
   cards, drawn from the still the card shows, `radial-menu` per format on its
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
-  per column of dots on its sheet, and `book-shelf` per book on it. Five of
+  per column of dots on its sheet, `book-shelf` per book on it, and
+  `shelf-drop` per print on its ledge. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
