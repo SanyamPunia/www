@@ -493,6 +493,26 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the button until the glass gives.",
   },
+  {
+    slug: "stem-picker",
+    title: "Stem Picker",
+    description: [
+      "A quantity stepper where the thing being counted is the thing you see. Press the plus and a stem arrives: it starts under the knot, small and invisible, swings up on an arc and settles into the fan with a little bounce. Press the minus and the newest one leaves the way it came. The bunch never empties, the floor is one stem.",
+      "Key insight: the arrival and the resting place are the same geometry. Every stem is pinned at the knot and differs from its neighbours by one number, the angle it leans at, so a stem arriving is that angle changing and nothing travels a path invented for the occasion. Arc an item into a straight row instead and the arc is decoration laid over the top, since the item swings in and then stops somewhere the swing does not explain.",
+      "Depth is scale about the knot, not a z translate. A stem enters at 0.62 and grows to 1 with its origin at the tie, so its bloom starts close to the knot and travels outward as it rises. That reads as something coming forward out of the bunch, and it costs no perspective, no `preserve-3d` and no stacking order, which is what a real z would have dragged in behind it.",
+      "Two springs, because two things happen on one press. The stem that arrives is being placed, and the ones already there shuffle over to make room. On one spring the whole bunch bounces every time, which reads as the table being knocked rather than a flower being added, so `rotate` takes the quieter spring and `scale` the livelier one. Only the arriving stem ever animates its scale, so the bounce lands on that stem alone.",
+      "The bunch is the control. Grip the tie and pull to draw stems in, push down to take them out, and the stepper stays for the keyboard. The pull tracks the hand and the count commits on the detents it crosses, so every stem still arrives as its own event. Past either end the bunch gives by a third of whatever the pull asked for and springs back, since a hard stop feels like hitting a wall where resistance says there is nothing further.",
+      "The stems touch, and that is what separates this from every other stepper demo. A landing stem knocks the two beside it and they swing back, hardest on the nearest, since the impulse falls off with the square of the distance. Without it the arrival and the re-spread are two independent animations that happen to overlap.",
+      "A bloom at the edge of the fan is seen turned away, so it is narrower. The bloom faces along its own stem, so the foreshortening is the cosine of the lean applied as a plain `scaleX`: 1.000 at the centre, then 0.988, 0.953, 0.895 and 0.816 at the outermost. A `rotateY` would have been a perspective and a stacking context per stem to squash a shape.",
+      "Leaving is a lift, not the arrival reversed. A hand taking a stem out pulls it clear and turns it further out on the way, where playing the entry backwards reads as an undo rather than as a stem being taken.",
+      "The wobble in each stem is seeded off its index rather than rolled. A stem is re-rendered every time the count changes, and a fresh roll would make the whole bunch twitch when one stem arrives.",
+    ],
+    createdAt: "2026-09-13",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/stem-picker/index.tsx",
+    flush: true,
+    hint: "Pull the bunch up by its tie to add stems, or use the controls.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -572,6 +592,7 @@ export const IMPLEMENTED_LABS = [
   "book-shelf",
   "shelf-drop",
   "crack-button",
+  "stem-picker",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -140,6 +140,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "crack-button": dynamic(() => import("@/components/labs/crack-button"), {
     ssr: false,
   }),
+  "stem-picker": dynamic(() => import("@/components/labs/stem-picker"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
