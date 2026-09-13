@@ -679,6 +679,38 @@ const LABS = {
       await wait(1300);
     },
   },
+  "stem-picker": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage with nothing padded or cut
+    focus: [0, 0, 538, 336],
+    // the pull is the gesture the lab is about, so the clip leads with it: grip
+    // the tie, draw the bunch open, let go, then mix it so the blooms change
+    async run({ page }) {
+      const grip = await page
+        .locator('[data-lab-demo] [role="slider"]')
+        .boundingBox();
+      const x = grip.x + grip.width / 2;
+      const y = grip.y + grip.height / 2;
+
+      await wait(420);
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let pulled = 12; pulled <= 200; pulled += 12) {
+        await page.mouse.move(x, y - pulled);
+        await wait(34);
+      }
+      await wait(420);
+      await page.mouse.up();
+      await wait(560);
+      await page.mouse.click(
+        ...(await page
+          .locator('[data-lab-demo] button[aria-label="Mix the bunch again"]')
+          .boundingBox()
+          .then((b) => [b.x + b.width / 2, b.y + b.height / 2])),
+      );
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
