@@ -1206,15 +1206,15 @@ experiment is a directory under `components/labs/`.
   needs a box to clip it against. `tether-button`, `document-pocket`,
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
-  `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop` and
-  `crack-button` use it.
+  `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
+  `crack-button` and `stem-picker` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Seventeen experiments define their own hues**, `tab-overview` per terminal
+- **Eighteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1223,8 +1223,9 @@ experiment is a directory under `components/labs/`.
   kind of card on its page, `custom-cursor` for the badge over each of its
   cards, drawn from the still the card shows, `radial-menu` per format on its
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
-  per column of dots on its sheet, `book-shelf` per book on it, and
-  `shelf-drop` per print on its ledge. Five of
+  per column of dots on its sheet, `book-shelf` per book on it,
+  `shelf-drop` per print on its ledge, and `stem-picker` per flower in its
+  bunch. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -1382,7 +1383,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Twenty-nine clips, 1614KB with their stills, 3.4 to 7.5 seconds each, at 60
+- Thirty-two clips, 1.8MB with their stills, 3.4 to 7.5 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -4607,6 +4608,178 @@ fracture geometry, pure and DOM-free, `index.tsx` the button and the break.
 - **Reduced motion keeps every crack and every break and drops the travel.** The
   cracks appear whole rather than propagating and the shards fade where they are.
   Verified: `strokeDashoffset` reads 0 on the frame a crack appears.
+
+### `stem-picker`
+
+A quantity stepper where the thing being counted is the thing you see. Press the
+plus and a stem arrives: it starts under the knot, small and invisible, swings up
+on an arc and settles into the fan. Press the minus and the newest one is lifted back out. `stems.ts` is the varieties and the fan geometry, `stem.tsx` one
+flower drawn upright, `stem-sound.ts` what a stem sounds like, `index.tsx` the
+bunch, the pull and the controls.
+
+- **The arrival and the resting place are the same geometry, and that is the
+  whole design.** Every stem is pinned at the knot and differs from its
+  neighbours by one number, the angle it leans at, so a stem arriving is that
+  angle changing. Arc an item into a straight row instead and the arc is
+  decoration laid over the top: the item swings in, then stops somewhere the
+  swing does not explain. That is the reason the subject is a bunch and not a
+  shelf, a row or a stack.
+- **Depth is scale about the knot, never a z translate.** A stem enters at 0.62
+  and grows to 1 with its origin at the tie, so its bloom starts close to the
+  knot and travels outward as it rises, which is what reads as coming forward.
+  It costs no `perspective`, no `preserve-3d` and no stacking order, which is
+  what a real z would have dragged in behind it. `shelf-drop` needed all three
+  because its cards genuinely pass a plane. Nothing here passes anything.
+- **Two springs, because two things happen on one press.** The stem that arrives
+  is being placed and the ones already there shuffle over to make room. On one
+  spring the whole bunch bounces every time, which reads as the table being
+  knocked rather than a flower being added. So `rotate` takes the quieter spring
+  and `scale` the livelier one, and since only the arriving stem ever animates
+  its scale, the bounce lands on that stem alone. No branch on which stem is new
+  is needed, which is the point: the property each is already animating decides
+  it.
+- **The drawing is rotated by the box it sits in, not by itself.** A rotation in
+  SVG resolves against the viewBox origin unless told otherwise, and setting
+  `transformOrigin` in `style` on a Motion SVG element gets overridden. The stem
+  is drawn upright in its own viewBox and the HTML box around it carries
+  `origin-bottom`, where a transform origin is simply the corner you name.
+- **The bunch is the control, and the tie is the handle.** Two grey circles
+  beside a picture is a button demo. Gripping the tie and pulling draws stems in,
+  pushing down takes them out, and the stepper stays for the keyboard and for
+  anyone who wants it. That is what every other experiment here does and what
+  this one was missing: the object answering the hand rather than sitting beside
+  the controls that change it.
+  - **The pull tracks the hand and the count commits on the detents it
+    crosses**, so every stem still arrives as its own event with its own sound
+    and its own knock. One step per move event, which rate limits a flick with no
+    timer and reads better than four landing in one frame. 30px of hand per stem,
+    so the whole range is 240px, which is about the length of a comfortable pull.
+  - **Past either end the bunch gives and springs back.** A hard stop feels like
+    hitting a wall where resistance says there is nothing further, which is the
+    rule every gesture on this site follows. It strains by a third of whatever
+    the pull asked for past the limit, capped at 15px. Measured at the ceiling:
+    count 9, strain -15px, and the transform back to `none` after the release.
+  - **`touch-action: none` is on the grip alone**, `window-shade`'s trade: a
+    vertical drag there is the gesture and a vertical drag anywhere else on the
+    stage is still the page scrolling past. The stage keeps the browser default
+    rather than `pan-y`, since nothing here wants the horizontal axis either.
+  - **It is a `slider` with arrow keys**, since that is what it is, rather than a
+    bare div carrying pointer handlers with no keyboard path.
+  - **The grip carries a minimum size in px against the `cqw` that sizes it.**
+    On a 390px phone 12 by 9 works out at 36 by 27, under the floor for something
+    a thumb has to find. `min-w-14 min-h-14` holds it at 45 square there and lets
+    it grow to 58 on the column.
+- **The bunch leans toward a nearby pointer and never while it is held.** A
+  degree or two, under the threshold for reading as an animation and over the
+  threshold for reading as alive. Mouse and pen only, `folder-stack`'s gate.
+- **The bloom opens as its stem settles, and again when a shuffle changes it.**
+  It is a nested group of its own, because a CSS `transform` replaces an SVG
+  `transform` attribute outright rather than composing with it, and the group
+  above it already carries the lean, the tilt and the variety's size as an
+  attribute. `transform-box: fill-box` is what makes `transform-origin` resolve
+  against the bloom's own box rather than the viewBox origin, which is the same
+  trap this file avoids for rotation. The keyframe is `stem-bloom` in
+  `globals.css` behind `motion-safe:`, `folder-stack`'s call.
+- **The shuffle refuses to return the order it was handed.** With nine varieties
+  a Fisher-Yates lands on the same arrangement often enough to notice, and a
+  control that visibly does nothing is worse than not offering one. It is also
+  the only thing giving a reader a reason to press twice, and the only way to see
+  the whole palette below nine stems.
+- **The stems touch.** A landing stem knocks the two beside it and they swing
+  back, hardest on the nearest: the impulse falls off with the square of the
+  distance, so the stem next to the slot takes 2.8 degrees and the one past it
+  0.7. Without it the arrival and the re-spread are two independent animations
+  that happen to overlap, which is what every stepper demo looks like. The knock
+  is delayed to where the stem actually lands rather than fired on the press.
+- **The knock lives on its own element.** The box above owns the fan angle
+  declaratively and a motion value handed to `style` owns that transform
+  outright, so the two cannot share one `rotate`. `crack-button`'s repair makes
+  the same split for the same reason. Measured mid-knock: -2.09 degrees on the
+  nearest neighbour, -0.52 on the next, 0 on the stem that just arrived.
+- **A bloom at the edge of the fan is seen turned away, so it is narrower.** The
+  bloom faces along its own stem, so the foreshortening is the cosine of the
+  lean applied as a plain `scaleX`. Measured across a full bunch: 1.000 at the
+  centre, then 0.988, 0.953, 0.895 and 0.816 at the outermost. Doing it as a
+  `rotateY` would have been a perspective and a stacking context per stem to
+  squash a shape, which is what the depth note above already refuses.
+- **Leaving is a lift, not the arrival reversed.** A hand taking a stem out
+  pulls it clear and turns it further out on the way. Playing the entry
+  backwards is the lazy default and reads as an undo rather than as a stem being
+  taken.
+- **Hold either control and the count runs**, 380ms before the first repeat and
+  165ms between them, the way every real stepper behaves. A press that ran the
+  count still ends in a `click`, which would add one more on top of everything
+  the hold already did, so a flag set by the repeat is what tells a plain press
+  from the tail of a held one. Verified: a single click moves the count by one,
+  and a 1.25s hold runs it to the ceiling and stops there.
+- **Atmospheric perspective across the fan.** A bunch has a front and a back and
+  this was nine equals on one plane, so a stem's opacity and scale step with its
+  own index. Keyed off the index rather than the current count, or a stem's
+  depth would change under it as the bunch fills.
+- **One shadow, under the tie, widening with the count.** The bunch is the only
+  thing in the frame casting anything and it spreads as the fan does.
+- **The sound is synthesised, not recorded.** `crack-sound.ts` sets the shape:
+  one context, one noise buffer, a filtered burst per event, nothing fetched. A
+  stem is a quieter problem than a pane of glass, so adding one is a broadband
+  rustle with a fast decay and no pitch in it at all, plus a soft low knock 180ms
+  later where the cut end meets the others at the knot. Taking one out is the
+  same rustle run shorter and drier with no knock, since nothing lands. The clock
+  is unlocked on `pointerdown` and played on the change, the two-step
+  `poke-sound.ts` documents.
+- **The fan opens on a curve, not per gap.** Eleven degrees a gap put the second
+  stem five and a half degrees off the first, which is two blooms sitting on top
+  of each other, and it then ran past anything a hand could hold before the
+  ninth. `SPREAD_MAX * (1 - exp(-(count - 1) / 3))` opens decisively and fills in
+  after: 21 degrees at two stems, 37 at three, 56 at five, 71 at nine. Every
+  press changes the shape, so the count is legible before the number is read.
+- **Nine varieties in three forms, because colour alone is not enough.** Nine
+  blooms built from one ring of ellipses is nine of the same flower in different
+  colours, which reads as clip art however the colours are chosen, and the first
+  build was exactly that. An open bloom, a pompom and a cup carry most of the
+  variety and the palette does the rest. The hues are the fourteenth scoped set
+  in the lab and the narrow form of that exception: a market bunch is mixed by
+  definition, so they are the product rather than a tint on one. The first
+  palette was evenly spaced round the wheel and read as a generated set, the trap
+  `folder-stack` writes up. A cream anemone is what broke it.
+- **The per-stem wobble is an integer hash, and the usual one does not work.**
+  `sin(x) * 43758.5453` is a GLSL trick that degenerates on small integer inputs:
+  measured across the nine stems it gave five of them the same tilt, 2.0 to 2.2
+  degrees, and put a leaf on none of the first two. Whether a hash is good enough
+  is something to check by printing it. The salt matters too, and the first one
+  picked put seven leaves of nine on the same side of the stem.
+- **It is a hash rather than `Math.random` because a stem is re-rendered every
+  time the count changes.** A fresh roll would make the whole bunch twitch when
+  one stem arrives.
+- **Not every stem carries a leaf.** Nine leaves at one height gather into a
+  single green mass above the knot, which reads as a hedge. Two in three, at
+  varied heights, is enough to say the bunch has leaves in it.
+- **The twine is not there at one stem.** It holds a bunch together and there is
+  nothing to hold together yet, so a band around a lone stem reads as a pot. It
+  arrives with the second stem on that stem's own spring, so the two land
+  together.
+- **Both readouts are `torph`,** `book-opening`'s 200ms on the same ease, since
+  what a press does to either is correct it. The number is off the type scale on
+  purpose, the standing `flip-clock`'s numerals have: it is the object the two
+  controls act on rather than copy. The line under it is a second readout on the
+  same count, so it morphs too when the ninth stem turns "hand tied, market
+  bunch" into "the whole bucket". It carries `whitespace-nowrap` and never
+  `truncate`, which is `event-stacking`'s note: torph lays its characters out
+  itself and an `overflow-hidden` box on the same element clips them mid-morph.
+  Measured across that change: 138px wide with 8 items, both strings co-present
+  at 13 items 40ms in, settling at 97px.
+- **The stepper is a real `fieldset`,** which is what a group of related controls
+  is, with `min-w-0` because a fieldset's default `min-width: min-content` is one
+  of the few boxes that does not start at zero. Both buttons carry the
+  `disabled:opacity-50 disabled:cursor-not-allowed` pair, and the floor is one
+  stem rather than none.
+- **`select-none` on the whole stage.** The gesture is a flurry of presses on two
+  small controls, which is `crack-button`'s case exactly: a rapid multi-click
+  anchors a selection on the nearest text it can find.
+- **Reduced motion keeps every stem and drops the travel.** A stem appears on
+  its angle rather than swinging to it, and the fan re-spreads in one step. The
+  fade is kept, since that is the half of the arrival carrying no movement.
+  Verified 70ms after a press: the arriving stem is already on its final
+  rotation and only its opacity is still moving.
 
 ## Motion
 
