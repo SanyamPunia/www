@@ -390,6 +390,20 @@ textarea {
 }
 
 /*
+ * A bloom opening as its stem settles into the bunch, for
+ * `components/labs/stem-picker/`. `transform` rather than the `scale` property,
+ * since the group it runs on carries no transform attribute of its own and a
+ * CSS transform would replace one outright rather than compose with it. No `to`
+ * for `folder-in`'s reason: the finished state is whatever the element already
+ * is, and `both` holds the start before the animation runs.
+ */
+@keyframes stem-bloom {
+  from {
+    transform: scale(0.84);
+  }
+}
+
+/*
  * MotionConfig's reducedMotion only governs Motion's own animations, and the
  * two above are raw CSS. This is the targeted opt-out, not the blanket
  * !important reset the shared rules ban: it names the two keyframes and lands
