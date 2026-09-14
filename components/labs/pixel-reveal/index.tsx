@@ -3,8 +3,10 @@
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 import { ART, ARTWORK_URI } from "./artwork";
+import { DEFAULTS, Panel, type Settings } from "./controls";
 import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
 
 /*
@@ -49,23 +51,14 @@ import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
  * button under it. The wide stage has width to spare and the narrow one does
  * not, so the narrow one spends far more of it.
  */
-const BOARD = "[--board:78cqw] sm:[--board:47cqw]";
-
-/**
- * How long the whole run takes.
- *
- * Linear in the level rather than in the cell count, since each step doubles
- * the grid: even time per level is even time per doubling, which is what reads
- * as steady. Timed in the resolution rather than in pixels, the first half of
- * the run would be over before anything had happened.
- */
-const RUN = 4200;
+const BOARD = "[--board:68cqw] sm:[--board:58cqw]";
 
 export default function PixelReveal() {
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const art = useRef<HTMLCanvasElement | null>(null);
   const levels = useRef<Pyramid | null>(null);
-  const tree = useRef<Tree>(grow());
+  const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const tree = useRef<Tree>(grow(DEFAULTS.depth, DEFAULTS.drift));
   const frame = useRef<number | null>(null);
 
   const [ready, setReady] = useState(false);
@@ -86,7 +79,13 @@ export default function PixelReveal() {
    * `_details-you-can-measure` both make the same call for a per-frame counter.
    */
   const count = useRef<HTMLSpanElement | null>(null);
-  /** what was last painted, so a resize repaints the same moment */
+  /**
+   * How far through the run the board is, from 0 to 1.
+   *
+   * Progress rather than the absolute detail, because a change of depth or
+   * drift regrows the tree and moves its span. Holding the absolute number
+   * would jump the board somewhere else the moment a slider moved.
+   */
   const shown = useRef(0);
   const reduce = useReducedMotion();
 
@@ -144,7 +143,7 @@ export default function PixelReveal() {
         detail,
         size: view.size,
       });
-      shown.current = detail;
+      shown.current = detail / tree.current.span;
       if (count.current) {
         count.current.textContent = `${tiles.toLocaleString("en")} ${
           tiles === 1 ? "tile" : "tiles"
@@ -167,6 +166,18 @@ export default function PixelReveal() {
     draw(0);
   }, [ready, draw]);
 
+  /*
+   * A knob regrows the tree and repaints where the board already was, so the
+   * reader sees the change on the picture in front of them rather than being
+   * sent back to one tile. `run` alone changes nothing that is on screen, so it
+   * does not regrow anything.
+   */
+  useEffect(() => {
+    if (!ready || running) return;
+    tree.current = grow(settings.depth, settings.drift);
+    draw(shown.current * tree.current.span);
+  }, [ready, running, settings.depth, settings.drift, draw]);
+
   const generate = useCallback(() => {
     if (!ready || running) return;
     setDone(false);
@@ -183,7 +194,7 @@ export default function PixelReveal() {
 
     const started = performance.now();
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / RUN);
+      const progress = Math.min(1, (now - started) / (settings.run * 1000));
       draw(progress * tree.current.span);
       if (progress < 1) {
         frame.current = requestAnimationFrame(tick);
@@ -194,7 +205,7 @@ export default function PixelReveal() {
       setDone(true);
     };
     frame.current = requestAnimationFrame(tick);
-  }, [draw, ready, reduce, running]);
+  }, [draw, ready, reduce, running, settings.run]);
 
   useEffect(
     () => () => {
@@ -206,7 +217,7 @@ export default function PixelReveal() {
   /* the board is repainted at its new size rather than left stretched */
   useEffect(() => {
     if (running) return;
-    const onResize = () => draw(shown.current);
+    const onResize = () => draw(shown.current * tree.current.span);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [running, draw]);
@@ -216,7 +227,14 @@ export default function PixelReveal() {
   return (
     <div
       className={cn(
-        "@container relative flex aspect-square w-full select-none flex-col items-center justify-center gap-4 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5 sm:gap-4 sm:p-6",
+        /*
+         * Board on one side, controls on the other. The stage is 8:5 on a
+         * column, so the width beside a square board was the only part of the
+         * frame doing nothing, and three lanes plus a button is exactly what
+         * fits in it. Stacked on a phone, where there is no width to spare and
+         * the stage goes taller instead.
+         */
+        "@container relative flex aspect-3/4 w-full select-none flex-col items-center justify-center gap-6 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5 sm:flex-row sm:p-6",
         BOARD,
       )}
     >
@@ -238,9 +256,9 @@ export default function PixelReveal() {
         />
 
         {/*
-         * The count sits on the thing it describes rather than beside it. In
-         * the row it reserved 77px whether or not it had anything to say, which
-         * pushed the button 44px off the board's own centre line for the whole
+         * The count sits on the thing it describes rather than beside it. In a
+         * control row it reserved width whether or not it had anything to say,
+         * which pushed the button off the board's own centre line for the whole
          * of the resting state.
          *
          * Black at alpha rather than a token, since it sits over a picture
@@ -254,20 +272,27 @@ export default function PixelReveal() {
         />
       </div>
 
-      <button
-        type="button"
-        className="flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-text-primary px-5 font-medium text-action text-bg transition-colors duration-150 hover:bg-text-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        onClick={generate}
-        disabled={!ready || running}
-        /* `torph` renders its text as aria-hidden character spans, so a button
-           whose only child is one has no accessible name at all. `island-menu`
-           documents the same trap. */
-        aria-label={label}
-      >
-        <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
-          {label}
-        </TextMorph>
-      </button>
+      <div className="flex w-full flex-col items-start gap-5 sm:w-auto sm:flex-1">
+        <Panel
+          settings={settings}
+          onChange={(key, value) =>
+            setSettings((current) => ({ ...current, [key]: value }))
+          }
+        />
+
+        <Pill
+          lead
+          disabled={!ready || running}
+          label={label}
+          onClick={generate}
+        >
+          {/* `torph` renders its text as aria-hidden character spans, so the
+              pill carries the name explicitly. `island-menu` documents it. */}
+          <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
+            {label}
+          </TextMorph>
+        </Pill>
+      </div>
     </div>
   );
 }
