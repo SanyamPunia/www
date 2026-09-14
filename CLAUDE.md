@@ -1219,14 +1219,14 @@ experiment is a directory under `components/labs/`.
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
-  `crack-button` and `stem-picker` use it.
+  `crack-button`, `stem-picker` and `pixel-reveal` use it.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Eighteen experiments define their own hues**, `tab-overview` per terminal
+- **Nineteen experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1236,8 +1236,8 @@ experiment is a directory under `components/labs/`.
   cards, drawn from the still the card shows, `radial-menu` per format on its
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
   per column of dots on its sheet, `book-shelf` per book on it,
-  `shelf-drop` per print on its ledge, and `stem-picker` per flower in its
-  bunch. Five of
+  `shelf-drop` per print on its ledge, `stem-picker` per flower in its
+  bunch, and `pixel-reveal` for the picture it resolves. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -1395,7 +1395,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-two clips, 1.8MB with their stills, 3.4 to 7.5 seconds each, at 60
+- Thirty-three clips, 1.9MB with their stills, 3.4 to 7.5 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -4792,6 +4792,151 @@ bunch, the pull and the controls.
   fade is kept, since that is the half of the arrival carrying no movement.
   Verified 70ms after a press: the arriving stem is already on its final
   rotation and only its opacity is still moving.
+
+### `pixel-reveal`
+
+An empty canvas. Press generate and one flat square appears, splits into four,
+then sixteen, and keeps halving until the tiles are small enough to stop being
+tiles, at which point the picture arrives over the top. `artwork.ts` generates
+the picture, `mosaic.ts` is the mip pyramid and the painter, `index.tsx` the
+canvas and the run.
+
+- **Nothing fades in, and that is the whole idea.** Every level is a box filter
+  over the one below it, so the picture is complete from the first frame and the
+  filter is what throws it away. At one cell it is its own mean colour, at four
+  it has its largest areas, at sixty-four it has its crystals. A reveal built as
+  an opacity ramp over a finished image says nothing about why detail arrives in
+  the order it does. This says it by construction.
+- **The pyramid is built by halving, not by averaging each level out of the
+  source.** The arithmetic is identical either way and this is one pass over each
+  level rather than one pass over the source per level.
+- **There are no levels, and that is the change that mattered most.** An earlier
+  build stepped the whole canvas from one grid to the next. Even with the tiles
+  staggered it read as a set of layers arriving rather than as detail growing,
+  because at every boundary the timing re-randomised: a region that had resolved
+  early had no reason to stay early. It is a quadtree now. Every tile splits on
+  its own schedule and that schedule is inherited from its parent, so a tile that
+  went early has children that go early, detail spreads out of the places it
+  already reached, and at any moment the canvas holds four or five tile sizes at
+  once.
+- **A tile's children come out of that tile, not out of a fresh grid.** Four
+  children sitting on their parent's box in its colour are that parent pixel for
+  pixel, and over the flight each shrinks to a quarter of it and slides to its
+  corner.
+- **`WAIT` has to be at least `FLIGHT`.** A tile that split while still
+  travelling would hand its children a box that is itself moving, and they would
+  come out of the wrong place.
+- **The motion is continuous, and getting there took two fixes that a still frame
+  cannot show.** Measured as frame-to-frame difference across the run, the
+  first build spiked at every level boundary and then sat near zero for eight
+  frames behind it, six times: a bang and a lull, which is exactly what reads as
+  stepping.
+  - **The seam belongs to the tile's size, never to the transition.** Tied to the
+    flight it collapsed to nothing at every boundary, since the tiles that had
+    just arrived at their seams became parents with none. A tile's size is the
+    same on both sides of a boundary, so a seam derived from it cannot jump.
+    That was the spike.
+  - **Departures are biased toward the start of a transition.** Spread evenly, a
+    twentieth of the way in only a twentieth of the tiles had gone, so every
+    level opened with the field almost still. Squaring the roll puts a quarter of
+    them in the air in the same window and leaves a thin tail behind, which is
+    what the ragged middle wanted anyway. That was the lull.
+  - **A tile leaves at speed and arrives gently, and never eases in.** Smoothstep
+    meant each level accelerated from rest and settled back to it, so the run was
+    six accelerate-and-stop cycles rather than one refinement.
+  - Measured after: 6 frames of 224 below the still threshold, 2.7%, and the
+    longest unbroken still run is 3 frames, 50ms.
+- **Each tile leaves on its own beat.** That is what gives a transition its
+  ragged middle: some cells have already split while their neighbours are still
+  one block, so the tiling is irregular the whole way through and only squares up
+  at the end. The order is hashed off the cell rather than rolled, or a run would
+  shimmer. All of them arrive on time, since the delay is divided back out of the
+  remaining time.
+- **A tile that has not left yet paints over the siblings that have**, since it
+  is still holding the whole parent box and document order puts it under them.
+  That is not a defect to design around, it is most of what makes the middle of a
+  transition read as blocks of different sizes rather than as a grid with some
+  cells missing.
+- **The ground under the seams is the picture's own mean colour, never the
+  page.** Cleared to transparent the gaps let the white stage through, and at
+  sixteen cells across that reads as a dotted screen laid over the picture rather
+  than as tiles with a little air between them.
+- **The run is linear in the level, not in the cell count.** Each step doubles
+  the grid, so even time per level is even time per doubling, which is what reads
+  as steady. Timed in the resolution instead, the first half would be over before
+  anything had happened.
+- **It stops at sixty-four and the picture arrives over the top.** That is where
+  the tiles stop being the subject and start being a screen door over it, so the
+  last beat is a crossfade to the sharp image rather than the run carrying on to
+  two hundred and fifty-six.
+- **The subject is an agate slice for a reason that is not decorative.** What
+  survives a box filter is whatever the picture's largest areas are, so a subject
+  built of nested areas at every scale has something to give at every level. A
+  photograph of a face would be a grey square until halfway through. The nucleus
+  is off centre, since a slice cut through the middle carries nothing at four
+  cells across, and there are crystals in the core because without them the run
+  has nothing left to give after thirty-two.
+- **The palette is chosen for range rather than for hue.** A box filter averages,
+  so a set sitting in one narrow band of lightness resolves into porridge at every
+  level. These run 0.09 to 0.97 in relative luminance. The picture also finds its
+  colour over the first half of the run, desaturated toward its own luminance, so
+  the early levels read as a thing developing rather than as a finished picture
+  seen badly.
+- **Every ring is a sum of three harmonics rather than a noise walk**, which is
+  what guarantees the path closes on itself exactly. One harmonic gives an egg
+  and two give a peanut.
+- **The canvas rests on one flat tile, never on nothing.** An empty white box on
+  a white stage is what a failed image looks like, and it threw the premise away
+  besides: one cell is the picture's own mean colour, so level zero is a real
+  frame of the run rather than the absence of one. Pressing generate now splits a
+  pixel instead of filling a hole, and the reader meets the argument before the
+  demonstration.
+- **The readout sits on the board, not beside it.** In the control row it
+  reserved 77px whether or not it had anything to say, which pushed the button
+  44px off the board's own centre line for the whole of the resting state, and
+  left its left edge 4px from the board's, which is the worst distance there is.
+  On the board the row is the button alone and it centres on 640 with the board
+  and the stage. The chip is black at alpha rather than a token, since it sits
+  over a picture running from near black to white across the run and no surface
+  token survives both ends. That is the scrim exception the shared rules carry.
+- **Both stages are square below `sm` and 8:5 above it, and both size their
+  subject off a custom property rather than a number.** At one share the board
+  came to 147px on a 390px phone, smaller than the button under it, and the
+  bunch in `stem-picker` came to 93px against a 75px stepper. A wide stage has
+  width to spare and a narrow one does not, so the narrow one spends far more of
+  it: 78cqw against 47 here, 52 against 31 there. Measured after, at 390: the
+  board is 234px with 36px of air above and below, and the bunch is 169px with
+  43px.
+  - **The property is set on the container and read by its children, which is
+    the only arrangement that works.** An element is a query container for its
+    descendants and never for itself, the trap `document-pocket` documents at
+    length, and a custom property is not resolved until it is used. So
+    `--board: 78cqw` on the stage is meaningless to the stage and correct for
+    everything inside it.
+- **`shrink-0` on anything with an explicit height inside these stages.**
+  `stem-picker`'s bunch box carries its height in `cqw` and was a flex item in a
+  column, so on a short stage the column simply squashed it: measured 71px
+  against the 101px it asked for, which made the drawing smaller than the
+  controls beneath it. A declared height is not a floor unless the item is told
+  not to shrink.
+- **The readout is the tile count, not a status message.** A message invents a
+  stage the run does not have, where the count is the one number that says how
+  far the picture has got. There is no grid to name any more, since four or five
+  sizes are on screen at once. It is written straight to the node and never
+  morphed: it changes on almost every frame, so state would re-render sixty times
+  a second and `torph` would start a new morph before the last had finished,
+  which is a smear. Measured across a run: 13 mutations in the button's subtree,
+  all of them the label, and none in the readout's parent.
+- **The button carries an `aria-label`.** `torph` renders its text as aria-hidden
+  character spans, so a button whose only child is one has no accessible name at
+  all. `island-menu` documents the same trap, and the preview recorder is what
+  found it here: `getByRole("button", { name })` timed out.
+- **Nothing renders per frame.** One rAF loop writes to the canvas. The only
+  state that moves during a run is the cell count, which changes seven times.
+- **The picture is decoded once and the pyramid outlives every run.** A second
+  press re-reads the same arrays rather than decoding an image again.
+- **Reduced motion keeps the run and drops the travel.** A press is a request, so
+  generate still generates, it simply lands on the finished picture in one step.
 
 ## Motion
 
