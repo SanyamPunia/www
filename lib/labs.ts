@@ -514,6 +514,26 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Pull the bunch up by its tie to add stems, or use the controls.",
   },
+  {
+    slug: "pixel-reveal",
+    title: "Pixel Reveal",
+    description: [
+      "An empty canvas. Press generate and one flat square appears, splits into four, then sixteen, and keeps halving until the tiles are small enough to stop being tiles, at which point the picture itself arrives over the top.",
+      "Key insight: nothing fades in. Every level is a box filter over the one below it, so the picture is complete from the first frame and the filter is what throws it away. At one cell it is its own mean colour, at four it has its largest areas, at sixty-four it has its crystals. A reveal built as an opacity ramp over a finished image says nothing about why detail arrives in the order it does. This says it by construction.",
+      "There are no levels. An earlier build stepped the whole canvas from one grid to the next, and even with the tiles staggered it read as a set of layers arriving rather than as detail growing, because at every boundary the timing re-randomised and a region that had resolved early had no reason to stay early. It is a quadtree now: every tile splits on its own schedule, that schedule is inherited from its parent, and detail spreads out of the places it already reached. At any moment the canvas holds four or five tile sizes at once.",
+      "A tile's children come out of that tile, not out of a fresh grid. Four children sitting on their parent's box in its colour are that parent pixel for pixel, and over the flight each shrinks to a quarter of it and slides to its corner.",
+      "The motion is continuous, and getting there took two fixes a still frame cannot show. Measured as frame-to-frame difference, the first build spiked at every level boundary and then sat near zero for eight frames behind it, six times. The seam was tied to the flight rather than to the tile, so it collapsed to nothing every time tiles that had just arrived became parents, and departures spread evenly meant every level opened with the field almost still. After: six frames of two hundred and twenty-four below the still threshold, and the longest unbroken pause is fifty milliseconds.",
+      "Each tile leaves on its own beat, which is what gives a transition its ragged middle: some cells have already split while their neighbours are still one block, so the tiling is irregular the whole way through and only squares up at the end. A tile that has not left yet paints over the siblings that have, since it is still holding the whole parent box, and that is most of what makes the middle read as blocks of different sizes.",
+      "The subject is an agate slice for a reason that is not decorative. What survives a box filter is whatever the picture's largest areas are, so a subject built of nested areas at every scale has something to give at every level. A photograph of a face would be a grey square until halfway through.",
+      "The canvas rests on one flat tile rather than on nothing. An empty white box on a white stage is what a failed image looks like, and it threw the premise away besides: one cell is the picture\u2019s own mean colour, so level zero is a real frame of the run and not the absence of one. Pressing generate splits a pixel instead of filling a hole.",
+      "The run is linear in the level rather than in the cell count, since each step doubles the grid. Even time per level is even time per doubling, which is what reads as steady: timed in the resolution instead, the first half would be over before anything had happened.",
+    ],
+    createdAt: "2026-09-15",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/pixel-reveal/index.tsx",
+    flush: true,
+    hint: "Press generate to resolve the picture out of its own mosaic.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -594,6 +614,7 @@ export const IMPLEMENTED_LABS = [
   "shelf-drop",
   "crack-button",
   "stem-picker",
+  "pixel-reveal",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
