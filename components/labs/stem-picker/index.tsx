@@ -84,10 +84,22 @@ import {
  * stage's 62.5, which is 15px of air top and bottom and reads as content
  * pressed against a frame.
  */
-const STEM_H = 31;
-const STEM_W = STEM_H * (VIEW_W / VIEW_H);
-/** the longest a hand-cut stem gets, so the bunch box never clips one */
-const BOX_H = STEM_H * 1.08;
+/*
+ * Two values, because the stage is 8:5 on a column and square on a phone. At
+ * one share the bunch came to 93px at 390 against a 75px stepper, which is a
+ * drawing no larger than the controls that change it. The wide stage has width
+ * to spare and the narrow one does not, so the narrow one spends far more of
+ * it.
+ *
+ * It is a custom property rather than a number, since the breakpoint has to be
+ * CSS. Everything sized off the stem is a `calc` against it.
+ */
+const STEM = "[--stem:52cqw] sm:[--stem:31cqw]";
+/** the drawing's own ratio, and the longest a hand-cut stem gets */
+const RATIO = VIEW_W / VIEW_H;
+const LONGEST = 1.08;
+const wide = (share: number) =>
+  `calc(var(--stem) * ${(RATIO * share).toFixed(4)})`;
 
 /**
  * How far past its own slot a stem starts.
@@ -329,10 +341,15 @@ export default function StemPicker() {
   const names = stems.map((index) => VARIETIES[order[index]].name).join(", ");
 
   return (
-    <div className="@container relative flex aspect-8/5 w-full select-none flex-col items-center justify-center gap-7 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset">
+    <div
+      className={cn(
+        "@container relative flex aspect-square w-full select-none flex-col items-center justify-center gap-7 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5",
+        STEM,
+      )}
+    >
       <div
-        className="relative w-full"
-        style={{ height: `${BOX_H}cqw` }}
+        className="relative w-full shrink-0"
+        style={{ height: `calc(var(--stem) * ${LONGEST})` }}
         onPointerMove={onHover}
         onPointerLeave={() => lean.set(0)}
       >
@@ -340,9 +357,9 @@ export default function StemPicker() {
             spreads as the fan does, so the shadow widens with the count */}
         <motion.div
           className="-translate-x-1/2 pointer-events-none absolute bottom-0 left-1/2 rounded-[50%] bg-black blur-md"
-          style={{ height: `${STEM_W * 0.22}cqw` }}
+          style={{ height: wide(0.22) }}
           animate={{
-            width: `${STEM_W * (0.5 + count * 0.09)}cqw`,
+            width: wide(0.5 + count * 0.09),
             opacity: 0.07 + count * 0.006,
           }}
           transition={reduce ? { duration: 0 } : OPEN}
@@ -385,9 +402,9 @@ export default function StemPicker() {
                   key={index}
                   className="absolute bottom-0 origin-bottom"
                   style={{
-                    left: `calc(50% - ${STEM_W / 2}cqw)`,
-                    width: `${STEM_W}cqw`,
-                    height: `${STEM_H * lengthAt(index)}cqw`,
+                    left: `calc(50% - ${wide(0.5)})`,
+                    width: wide(1),
+                    height: `calc(var(--stem) * ${lengthAt(index).toFixed(4)})`,
                     zIndex: index,
                   }}
                   initial={reduce ? { opacity: 0, rotate: angle } : under}
@@ -440,7 +457,7 @@ export default function StemPicker() {
            */}
           <motion.div
             className="-translate-x-1/2 pointer-events-none absolute bottom-0 left-1/2 origin-bottom"
-            style={{ width: `${STEM_W * 0.44}cqw`, zIndex: MAX + 1 }}
+            style={{ width: wide(0.44), zIndex: MAX + 1 }}
             animate={{
               opacity: count > MIN ? 1 : 0,
               scale: count > MIN ? 1 : 0.72,
@@ -492,7 +509,7 @@ export default function StemPicker() {
          */}
         <div
           className="-translate-x-1/2 absolute bottom-0 left-1/2 min-h-14 min-w-14 cursor-grab touch-none rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 active:cursor-grabbing"
-          style={{ width: "12cqw", height: "9cqw", zIndex: MAX + 2 }}
+          style={{ width: wide(1.1), height: wide(0.8), zIndex: MAX + 2 }}
           role="slider"
           tabIndex={0}
           aria-label="Stems in the bunch"
