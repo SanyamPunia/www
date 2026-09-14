@@ -10,8 +10,9 @@ import {
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
-import { Panel, Pill } from "./controls";
+import { Panel } from "./controls";
 import {
   clearWorld,
   createWorld,
