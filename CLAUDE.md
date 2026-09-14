@@ -4919,6 +4919,38 @@ canvas and the run.
   against the 101px it asked for, which made the drawing smaller than the
   controls beneath it. A declared height is not a floor unless the item is told
   not to shrink.
+- **Three knobs beside the board, not under it.** The stage is 8:5 on a column,
+  so the width beside a square board was the only part of the frame doing
+  nothing, and three lanes plus a button is exactly what fits in it. The board
+  went from 26.7% of the stage to 46.4%. Stacked on a phone, where there is no
+  width to spare and the stage goes to 3:4 instead.
+- **Not every constant is a control.** `FLIGHT` and `WAIT` are bound to each
+  other, since a tile that split while still travelling would hand its children
+  a box that is itself moving, and a reader who broke that would only see a
+  glitch. `detail`, `run` and `drift` change the character and cannot break it.
+- **`drift` reaches zero, and that is the point of offering it.** At zero every
+  tile splits on the beat and the picture resolves as a grid stepping through
+  its levels, which is the build this lab replaced. Leaving it reachable makes
+  the difference visible rather than asserted.
+- **A knob regrows the tree and repaints where the board already was.** The
+  board holds its progress from 0 to 1 rather than an absolute detail, because a
+  change of depth or drift moves the tree's span and an absolute number would
+  jump the picture somewhere else the moment a slider moved.
+- **The depth stops at six, and seven was offered and taken away.** 16,384 tiles
+  is 16,384 fills a frame: measured under a 4x CPU throttle it put the 95th
+  percentile frame at 33ms even after the small tiles were dropped to plain
+  rects. Six holds 16.7 with nothing dropped at all. So the knob only goes
+  coarser than the default, which is the honest direction anyway: it is for
+  choosing how chunky the picture stays, not how fine it gets.
+- **Below a few pixels a tile is drawn as a plain rect.** Its seam would be a
+  twentieth of two pixels and its corner a ninth, so neither can show, and a
+  path plus a radius per tile is the whole cost at that size. Taking them off
+  moved 64 across from a 33.4ms worst frame to 16.8.
+- **`Lane` and `Pill` live in `components/lab/controls.tsx`.** They were
+  `rain-splatter`'s and moved when this became the second caller, which is the
+  rule the rest of the project follows. They are in `components/lab/` rather
+  than `components/ui/` because they are lab chrome and nothing outside an
+  experiment has a use for them. Each lab keeps its own knob table.
 - **The readout is the tile count, not a status message.** A message invents a
   stage the run does not have, where the count is the one number that says how
   far the picture has got. There is no grid to name any more, since four or five
@@ -5773,6 +5805,10 @@ package, no provider component and no per-route call.
   for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
   reference. Anything untyped from npm gets its `.d.ts` here.
+- `components/lab/` the lab index and detail chrome: the dynamic import map, the
+  hover preview, the index list, and `controls.tsx`, the parameter lane and the
+  pill that two experiments now share. Lab chrome rather than site primitives,
+  which is why it is not in `components/ui/`.
 - `scripts/` tooling that is not part of the app and never imported by it. Plain
   `.mjs` run with `node`, one file per job, each documenting what it produces and
   what has to be running for it to work. `record-lab-previews.mjs` writes the lab
