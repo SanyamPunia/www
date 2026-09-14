@@ -711,6 +711,18 @@ const LABS = {
       await wait(900);
     },
   },
+  "pixel-reveal": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage with nothing padded or cut
+    focus: [0, 0, 538, 336],
+    // one press and then the whole run, which is the demo. the hold at the end
+    // is what lets the finished picture read before the clip loops
+    async run({ m, pick }) {
+      await wait(500);
+      await m.press(pick("generate"));
+      await wait(4600);
+    },
+  },
 };
 
 function crop(rect, bounds) {
