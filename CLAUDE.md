@@ -534,9 +534,21 @@ and 2097 characters of visible text.
   section of `/llms.txt`, with each note. A page added there appears in both.
   The note is written for the index rather than for the nav, since the nav shows
   the title alone, which is why it is not the `description`.
-- **The three are linked from the home page's footer and nowhere else.** The
-  home copy already links `/work`, `/blogs` and `/lab`, so these had no way in.
-  It is the only navigation on the site that is a nav rather than a sentence.
+- **They are not linked from the home page, and that is deliberate.** The home
+  footer carried a row of the three for a while and it was the wrong trade: the
+  quietest content on the site sat on the front of the portfolio, 142px of ink in
+  a 538px column with 396px of nothing beside it, which left the footer an L with
+  a hole in the corner. Right aligning it under the marks fixed the composition
+  and did not fix the premise.
+- **Nothing that needs these pages was reading that link anyway.** They are for
+  an agent deciding whether the site is worth citing, and an agent reads
+  `/llms.txt`, `/agents.md` and `sitemap.xml`, all three of which name them with
+  their `.md` paths. `PageNav` at the foot of each of the three still carries the
+  other two, so the cluster holds together. Do not put the row back on the home
+  page. If they ever need a door from the front, it is a sentence in the copy and
+  not a nav, which is the rule the rest of this site already follows.
+- **`PageNav` has one caller now**, the foot of a static page, where it is that
+  page's only way out and the rule at rest is what says these are links.
 - **Every claim on `/privacy` is checked against the code, not written from
   memory.** No cookies, no `localStorage`, `sessionStorage` or IndexedDB
   anywhere in the repo, one third-party script, self-hosted fonts, local favicon

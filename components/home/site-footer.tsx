@@ -5,9 +5,7 @@ import { Gmail } from "@/components/icons/gmail";
 import { LinkedIn } from "@/components/icons/linkedin";
 import { Pageo } from "@/components/icons/pageo";
 import { X } from "@/components/icons/x";
-import { PageNav } from "@/components/ui/page-nav";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { staticPages } from "@/lib/pages";
 import { EMAIL, socials } from "@/lib/site";
 
 // Same set and order the old site carried. GitHub, X and LinkedIn are svgl.app
@@ -40,22 +38,9 @@ const PRESS = "hover:bg-fill active:bg-fill-hover";
 const ICON_BUTTON = "size-[1.5rem]";
 const ICON_GLYPH = "size-[0.75rem]";
 
-/*
- * about, contact and privacy, off the one array those pages are built from.
- *
- * They are here because the home page's own paragraph links `/work`, `/blogs`
- * and `/lab` and these three have nowhere else to be reached from. It is the
- * only navigation on the site that is a nav rather than a sentence, which is why
- * it sits under the rule with the marks rather than in the copy.
- */
-const pages = staticPages.map((page) => ({
-  href: `/${page.slug}`,
-  title: page.title,
-}));
-
 export function SiteFooter() {
   return (
-    <footer className="flex flex-col gap-6 text-meta">
+    <footer className="text-meta">
       <div className="flex items-center justify-between gap-4">
         {/* the signature anchors the left of the row where the page nav used to */}
         {/* translate, not margin: the row is items-center, so a margin would be
@@ -85,8 +70,6 @@ export function SiteFooter() {
           </div>
         </TooltipProvider>
       </div>
-
-      <PageNav items={pages} label="More pages" />
     </footer>
   );
 }
