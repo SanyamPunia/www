@@ -510,6 +510,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-13",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/stem-picker/index.tsx",
+    reference: "https://x.com/archivess_19/status/2099135335171264618",
     flush: true,
     hint: "Pull the bunch up by its tie to add stems, or use the controls.",
   },
