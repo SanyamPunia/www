@@ -49,16 +49,24 @@ export function Lane<K extends string>({
   knob,
   value,
   onChange,
+  disabled = false,
 }: {
   knob: Knob<K>;
   value: number;
   onChange: (value: number) => void;
+  /** set while the demo is busy, so a knob that cannot take effect says so */
+  disabled?: boolean;
 }) {
   const id = useId();
   const filled = (value - knob.min) / (knob.max - knob.min);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      className={cn(
+        "flex flex-col gap-2 transition-opacity duration-200",
+        disabled && "opacity-50",
+      )}
+    >
       {/*
        * **The number outranks its label.** The label is a fixed word and the
        * number is the thing under the hand, so the number takes `text-primary`
@@ -96,12 +104,14 @@ export function Lane<K extends string>({
           max={knob.max}
           step={knob.step}
           value={value}
+          disabled={disabled}
           onChange={(event) => onChange(Number(event.target.value))}
           className={cn(
             // `rounded-full` is for the focus ring alone. The input paints
             // nothing, but without a radius the ring is a hard rectangle around
             // a fully rounded track, and the only square corner in the piece.
             "absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-full bg-transparent transition-all duration-200",
+            "disabled:cursor-not-allowed",
             "[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-text-primary",
             "[&::-moz-range-track]:bg-transparent",
             "[&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-text-primary",
