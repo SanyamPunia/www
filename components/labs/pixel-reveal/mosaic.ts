@@ -160,7 +160,6 @@ interface PaintOptions {
   size: number;
 }
 
-/** paints the tree and returns how many tiles are on screen */
 export function paint({
   ctx,
   levels,
@@ -168,14 +167,12 @@ export function paint({
   art,
   detail,
   size,
-}: PaintOptions): number {
+}: PaintOptions): void {
   const eased = smooth(clamp(detail / (tree.span * 0.45)));
 
   const mean = levels.get(1);
   ctx.fillStyle = mean ? bleach(mean[0], mean[1], mean[2], eased) : "#ffffff";
   ctx.fillRect(0, 0, size, size);
-
-  let tiles = 0;
 
   /** fills one tile, with the seam and the corner taken from its own size */
   const tile = (
@@ -203,7 +200,6 @@ export function paint({
      */
     if (edge < SHARP) {
       ctx.fillRect(left, top, edge, edge);
-      tiles += 1;
       return;
     }
     const gap = Math.min(edge * 0.05, 5);
@@ -216,7 +212,6 @@ export function paint({
       Math.min(edge * 0.11, 4),
     );
     ctx.fill();
-    tiles += 1;
   };
 
   const shade = (depth: number, x: number, y: number): number[] => {
@@ -304,5 +299,4 @@ export function paint({
     ctx.drawImage(art, 0, 0, size, size);
     ctx.globalAlpha = 1;
   }
-  return tiles;
 }

@@ -4962,14 +4962,11 @@ canvas and the run.
   rule the rest of the project follows. They are in `components/lab/` rather
   than `components/ui/` because they are lab chrome and nothing outside an
   experiment has a use for them. Each lab keeps its own knob table.
-- **The readout is the tile count, not a status message.** A message invents a
-  stage the run does not have, where the count is the one number that says how
-  far the picture has got. There is no grid to name any more, since four or five
-  sizes are on screen at once. It is written straight to the node and never
-  morphed: it changes on almost every frame, so state would re-render sixty times
-  a second and `torph` would start a new morph before the last had finished,
-  which is a smear. Measured across a run: 13 mutations in the button's subtree,
-  all of them the label, and none in the readout's parent.
+- **There is no readout, and the count went with it.** It was the honest number
+  and it was still one more thing on a stage that already carries a picture,
+  three lanes and a button. `paint` returns nothing now and the tile counter came
+  out of the walk with it, rather than being left computed for a caller that no
+  longer exists.
 - **The button carries an `aria-label`.** `torph` renders its text as aria-hidden
   character spans, so a button whose only child is one has no accessible name at
   all. `island-menu` documents the same trap, and the preview recorder is what

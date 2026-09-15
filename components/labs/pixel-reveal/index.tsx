@@ -86,7 +86,6 @@ export default function PixelReveal() {
    * had finished, which is a smear. `event-stacking` and the measured demos in
    * `_details-you-can-measure` both make the same call for a per-frame counter.
    */
-  const count = useRef<HTMLSpanElement | null>(null);
   /**
    * How far through the run the board is, from 0 to 1.
    *
@@ -143,7 +142,7 @@ export default function PixelReveal() {
     (detail: number) => {
       const view = measure();
       if (!view || !levels.current || !art.current) return;
-      const tiles = paint({
+      paint({
         ctx: view.ctx,
         levels: levels.current,
         tree: tree.current,
@@ -152,11 +151,6 @@ export default function PixelReveal() {
         size: view.size,
       });
       shown.current = detail / tree.current.span;
-      if (count.current) {
-        count.current.textContent = `${tiles.toLocaleString("en")} ${
-          tiles === 1 ? "tile" : "tiles"
-        }`;
-      }
     },
     [measure],
   );
@@ -247,7 +241,7 @@ export default function PixelReveal() {
       )}
     >
       <div
-        className="relative shrink-0 overflow-hidden rounded-lg bg-fill ring-1 ring-stroke"
+        className="shrink-0 overflow-hidden rounded-lg bg-fill ring-1 ring-stroke"
         style={{ width: "var(--board)", height: "var(--board)" }}
       >
         <canvas
@@ -261,22 +255,6 @@ export default function PixelReveal() {
                 ? "An agate slice resolving out of its mosaic"
                 : "One flat tile, the picture at a single pixel"
           }
-        />
-
-        {/*
-         * The count sits on the thing it describes rather than beside it. In a
-         * control row it reserved width whether or not it had anything to say,
-         * which pushed the button off the board's own centre line for the whole
-         * of the resting state.
-         *
-         * Black at alpha rather than a token, since it sits over a picture
-         * whose colour runs from near black to white across the run and no
-         * surface token survives both ends. That is the scrim exception the
-         * shared rules already carry.
-         */}
-        <span
-          ref={count}
-          className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-meta text-white/90 tabular-nums"
         />
       </div>
 
