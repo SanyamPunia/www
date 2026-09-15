@@ -51,7 +51,15 @@ import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
  * button under it. The wide stage has width to spare and the narrow one does
  * not, so the narrow one spends far more of it.
  */
-const BOARD = "[--board:68cqw] sm:[--board:58cqw]";
+/*
+ * The canvas edge, as a share of the stage's own content width.
+ *
+ * Sized so the board has real air around it rather than filling the frame edge
+ * to edge. At 58 it stood 7px off the stage's top and bottom with the same 19px
+ * gutter as the padding, so nothing in the composition had room: measured after,
+ * the board clears 49px of stage on every side.
+ */
+const BOARD = "[--board:68cqw] sm:[--board:50cqw]";
 
 export default function PixelReveal() {
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -234,7 +242,7 @@ export default function PixelReveal() {
          * fits in it. Stacked on a phone, where there is no width to spare and
          * the stage goes taller instead.
          */
-        "@container relative flex aspect-3/4 w-full select-none flex-col items-center justify-center gap-6 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5 sm:flex-row sm:p-6",
+        "@container relative flex aspect-3/4 w-full select-none flex-col items-center justify-center gap-8 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5 sm:flex-row sm:gap-10 sm:p-10",
         BOARD,
       )}
     >
@@ -272,7 +280,13 @@ export default function PixelReveal() {
         />
       </div>
 
-      <div className="flex w-full flex-col items-start gap-5 sm:w-auto sm:flex-1">
+      {/*
+       * Capped rather than left to fill. A lane stretched across everything the
+       * board does not use is a 200px track under a 12px label, which reads as a
+       * progress bar rather than as a control. The slack it gives back goes to
+       * the gutters, since the row centres.
+       */}
+      <div className="flex w-full flex-col items-start gap-7 sm:w-auto sm:max-w-56 sm:flex-1">
         <Panel
           settings={settings}
           onChange={(key, value) =>

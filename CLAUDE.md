@@ -4919,6 +4919,17 @@ canvas and the run.
   against the 101px it asked for, which made the drawing smaller than the
   controls beneath it. A declared height is not a floor unless the item is told
   not to shrink.
+- **The gutters are the composition, and the board gives way to them.** At 58cqw
+  the board stood 7px off the stage's top and bottom and the gap to the controls
+  was the same 19px as the padding, so nothing in the frame had room. It is 50cqw
+  now: measured, 45px of clear stage to the left and right, 50px above and below,
+  and 32px between the board and the lanes. The board is smaller than it could be
+  and the frame reads as spacious, which is the right way round for a demo that
+  is mostly one object.
+- **The lane column is capped rather than left to fill.** A lane stretched across
+  everything the board does not use is a 200px track under a 12px label, which
+  reads as a progress bar rather than as a control. The track is held to 179px
+  and the slack it gives back goes to the gutters, since the row centres.
 - **Three knobs beside the board, not under it.** The stage is 8:5 on a column,
   so the width beside a square board was the only part of the frame doing
   nothing, and three lanes plus a button is exactly what fits in it. The board
