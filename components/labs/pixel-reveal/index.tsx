@@ -1,6 +1,9 @@
 "use client";
 
-import { SlidersHorizontalIcon } from "@phosphor-icons/react";
+import {
+  DownloadSimpleIcon,
+  SlidersHorizontalIcon,
+} from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
@@ -255,6 +258,35 @@ export default function PixelReveal() {
     [],
   );
 
+  /*
+   * Save the picture, which is what the board is painting by the time this can
+   * be pressed.
+   *
+   * **The source rather than the board, so the file is the same on every
+   * screen.** The board is sized in `cqw` and backed at the device's pixel
+   * ratio, so saving it hands a 512px file to one reader and a 256px file to
+   * another for the same press. The picture is 512 wherever it is opened, and
+   * the two agree pixel for pixel at the one moment this is live: a finished
+   * run composites the sharp image over the mosaic, whatever the depth was.
+   *
+   * `toBlob` rather than `toDataURL`, which builds a base64 string of the whole
+   * image to throw away, and the object URL is revoked on the same tick since
+   * the click has already taken it.
+   */
+  const save = useCallback(() => {
+    const shot = picture.current;
+    if (!shot) return;
+    shot.art.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `pixel-reveal-${pattern}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }, [pattern]);
+
   /* the board is repainted at its new size rather than left stretched */
   useEffect(() => {
     if (running) return;
@@ -331,6 +363,24 @@ export default function PixelReveal() {
             <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
               {label}
             </TextMorph>
+          </Pill>
+
+          {/*
+           * **`save` is present from the first paint and disabled until there
+           * is something to save**, rather than arriving when a run ends. The
+           * row is centred, so a pill that turns up mid-demo slides the two
+           * beside it, and a control that says what the demo can do before it
+           * can do it is the shared rule about keeping an action disabled
+           * until it is actionable.
+           *
+           * No tooltip, since the label is a word rather than a glyph.
+           */}
+          <Pill disabled={!done} onClick={save}>
+            <DownloadSimpleIcon
+              aria-hidden="true"
+              className="size-3 shrink-0"
+            />
+            save
           </Pill>
 
           {/*
