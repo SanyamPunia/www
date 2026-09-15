@@ -518,7 +518,8 @@ export const labsRegistry: LabMetadata[] = [
     slug: "pixel-reveal",
     title: "Pixel Reveal",
     description: [
-      "An empty canvas. Press generate and one flat square appears, splits into four, then sixteen, and keeps halving until the tiles are small enough to stop being tiles, at which point the picture itself arrives over the top.",
+      "One flat tile. Pick one of five pictures from the strip under the board, press generate, and that tile splits into four, then sixteen, and keeps halving until the tiles are small enough to stop being tiles, at which point the picture itself arrives over the top.",
+      "The five are five different families of shapes rather than five palettes on one shape: rings inside rings, beds under beds, clouds inside clouds with a scatter of stars, a branch that is two smaller branches six times over, and a patch beside a patch. Five variations on one family would resolve the same way and there would be nothing to choose between them. A swatch is the picture itself, small, since a name for it says nothing about what is about to resolve.",
       "Key insight: nothing fades in. Every level is a box filter over the one below it, so the picture is complete from the first frame and the filter is what throws it away. At one cell it is its own mean colour, at four it has its largest areas, at sixty-four it has its crystals. A reveal built as an opacity ramp over a finished image says nothing about why detail arrives in the order it does. This says it by construction.",
       "There are no levels. An earlier build stepped the whole canvas from one grid to the next, and even with the tiles staggered it read as a set of layers arriving rather than as detail growing, because at every boundary the timing re-randomised and a region that had resolved early had no reason to stay early. It is a quadtree now: every tile splits on its own schedule, that schedule is inherited from its parent, and detail spreads out of the places it already reached. At any moment the canvas holds four or five tile sizes at once.",
       "A tile's children come out of that tile, not out of a fresh grid. Four children sitting on their parent's box in its colour are that parent pixel for pixel, and over the flight each shrinks to a quarter of it and slides to its corner.",
@@ -534,7 +535,7 @@ export const labsRegistry: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/pixel-reveal/index.tsx",
     reference: "https://x.com/SwamiMalode/status/2092578177092931724",
     flush: true,
-    hint: "Press generate to resolve the picture out of its own mosaic.",
+    hint: "Pick a pattern, then press generate to resolve it.",
   },
 ];
 
