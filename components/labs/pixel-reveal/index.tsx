@@ -1,12 +1,13 @@
 "use client";
 
+import { SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
 import { Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
-import { ART, ARTWORK_URI } from "./artwork";
-import { DEFAULTS, Panel, type Settings } from "./controls";
+import { ART, PATTERNS } from "./artwork";
+import { DEFAULTS, Panel, PatternStrip, type Settings } from "./controls";
 import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
 
 /*
@@ -44,32 +45,58 @@ import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
  */
 
 /*
- * The canvas edge, as a share of the stage's own width.
+ * The canvas edge: most of a narrow stage's content width, capped.
  *
- * Two values, because the stage is 8:5 on a column and square on a phone. At
- * one share the board came to 147px at 390, which is a picture smaller than the
- * button under it. The wide stage has width to spare and the narrow one does
- * not, so the narrow one spends far more of it.
- */
-/*
- * The canvas edge, as a share of the stage's own content width.
+ * A narrow stage has no width to spare and a wide one has plenty, so the board
+ * spends 68% of the first and stops growing on the second. At one flat share it
+ * came to 147px at 390, a picture smaller than the button under it.
  *
- * Sized so the board has real air around it rather than filling the frame edge
- * to edge. At 58 it stood 7px off the stage's top and bottom with the same 19px
- * gutter as the padding, so nothing in the composition had room: measured after,
- * the board clears 49px of stage on every side.
+ * **One expression rather than a share per breakpoint.** Two shares meant the
+ * board stepped 331 to 258 across `sm` for no reason a reader could see, since
+ * the layout either side of it is the same centred column. The cap binds at a
+ * 456px stage, which is a 494px window, and everything above that is one size.
+ *
+ * The `cqw` resolves against the stage rather than the stage's own container,
+ * because a custom property is not resolved until it is used and every use is a
+ * child. That is the trap `document-pocket` documents, taken the right way
+ * round.
  */
-const BOARD = "[--board:68cqw] sm:[--board:50cqw]";
+const BOARD = "[--board:min(68cqw,16rem)]";
+
+/** a decoded picture and the pyramid built from it */
+interface Decoded {
+  art: HTMLCanvasElement;
+  levels: Pyramid;
+}
 
 export default function PixelReveal() {
   const canvas = useRef<HTMLCanvasElement | null>(null);
-  const art = useRef<HTMLCanvasElement | null>(null);
-  const levels = useRef<Pyramid | null>(null);
+  /*
+   * Decoded once each and kept.
+   *
+   * A pyramid is one pass over 262,144 pixels and a picture is one SVG
+   * rasterised at 512, so going back to a pattern a reader has already seen
+   * costs nothing, and the five are only paid for if the five are asked for.
+   */
+  const decoded = useRef(new Map<string, Decoded>());
+  const picture = useRef<Decoded | null>(null);
+  const [pattern, setPattern] = useState(PATTERNS[0].slug);
+  /**
+   * Which pattern the board is actually painting, which is not the same
+   * question as which one is selected.
+   *
+   * It is the slug rather than a flag, so it is what the repaint waits on: a
+   * picture that has not decoded yet has not landed, and a switch back to one
+   * already decoded lands in the same tick. Null until the first one is in,
+   * which is also what says the demo cannot be run yet.
+   */
+  const [landed, setLanded] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const tree = useRef<Tree>(grow(DEFAULTS.depth, DEFAULTS.drift));
   const frame = useRef<number | null>(null);
 
-  const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   /**
@@ -97,11 +124,22 @@ export default function PixelReveal() {
   const reduce = useReducedMotion();
 
   /*
-   * The picture is decoded once, into an offscreen canvas at its own size, and
-   * the pyramid is built from that. Both outlive every run: a second press
-   * re-reads the same arrays rather than decoding an image again.
+   * The chosen picture is decoded into an offscreen canvas at its own size and
+   * the pyramid is built from that, both kept for the rest of the session.
+   *
+   * Switching pattern never disables the button or blanks the board for the
+   * frame or two a decode takes. The board keeps painting whatever it last
+   * had, which is the picture the reader has just looked away from, and
+   * `landed` is what tells the repaint the new one is in.
    */
   useEffect(() => {
+    const hit = decoded.current.get(pattern);
+    if (hit) {
+      picture.current = hit;
+      setLanded(pattern);
+      return;
+    }
+
     let live = true;
     const image = new Image();
     image.onload = () => {
@@ -112,15 +150,19 @@ export default function PixelReveal() {
       const ctx = off.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       ctx.drawImage(image, 0, 0, ART, ART);
-      art.current = off;
-      levels.current = pyramid(ctx.getImageData(0, 0, ART, ART));
-      setReady(true);
+      const entry = {
+        art: off,
+        levels: pyramid(ctx.getImageData(0, 0, ART, ART)),
+      };
+      decoded.current.set(pattern, entry);
+      picture.current = entry;
+      setLanded(pattern);
     };
-    image.src = ARTWORK_URI;
+    image.src = PATTERNS.find((entry) => entry.slug === pattern)?.uri ?? "";
     return () => {
       live = false;
     };
-  }, []);
+  }, [pattern]);
 
   /** the board is square and sized off the stage, so it needs the live box */
   const measure = useCallback(() => {
@@ -141,12 +183,13 @@ export default function PixelReveal() {
   const draw = useCallback(
     (detail: number) => {
       const view = measure();
-      if (!view || !levels.current || !art.current) return;
+      const shot = picture.current;
+      if (!view || !shot) return;
       paint({
         ctx: view.ctx,
-        levels: levels.current,
+        levels: shot.levels,
         tree: tree.current,
-        art: art.current,
+        art: shot.art,
         detail,
         size: view.size,
       });
@@ -156,32 +199,28 @@ export default function PixelReveal() {
   );
 
   /*
-   * The canvas rests on one flat tile rather than on nothing.
+   * A knob regrows the tree and a pattern brings its own picture, and either
+   * repaints where the board already was, so the reader sees the change on the
+   * picture in front of them rather than being sent back to one tile. `run`
+   * alone changes nothing that is on screen, so it does not regrow anything.
+   *
+   * At rest that is one flat tile, which is where the board starts.
    *
    * An empty white box on a white stage is what a failed image looks like, and
    * it threw away the premise besides: one cell is the picture's own mean
    * colour, so level zero is a real frame of the run and not the absence of
-   * one. Pressing generate now splits a pixel rather than filling a hole.
+   * one. Pressing generate splits a pixel rather than filling a hole, and
+   * picking a pattern at rest changes which colour that pixel is, since no two
+   * of the five average to the same thing.
    */
   useEffect(() => {
-    if (!ready) return;
-    draw(0);
-  }, [ready, draw]);
-
-  /*
-   * A knob regrows the tree and repaints where the board already was, so the
-   * reader sees the change on the picture in front of them rather than being
-   * sent back to one tile. `run` alone changes nothing that is on screen, so it
-   * does not regrow anything.
-   */
-  useEffect(() => {
-    if (!ready || running) return;
+    if (!landed || running) return;
     tree.current = grow(settings.depth, settings.drift);
     draw(shown.current * tree.current.span);
-  }, [ready, running, settings.depth, settings.drift, draw]);
+  }, [landed, running, settings.depth, settings.drift, draw]);
 
   const generate = useCallback(() => {
-    if (!ready || running) return;
+    if (!landed || running) return;
     setDone(false);
     setRunning(true);
 
@@ -207,7 +246,7 @@ export default function PixelReveal() {
       setDone(true);
     };
     frame.current = requestAnimationFrame(tick);
-  }, [draw, ready, reduce, running, settings.run]);
+  }, [draw, landed, reduce, running, settings.run]);
 
   useEffect(
     () => () => {
@@ -225,65 +264,138 @@ export default function PixelReveal() {
   }, [running, draw]);
 
   const label = running ? "generating" : done ? "generate again" : "generate";
+  const subject =
+    PATTERNS.find((entry) => entry.slug === pattern)?.name ?? "The picture";
 
   return (
     <div
       className={cn(
         /*
-         * Board on one side, controls on the other. The stage is 8:5 on a
-         * column, so the width beside a square board was the only part of the
-         * frame doing nothing, and three lanes plus a button is exactly what
-         * fits in it. Stacked on a phone, where there is no width to spare and
-         * the stage goes taller instead.
+         * One centred column: the picture, the five it could be, and the press
+         * that resolves it. The run's own numbers are behind `tune`.
+         *
+         * **The stage has no ratio at any width, and the disclosure is why.**
+         * A panel that unrolls changes the demo's height by definition, so
+         * there is no ratio to hold, and a content-driven height is also what
+         * keeps the board still while the panel arrives: with nothing to
+         * centre against, the column starts at the top padding and everything
+         * new appears below it. The board and the strip do not move when the
+         * panel opens.
          */
-        "@container relative flex aspect-3/4 w-full select-none flex-col items-center justify-center gap-8 overflow-hidden rounded-lg bg-bg p-8 ring-1 ring-stroke ring-inset sm:aspect-8/5 sm:flex-row sm:gap-10 sm:p-10",
+        "@container relative flex w-full select-none flex-col items-center overflow-hidden rounded-lg bg-bg px-8 py-12 ring-1 ring-stroke ring-inset sm:p-12",
         BOARD,
       )}
     >
-      <div
-        className="shrink-0 overflow-hidden rounded-lg bg-fill ring-1 ring-stroke"
-        style={{ width: "var(--board)", height: "var(--board)" }}
-      >
-        <canvas
-          ref={canvas}
-          className="size-full"
-          role="img"
-          aria-label={
-            done
-              ? "An agate slice, fully resolved"
-              : running
-                ? "An agate slice resolving out of its mosaic"
-                : "One flat tile, the picture at a single pixel"
-          }
-        />
+      <div className="flex flex-col items-center gap-8">
+        {/*
+         * The strip belongs to the board rather than to the knobs, because what
+         * it changes is the picture and not the run. It takes the board's own
+         * width, so the swatch size is derived like everything else here and
+         * the two read as one object: a picture and the five it could be.
+         */}
+        <div className="flex flex-col gap-4" style={{ width: "var(--board)" }}>
+          <div
+            className="overflow-hidden rounded-lg bg-fill ring-1 ring-stroke"
+            style={{ height: "var(--board)" }}
+          >
+            <canvas
+              ref={canvas}
+              className="size-full"
+              role="img"
+              aria-label={
+                done
+                  ? `${subject}, fully resolved`
+                  : running
+                    ? `${subject}, resolving out of its mosaic`
+                    : `${subject}, at one flat tile`
+              }
+            />
+          </div>
+
+          <PatternStrip
+            value={pattern}
+            onChange={setPattern}
+            disabled={running}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Pill
+            lead
+            disabled={!landed || running}
+            label={label}
+            onClick={generate}
+          >
+            {/* `torph` renders its text as aria-hidden character spans, so the
+                pill carries the name explicitly. `island-menu` documents it. */}
+            <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
+              {label}
+            </TextMorph>
+          </Pill>
+
+          {/*
+           * `tune` is the way into the three knobs and it stays a quiet pill,
+           * with the same icon and the same word `rain-splatter` uses for the
+           * same job. Two filled pills in one row is two answers to which
+           * control the demo is about, and it is the one that runs it.
+           */}
+          <Pill
+            expanded={open}
+            controls={panelId}
+            disabled={running}
+            onClick={() => setOpen((on) => !on)}
+          >
+            <SlidersHorizontalIcon
+              aria-hidden="true"
+              className="size-3 shrink-0"
+            />
+            tune
+          </Pill>
+        </div>
       </div>
 
       {/*
-       * Capped rather than left to fill. A lane stretched across everything the
-       * board does not use is a 200px track under a 12px label, which reads as a
-       * progress bar rather than as a control. The slack it gives back goes to
-       * the gutters, since the row centres.
+       * The three knobs, closed.
+       *
+       * **A grid whose single row goes from `0fr` to `1fr`**, with the panel
+       * inside an `overflow-hidden` child, which is `rain-splatter`'s build and
+       * the one way to animate to a height the browser works out for itself:
+       * `max-height` needs a number nobody can write correctly at two column
+       * counts, and a height in JS is a measurement that goes stale on the next
+       * reflow.
+       *
+       * **The gap lives inside the collapsing box**, so a closed panel is
+       * genuinely zero pixels rather than zero plus a gap. That is also why the
+       * row above is a group of its own rather than a third item in a gapped
+       * column.
+       *
+       * **`inert` while closed, and it is not optional.** A `0fr` row is
+       * invisible and its three ranges are still in the tab order, so without
+       * it the first Tab past `tune` lands on a slider nobody can see. `inert`
+       * takes the subtree out of the tab order and out of the accessibility
+       * tree at once, which `aria-hidden` alone would not do.
        */}
-      <div className="flex w-full flex-col items-start gap-7 sm:w-auto sm:max-w-56 sm:flex-1">
-        <Panel
-          settings={settings}
-          onChange={(key, value) =>
-            setSettings((current) => ({ ...current, [key]: value }))
-          }
-        />
-
-        <Pill
-          lead
-          disabled={!ready || running}
-          label={label}
-          onClick={generate}
-        >
-          {/* `torph` renders its text as aria-hidden character spans, so the
-              pill carries the name explicitly. `island-menu` documents it. */}
-          <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
-            {label}
-          </TextMorph>
-        </Pill>
+      <div
+        id={panelId}
+        inert={!open}
+        className={cn(
+          /* `motion-safe:`, so under the setting the panel arrives rather than
+             unrolls. Same call `rain-splatter` makes on its own. */
+          "grid w-full motion-safe:transition-all motion-safe:duration-200",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="flex justify-center pt-10">
+            <Panel
+              settings={settings}
+              disabled={running}
+              onChange={(key, value) =>
+                setSettings((current) => ({ ...current, [key]: value }))
+              }
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
