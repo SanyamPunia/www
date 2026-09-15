@@ -1237,7 +1237,8 @@ experiment is a directory under `components/labs/`.
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
   per column of dots on its sheet, `book-shelf` per book on it,
   `shelf-drop` per print on its ledge, `stem-picker` per flower in its
-  bunch, and `pixel-reveal` for the picture it resolves. Five of
+  bunch, and `pixel-reveal` a palette per picture, one for each of the five it
+  can resolve. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -4795,11 +4796,13 @@ bunch, the pull and the controls.
 
 ### `pixel-reveal`
 
-An empty canvas. Press generate and one flat square appears, splits into four,
-then sixteen, and keeps halving until the tiles are small enough to stop being
-tiles, at which point the picture arrives over the top. `artwork.ts` generates
-the picture, `mosaic.ts` is the mip pyramid and the painter, `index.tsx` the
-canvas and the run.
+One flat tile. Pick one of five pictures from the strip under the board, press
+generate, and that tile splits into four, then sixteen, and keeps halving until
+the tiles are small enough to stop being tiles, at which point the picture
+arrives over the top. The three numbers behind it are under `tune`.
+`artwork.ts` generates the five pictures, `mosaic.ts` is the mip pyramid and the
+painter, `controls.tsx` the knobs and the strip, `index.tsx` the canvas, the run
+and the disclosure.
 
 - **Nothing fades in, and that is the whole idea.** Every level is a box filter
   over the one below it, so the picture is complete from the first frame and the
@@ -4869,28 +4872,93 @@ canvas and the run.
   the tiles stop being the subject and start being a screen door over it, so the
   last beat is a crossfade to the sharp image rather than the run carrying on to
   two hundred and fifty-six.
-- **The subject is an agate slice for a reason that is not decorative.** What
-  survives a box filter is whatever the picture's largest areas are, so a subject
-  built of nested areas at every scale has something to give at every level. A
-  photograph of a face would be a grey square until halfway through. The nucleus
-  is off centre, since a slice cut through the middle carries nothing at four
-  cells across, and there are crystals in the core because without them the run
-  has nothing left to give after thirty-two.
-- **The palette is chosen for range rather than for hue.** A box filter averages,
-  so a set sitting in one narrow band of lightness resolves into porridge at every
-  level. These run 0.09 to 0.97 in relative luminance. The picture also finds its
-  colour over the first half of the run, desaturated toward its own luminance, so
-  the early levels read as a thing developing rather than as a finished picture
-  seen badly.
-- **Every ring is a sum of three harmonics rather than a noise walk**, which is
-  what guarantees the path closes on itself exactly. One harmonic gives an egg
-  and two give a peanut.
+- **Every subject is nested areas, which is not decorative.** What survives a box
+  filter is whatever the picture's largest areas are, so a subject built of
+  nested areas at every scale has something to give at every level. A photograph
+  of a face would be a grey square until halfway through. The agate's nucleus is
+  off centre for that reason, since a slice cut through the middle carries
+  nothing at four cells across, and it has crystals in its core because without
+  them the run has nothing left to give after thirty-two.
+- **Five, and each is a different family of shapes.** `agate` is rings inside
+  rings, `strata` beds under beds, `nebula` clouds inside clouds with a scatter
+  of stars, `canopy` a branch that is two smaller branches six times over, and
+  `lichen` a patch beside a patch. Five variations on one family would resolve
+  the same way and there would be nothing to choose between them, so the
+  geometry differs rather than the palette: `strata` at two cells across is a
+  pale half over a dark one where the agate is four of about the same thing, and
+  `canopy` is the one drawn dark on light.
+  - **`canopy` lost its banded sky for that reason.** It was three flat bands, a
+    sun and a ground, and its coarse levels were a row of horizontal stripes,
+    which is what `strata` already is. One sky and one disc instead.
+  - **A tree is the only one that is self-similar by construction**, and a strict
+    binary tree is a thin Y at every scale, so its two lowest forks carry a third
+    limb. What makes a crown read as mass at four cells across is the odd limb.
+  - **`nebula`'s dust lane is a ragged chain of clouds, not a stroke.** Drawn as
+    a stroke along a curve it was a band of even width, which over the bright end
+    read as a ring round a planet, and thinning it turned the ring into a
+    scratch. The chain is one `<g>` at one opacity rather than fifteen shapes
+    each at its own, since overlapping translucent blobs compound where they
+    meet and drew it as a row of beads. It crosses the chain rather than running
+    along it, since along it swallowed the bright end, which is what the last two
+    levels are for.
+- **The palettes are chosen for range rather than for hue.** A box filter
+  averages, so a set sitting in one narrow band of lightness resolves into
+  porridge at every level. Measured in relative luminance, the five run 0.014 to
+  1.000, 0.013 to 0.822, 0.003 to 1.000, 0.012 to 0.964 and 0.053 to 0.791. The
+  picture also finds its colour over the first half of the run, desaturated
+  toward its own luminance, so the early levels read as a thing developing rather
+  than as a finished picture seen badly.
+- **Every outline is a sum of three harmonics rather than a noise walk**, which
+  is what guarantees the path closes on itself exactly. One harmonic gives an egg
+  and two give a peanut. `strata`'s beds are the same sum run across the picture
+  rather than around a centre, and each is filled to the foot of the frame with
+  the next painted over it, so only the band between two edges ever shows.
+- **Nothing rolls at runtime.** Every wobble is a hash of its own index, so the
+  same slice is cut and the same field scattered on every load, and the swatch a
+  reader picks is the picture they get. It is an integer hash rather than
+  `Math.sin(x) * 43758.5453`, which `stem-picker` documents measuring and
+  finding degenerate on small integer inputs.
 - **The canvas rests on one flat tile, never on nothing.** An empty white box on
   a white stage is what a failed image looks like, and it threw the premise away
   besides: one cell is the picture's own mean colour, so level zero is a real
   frame of the run rather than the absence of one. Pressing generate now splits a
   pixel instead of filling a hole, and the reader meets the argument before the
   demonstration.
+  - **Picking a pattern at rest changes that tile**, since no two of the five
+    average to the same thing. It is a grey rather than a colour, because the
+    bleach is at zero until the run starts, so what a pick moves is the value:
+    measured off the board, 105, 116, 43, 189 and 163. The strip is where the
+    colour is.
+- **The strip belongs to the board, not to the knobs.** What it changes is the
+  picture and the three lanes are the run's own numbers, so it sits under the
+  board and takes the board's width. The swatch size is derived from that like
+  everything else here, 46.1px on a column and 35.7px at 390, and the 16px
+  between them is what makes the two read as one object: a picture and the five
+  it could be.
+- **A swatch is the picture, not a name for it.** The site's answer to a discrete
+  choice is one control whose label is its current value, which `book-opening`
+  documents, and that answer is for a value a word can carry. "strata" says
+  nothing about what a reader is about to watch resolve, and cycling five of them
+  to find out is four presses of guessing. It does not give the run away either:
+  what the demo is about is the order detail arrives in, and a reader who has
+  seen a 42px thumbnail knows the subject and none of that.
+- **Real radios, visually hidden inside their labels**, which is the build
+  `the-submenu-closes-before-you-get-there` uses for its own single choice. The
+  arrow keys walk the group, the checked state is the browser's, and the strip is
+  one tab stop rather than five. A row of buttons carrying `aria-pressed` would
+  say five toggles where there is one setting. Verified: the group is entered at
+  the selected swatch, the arrows move the selection and repaint the board, and
+  Tab leaves for the three lanes.
+- **The focus mark is an `outline` and the selection mark is a ring**, so the two
+  compose rather than one replacing the other. Both as rings, focusing the picked
+  swatch swapped its black ring for the pale focus one and the strip lost its
+  selection for as long as the keyboard was in it. Same width, colour and offset
+  as the project's focus pattern, on the other property, which is the call
+  `window-shade` makes.
+- **The unpicked swatches are dimmed as well as unringed.** A hairline against a
+  2px ring is a difference a reader has to go looking for when the thing inside
+  each box is a different picture with its own edge. Hover takes a swatch back to
+  full, so the strip is legible under the pointer and marked without it.
 - **The readout sits on the board, not beside it.** In the control row it
   reserved 77px whether or not it had anything to say, which pushed the button
   44px off the board's own centre line for the whole of the resting state, and
@@ -4899,20 +4967,43 @@ canvas and the run.
   and the stage. The chip is black at alpha rather than a token, since it sits
   over a picture running from near black to white across the run and no surface
   token survives both ends. That is the scrim exception the shared rules carry.
-- **Both stages are square below `sm` and 8:5 above it, and both size their
-  subject off a custom property rather than a number.** At one share the board
-  came to 147px on a 390px phone, smaller than the button under it, and the
-  bunch in `stem-picker` came to 93px against a 75px stepper. A wide stage has
-  width to spare and a narrow one does not, so the narrow one spends far more of
-  it: 78cqw against 47 here, 52 against 31 there. Measured after, at 390: the
-  board is 234px with 36px of air above and below, and the bunch is 169px with
-  43px.
+- **Both stages size their subject off a custom property rather than a number.**
+  At one share the board came to 147px on a 390px phone, smaller than the button
+  under it, and the bunch in `stem-picker` came to 93px against a 75px stepper. A
+  wide stage has width to spare and a narrow one does not, so the narrow one
+  spends far more of it: 68cqw against 50 here, 52 against 31 there.
   - **The property is set on the container and read by its children, which is
     the only arrangement that works.** An element is a query container for its
     descendants and never for itself, the trap `document-pocket` documents at
     length, and a custom property is not resolved until it is used. So
-    `--board: 78cqw` on the stage is meaningless to the stage and correct for
+    `--board: 68cqw` on the stage is meaningless to the stage and correct for
     everything inside it.
+  - **`stem-picker` keeps a ratio at both widths and this stage has none.** A
+    panel that unrolls changes the demo's height by definition, so there is no
+    ratio to hold. Two ratios were tried and both failed for the same reason,
+    which is that the board is a share of the stage's width and the controls
+    under it are not: at `3/4` the stacked layout was 24px short of its own
+    content at 390 and left 145px of empty stage under the button at 600, and at
+    `4/3` there was no height left for a strip under a board worth looking at.
+    Measured now, the stage is 538 by 440 from a 500px window up and 352 by 378
+    on a 390px phone, with nothing overflowing at any width from 320.
+  - **A content-driven height is also what keeps the board still.** With nothing
+    to centre against, the column starts at the top padding and everything new
+    appears below it, so opening the knobs does not move the picture: measured,
+    the board's top holds at 38.4px through an open at 1280 and at 390, while
+    the stage goes 442 to 517 and 378 to 569. That is `rain-splatter`'s rule
+    about a disclosure growing from the edge nobody is looking at, arriving at a
+    centred column rather than a full-bleed one.
+  - **The board's size is one expression rather than a share per breakpoint.**
+    `min(68cqw, 16rem)` spends most of a narrow stage and stops growing on a
+    wide one, where two shares stepped the board 331 to 256 across `sm` for no
+    reason a reader could see, since the layout either side of it is the same
+    centred column. The cap binds at a 456px stage, which is a 494px window.
+  - **The `cqw` is read by the children and never by the stage.** A custom
+    property is not resolved until it is used, and every use is inside, which is
+    what makes a share of the container legal on the container. The panel's
+    `@md:` columns are the same rule from the other side: it is a descendant, so
+    the query reads the stage.
 - **`shrink-0` on anything with an explicit height inside these stages.**
   `stem-picker`'s bunch box carries its height in `cqw` and was a flex item in a
   column, so on a short stage the column simply squashed it: measured 71px
@@ -4921,20 +5012,55 @@ canvas and the run.
   not to shrink.
 - **The gutters are the composition, and the board gives way to them.** At 58cqw
   the board stood 7px off the stage's top and bottom and the gap to the controls
-  was the same 19px as the padding, so nothing in the frame had room. It is 50cqw
-  now: measured, 45px of clear stage to the left and right, 50px above and below,
-  and 32px between the board and the lanes. The board is smaller than it could be
-  and the frame reads as spacious, which is the right way round for a demo that
-  is mostly one object.
-- **The lane column is capped rather than left to fill.** A lane stretched across
-  everything the board does not use is a 200px track under a 12px label, which
-  reads as a progress bar rather than as a control. The track is held to 179px
-  and the slack it gives back goes to the gutters, since the row centres.
-- **Three knobs beside the board, not under it.** The stage is 8:5 on a column,
-  so the width beside a square board was the only part of the frame doing
-  nothing, and three lanes plus a button is exactly what fits in it. The board
-  went from 26.7% of the stage to 46.4%. Stacked on a phone, where there is no
-  width to spare and the stage goes to 3:4 instead.
+  was the same 19px as the padding, so nothing in the frame had room. It is 256px
+  in a `p-12` frame now: 38px of clear stage above the board and below the
+  button row, 141px either side of the board, 16px from the board to its strip,
+  and 32px from the strip to the buttons. The rhythm is what the grouping is
+  made of, since nothing here is boxed: the board and the strip are one object
+  at 16, the press is a step away at 32, and the knobs are a section away at 40.
+- **One centred column, and the knobs are behind `tune`.** The picture, the five
+  it could be and the press that resolves it are the demo, and three lanes
+  standing beside them read as a form with a painting in it. A disclosure costs
+  nothing at rest and the column then has one axis: board, strip, buttons, each
+  narrower than the last.
+  - **It was two columns before, board on the left and the lanes on the
+    right.** That fit the knobs in for free and it spent the stage's whole width
+    on them, which capped the board at 237px and left the demo reading as a
+    control panel with a preview attached.
+  - **The trigger is a quiet pill beside a filled one**, with the same icon and
+    the same word `rain-splatter` uses for the same job. Two filled pills in one
+    row is two answers to which control the demo is about, and it is the one
+    that runs it.
+- **The panel is `rain-splatter`'s disclosure, not a new one.** A grid whose
+  single row goes from `0fr` to `1fr` with the content in an `overflow-hidden`
+  child, which is the one way to animate to a height the browser works out for
+  itself. The gap lives inside the collapsing box, so a closed panel is
+  genuinely zero pixels rather than zero plus a gap, and that is why the row
+  above it is a group of its own rather than a third item in a gapped column.
+  `inert` while closed takes the three ranges out of the tab order: verified, Tab
+  runs strip, generate, tune and then leaves, and the ranges appear in between
+  once it is open.
+- **Three lanes across a wide stage and one column on a narrow one, never two.**
+  Two leaves the third alone beside an empty cell, and spanning the odd one
+  across both makes a full-width track under two half ones, which is the same
+  raggedness drawn differently. Three needs the room, so it is a container query:
+  at the column's width a lane gets 136.5px against the 106 that "detail" and
+  "64 across" measure, and on a 390px phone the same three would be 104px cells,
+  so the panel stacks and caps itself at 179px, since a track as wide as the
+  stage is a progress bar rather than a control. `rain-splatter` makes the same
+  call for its six.
+- **Nothing that changes the run answers while it is running.** The strip, both
+  pills and all three knobs go disabled for the length of a press, which is the
+  honest state: the knobs cannot take effect mid-run, since the repaint they
+  drive is skipped while the loop owns the canvas, and a pattern swapped in the
+  middle is a picture nobody asked to see resolve. The strip is a real
+  `<fieldset disabled>`, so the browser takes all five radios out of the tab
+  order and `group-disabled:` carries it to the swatches. Verified: a press on a
+  swatch mid-run leaves the selection where it was, and everything is back on the
+  frame the run ends.
+  - **The board is the one thing that does not dim.** It is what the press was
+    for, and at 50% the five swatches stop saying which picture is resolving,
+    which the board itself says better.
 - **Not every constant is a control.** `FLIGHT` and `WAIT` are bound to each
   other, since a tile that split while still travelling would hand its children
   a box that is itself moving, and a reader who broke that would only see a
@@ -4957,6 +5083,14 @@ canvas and the run.
   twentieth of two pixels and its corner a ninth, so neither can show, and a
   path plus a radius per tile is the whole cost at that size. Taking them off
   moved 64 across from a 33.4ms worst frame to 16.8.
+- **The strip lives in `controls.tsx` beside the knob table**, since it is a
+  control, and the pictures it shows live in `artwork.ts` beside the drawings.
+  `PATTERNS` is the registry the strip renders and the board reads: a slug, the
+  name both the swatch's label and the board's own use, and the data URI. Adding
+  a pattern is a drawing and a row, and nothing else knows there are five.
+- **`Lane` takes a `disabled`**, which is the shared rule's
+  `disabled:opacity-50 disabled:cursor-not-allowed` arriving at the primitive
+  that was missing it. `rain-splatter` never passes it and is unchanged.
 - **`Lane` and `Pill` live in `components/lab/controls.tsx`.** They were
   `rain-splatter`'s and moved when this became the second caller, which is the
   rule the rest of the project follows. They are in `components/lab/` rather
@@ -4971,10 +5105,23 @@ canvas and the run.
   character spans, so a button whose only child is one has no accessible name at
   all. `island-menu` documents the same trap, and the preview recorder is what
   found it here: `getByRole("button", { name })` timed out.
-- **Nothing renders per frame.** One rAF loop writes to the canvas. The only
-  state that moves during a run is the cell count, which changes seven times.
-- **The picture is decoded once and the pyramid outlives every run.** A second
-  press re-reads the same arrays rather than decoding an image again.
+- **Nothing renders per frame.** One rAF loop writes to the canvas, and no state
+  moves during a run at all. A pattern and the picture that landed are two more
+  pieces of state and both change on a press.
+- **Each picture is decoded once and its pyramid outlives every run.** A second
+  press re-reads the same arrays rather than decoding an image again, and so does
+  going back to a pattern already seen. The five are only paid for if the five
+  are asked for. Measured per picture: 2 to 3ms to rasterise the SVG at 512 and
+  3 to 8ms to build the pyramid, and 12 to 23ms for the pyramid under a 4x CPU
+  throttle. That is at most one frame, and it is spent on a press rather than
+  during a run.
+  - **What the repaint waits on is which pattern has landed, not a flag.** A
+    picture that has not decoded yet has not landed, and a switch back to one
+    already decoded lands in the same tick. It is null until the first is in,
+    which is also what says the demo cannot be run yet.
+  - **Switching pattern never disables the button or blanks the board** for the
+    frame or two a decode takes. The board keeps painting whatever it last had,
+    which is the picture the reader has just looked away from.
 - **Reduced motion keeps the run and drops the travel.** A press is a request, so
   generate still generates, it simply lands on the finished picture in one step.
 
