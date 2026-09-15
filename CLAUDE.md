@@ -4799,8 +4799,8 @@ bunch, the pull and the controls.
 One flat tile. Pick one of five pictures from the strip under the board, press
 generate, and that tile splits into four, then sixteen, and keeps halving until
 the tiles are small enough to stop being tiles, at which point the picture
-arrives over the top. `save` writes what resolved to a PNG and the three
-numbers behind it are under `tune`.
+arrives over the top. One icon beside the press saves what resolved as a PNG
+and the other opens the three numbers driving it.
 `artwork.ts` generates the five pictures, `mosaic.ts` is the mip pyramid and the
 painter, `controls.tsx` the knobs and the strip, `index.tsx` the canvas, the run
 and the disclosure.
@@ -5028,10 +5028,9 @@ and the disclosure.
     right.** That fit the knobs in for free and it spent the stage's whole width
     on them, which capped the board at 237px and left the demo reading as a
     control panel with a preview attached.
-  - **The trigger is a quiet pill beside a filled one**, with the same icon and
-    the same word `rain-splatter` uses for the same job. Two filled pills in one
-    row is two answers to which control the demo is about, and it is the one
-    that runs it.
+  - **The trigger is a quiet pill beside a filled one**, with the same icon
+    `rain-splatter` uses for the same job. Two filled pills in one row is two
+    answers to which control the demo is about, and it is the one that runs it.
 - **The panel is `rain-splatter`'s disclosure, not a new one.** A grid whose
   single row goes from `0fr` to `1fr` with the content in an `overflow-hidden`
   child, which is the one way to animate to a height the browser works out for
@@ -5065,8 +5064,7 @@ and the disclosure.
     can do before it can do it is the shared rule about keeping an action
     disabled until it is actionable. It stays live across a pattern swap, since
     the board repaints the new picture at the progress it was already at.
-  - No tooltip, since the label is a word rather than a glyph, and the file is
-    named for the pattern it holds.
+  - The file is named for the pattern it holds.
 - **Nothing that changes the run answers while it is running.** The strip, both
   pills and all three knobs go disabled for the length of a press, which is the
   honest state: the knobs cannot take effect mid-run, since the repaint they
@@ -5106,6 +5104,24 @@ and the disclosure.
   `PATTERNS` is the registry the strip renders and the board reads: a slug, the
   name both the swatch's label and the board's own use, and the data URI. Adding
   a pattern is a drawing and a row, and nothing else knows there are five.
+- **One word and two glyphs in the control row.** The press the demo is about
+  carries its own label, and the two beside it are a save and a drawer, which is
+  what their icons already say: spelled out, the row was three words where one
+  is the action and the other two are chrome. Both icon controls take a tooltip,
+  which is the shared rule, under one `TooltipProvider` round the row rather
+  than one per button.
+  - **A tooltip and an accessible name are the same claim, so each is one
+    string.** Two copies drift, and the drawer's flips with its state: a
+    toggle's tooltip names what a press will do rather than what is true, which
+    is the signature player's call for its loop, and `aria-expanded` is what
+    carries the state.
+- **`Pill` grew a square `icon` variant and a props spread.** A pill's
+  horizontal padding round an 11px glyph draws a lozenge with a dot in the
+  middle of it, which is the same split the signature player's transport makes
+  between a control sized for a glyph and one sized for a word. The spread is
+  what lets a `Tooltip` wrap one: Radix's trigger is `asChild`, so it clones the
+  child and hands it the ref and the handlers that open the tooltip, and a
+  component that drops them is a trigger that never fires.
 - **`Lane` takes a `disabled`**, which is the shared rule's
   `disabled:opacity-50 disabled:cursor-not-allowed` arriving at the primitive
   that was missing it. `rain-splatter` never passes it and is unchanged.
