@@ -142,29 +142,43 @@ export function Pill({
   onClick,
   label,
   lead = false,
+  icon = false,
   disabled = false,
   expanded,
   controls,
   children,
+  ...rest
 }: {
   onClick: () => void;
   /**
-   * Spelled out where the visible label is a morphing word. `torph` swaps the
-   * text a glyph at a time, so what a reader is handed mid-swap is whatever
-   * half of two words is on screen. Where the label is a plain word this stays
-   * off, since a second name for the same button is a way for the two to drift.
+   * Spelled out wherever the button has no plain word of its own to be named
+   * by: an icon-only control, and one whose visible label is morphing, since
+   * `torph` swaps the text a glyph at a time and what a reader is handed
+   * mid-swap is whatever half of two words is on screen. Where the label is a
+   * plain word this stays off, since a second name for the same button is a way
+   * for the two to drift.
    */
   label?: string;
   /** the one control the demo is about, rather than one that tidies up after it */
   lead?: boolean;
+  /** square, for a control whose glyph is the whole of it */
+  icon?: boolean;
   disabled?: boolean;
   /** set on a trigger that opens something, which is what holds its hover */
   expanded?: boolean;
   controls?: string;
   children: React.ReactNode;
-}) {
+} & Omit<React.ComponentProps<"button">, "onClick" | "children">) {
   return (
+    /*
+     * The rest of the props are spread, and that is what lets a `Tooltip` wrap
+     * one of these. Radix's trigger is `asChild`, so it clones the child and
+     * hands it the ref and the handlers that open the tooltip, and a component
+     * that drops them is a trigger that never fires. `mdx-components.tsx`
+     * spreads for the same reason.
+     */
     <button
+      {...rest}
       type="button"
       aria-label={label}
       aria-expanded={expanded}
@@ -172,7 +186,14 @@ export function Pill({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-meta transition-colors duration-200",
+        "flex h-7 cursor-pointer items-center rounded-full text-meta transition-colors duration-200",
+        /*
+         * A square for a glyph, since a pill's horizontal padding round a 11px
+         * icon draws a lozenge with a dot in the middle of it. The signature
+         * player's transport makes the same split between a control sized for
+         * a glyph and one sized for a word.
+         */
+        icon ? "w-7 justify-center" : "gap-1.5 px-2.5",
         "disabled:cursor-not-allowed disabled:opacity-50",
         lead
           ? "bg-text-primary text-bg hover:bg-text-primary/85 active:bg-text-primary/70"
