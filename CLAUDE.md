@@ -4799,7 +4799,8 @@ bunch, the pull and the controls.
 One flat tile. Pick one of five pictures from the strip under the board, press
 generate, and that tile splits into four, then sixteen, and keeps halving until
 the tiles are small enough to stop being tiles, at which point the picture
-arrives over the top. The three numbers behind it are under `tune`.
+arrives over the top. `save` writes what resolved to a PNG and the three
+numbers behind it are under `tune`.
 `artwork.ts` generates the five pictures, `mosaic.ts` is the mip pyramid and the
 painter, `controls.tsx` the knobs and the strip, `index.tsx` the canvas, the run
 and the disclosure.
@@ -5049,6 +5050,23 @@ and the disclosure.
   so the panel stacks and caps itself at 179px, since a track as wide as the
   stage is a progress bar rather than a control. `rain-splatter` makes the same
   call for its six.
+- **`save` writes the picture, not the board, so the file is the same on every
+  screen.** The board is sized in `cqw` and backed at the device's pixel ratio,
+  so saving it would hand a 512px file to one reader and a 256px one to another
+  for the same press. The two agree pixel for pixel at the one moment the
+  control is live, since a finished run composites the sharp image over the
+  mosaic whatever the depth was, and the source is 512 wherever it is opened.
+  `toBlob` rather than `toDataURL`, which builds a base64 string of the whole
+  image to throw away, and the object URL is revoked on the same tick because
+  the click has already taken it.
+  - **It is there from the first paint and disabled until a run has finished**,
+    rather than arriving when one ends. The row is centred, so a pill that turns
+    up mid-demo slides the two beside it, and a control that says what the demo
+    can do before it can do it is the shared rule about keeping an action
+    disabled until it is actionable. It stays live across a pattern swap, since
+    the board repaints the new picture at the progress it was already at.
+  - No tooltip, since the label is a word rather than a glyph, and the file is
+    named for the pattern it holds.
 - **Nothing that changes the run answers while it is running.** The strip, both
   pills and all three knobs go disabled for the length of a press, which is the
   honest state: the knobs cannot take effect mid-run, since the repaint they
