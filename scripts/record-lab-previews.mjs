@@ -712,13 +712,17 @@ const LABS = {
     },
   },
   "pixel-reveal": {
-    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
-    // stage with nothing padded or cut
-    focus: [0, 0, 538, 336],
-    // one press and then the whole run, which is the demo. the hold at the end
-    // is what lets the finished picture read before the clip loops
-    async run({ m, pick }) {
+    // the whole stage with the knobs closed, which is what the demo rests at.
+    // The card is 8:5 and this is 1.22, so the crop widens into the page either
+    // side and picks up its white, which is the stage's own colour
+    focus: [0, 0, 538, 440],
+    // a pattern and then the whole run, which is the demo. Picking one first is
+    // what says the five swatches are a choice rather than a caption, and the
+    // hold at the end lets the finished picture read before the clip loops
+    async run({ m, page, pick }) {
       await wait(500);
+      await m.press(page.locator("[data-lab-demo] fieldset label").nth(2));
+      await wait(800);
       await m.press(pick("generate"));
       await wait(4600);
     },
