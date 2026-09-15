@@ -8,6 +8,7 @@ import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
 import { Pill } from "@/components/lab/controls";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ART, PATTERNS } from "./artwork";
 import { DEFAULTS, Panel, PatternStrip, type Settings } from "./controls";
@@ -298,6 +299,12 @@ export default function PixelReveal() {
   const label = running ? "generating" : done ? "generate again" : "generate";
   const subject =
     PATTERNS.find((entry) => entry.slug === pattern)?.name ?? "The picture";
+  /* one string per icon control, since the tooltip and the accessible name are
+     the same claim and two copies of it drift */
+  const saveLabel = "Save the picture as a PNG";
+  /* a toggle's tooltip names what a press will do, not what is true, which is
+     the signature player's call for its loop. `aria-expanded` says the state */
+  const tuneLabel = open ? "Hide the run's numbers" : "Show the run's numbers";
 
   return (
     <div
@@ -351,57 +358,71 @@ export default function PixelReveal() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Pill
-            lead
-            disabled={!landed || running}
-            label={label}
-            onClick={generate}
-          >
-            {/* `torph` renders its text as aria-hidden character spans, so the
-                pill carries the name explicitly. `island-menu` documents it. */}
-            <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
-              {label}
-            </TextMorph>
-          </Pill>
+        {/*
+         * One word and two glyphs. The press the demo is about carries its own
+         * label, and the two beside it are a save and a drawer, which is what
+         * their icons already say. Spelling all three out put three words in a
+         * row where one of them is the action and the other two are chrome.
+         *
+         * **So both of them take a tooltip**, which is the shared rule for an
+         * icon-only control, and one `TooltipProvider` round the row rather
+         * than one per button, the call `BlogPost` makes for its headings.
+         */}
+        <TooltipProvider delayDuration={200}>
+          <div className="flex items-center gap-2">
+            <Pill
+              lead
+              disabled={!landed || running}
+              label={label}
+              onClick={generate}
+            >
+              {/* `torph` renders its text as aria-hidden character spans, so the
+                  pill carries the name explicitly. `island-menu` documents it. */}
+              <TextMorph duration={200} ease="cubic-bezier(0.32, 0.72, 0, 1)">
+                {label}
+              </TextMorph>
+            </Pill>
 
-          {/*
-           * **`save` is present from the first paint and disabled until there
-           * is something to save**, rather than arriving when a run ends. The
-           * row is centred, so a pill that turns up mid-demo slides the two
-           * beside it, and a control that says what the demo can do before it
-           * can do it is the shared rule about keeping an action disabled
-           * until it is actionable.
-           *
-           * No tooltip, since the label is a word rather than a glyph.
-           */}
-          <Pill disabled={!done} onClick={save}>
-            <DownloadSimpleIcon
-              aria-hidden="true"
-              className="size-3 shrink-0"
-            />
-            save
-          </Pill>
+            {/*
+             * **`save` is present from the first paint and disabled until there
+             * is something to save**, rather than arriving when a run ends. The
+             * row is centred, so a pill that turns up mid-demo slides the two
+             * beside it, and a control that says what the demo can do before it
+             * can do it is the shared rule about keeping an action disabled
+             * until it is actionable.
+             */}
+            <Tooltip label={saveLabel}>
+              <Pill icon label={saveLabel} disabled={!done} onClick={save}>
+                <DownloadSimpleIcon
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0"
+                />
+              </Pill>
+            </Tooltip>
 
-          {/*
-           * `tune` is the way into the three knobs and it stays a quiet pill,
-           * with the same icon and the same word `rain-splatter` uses for the
-           * same job. Two filled pills in one row is two answers to which
-           * control the demo is about, and it is the one that runs it.
-           */}
-          <Pill
-            expanded={open}
-            controls={panelId}
-            disabled={running}
-            onClick={() => setOpen((on) => !on)}
-          >
-            <SlidersHorizontalIcon
-              aria-hidden="true"
-              className="size-3 shrink-0"
-            />
-            tune
-          </Pill>
-        </div>
+            {/*
+             * `tune` is the way into the three knobs and it stays a quiet pill,
+             * with the same icon `rain-splatter` uses for the same job. Two
+             * filled pills in one row is two answers to which control the demo
+             * is about, and it is the one that runs it.
+             */}
+            <Tooltip label={tuneLabel}>
+              <Pill
+                icon
+                label={tuneLabel}
+                expanded={open}
+                controls={panelId}
+                disabled={running}
+                onClick={() => setOpen((on) => !on)}
+              >
+                <SlidersHorizontalIcon
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0"
+                />
+              </Pill>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/*
