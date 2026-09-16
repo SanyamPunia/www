@@ -1418,7 +1418,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-four clips, 2.1MB with their stills, 3.4 to 7.6 seconds each, at 60
+- Thirty-five clips, 2.1MB with their stills, 3.4 to 7.9 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -5462,6 +5462,407 @@ what makes the difference visible rather than asserted.
   and 49px, a cold tap throws 18 and a 1.6s hold reaches 107 aloft, the panel is
   three columns and one, it is `inert` while shut, Enter taps and holds, the
   arrows move the wick and it comes back, and no console errors.
+
+### `gooey-chips`
+
+Filter chips that merge into the tray they are dropped in. Pick one and it flies
+out of the row, grows a neck as it reaches the tray and fuses into the slab.
+Pick it again and it tears back out. Or carry one there by hand and hold it in
+the neck. `layout.ts` is the geometry, pure,
+`lenses.ts` is what the chips filter, and `index.tsx` is the goo and the
+flights.
+
+- **The trick is smaller than it looks.** A hidden layer holds one plain rounded
+  rect per shape under `feGaussianBlur` into an `feColorMatrix` alpha crush, so
+  two rects near each other bleed together and the crush turns the overlap into
+  a neck. `feComposite atop` puts the sharp source back inside that silhouette,
+  so only the join is soft. The labels ride above the layer, outside the filter,
+  which is why they stay crisp. Nothing else about it is special.
+- **`sRGB` on the filter is load-bearing.** The default is linearRGB, where the
+  same crush lands somewhere else entirely and the neck comes out thin and grey.
+
+#### The goo is a function of the gap, not of the clock
+
+- **The reference schedules the blur on its timeline**: up over half the flight,
+  hold, down at the end. Every one of those numbers has to be kept in step with
+  the flight it is describing, and a second chip moving at the same time gets
+  the schedule of the first.
+- **This reads the distance between the flying chip and the tray on every frame
+  and takes a bump off it.** Zero when they are far apart, widest when they are
+  about to touch, and **zero again once they overlap, because two shapes that
+  have merged have no neck left to form**. Nothing has to be kept in step with
+  anything, one press and six at once behave the same, and the tear falls out
+  for free: a chip leaving starts at full overlap, so its goo ramps up as it
+  separates and back down as it clears.
+- **The gap is rect to rect, which is what made the first build wrong.** A chip
+  resting in the row sits directly under the tray, so at the original 14px of
+  field gap every chip in the top row was already inside the band where a neck
+  forms. The goo went to full on the frame of the click, with no approach to
+  watch, and stayed there after a chip landed back in the row. Measured: 6.17
+  on the first sample of a select and 5.81 still standing after one had
+  finished. **`FIELD_GAP` has to be wider than `NECK.reach`**, which is the only
+  reason the row sits 48px under the tray. Measured after: a select reads 0.8,
+  2.14, 6.79, 1.86, 0.8, and a deselect 0.8, 1.6, 5.4, 4.5, 3.0, 0.8.
+- **The blur never sits at zero while the filter is on, and the filter comes off
+  at rest.** The crush has nothing to work on but the shapes' own antialiasing
+  at zero, so every rounded corner comes back hard and stepped. A floor of 0.8
+  gives it a gradient to find an edge in, and taking the filter off entirely
+  when nothing is moving is both the honest resting state and the frame the
+  rasterising costs.
+
+#### Nothing is in flow
+
+- **The obvious Motion answer is `layout`, and it cannot work.** A merge needs
+  the blob under a chip to agree with that chip on every frame, not only at the
+  ends, and a layout animation's intermediate position is a transform the engine
+  owns: reading it back means a `getBoundingClientRect` per element per frame,
+  which is the cost `event-stacking` and `sticker-peel` are both built to avoid.
+  If the blob and the chip can ever disagree, the goo tears.
+- So every rect is computed in `layout.ts`, the split `document-pocket` makes
+  with `poses.ts`, and **one set of motion values per shape is read by both the
+  chip and its blob**. The reference tweens the two as a pair, which holds until
+  a gesture interrupts one of them: two springs handed the same target still
+  diverge if they were not in the same place when it arrived. One value with two
+  readers cannot.
+- **The goo layer draws every dark shape and the elements over it are text.**
+  The reference keeps a background on each chip and strips it with a class once
+  the chip has landed, so that background's hard edge sits over its own softened
+  blob for the whole flight. Here a chip that is in the goo has no background at
+  all, so the silhouette is always the filter's.
+- **What flies is what changed sides, and nothing else.** Deriving it from
+  "this rect differs from the last one" counts every chip closing the gap behind
+  the one that left, which puts the whole row in the goo, and on the first paint
+  it counts all of them, so every chip had a blob before anything had been
+  pressed. Measured: one blob at rest and two through a flight, against seven
+  and a churn of three to seven to two.
+- **The first arrangement is where everything already is**, not somewhere to
+  travel to, or the whole set flies in from the stage's corner on load.
+- **And a re-measure is not a gesture either, so it is set rather than
+  animated.** `read` runs on mount, on the observer and again on
+  `document.fonts.ready`, and the metrics differ between those runs: a first
+  paint in the fallback face measures a chip at 108px where Inter measures the
+  same chip at 57. Every run past the first was animating to its new numbers, so
+  a page whose font arrived late sprang the whole arrangement out of a stale
+  layout and back into the real one, which reads as the demo sliding in from the
+  right. Measured on a load with the font held back 1.2s: the row went 57, 84,
+  108 and back to 57 across 340ms and eleven distinct layouts, against one
+  layout over 288 frames after. A window being resized took the same spring and
+  now snaps too. Nothing about a corrected measurement is a thing to watch.
+  **The test is whether any chip changed sides**, which is the set that flies
+  anyway, plus nothing being in flight or in a hand when the new numbers land.
+
+#### The chips are dark, and that is the only reason the goo is visible
+
+- **`bg-fill` on `bg` is 1.02:1.** The site's own pill is a 96% grey on white,
+  and a neck between two shapes that close to the page is not an effect, it is
+  nothing. The reference gets away with a soft fill because its stage is dark
+  and saturated.
+- So a chip in the goo takes `text-primary`, which is 15.4:1 and is **the site's
+  existing answer to a selected state**: the emphatic filled neutral that
+  `the-submenu-closes-before-you-get-there` reaches for when it has no green,
+  and the fill `Pill`'s `lead` and the signature player's play button already
+  use. The lab invents no colour and scopes no hue.
+- **A chip on the slab takes an edge back, and without it the tray stops being a
+  tray.** In flight a chip has no background of its own, so nothing hard-edged
+  sits over the neck. On the slab it wears a plate, light at a tenth over it.
+  With five of six picked and no plates the tray was one black bar carrying six
+  words spaced across it, which is a navigation bar, and each chip stopped being
+  an object the moment it arrived. So it dissolves into the goo and then
+  resolves out of it.
+- **That edge is `seatAt(gap)` and never a flag saying the flight is over.** It
+  used to be a boolean off "picked, and no longer in flight, and not in a hand",
+  which meant a chip pushed into the tray by hand sat on the slab wearing
+  nothing until the release and the flight after it had both finished, and the
+  chip that had just landed was the one plate missing from an otherwise full
+  tray. What the edge means is that the chip is on the slab, which is a fact
+  about where it is. Measured: the plate reads 1 while a chip is held inside the
+  tray with the button still down, and 1 on every chip 200ms into a run of four
+  picks.
+
+#### The hand owns the gap
+
+- **The claim was that the goo is a function of the gap, and until the drag the
+  only thing that ever set that gap was a spring.** A reader was told the idea
+  rather than handed it. A chip is carried now: take one to the tray's mouth and
+  hold it and the neck sits open for as long as you like, pull a seated one and
+  the neck stretches until it breaks. It is also the thing every strong lab here
+  has and this one did not, something to hold.
+- **It cost the model nothing.** A drag writes the same motion values the blob
+  already reads and `neckAt` was always measuring live rects, so the goo follows
+  a hand exactly as it followed a spring. Measured, walking a chip in: blur 1.93
+  at a 30px gap, 4.75 at 20, 7.00 at the peak, 3.38 at 5 and the floor at 0.
+- **Both commits are the gap, so the gesture and the goo cannot disagree.** A
+  chip dropped while it is still drawing a neck merges, and a seated one pulled
+  past `NECK.reach` has broken that neck and leaves. Anything between is a
+  change of mind and springs home, measured landing within 0px of where it
+  started. `DRAG.merge` is 12 because that is where the neck goes, measured
+  rather than picked: `NECK.peak` is where the blur is widest and not where it
+  stops bridging, so it is the wrong end of the same curve to commit on, and at
+  8 it asked for a precision the gesture does not need.
+- **A carried chip is held inside the stage.** The chip keeps the pointer, so
+  without a bound a hand walks it off the demo and across the page, which is a
+  filter chip lying on the prose. The stage and the field are read once at the
+  press, since neither moves while a hand is down, and the stage is stored in
+  the chip's own coordinates so the clamp is two comparisons a frame rather than
+  two rects. Measured, hauling a chip 900px out in six directions: 0px past the
+  stage's edge in every one.
+- **The clamp is what sets the stage's height**, since a bound that cannot reach
+  past `NECK.reach` is a drag that cannot take a chip out. See `STAGE_H`.
+  Measured with all six picked, the furthest a chip can be carried from the
+  tray: 48.5px at 320, 65 at 360 and 81.5 from 390 up, against the 34 a tear
+  needs, so it tears out at every width.
+- **A drag ends in a click on the chip it started on**, so a flag set once the
+  press passes its slop is what stops every drop also toggling what it dropped.
+  `cursor-grab`, the ninth place the shared `cursor-pointer` rule is off, and
+  `touch-none` on the chip alone so a thumb is only ever trapped on a 30px
+  target.
+
+#### The neck did not exist, and the drag is what exposed it
+
+- **Measured across the whole approach, the goo bridged only the last two
+  pixels.** Sampling the midpoint between the tray's foot and a carried chip:
+  solid at a 2px gap and pure white at 4, 6, 8, 10, 12, 16 and 20, at every blur
+  the ramp produced. The widest blur was being spent at a distance it could not
+  reach, so what looked like a merge was two shapes overlapping and nothing
+  else. A spring swept through that band in a frame or two, which is why nobody
+  saw it. A hand can stop anywhere in it.
+- **The arithmetic says why.** Two edges blurred by a gaussian bridge a gap `g`
+  under the `20 -10` crush only when each contributes half the threshold at the
+  midpoint, which is `erfc(g / (2 sigma sqrt 2)) >= 0.5`, so `sigma >= g / 1.35`.
+  The ramp peaked at `sigma` 7 for a gap of 12, where it needed 8.9, and was
+  short by that ratio at every other gap too.
+- **So `GOO` is 9 and `NECK.peak` is 8.** The peak now sits at a gap the blur
+  can bridge with room over, and the neck is drawn from 0 out to about 11px.
+  Measured after: solid at 2, 4, 6, 8 and 10, breaking at 12. Bigger than that
+  is not free, since the same blur has to leave a 30px chip standing once the
+  crush has run.
+- **It costs no frames.** Measured under a 4x CPU throttle with the gesture
+  driven from inside the page so nothing the harness does lands in the window:
+  clearing six at once is 86 frames at a median of 16.6ms and a 95th percentile
+  of 18.3, against 17.9 at the old blur. The spikes in a run of six separate
+  picks belong to the six state commits and measure the same either way.
+
+#### Chips neck to each other
+
+- **The loop only ever measured chip against tray**, so two chips crossing
+  passed straight through one another. It measures the pairs as well now, which
+  on a clear of six is the difference between six shapes leaving and one sheet
+  of liquid tearing apart.
+- **A pair with nothing in flight is skipped**, or the chips parked in the tray,
+  which sit three pixels apart for ever, would hold the blur off its floor
+  through every flight that happened near them.
+- Seven shapes is twenty-one pairs, so the pass is arithmetic and not a cost.
+
+#### How much a chip is wearing is the gap too
+
+- **A chip going back to the row used to change colour after it had parked**,
+  because what it wore was a boolean that flipped when the flight completed. The
+  chip flew out of the tray in the tray's own clothes, stopped, and then turned
+  grey in place, which reads as the pill correcting itself rather than as a drop
+  separating. This was the one thing about the lab that looked broken.
+- **So `meltAt` is `neckAt`'s sibling and shares its reach.** One motion value
+  per chip says how much of itself it has given up to the goo, 1 while it is
+  touching the tray and 0 once the neck has broken, and `paint` writes it off
+  the same gap on the same frame. A chip takes its own pill back over exactly
+  the distance the goo is still drawing a neck over, so the two cannot disagree
+  about whether it is still part of the tray. Measured on a return: the pill
+  comes up 0, 0.09, 0.56, 0.92, 1 while the chip is travelling the last 35px,
+  where it used to be 0 for the whole flight and 1 a frame after it stopped.
+- **The gap owns a chip's clothes and the clock owns exactly one case.** A chip
+  that has been picked up gives its pill away at once, since what carries it the
+  rest of the way is the blob already under it. Everything else, a chip tearing
+  out, a chip in the hand, a chip springing back from a drag that committed to
+  nothing, resolves at the distance it actually is. At rest both ends fall out
+  of the same rule rather than being set: a seated chip overlaps the tray, so
+  its gap is 0 and its melt 1, and one in the row is a field gap away, which is
+  past the reach.
+- **The pill is a layer at an opacity, not a colour being tweened.** A `var()`
+  cannot be interpolated, so a moving tone would mean reading the tokens off the
+  root at mount and mixing them by hand, which is what `halftone-ripple` has to
+  do for a canvas fill. A `bg-fill` span under the label at the melt's own
+  opacity needs none of that.
+- **The label steps between two tones and never crosses, which is
+  `window-shade`'s lesson arriving at a chip.** The ground under the word is
+  going from the slab's near-black to the chip's own fill while the ink has to
+  go the other way, so the two meet: half way through, the pill is a mid grey
+  and neither tone reads on it. Crossfading there is the worst of both, since
+  the word is then two half-inks over the one ground that defeats each of them,
+  measured at about 1.5:1 for three frames. Solving `white on the ground ==
+  grey on the ground` puts the least unequal point at 0.55 of the melt, where
+  both sides measure 2.3:1, and the band around it is under one frame of the
+  return spring. Measured after: zero frames of a two-tone label.
+
+#### The count is real
+
+- **The reference reports a number from a hardcoded table of weights**, which a
+  reader can only believe. These chips filter an actual list and the count is
+  `matches().length`.
+- **The matched rows were rendered under the chips and are not any more.**
+  Showing them is the strongest form of the claim, since the number can then be
+  counted rather than taken. What it cost was twenty lens names in grey under
+  the demo, a wall of type heavier than the thing the demo is about, and the
+  heaviest element on the stage was the filter state while the lightest was the
+  answer. The data stays in `lenses.ts`, where the rules make it checkable.
+- **Every tag is derivable from the row it sits on**, which is the stronger half
+  of it. The rules are stated once in `lenses.ts`: `wide` is 35mm or shorter,
+  `tele` is 85mm or longer, `fast` is f/2.8 or wider, `macro` says macro, and
+  the name says prime or zoom. So nothing here is a claim a reader has to take
+  on trust. Verified by re-deriving all twenty from their own names: one
+  disagreed, `24-70mm f/2.8` carrying `tele` at 70mm, and it was the data that
+  was wrong.
+- **All of the chosen tags and not any of them.** A filter that widens as you
+  add to it teaches the opposite of what a filter does, and the count going down
+  is most of what makes the tray worth watching. Picking every chip is a real
+  answer: no lens carries all of those.
+- **The readout says `results` and never names what is being filtered.** It
+  read `20 lenses` for a while, and the rows it counts are not on screen, so the
+  only thing a reader had to go on was a noun appearing nowhere else in the
+  demo: the chips say `prime` and `tele`, and what a lens has to do with either
+  is camera knowledge this has no business assuming. `results` is what a filter
+  produces whatever it is filtering. **The subject is named once, in the
+  registry's `hint`**, which is the field for exactly this: "Pick a tag to
+  filter 20 camera lenses. It fuses into the tray." at 62 characters, inside the
+  75 that wraps at the column's width.
+- **The count morphs through `torph`** rather than rolling an odometer the way
+  the reference does. What a press does to a count is correct it, which is the
+  call `halftone-ripple` and `stem-picker` already make, and a second answer for
+  numbers on this site is a second answer to drift. It morphs the whole phrase
+  rather than a number with a fixed word beside it, or the tray says "1 results".
+- **Nothing under the chips restates the selection.** A line spelling it out was
+  a chain of five "and"s in selection order rather than in the order the chips
+  sit in, and the tray was already showing all of it. It went with the rows.
+
+#### The rest
+
+- **The measuring copy sits in a box with no size, no overflow and its own
+  positioning, and all three are load-bearing.** Every chip is absolutely
+  positioned with a width handed to it, so its natural size has to be measured
+  from a copy in flow. Absolutely positioned on its own that copy still counts
+  toward an ancestor's scroll width, and the row is wider than a phone: on a
+  390px viewport it pushed the document to 450 and the whole page scrolled
+  sideways. `relative` on the wrapper is what makes it the containing block,
+  since `overflow: hidden` does not clip an absolute child whose containing
+  block is above it. Clipping is paint only, so the measurement is unaffected.
+- **And the copy carries `w-max`, which the wrapper is what makes necessary.**
+  An absolutely positioned box shrinks to fit its containing block, and that one
+  is zero wide, so every measurement taken inside it collapses to the longest
+  word it holds. The single-word chips came out right and "20 lenses" measured
+  as "lenses", which left the tray too narrow to hold its own readout: it
+  clipped at rest and the first chip landed on top of the count.
+- **The stage holds one height and the field is centred in it.** What the chips
+  do changes how tall the field is, and a demo that grows and shrinks with it
+  shoves the page underneath up and down while a reader is pressing things.
+  Measured: 336px at every width and in every state, which is also the 8:5 the
+  index's preview card is, so the recorded clip is the whole demo with nothing
+  padded or cut. **The height is the deepest arrangement plus the room a hand
+  needs, not plus a margin**: at 200 the widest tray there is left under
+  `NECK.reach` of stage beneath it, so a chip could not be carried far enough to
+  break its own neck. The tallest the ink ever gets is 186 of the stage's 298,
+  at 320px with four picked.
+- **The clear control is inside the tray, at its own end.** It was the word
+  `clear` in the margin to the left of it, and it was the worst element on the
+  stage: bare grey text with no edge, floating with nothing to belong to, and
+  sliding every time the tray's width changed, since its position came off the
+  tray's own left edge. Clearing what you picked belongs to the thing holding
+  what you picked. Measured in every state at 1280 and 390: 12px inside the
+  tray's right edge, centred on it, 9px of lip either side on one row and 25.5
+  on a phone's two.
+- **The tray is centred on the stage and nothing outside it moves it.** With the
+  button in the margin the pair had to be centred together or the tray was
+  visibly off the middle, and centring the pair moved the one object the eye
+  tracks every time the button appeared or went. With the button inside, there
+  is one object to centre.
+- **It is a square glyph, and being square is what makes its width a stated
+  constant.** The word's width had to be read out of the browser before the tray
+  could be laid out at all, so a measurement nothing else needed was in the
+  critical path of the geometry. `CLEAR` is 24 and `layout.ts` simply says so.
+- **Its focus ring is an outline in the flipped ink, and its colour is named.**
+  The site's pattern pins `text-primary` and paints a white offset band, and this
+  sits on a near-black slab, so that ring would be invisible and its offset the
+  brightest thing in the frame, which is `window-shade`'s case. An outline with a
+  width and a style but no colour of its own is worse still: it keeps whatever
+  the UA put on `:focus-visible`, measured `rgb(0, 95, 204)` on this button
+  before the token went back in.
+- **The tray is as wide as what is in it, and a pick grows it.** It is centred,
+  so growing it moves its left edge left and the chips already seated ride along
+  as it recentres: measured across four picks, `prime` lands at x 266 and walks
+  to 185 without being touched again, and the tray's own left edge goes 220,
+  169, 139, 112, 88.
+- **That was built the other way once and it was worse.** One open width, 0.72
+  of the stage, held from the first pick so nothing inside ever moved again:
+  measured, the tray went 97 to 359 on the first pick and held, and `prime`
+  landed at 186 and stayed. It fixes the drift and costs the thing the demo is
+  about. The slab is the object the eye is on, and a fixed one is a bar sitting
+  there with space nobody has filled, where a tray that grows to fit is what a
+  thing collecting what you hand it does. **Do not reintroduce the fixed
+  width.** The drift is the price of a centred object that grows, it is
+  spring-eased, and it reads as the tray making room.
+- **The tray wraps inside itself rather than running past the stage.** Six chips
+  want 428px, which a 352px phone does not have, and clamping the tray to the
+  left edge only moved the overflow. Past its room it grows in height instead,
+  which is also the better shape: a slab two rows deep still reads as a
+  container where one row of six reads as a bar.
+- **That room is the stage less `TRAY_GUTTER` on each side, never the stage
+  itself.** Wrapping at the full width means the tray grows until it *is* the
+  stage, and the demo is then a slab running edge to edge with no ground round
+  it. Measured at six picked before: 313px of a 313px stage at a 390 viewport,
+  0 clear on the left and 0.3 on the right, so the only breathing room left was
+  the frame's own padding, and 360 kept 6px and 320 kept 12. At 16 every width
+  keeps 20 to 32px of stage either side. It is not a cap on the tray's width,
+  which is the fixed width above: the tray still grows to fit, it just runs out
+  of room a little sooner and drops the next chip onto a new row.
+- **The tray's corner is half a row and never half the tray, which
+  `rounded-full` cannot say.** That keyword resolves to half the shorter side,
+  so a tray wrapped to three rows on a 320px screen was 200 by 141 with a 70px
+  corner: a lozenge rather than a slab, and since the readout sits on the first
+  row, 21px down, where a corner that size has not finished curving, the count
+  was drawn outside its own tray. `TRAY_R` holds it at 21, so the shape is a
+  stadium while it is one row deep and a rounded rectangle once it wraps.
+  Measured: 21px at every width and count, against the 38 and 71
+  `rounded-full` gave. The chips keep `rounded-full`, being always one row tall.
+- **The readout is pinned to the tray's first row, at `TRAY_H` and never the
+  tray's own height.** Centred on the whole slab it drifts downward as the tray
+  wraps, and every row after the first starts at the tray's own padding, which
+  is under the count: at two rows the first wrapped chip was drawn straight
+  through the word. A field's count sits on its first line and the tokens wrap
+  beneath it.
+- **Stacked, not side by side.** The reference puts the row of chips beside the
+  tray above 560px and stacks under it, and this column is 538, so there is no
+  wide branch to maintain for a width the page never has.
+- **The wrap is greedy and keeps the given order.** What a reader is looking for
+  after a press is where a chip went, and a wrap that reshuffles loses it.
+- **`select-none` on the whole component, not on the stage alone.** Every
+  gesture here is a press on a small pill, and a drag that starts on the stage
+  and leaves it anchors a selection on the nearest text, which is the readout
+  and every chip label. A chip carries its label twice, once in each of the two
+  tones it steps between, so what that selection painted was
+  `20 resultsprimeprimezoomzoomwidewideteletele`, in the site's own emerald with
+  a pair of `SelectionPins` carets, and a select-all copied
+  `primezoomwidetelemacrofast` out of the demo. It covers the measuring copy as
+  well as the stage, since that is a second set of the same words sitting in the
+  tree. Everything in here is a control or a readout about one, so there is
+  nothing a reader would want to copy, which is the signature player's call.
+  Measured after: no range from a triple click on the readout, a double click on
+  a label, a drag along the chip row or a drag out of the stage into the prose,
+  a select-all paints nothing over the demo, and the description under it still
+  selects.
+- **Reduced motion keeps every state and drops the travel.** Chips change place
+  in one step, the filter never comes on and the loop never starts, since a goo
+  is a thing a flight makes.
+- **Nothing renders per frame.** The shapes are motion values, one loop writes
+  `stdDeviation`, and it stops when nothing is moving. Measured under a 4x CPU
+  throttle across five picks with the filter live: 177 frames, a median gap of
+  16.7ms, a 95th percentile of 16.8 and one frame at 33.3.
+- Verified in a browser at 320, 360, 390, 430, 640 and 1280px, at every count
+  from none to all six: the demo holds 336px throughout with no sideways scroll
+  and nothing leaving the stage, the tallest the ink gets is 176 of the stage's
+  298 at 320px and four picked, the count reads 20, 3 and 0 results as chips are
+  added, a carried chip merges on release inside the neck and tears out past its reach, a drag
+  that commits to nothing lands within 0px of where it began, clear sends six
+  back at once and they web together, Tab reaches the clear button and rings it
+  in `#fafafa` at 16.5:1, Enter toggles a focused chip, nothing is requested at
+  rest and the filter is off there, and no console errors.
+
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
