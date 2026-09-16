@@ -769,6 +769,48 @@ const LABS = {
       await wait(1100);
     },
   },
+  "gooey-chips": {
+    // the demo is 538 by 336, which is the card's own 8:5, so the clip is the
+    // whole demo with nothing padded or cut. The stage's height is picked for
+    // that as well as for the room a drag needs, see `STAGE_H`.
+    focus: [0, 0, 538, 336],
+    // A chip carried in by hand and held at the neck, which is the one thing
+    // in this lab a spring cannot show: the goo is a function of the gap, so a
+    // hand on a chip holds the neck open for as long as it likes. Then two more
+    // by press, then clear all, which is the gesture that sends six back at
+    // once and the only way to see them web to each other on the way out.
+    async run({ m, page }) {
+      // by accessible name, not by text: a chip carries its label twice, once
+      // in each of the two tones it steps between, and the second copy is
+      // `aria-hidden` so only the name is singular.
+      const chip = (label) =>
+        page.getByRole("button", { name: label, exact: true });
+
+      await wait(600);
+      // Carry `macro` up to the tray's mouth, sit in the neck, then push it
+      // in. The tray's foot is at y 150 and a chip is 30 tall, so a centre at
+      // 182 is a 17px gap with no neck, 168 is a 3px one with the neck at its
+      // thickest, and 158 has the two overlapping, which is what the release
+      // needs: a drop is committed on the gap, so letting go on an overlap
+      // cannot miss the way letting go inside the neck can.
+      await m.at(chip("macro"));
+      await m.down();
+      await m.move(300, 182, 18);
+      await wait(300);
+      await m.move(300, 168, 6);
+      await wait(560);
+      await m.move(300, 158, 4);
+      await wait(200);
+      await m.up();
+      await wait(1300);
+      await m.press(chip("fast"));
+      await wait(1400);
+      await m.press(chip("prime"));
+      await wait(1600);
+      await m.press(page.getByRole("button", { name: "Clear the picks" }));
+      await wait(1800);
+    },
+  },
 };
 
 function crop(rect, bounds) {
