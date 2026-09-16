@@ -149,6 +149,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "ember-burst": dynamic(() => import("@/components/labs/ember-burst"), {
     ssr: false,
   }),
+  "gooey-chips": dynamic(() => import("@/components/labs/gooey-chips"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

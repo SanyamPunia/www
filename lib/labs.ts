@@ -560,6 +560,24 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Tap the wick to strike it, hold it to blaze, and drag it to draw.",
   },
+  {
+    slug: "gooey-chips",
+    title: "Gooey Chips",
+    description: [
+      "Filter chips that merge into the tray they are dropped in. Pick one and it flies out of the row, grows a neck as it reaches the tray and fuses into the slab. Pick it again and it tears back out.",
+      "The trick is smaller than it looks. A hidden layer holds one plain rounded rect per shape under a gaussian blur into an alpha crush, so two rects near each other bleed together and the crush turns the overlap into a neck. The labels ride above that layer, outside the filter, which is why they stay sharp.",
+      "Key insight: the goo is a function of the gap, not of the clock. The reference schedules the blur on a timeline, up over half the flight and down at the end. This reads the distance between the flying chip and the tray on every frame and takes a bump off it: zero when they are far apart, widest when they are about to touch, and zero again once they overlap, because two shapes that have merged have no neck left to form. Nothing has to be kept in step with anything, one press and six at once behave the same, and the reverse falls out for free.",
+      "The goo layer draws every dark shape and the elements over it are text. Keeping a background on each chip and stripping it once the chip has landed, which is what the reference does, leaves that background's hard edge sitting over its own softened blob for the length of the flight. Here a chip that is in the goo has no background at all, so the silhouette is always the filter's.",
+      "Nothing is in flow. The obvious answer is Motion's layout animations, and it cannot work: a merge needs the blob under a chip to agree with that chip on every frame, and a layout animation's intermediate position is a transform the engine owns. One set of motion values per shape, read by both the chip and its blob, is what makes them impossible to pull apart.",
+      "The count is real. The reference reports a number from a hardcoded table of weights, which can only be believed. These chips filter an actual list and every tag on it is derivable from the row it sits on, so a reader can check any of it by reading a lens's own name.",
+      "A chip can also be carried in by hand, and that is what the gap being the input is for: hold one at the tray's mouth and the neck stays open for as long as you like, pull a seated one and it stretches until it breaks. Both are committed on the same gap the goo is drawn from, so the gesture and the effect cannot say different things. Building it is what exposed the bug underneath: the blur was peaking at a distance it could not bridge, so the neck only ever existed in the last two pixels and a spring crossed that in a frame. A hand can stop anywhere in it.",
+    ],
+    createdAt: "2026-09-17",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/gooey-chips/index.tsx",
+    reference: "https://annnimate.com/animations/gooey-filter-chips",
+    hint: "Pick a tag to filter 20 camera lenses, or drag one into the tray.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -642,6 +660,7 @@ export const IMPLEMENTED_LABS = [
   "stem-picker",
   "pixel-reveal",
   "ember-burst",
+  "gooey-chips",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
