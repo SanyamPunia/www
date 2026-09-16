@@ -404,6 +404,81 @@ textarea {
 }
 
 /*
+ * A lit wick, for `components/labs/ember-burst/`. A flame does not breathe in
+ * time, so the stops are uneven and the duration is not a round number: an even
+ * sine at a round period reads as a pulse, which is what a light on a timer
+ * looks like. It runs on the halo alone, never on the element carrying the on
+ * state, since an animation outranks a normal declaration and the two would
+ * otherwise both be writing `opacity`.
+ */
+/*
+ * A lit wick's own flame, for `components/labs/ember-burst/`. Once the sparks
+ * became streaks that sputter, a glyph holding perfectly still was the one
+ * thing on that stage not behaving like fire.
+ *
+ * It leans and breathes rather than pulsing: a flame is anchored at its base
+ * and the top of it is what the air moves, which is what `transform-origin:
+ * bottom` plus a skew says and what a scale about the centre does not. The
+ * period is 1.35s against the halo's 1.7s, so the two never come back into step
+ * and the pair reads as one uneven light rather than as two loops.
+ */
+@keyframes flame-waver {
+  0% {
+    transform: scale(1, 1) skewX(0deg);
+  }
+  21% {
+    transform: scale(0.97, 1.06) skewX(-2deg);
+  }
+  38% {
+    transform: scale(1.03, 0.97) skewX(1.4deg);
+  }
+  57% {
+    transform: scale(0.98, 1.05) skewX(0.7deg);
+  }
+  74% {
+    transform: scale(1.02, 0.98) skewX(-1.2deg);
+  }
+  100% {
+    transform: scale(1, 1) skewX(0deg);
+  }
+}
+
+@keyframes ember-flicker {
+  0% {
+    opacity: 0.86;
+    transform: scale(1);
+  }
+  17% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
+  29% {
+    opacity: 0.78;
+    transform: scale(0.96);
+  }
+  46% {
+    opacity: 0.95;
+    transform: scale(1.04);
+  }
+  58% {
+    opacity: 0.72;
+    transform: scale(0.94);
+  }
+  73% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  88% {
+    opacity: 0.82;
+    transform: scale(0.99);
+  }
+  100% {
+    opacity: 0.86;
+    transform: scale(1);
+  }
+}
+
+/*
  * MotionConfig's reducedMotion only governs Motion's own animations, and the
  * two above are raw CSS. This is the targeted opt-out, not the blanket
  * !important reset the shared rules ban: it names the two keyframes and lands

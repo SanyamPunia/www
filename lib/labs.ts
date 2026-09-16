@@ -537,6 +537,29 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Pick a pattern, then press generate to resolve it.",
   },
+  {
+    slug: "ember-burst",
+    title: "Ember Burst",
+    description: [
+      "A wick on a dark stage. Tap it and it strikes: a shower of embers leaves the flame's rim, rises, cools and goes out. Tap it again and it snuffs, and what comes off then is smoke rather than sparks, because lighting something and putting it out are different events and there is no reason one emission should serve both. Hold it and it blazes, feeding continuously at a rate that ramps. Drag it and it draws, since every spark leaves carrying the wick's own velocity, and it springs home when you let go, because a button that permanently relocates itself reads as a loose object rather than as the thing you press. The wick itself has no fill: a near-black disc is the one thing that does not light when the room does, so it read as a black puck sitting in a fire. Transparent, the light behind it shows through and it lights with everything else.",
+      "Key insight: an ember's colour is its age, so the burst cools rather than fading. The ramp runs near-white through yellow and orange into a deep red the ground swallows, so the shower is gone before its alpha has finished and what the eye reads is the heat leaving rather than an opacity being taken away.",
+      "Nothing is on a rail. The reference for this shape is a like button that tweens a ring of copies of its own icon out to a fixed radius, and every press of one looks like every other press of one. Each ember here is a body with a launch speed off a squared roll, drag, buoyancy scaled by its own heat and a little turbulence, so the burst is a ring for about two hundred milliseconds and a drifting plume after that. A press while the last one is still in the air adds to it.",
+      "Six things separate a shower of sparks from a particle system, and the first build had none of them. A spark is a streak rather than a dot, so each body keeps the last stretch of its own positions and the smear is drawn through them as a chain of glows, which is what a smear of light composites to and what comes out soft where a tapering polygon read as a drawn spoke. It sputters rather than dimming smoothly. A small one drags to a stop while a big one carries, so drag is per body rather than a shared constant and the reach runs from 65px to 368px. A small one burns out sooner, so life comes off the same roll that sizes it. A strike sprays rather than emitting on one frame. And about a fifth of them pop, throwing two or three pieces that start at full heat, since what a break exposes is fresh surface.",
+      "Each of those six is a knob, so the reader can take it back out. Run spray, drag, lift, pops and trail down to their floors together and back comes the wheel of equals expanding at one speed, which is the build this replaced and the shape the reference has. Leaving the floor reachable is what makes the difference visible rather than asserted.",
+      "The light is cast from where the heat is rather than from the wick. The frame loop returns the heat-weighted centroid of everything burning, and the wall's bright spot leans toward it, the disc catches it from the same direction and falls off with distance, and smoke left by the last snuff lights up when a strike goes through it. Lighting the middle whatever the sparks did was the one thing left in the picture a reader could catch being false. Bright light blooms on top of all of it, as a downsample to an eighth and an upsample back, which is a box blur the browser does on the GPU for two drawImage calls a frame.",
+      "Buoyancy carries the heat rather than a curve. A hot ember climbs, stalls as it cools and drifts down at the end, which is one rule doing the work a keyframed arc would need three of. Air resistance is `v *= exp(-DRAG * dt)` rather than a share of the speed per frame, so the reach is the same on a 60Hz display and a 120Hz one, and it is also what sets the reach: a body under drag alone travels `v0 / DRAG` and no further, which is 79px at the slow end of the launch and 226px at the fast one.",
+      "Every ember is a flame rather than a dot, and its tip points the way it came from, since hot gas trails behind a spark. So the burst reads as rays pointing back at the thing that threw them. A fast one is drawn long and a slow one round, which is the same body seen at two speeds and not two kinds of particle, and each leans on its own phase so a plume of them never beats in time.",
+      "The stage is dark because light needs something to be light against, and the room is lit by what the press threw. The wall's brightness is the heat still in the air, eased toward it so it does not cut out when the last ember dies, and the readout in the corner is the one honest number behind the picture: how many bodies are up there.",
+      "Pressing off centre pushes the burst the way the hand went and knocks the disc the same way. A keyboard press reports no coordinates, so it gets a burst with no lean at all.",
+      "Nothing renders while a burst is in the air. The bodies live in a ref, one frame loop paints them, and the wall's brightness and the count both go straight to their nodes. The loop stops asking for frames once the air is empty and the wall has finished dimming, so a stage nobody has pressed costs nothing.",
+      "The strike and the snuff are synthesised rather than fetched. A strike is two bursts of filtered noise a few hundredths apart, a scrape sweeping up and a low body under it that is the flame taking, and a snuff is one breath with no sweep anywhere in it. The page requests nothing for either.",
+    ],
+    createdAt: "2026-09-16",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/ember-burst/index.tsx",
+    flush: true,
+    hint: "Tap the wick to strike it, hold it to blaze, and drag it to draw.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -618,6 +641,7 @@ export const IMPLEMENTED_LABS = [
   "crack-button",
   "stem-picker",
   "pixel-reveal",
+  "ember-burst",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -146,6 +146,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "pixel-reveal": dynamic(() => import("@/components/labs/pixel-reveal"), {
     ssr: false,
   }),
+  "ember-burst": dynamic(() => import("@/components/labs/ember-burst"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
