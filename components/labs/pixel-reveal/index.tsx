@@ -7,11 +7,11 @@ import {
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
-import { Pill } from "@/components/lab/controls";
+import { Panel, Pill } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ART, PATTERNS } from "./artwork";
-import { DEFAULTS, Panel, PatternStrip, type Settings } from "./controls";
+import { DEFAULTS, KNOBS, PatternStrip, type Settings } from "./controls";
 import { grow, type Pyramid, paint, pyramid, type Tree } from "./mosaic";
 
 /*
@@ -459,7 +459,8 @@ export default function PixelReveal() {
         <div className="overflow-hidden">
           <div className="flex justify-center pt-10">
             <Panel
-              settings={settings}
+              knobs={KNOBS}
+              values={settings}
               disabled={running}
               onChange={(key, value) =>
                 setSettings((current) => ({ ...current, [key]: value }))

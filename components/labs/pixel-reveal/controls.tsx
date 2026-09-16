@@ -61,45 +61,6 @@ export const KNOBS: readonly Knob<keyof Settings>[] = [
 ];
 
 /**
- * Three across a wide stage, one column on a narrow one, and never two.
- *
- * Two columns leaves the third lane alone beside an empty cell, which is a
- * hollow half whichever way it is dressed, and spanning the odd one across both
- * makes a full-width track under two half ones, which is the same raggedness
- * drawn differently. So three or one, and `rain-splatter` makes the same call
- * for its six.
- *
- * **Three needs the room, which is why it is a container query.** At the
- * column's width a lane gets 137px, where "64 across" and its label come to
- * 106. On a 390px phone the same three would be 104px cells, so the panel
- * stacks and caps itself at the width a lane reads at, since a track as wide as
- * the stage is a progress bar rather than a control.
- */
-export function Panel({
-  settings,
-  onChange,
-  disabled = false,
-}: {
-  settings: Settings;
-  onChange: (key: keyof Settings, value: number) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="grid w-full max-w-56 gap-5 @md:max-w-none @md:grid-cols-3 @md:gap-x-8">
-      {KNOBS.map((knob) => (
-        <Lane
-          key={knob.key}
-          knob={knob}
-          value={settings[knob.key]}
-          disabled={disabled}
-          onChange={(value) => onChange(knob.key, value)}
-        />
-      ))}
-    </div>
-  );
-}
-
-/**
  * The five pictures, as the pictures.
  *
  * **A swatch is the thing itself, not a name for it.** The site's answer to a

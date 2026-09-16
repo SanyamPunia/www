@@ -124,6 +124,56 @@ export function Lane<K extends string>({
 }
 
 /**
+ * A demo's knobs, laid out.
+ *
+ * **Three across a wide stage, one column on a narrow one, and never two.** Two
+ * columns leaves an odd lane alone beside an empty cell, which is a hollow half
+ * whichever way it is dressed, and spanning that lane across both makes a
+ * full-width track under two half ones, which is the same raggedness drawn
+ * differently. `rain-splatter` makes the same call for its six.
+ *
+ * **Three needs the room, which is why it is a container query.** At a lab
+ * column's width a lane gets about 140px against the 106 a label and its widest
+ * readout come to. On a 390px phone the same three would be 104px cells, so the
+ * panel stacks and caps itself at the width a lane reads at, since a track as
+ * wide as the stage is a progress bar rather than a control.
+ *
+ * **The caller has to be inside a container**, and its own stage is not
+ * necessarily one: a container governs its descendants and never its siblings,
+ * so a panel that sits beside the stage rather than inside it needs `@container`
+ * on something above them both, or every `@md:` here silently never matches.
+ *
+ * Promoted from `pixel-reveal` when `ember-burst` became the second caller,
+ * which is the rule the rest of the project follows.
+ */
+export function Panel<K extends string>({
+  knobs,
+  values,
+  onChange,
+  disabled = false,
+}: {
+  knobs: readonly Knob<K>[];
+  values: Record<K, number>;
+  onChange: (key: K, value: number) => void;
+  /** set while the demo is busy, so knobs that cannot take effect say so */
+  disabled?: boolean;
+}) {
+  return (
+    <div className="grid w-full max-w-56 gap-5 @md:max-w-none @md:grid-cols-3 @md:gap-x-8">
+      {knobs.map((knob) => (
+        <Lane
+          key={knob.key}
+          knob={knob}
+          value={values[knob.key]}
+          disabled={disabled}
+          onChange={(value) => onChange(knob.key, value)}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
  * A demo's buttons, in two weights.
  *
  * **The primary control leads and the housekeeping follows.** `lead` is the
