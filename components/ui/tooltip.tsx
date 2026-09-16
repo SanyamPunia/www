@@ -9,6 +9,16 @@ export const TooltipProvider = TooltipPrimitive.Provider;
 interface TooltipProps {
   children: React.ReactNode;
   /**
+   * Controlled, for a trigger that is also a gesture: `ember-burst`'s wick is
+   * held and dragged, and a label that opens on the delay and then sits over
+   * the demo for the length of the hold is covering the thing it describes. A
+   * caller passes both and refuses the open while its own gesture is running,
+   * so Radix still decides *when* a tooltip wants to be open and the caller
+   * only vetoes. Left off, this is uncontrolled and nothing changes.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
    * A node, not just a string, so a caller can put a mark beside the text. The
    * content is a flex row, so an icon and a label lay themselves out without the
    * call site rebuilding the box.
@@ -23,9 +33,11 @@ export function Tooltip({
   label,
   side = "top",
   className,
+  open,
+  onOpenChange,
 }: TooltipProps) {
   return (
-    <TooltipPrimitive.Root>
+    <TooltipPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
