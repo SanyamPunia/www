@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { type Knob, Lane } from "@/components/lab/controls";
+import type { Knob } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 import { PATTERNS } from "./artwork";
 import { DEPTH, DRIFT } from "./mosaic";
