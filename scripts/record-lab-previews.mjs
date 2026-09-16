@@ -727,6 +727,48 @@ const LABS = {
       await wait(4600);
     },
   },
+  "ember-burst": {
+    // the dark stage inside the frame's own padding, which is the card's 8:5
+    // exactly, so the clip is that box with nothing padded or cut. The demo is
+    // taller than it, since the knobs sit underneath on the frame's white.
+    focus: [19, 19, 499, 312],
+    // all four gestures, in the order they build on each other: a tap off
+    // centre so the burst leans and the disc takes its knock, a tap back so the
+    // snuff's smoke is in the clip, a hold so the blaze ramps, and a drag so
+    // the shower streaks behind the hand. It ends lit and moving, which is the
+    // frame worth looping back from.
+    async run({ m }) {
+      const cx = 269;
+      const cy = 175;
+      // an instant press, since `m.click` approaches over six steps and can sit
+      // on the wick long enough to arm its tooltip over the demo
+      const tap = async (x, y) => {
+        await m.move(x, y);
+        await m.down();
+        await wait(50);
+        await m.up();
+        await m.move(70, 300);
+      };
+
+      await wait(420);
+      await tap(cx - 26, cy + 8);
+      await wait(1500);
+      await tap(cx, cy);
+      await wait(1500);
+
+      // hold, then carry it straight into a drag without letting go
+      await m.move(cx, cy);
+      await m.down();
+      await wait(1100);
+      for (let i = 0; i <= 30; i++) {
+        const t = i / 30;
+        await m.move(cx + Math.sin(t * Math.PI * 1.6) * 150, cy - t * 58);
+        await wait(34);
+      }
+      await m.up();
+      await wait(1100);
+    },
+  },
 };
 
 function crop(rect, bounds) {
