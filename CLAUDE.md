@@ -158,6 +158,11 @@ in the light tokens to sit it against.
   it stands in for is a piece of hardware, and it is the only dark object on
   its stage. The page under it stays light. Same shape as `book-opening`'s
   boards: one object opts in, not the ground.
+- `components/labs/ember-burst/` is a shower of sparks, and light is the one
+  thing that cannot be drawn on a white page: a near-white ember on `bg` is
+  nothing at all, and the room the burst lights has no lift available to it.
+  The stage inverts and the strip of knobs under it stays light, so the set
+  covers the picture and never the controls.
 - `components/labs/window-shade/` is the one caller that does not pick an end.
   **It reads both sets at once and asks for the point between them**, since the
   whole experiment is a cabin crossing from lit to dark on the position of a
@@ -370,11 +375,14 @@ glyph could not serve.
 - Sizing is `size-*`, never the `size` prop, so the Tailwind scale stays the one
   source of truth. Inline-in-text icons use `size-[0.9em]` so they track the
   copy they sit in.
-- Weight stays at the `regular` default. Do not pass `weight` per call site. Two
-  exceptions: the signature player's transport, where the glyphs are player
-  symbols rather than UI icons and take `fill`, and `halftone-ripple`'s heart,
-  where a filled heart is what a like button's on state has always looked like
-  and the fill is the state rather than a style.
+- Weight stays at the `regular` default. Do not pass `weight` per call site.
+  Three exceptions, and each is a state rather than a style: the signature
+  player's transport, where the glyphs are player symbols rather than UI icons
+  and take `fill`, `halftone-ripple`'s heart, where a filled heart is what a
+  like button's on state has always looked like, and `ember-burst`'s flame,
+  which is filled when the wick is lit and an outline when it is out. The last
+  two fade the filled glyph in over the outline rather than swapping the
+  weight, so the edge stays under it through the change.
 
 ## Inline links
 
@@ -1219,14 +1227,18 @@ experiment is a directory under `components/labs/`.
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
-  `crack-button`, `stem-picker` and `pixel-reveal` use it.
+  `crack-button`, `stem-picker`, `pixel-reveal` and `ember-burst` use it. That
+  last one is the only entry where `flush` governs part of the frame rather than
+  all of it: the stage runs to all four of its edges and the knob strip beneath
+  carries its own padding, since a range track running into a hairline is not a
+  control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Nineteen experiments define their own hues**, `tab-overview` per terminal
+- **Twenty experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1237,8 +1249,10 @@ experiment is a directory under `components/labs/`.
   wheel, `flip-clock` per card, since black hid the depth, and `wrapped-pattern`
   per column of dots on its sheet, `book-shelf` per book on it,
   `shelf-drop` per print on its ledge, `stem-picker` per flower in its
-  bunch, and `pixel-reveal` a palette per picture, one for each of the five it
-  can resolve. Five of
+  bunch, `pixel-reveal` a palette per picture, one for each of the five it
+  can resolve, and `ember-burst` a temperature ramp, which is the one set in
+  the lab that is not a choice at all: an ember's colour is what its heat looks
+  like, so the six stops are a measurement rather than a palette. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -1385,6 +1399,14 @@ assets.
   coordinates, so a page that moves under it lands the clip on the prose below
   the demo, which is what four of the first clips were. The scroll is pinned as
   well, since a focused control that grows the page can move it too.
+- **A gesture that presses a control with a tooltip jumps on and off it rather
+  than approaching.** `m.click` moves in six steps, which under the screencast's
+  load can sit on the target long enough to arm a 200ms tooltip timer, and the
+  label then opens over the demo for most of the clip. `ember-burst` presses in
+  about fifty milliseconds and moves away in the same call, so there is never a
+  hover to time. The recording captures no cursor, so an instant move costs the
+  clip nothing. Its own hold and drag are safe from this for a different reason:
+  that demo refuses the tooltip while a hand is down.
 - **The recording opens on the settled demo and closes on the gesture's end**,
   started and stopped around the gesture rather than trimmed out of a longer
   take. Every gesture begins with a short wait on a settled demo, so the first
@@ -1396,7 +1418,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-three clips, 1.9MB with their stills, 3.4 to 7.5 seconds each, at 60
+- Thirty-four clips, 2.1MB with their stills, 3.4 to 7.6 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -5125,9 +5147,11 @@ and the disclosure.
 - **`Lane` takes a `disabled`**, which is the shared rule's
   `disabled:opacity-50 disabled:cursor-not-allowed` arriving at the primitive
   that was missing it. `rain-splatter` never passes it and is unchanged.
-- **`Lane` and `Pill` live in `components/lab/controls.tsx`.** They were
-  `rain-splatter`'s and moved when this became the second caller, which is the
-  rule the rest of the project follows. They are in `components/lab/` rather
+- **`Lane`, `Panel` and `Pill` live in `components/lab/controls.tsx`.** `Lane`
+  and `Pill` were `rain-splatter`'s and moved when this became the second
+  caller, and `Panel`, the three-or-one column layout, was this lab's and moved
+  when `ember-burst` became its second. That is the rule the rest of the project
+  follows. They are in `components/lab/` rather
   than `components/ui/` because they are lab chrome and nothing outside an
   experiment has a use for them. Each lab keeps its own knob table.
 - **There is no readout, and the count went with it.** It was the honest number
@@ -5159,6 +5183,285 @@ and the disclosure.
 - **Reduced motion keeps the run and drops the travel.** A press is a request, so
   generate still generates, it simply lands on the finished picture in one step.
 
+### `ember-burst`
+
+A wick on a dark stage. Tapping it strikes, and a shower of embers leaves the
+flame's rim, rises, cools and goes out. Tapping it again snuffs it, and what
+comes off then is smoke. Holding it blazes and dragging it draws. `burst.ts` is
+the model and the painter, pure and DOM-free, the split `halftone-ripple` makes
+with `ripple.ts`, and `index.tsx` is the stage, the wick, the frame loop and the
+six knobs.
+
+- **An ember's colour is its age, which is the claim the whole build exists to
+  make.** The ramp runs near-white through yellow and orange into a deep red the
+  ground swallows, so the shower is gone before its alpha has finished and what
+  the eye reads is the heat leaving rather than an opacity being taken away. The
+  reference is a like button that tweens a ring of copies of its own icon out to
+  a fixed radius and fades them, and a fade says nothing about why a spark
+  disappears.
+- **Nothing is on a rail.** Each ember is a body with a launch speed off a
+  squared roll, drag, buoyancy scaled by its own heat and a little turbulence,
+  so the burst is a ring for about two hundred milliseconds and a drifting plume
+  after that and no two presses agree. A press while the last one is still in
+  the air adds to it rather than replacing it.
+
+#### The six things that separate a spark from a particle
+
+The first build threw uniform teardrops in one frame at one instant, every one
+the same size with the same drag and the same life, and it read as a wheel of
+equals expanding. Each of these is a property real sparks have that a ring of
+tweened glyphs does not, **and each is a knob, so the reader can take it back
+out**. Run `spray`, `drag`, `lift`, `pops` and `trail` down to their floors
+together and what comes back is that wheel. `pixel-reveal` makes the same
+argument about its own `drift` reaching zero: leaving the floor reachable is
+what makes the difference visible rather than asserted.
+
+- **A spark is a streak, not a dot.** One covers several pixels between two
+  frames and both the eye and a camera read that as a smear, so each body keeps
+  the last `trail` milliseconds of its own positions and the streak is drawn
+  through them. It is pruned by age and never by count, so a trail is the same
+  length in pixels at 60Hz and at 120Hz.
+- **The streak is a chain of glows and not a shape.** It was a tapering polygon
+  first, and a flat fill with a hard boundary is a drawn spoke: at launch every
+  ember travels radially, so the first build's trails were a starburst of
+  hard-edged spikes round the wick. A row of overlapping glow sprites under
+  `lighter` is what a smear of light actually composites to, it comes out soft
+  at the edges for nothing, and it reuses the sprite sheet the heads already
+  need. Each point is drawn a step cooler as well as a step smaller, so the
+  smear cools along its own length.
+- **It sputters rather than dimming smoothly.** A real ember tumbles and its
+  fuel is not even, so the light jitters at a few tens of hertz. Two sines with
+  no common period, offset by the body's own seed, so nothing in a shower of
+  them beats in time. It multiplies the light and never the colour, since what
+  varies is how hard it is burning and not how hot it is.
+- **A small one drags to a stop and a big one carries.** Drag goes with area and
+  momentum with mass, so every body stores its own share of the rate rather than
+  a rate of its own: at the default the reach runs from about 65px for a slow
+  speck to 368px for the biggest and fastest, which is off the stage. A share
+  rather than a rate is also what lets the `drag` knob reach what is already in
+  the air. This is most of what turned a ring expanding into a shower thinning
+  out.
+- **A small one also burns out sooner.** Life comes off the same roll that sizes
+  it, since a bigger ember is a bigger piece of burning material. Rolled
+  independently it puts long-lived specks and short-lived lumps in one shower,
+  which reads as noise rather than as a spread.
+- **A strike sprays rather than emitting at once**, longest for the slowest, so
+  the fast ones lead and the shower fills in behind them. A burst that emits on
+  one frame holds every ember on one expanding circle for as long as it lives.
+- **Some of them pop.** A spark is a fragment of burning material and about a
+  fifth come apart on the way, throwing two or three pieces of their own. What a
+  break exposes is fresh surface, so the pieces start at full heat rather than
+  carrying the parent's, which is why a pop reads as a white flash in the middle
+  of a cooling shower. They carry no `pop` of their own, or one ember could fill
+  the stage.
+
+#### Holding and dragging
+
+- **A tap is a state change and a hold is the flame being fed.** Without the
+  second this is a button you press and watch, where every other lab on this
+  site gives you something to hold. A hold catches a cold wick first, then emits
+  continuously at a rate that ramps from 26 to 92 embers a second over 900ms,
+  into a wide cone around north rather than a ring: what is emitted continuously
+  has no ring to be part of, and a flame throws upward.
+- **A hold never snuffs**, so putting it out is always a deliberate tap. That is
+  a flag of its own rather than the blazing flag, because under reduced motion
+  there is no continuous emission running and the release would otherwise fall
+  through to the tap that puts it out.
+- **Dragging it draws, because the sparks leave carrying the wick's own
+  velocity.** That is the whole of it: nothing about the launch changes, the
+  emitter's speed is added to it, which is why a waved sparkler streaks behind
+  the hand rather than throwing a ring at every point along the way. It is 62%
+  of the hand's speed and not all of it, since a spark is thrown off a flame
+  rather than welded to it, and at 1 the shower reads as a rigid comet.
+- **The wick springs home when it is let go**, and it used to stay where it was
+  dropped. That is right for `sticker-peel`, where the thing being moved is a
+  sticker, and wrong here: this is the demo's one control, and a button that
+  permanently relocates itself reads as a loose object rather than as the thing
+  you press. A drag is a gesture, not a move. The spring is critically damped,
+  since what is arriving is a control and not something thrown, and an arrow key
+  has the same shape: held, it walks the wick out on the browser's own repeat,
+  and letting go brings it back.
+- **The velocity is Motion's own, off the wick's position value**, which is
+  `portrait`'s call for the same question: `getVelocity` returns 0 once a value
+  has not changed for 30ms, so a hand that stopped before letting go throws
+  nothing, where a velocity kept by hand freezes at whatever it last was.
+- **A tap shakes the wick rather than shoving it.** It was a 5px displacement
+  on a spring, and at this size that is the control sliding across the stage and
+  back rather than reacting to anything: what a struck match does is jolt, not
+  travel. It is a keyframed oscillation now, 2.4px at its widest and decaying to
+  nothing inside 240ms, along the press where there is a direction and sideways
+  where there is not, because a shake is sideways. A keyframe array rather than
+  a value to spring toward, since this is a jolt with a direction and not a
+  displacement to recover from. Measured on a press 24px off centre: 1.18, 1.50,
+  -0.38, -0.82, -0.23, 0.37 and home.
+- **The drag and the tap's shake sit on two elements.** A motion value handed to
+  `style` owns that transform outright, which `crack-button` and `stem-picker`
+  both document running into.
+- **A drag past 6px of slop is a drag, and anything shorter that outlives 180ms
+  is a hold.** The gesture ends on the window, so a hand that runs off the wick
+  or off the frame is still the hand that was holding it, which is nib's rule.
+  The listeners are bound once and gated on a ref, and the release goes through
+  a ref of its own, so a listener bound on mount is never calling a stale one.
+- **The keyboard gets both gestures and the move.** `keydown` arms and `keyup`
+  releases, so Enter and Space tap or hold exactly as the pointer does, and the
+  arrow keys move the wick, since a path reachable only by pointer is what
+  `event-stacking`'s hint argues against. The keydown prevents its own default,
+  which is the click a button synthesises, or a toggle would fire underneath
+  every hold. `onClick` is kept for the one click nothing else produces, which
+  is what an assistive technology sends.
+- **The wick's tooltip is controlled, and refuses to open while a hand is
+  down.** A label that arrives on the 200ms delay and then sits over the demo
+  for the length of a hold is covering the thing it describes. `components/ui/`
+  gained an optional `open` and `onOpenChange` for it, so Radix still decides
+  when a tooltip wants to be open and this only vetoes.
+- The button's accessible name stays the action alone, since a name is read on
+  every focus, and the two gestures are an `aria-describedby`, which is
+  announced once.
+
+#### The light
+
+- **The stage is dark because light needs something to be light against**, and
+  the room is lit by what the press threw. The wall's brightness is the heat
+  still in the air, eased toward it on `approach` so it does not cut out when
+  the last ember dies.
+- **It is cast from where the heat is, not from the wick.** `step` returns the
+  heat-weighted centroid of everything burning, and the wall's bright spot leans
+  55% of the way toward it. Lighting the middle whatever the sparks did was the
+  one thing left in the picture a reader could catch being false. The pool is
+  moved with a `translate3d` on a box twice the stage in each direction, so the
+  light travelling is a compositor move and never a repaint of the wall, and a
+  gradient centred in a box the size of the stage would show its own edge the
+  moment it moved.
+- **The wick has no fill at all, and that is the whole fix for the worst thing
+  in the piece.** It was `inverse-fill`, a fixed near-black, so the moment the
+  room lit up the one object that did not was the one throwing the sparks: a
+  black puck sitting in the middle of a fire, which is exactly what it was taken
+  for, a placeholder. Two rounds of lighting it did not help, because the
+  problem was never the shade, it was that the disc was opaque. Transparent, the
+  room light and the burst behind it show straight through and it lights with
+  everything else. A hairline is what says there is a control there, hover and
+  press are light at alpha over it rather than a darker fill, and a warm radial
+  under the glyph is the flame's own light on the wick.
+- **So there is no disc face for the light to fall on.** A pass that clipped a
+  warm wash to the disc and cast it from the heat's direction went with the
+  fill: on an opaque puck it was a lit crescent against a dark one, which read
+  as two overlapping spheres, and on a transparent one it is a warm circle with
+  a hard edge. What lights the wick now is the room behind it.
+- **So does the smoke**, which is the one thing out there big enough to show a
+  light. A strike through a plume left by the last snuff lights that plume, in a
+  second warm sprite added over the grey one.
+- **Bright light blooms**, in a lens and in an eye. It is a downsample to an
+  eighth and an upsample back, which is a box blur the browser's own bilinear
+  filter does on the GPU: two `drawImage` calls a frame, where a real gaussian
+  would cost a filter pass over the whole canvas. Without it the white-hot end
+  of the ramp is paint rather than light, since the sparks were the brightest
+  thing on the stage and the only thing on it with a hard edge. **It is 0.34 and
+  was 0.62**, which is fine for one strike and is fog at a blaze: a hundred
+  overlapping glows already clip to white under `lighter`, and a bloom that
+  strong takes the clipped patch and smears it over a third of the stage. A
+  bloom is for the edge of a bright thing, not a second light source. The glow
+  and the streak each give up a little alpha for the same reason.
+- **The lit flame wavers**, which was the last thing holding still once the
+  sparks became streaks that sputter. `flame-waver` in `globals.css` leans and
+  breathes it on a 1.35s period against the halo's 1.7s, so the two never come
+  back into step, anchored at `origin-bottom` because a flame is fixed at its
+  base and the top is what the air moves. Both are behind `motion-safe:` and
+  neither costs a frame.
+
+#### The rest
+
+- **The snuff throws smoke, not grey embers.** Lighting something and putting it
+  out are different events, and the first build made one emission serve both: a
+  ring of eleven puffs at even angles is an ember burst drawn in grey, and it
+  stayed eleven puffs rather than becoming a cloud. Smoke takes a free angle, a
+  free start radius, a strong upward lean, a slower and wider wander than the
+  embers' and a billow to 2.4 times its launch radius, so what leaves the wick
+  is one plume rising. **Seven puffs and not eleven**, at two thirds the radius
+  and two thirds the alpha, and the pass that lights them is well under half
+  what it was: once smoke caught the embers' light, a snuff followed by a blaze
+  filled a third of the stage with a lit fog bank. A snuff is a wisp.
+- **A fire crackles because things in it are breaking**, and the burst already
+  knows when one does: `step` returns the number that popped on the frame and
+  each is a short, high, quiet noise burst. Capped at two a frame, since a
+  flurry can break several at once. The strike and the snuff are synthesised the
+  same way, `crack-sound.ts`'s shape: one context, one noise buffer, a filtered
+  burst per event, nothing fetched. A strike is two bursts a few hundredths
+  apart, a bandpass sweeping up that is the head dragging across the grit and a
+  lowpass body under it that is the flame taking, because running them together
+  is a hiss. The clock is unlocked on `pointerdown` and played on the release,
+  the two-step `poke-sound.ts` documents.
+- **Tapping off centre pushes the burst the way the hand went and shakes the
+  wick the same way**, and it is measured at the press and carried to the
+  release, since only a release that never became a hold is a tap. A keyboard
+  press reports no coordinates, so it gets a burst with no lean at all and a
+  sideways shake.
+- **Everything scales with the stage, and both halves of that are separate.**
+  The burst multiplies every length and every speed by the stage's share of the
+  538px column, or a 390px phone gets a burst that is out through the top and
+  both sides before it has cooled. The wick is `clamp(3rem, 15.7cqw, 4.8rem)`,
+  so the disc is the same fraction of the frame too. **`@container` sits on the
+  stage and again on the wrapper**, since a container governs its descendants
+  and never its siblings: the panel is outside the stage, and without the second
+  one its `@md:` columns never match and six lanes stack on a wide column.
+- **A flurry feeds the strike**, up to 1.9 times a cold one, the way a struck
+  match catches harder the second time. `pressedAt` starts at negative infinity
+  rather than zero, and that was a bug: `performance.now()` is the time since
+  the document loaded, so a first press inside the streak window of the page
+  arriving read as a continuation. Measured, 23 embers on a first press against
+  the 18 a cold one is meant to throw.
+- **The wick's hover goes lighter and only its press goes darker**, the opposite
+  of the site's own order and `book-opening`'s call: the usual `fill` steps
+  assume a white page and both of them move toward the ground here. Rest is
+  `inverse-fill`, hover `inverse-stroke` and the press `inverse-bg`. The edge is
+  `inverse-text` at 12%, light on a dark ground rather than `inverse-stroke`,
+  which `island-menu` documents measuring at 1.13:1 on this fill.
+- **The focus ring is the dark-ground variant, and that is stronger rather than
+  weaker.** The project's own pattern pins `ring-text-primary/15`, which is a
+  near-black ring on a near-black disc, and Tailwind's ring paints its 2px
+  offset in `--tw-ring-offset-color`, which defaults to white and would put a
+  bright band round the wick. It is `inverse-text` at 30% over an `inverse-bg`
+  offset, the same substitution `window-shade` and `island-menu` make. The rule
+  that bends here says never to use a *weaker* ring than the declared one.
+- **`cursor-grab`, which is the eighth place the shared `cursor-pointer` rule is
+  off**, after `tether-button`, `event-stacking`, `window-shade`,
+  `sticker-peel`, `custom-cursor`, `radial-menu` and `wrapped-pattern`. The wick
+  is dragged as often as it is tapped.
+- **`touch-none` is on the wick alone and never on the stage**, so a thumb
+  scrolling past the demo is not trapped by the dark box, which on a phone is
+  most of what is on screen. That is the trade `window-shade` documents for its
+  own grip.
+- **`select-none` on the stage.** The gesture is a flurry of presses and drags
+  on one small control, and a rapid multi-click anchors a selection on the
+  nearest text it can find, which is `crack-button`'s case exactly.
+- **Nothing renders while a burst is in the air.** The bodies live in a ref, one
+  loop paints them, and the wall's brightness and the `aloft` readout go
+  straight to their nodes. The knobs and the lit flag are mirrored into refs,
+  since the loop reads both outside a render and a lane being dragged has to
+  reach what is already flying. The loop stops once the air is empty, the wall
+  has finished dimming and nothing is being held. Measured: 0 frames requested
+  across a second at rest, 3s after a tap and 3.5s after a drag, and under a 4x
+  CPU throttle through a one-second blazing drag at 105 to 117 bodies, four
+  passes of about 130 frames each with a median gap of 16.7ms, a 95th percentile
+  of 16.7 to 16.8 and a worst frame of 17ms in three of the four.
+- **Reduced motion keeps every state and drops the travel.** A tap still throws
+  its burst, as a ring at 96px of the stage's own scale that fades where it
+  stands. A hold still catches a cold wick and still leaves it lit, and simply
+  does not feed it, since a blaze is continuous travel. The wick still drags and
+  still comes home, in one step rather than on the spring. There are no streaks, no
+  pops and no spray, each of those being a fact about a flight that is not
+  happening, and the shake and both keyframes are off. Verified:
+  `animation-name` reads `none` on the halo and the flame, the wick's transform
+  stays `none` through a press, and a 0.7s hold leaves it lit with nothing in
+  the air.
+- **It is `flush`, so the stage runs to all four edges of the frame**, and only
+  the knob strip under it carries padding. The stage is `aspect-8/5`, which is
+  the shape of the index's preview card, so the recorded clip is that stage with
+  nothing padded or cut.
+- Verified in a browser at 1280px and at 390px: the frame measures 538 by 390
+  with the panel shut, the stage 538 by 336 flush to its edges, the wick 77px
+  and 49px, a cold tap throws 18 and a 1.6s hold reaches 107 aloft, the panel is
+  three columns and one, it is `inert` while shut, Enter taps and holds, the
+  arrows move the wick and it comes back, and no console errors.
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
@@ -5996,7 +6299,7 @@ package, no provider component and no per-route call.
   reference. Anything untyped from npm gets its `.d.ts` here.
 - `components/lab/` the lab index and detail chrome: the dynamic import map, the
   hover preview, the index list, and `controls.tsx`, the parameter lane and the
-  pill that two experiments now share. Lab chrome rather than site primitives,
+  pill that three experiments now share. Lab chrome rather than site primitives,
   which is why it is not in `components/ui/`.
 - `scripts/` tooling that is not part of the app and never imported by it. Plain
   `.mjs` run with `node`, one file per job, each documenting what it produces and
