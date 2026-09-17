@@ -283,6 +283,32 @@ export default function NotchDrop() {
     );
   };
 
+  /**
+   * The stage wears the grabbing cursor for as long as a card is in hand.
+   *
+   * **The card cannot carry it, because the pointer is not over the card.**
+   * `cursor-grab` and its `active:` pair only hold while the hand is still on
+   * the thing it pressed, and the first pixel of a drag takes it off: what is
+   * under the pointer from then on is the stage, since the ghost following it
+   * is `pointer-events-none`, so the cursor fell back to the default arrow for
+   * the whole of every drag.
+   *
+   * **The descendant rule is the half that does the work.** A card declares
+   * `cursor-grab` and an inherited value loses to a declared one, so a drag
+   * that passed back over the grid would show `grab` again in the middle of
+   * itself. `sticker-peel` and `gooey-chips` use the same pair for the same
+   * reason.
+   *
+   * Written to the node rather than held in state, so a drag still renders
+   * nothing.
+   */
+  const carry = (on: boolean) => {
+    const s = stage.current;
+    if (!s) return;
+    if (on) s.dataset.carry = "true";
+    else delete s.dataset.carry;
+  };
+
   const lift = (e: React.PointerEvent<HTMLElement>, id: string) => {
     if (phase === "captured") return;
     const s = stage.current;
@@ -300,6 +326,7 @@ export default function NotchDrop() {
     grab.current = g;
     /* the board keeps the pointer, so a hand that leaves the card still carries it */
     s.setPointerCapture(e.pointerId);
+    carry(true);
     gx.jump(0);
     gy.jump(0);
     sx.jump(0);
@@ -330,6 +357,7 @@ export default function NotchDrop() {
     const g = grab.current;
     if (!g || e.pointerId !== g.pointer) return;
     grab.current = null;
+    carry(false);
     if (g.over) capture(g);
     else rest(g);
   };
@@ -338,6 +366,7 @@ export default function NotchDrop() {
     const g = grab.current;
     if (!g) return;
     grab.current = null;
+    carry(false);
     rest(g);
   };
 
@@ -423,7 +452,7 @@ export default function NotchDrop() {
       onPointerCancel={cancel}
       /* its own ring, since the stage's white covers the frame's inset ring,
          the trap the album cover documents */
-      className="relative h-148 w-full select-none overflow-hidden rounded-lg bg-bg ring-1 ring-stroke ring-inset"
+      className="relative h-148 w-full select-none overflow-hidden rounded-lg bg-bg ring-1 ring-stroke ring-inset data-[carry=true]:cursor-grabbing data-[carry=true]:[&_*]:cursor-grabbing"
     >
       {/*
        * The goo. Two black shapes under one blur-and-threshold filter read as

@@ -3591,6 +3591,23 @@ on the page, `index.tsx` the notch, the drag and the goo.
   window `blur` cancel, which is nib's rule for a drag that must never get
   stuck. A release away from the notch springs the ghost back to its origin and
   the notch shuts.
+- **The stage wears the grabbing cursor for as long as a card is in hand, and
+  the card cannot carry it.** `cursor-grab` and its `active:` pair only hold
+  while the hand is still on the thing it pressed, and the first pixel of a
+  drag takes it off: what is under the pointer from then on is the stage, since
+  the ghost following it is `pointer-events-none`. So the cursor fell back to
+  the default arrow for the whole of every drag, which is the one moment it had
+  something to say. Measured before: `auto` over the stage mid-drag.
+  - **The descendant rule is the half that does the work.** A card declares
+    `cursor-grab`, and an inherited value loses to a declared one, so a drag
+    passing back over the grid showed `grab` again in the middle of itself.
+    `data-[carry=true]:cursor-grabbing` and its `[&_*]` pair are what
+    `sticker-peel` and `gooey-chips` already use for the same reason.
+  - **Written to the node in `lift` and cleared in `release` and `cancel`**, the
+    two places that already null the grab, so a drag still renders nothing. The
+    keyboard's path never sets it, since nothing is being held. Measured:
+    `grab` on the card, `grabbing` from the press through bare stage, another
+    card and the notch, and `grab` again after the release or an Escape.
 - **Putting a card back is a crossfade, and this was a flicker.** The ghost
   used to be unmounted in one frame after 320ms while the card under it was
   still at 30% and took 200ms to fade up. Sampled per frame: ghost gone at
@@ -5422,10 +5439,10 @@ what makes the difference visible rather than asserted.
   bright band round the wick. It is `inverse-text` at 30% over an `inverse-bg`
   offset, the same substitution `window-shade` and `island-menu` make. The rule
   that bends here says never to use a *weaker* ring than the declared one.
-- **`cursor-grab`, which is the eighth place the shared `cursor-pointer` rule is
+- **`cursor-grab`, which is the ninth place the shared `cursor-pointer` rule is
   off**, after `tether-button`, `event-stacking`, `window-shade`,
-  `sticker-peel`, `custom-cursor`, `radial-menu` and `wrapped-pattern`. The wick
-  is dragged as often as it is tapped.
+  `sticker-peel`, `notch-drop`, `custom-cursor`, `radial-menu` and
+  `wrapped-pattern`. The wick is dragged as often as it is tapped.
 - **`touch-none` is on the wick alone and never on the stage**, so a thumb
   scrolling past the demo is not trapped by the dark box, which on a phone is
   most of what is on screen. That is the trade `window-shade` documents for its
