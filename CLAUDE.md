@@ -1227,11 +1227,11 @@ experiment is a directory under `components/labs/`.
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
-  `crack-button`, `stem-picker`, `pixel-reveal` and `ember-burst` use it. That
-  last one is the only entry where `flush` governs part of the frame rather than
-  all of it: the stage runs to all four of its edges and the knob strip beneath
-  carries its own padding, since a range track running into a hairline is not a
-  control.
+  `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst` and
+  `notice-stack` use it. `ember-burst` is the only entry where `flush` governs
+  part of the frame rather than all of it: the stage runs to all four of its
+  edges and the knob strip beneath carries its own padding, since a range track
+  running into a hairline is not a control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
@@ -1418,7 +1418,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-five clips, 2.1MB with their stills, 3.4 to 7.9 seconds each, at 60
+- Thirty-six clips, 2.1MB with their stills, 3.4 to 9.0 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -5981,6 +5981,237 @@ flights.
   in `#fafafa` at 16.5:1, Enter toggles a focused chip, nothing is requested at
   rest and the filter is off there, and no console errors.
 
+### `notice-stack`
+
+A pile of notices in a tray. Point at it and the one behind rises into a
+thicker edge, move onto that edge and it rises again to read its title, and
+press to advance: the front notice lifts toward the reader and dissolves while
+the one that was peeking comes forward into its place. `notices.ts` is what is
+in the tray, `stack.ts` the poses and the hit test, pure and DOM-free, the split
+`document-pocket` makes with `poses.ts`, and `index.tsx` the pile and the
+gestures.
+
+- **Nothing here crossfades content.** Every card owns its own copy for the
+  whole session and what changes is which depth it is at, so a notice arriving
+  at the front is not being filled in, it is being uncovered: the body and the
+  button it lands with were drawn the whole time, behind the card that was
+  covering them. That is `folder-stack`'s claim about occlusion arriving at a
+  pile that stacks up rather than a drawer that stacks back, and it is why the
+  list never reorders either. The notices sit in a fixed array and a `front`
+  index walks it, so a press is one number changing and the DOM never moves,
+  which is `event-stacking`'s call for the same reason.
+- **`peek` is one number, and that is what scaling about the top edge buys.**
+  A card's `transform-origin` is `50% 0`, so its scale never moves the edge the
+  peek is measured from and the two are independent. About the centre they are
+  not: a card at 0.85 drags its own top down by 7.5% of a height nothing here
+  knows, so every peek would carry a correction and the geometry would want a
+  `ResizeObserver` before it could say anything at all. The other half of the
+  choice is free, since scaling from the top lifts a card's foot as well, and
+  the foot is the end already hidden behind the card in front. A card can shrink
+  as far as it likes and never poke out from under the pile.
+- **Only the second card ever moves, and the third is what it moves over.**
+  Shut the pile is 0/8/14 at 1/0.92/0.85, which is three edges saying how many
+  there are. Every stance after that lifts the second card and leaves the third
+  exactly where it is: `lift` is 0/17/14, `title` is 0/38/14, and both of them
+  cover it. **One card behind, whatever is being asked of the pile.** Raising
+  both was the first build and it says the same thing twice, once in a strip too
+  thin to read.
+- **`lift` clears the third card by 3px and stops inside the second card's own
+  top padding.** A title's line box starts 19.2px down and 17.95 after the
+  card's scale, so at 17 it is still covered by 0.94px, which is the most this
+  stage can show and still be saying nothing. A card with its heading sliced off
+  is the one thing the first hover must not draw. `title` at 38 is that padding,
+  the title's own 17.2px line and 2.5px under it: measured, the peeked title's
+  box sits 19.7px above the front card's top edge.
+  - **That padding is the floor under every number here, which is why the strip
+    was shortened at the other end.** The strip a reveal opens runs from the
+    card's top edge to the front card's, so the space above the title in it is
+    the padding and nothing can be done about that. Cutting the padding cuts the
+    cascade with it, since `lift` has to fit inside the padding and the resting
+    pile has to fit under `lift`: at `p-4` the pile is two 4px seams. So the
+    title takes `leading-tight` instead of the token's prose 1.6, since a
+    heading that truncates rather than wrapping has no use for the leading and
+    5px of it was being spent on nothing. 44px of strip to 38.
+- **The scales are deeper than they look like they need to be, and that is what
+  carries the arrival.** A press moves the second card 17px, which is nothing to
+  watch, so what says it came from the back is that it grows 7% on the way,
+  0.935 of the front card's width to all of it. At 0.955, which was the first
+  build, the same press read as a card fading out over a card that was already
+  where it ended up.
+- **The hit testing is one line that never moves.** The front card is the only
+  card with the same pose in every stance, so its top edge is a constant: below
+  it is the card, which is `lift`, and above it is whatever the card behind is
+  currently reaching into, which is `title`. One `pointermove` on the region
+  measures against that line and nothing else is read.
+  - **The band above the line comes off the stance the pile is already in, and
+    every stance the pointer can move into has a band at least as tall as the
+    one it left**, 8 then 17 then 38. So the region only ever grows under a
+    pointer and a hover cannot take itself back, which is the loop
+    `document-pocket` has to hit test its own neutral geometry to avoid, closed
+    off by arithmetic instead. Approaching the pile from above opens it late
+    rather than early, which is correct: the band is where the peeked card
+    actually is, and above that is bare stage.
+  - Mouse and pen hover and everything else taps, `folder-stack`'s gate and not
+    a test against a finger.
+  - **On a phone a tap on the front card opens the pile, and that is the only
+    thing a finger does to it.** With the cycle target on the second card's
+    strip and no hover to raise it, a phone would be left aiming at the 8px the
+    resting pile shows, so a tap opens it to the stance a pointer would have
+    reached and a second tap shuts it again. A tap that landed on a button is
+    that button's, which is what keeps a tap on the strip a cycle rather than a
+    cycle and then a close.
+  - **The region's `pointerleave` is gated on the pointer type too, and without
+    that the tap could not work at all.** A touch `pointerleave` is a lift
+    rather than a departure and it lands after the `pointerup` the tap is heard
+    on, so ungated it shut the pile inside the same gesture that opened it,
+    which is `book-opening`'s trap arriving at a tray. Measured on a 390px
+    phone: the pile rests at 0/8/14, a tap on the card takes it to 0/38/14, two
+    taps on the strip walk it and leave it open, and a tap on the card shuts
+    it.
+- **One spring, and everything the pile does is on it.** The peek, the pass, the
+  collapse and the promotion after a drop are all answers to something the
+  pointer just did, and a preview that eases while a press snaps reads as two
+  demos in one frame. Stiffness 720 and damping 40 settles in about 200ms with
+  6% of overshoot, which is what keeps quick from reading as abrupt. It replaced
+  a pair, a slow spring for the hover and a fast one for the press, plus the
+  state and the timer that chose between them, and nothing about the pile was
+  better for having two.
+- **A cycled notice leaves toward the reader and a cleared tray leaves
+  downward, and the two directions are the whole difference between them.**
+  Cycling lifts the front card off the top of the pile, `y` 0 to 12 and scale 1
+  to 1.05 over a 180ms tween, and it is gone: nearer for the moment it is in the
+  air, which is what a card taken off a deck does. Leaving the tray is two beats
+  on one 340ms tween, a shrink to 0.95 over the first fifth and a 110px fall
+  over the rest. Neither of them is the back of the pile. A cycled card does go
+  there, but it is invisible by then, so where it travels after the fade is
+  bookkeeping rather than motion.
+  - **The exit sets no `zIndex`, and that was a bug.** Pinning every exiting
+    card to one layer hands the top of the pile to whichever is last in the DOM,
+    so clearing the tray put the third notice over the one being read. A card on
+    its way out keeps the `zIndex` it was rendered with, which is already higher
+    than anything left behind it, since the list it was counted against is one
+    longer.
+  - **The fade is held back for two thirds of the drop**, which is about 60px
+    of travel a reader sees before anything starts going. At 56px over a tween
+    that faded from a third, the card was gone before it had been anywhere: what
+    that read as was a notice dissolving in place with a little downward drift
+    rather than one leaving the tray. The stage clips, so 110px carries it past
+    its own bottom edge and the drop has somewhere to go.
+  - **The fall accelerates on `[0.4, 0, 0.9, 1]` rather than a plain ease-in.**
+    A card falling should gather speed, and the plain curve crawls for its first
+    third, which here is the third the held-back fade exists to make visible.
+  - **The keyframes open on `null`**, which is Motion's "whatever it is now", so
+    a card deeper in the pile does not jump to the front card's scale on the
+    frame it is asked to leave.
+- **The blur belongs to the exit, not to the pile.** A notice leaving softens as
+  it goes and nothing that is staying ever does, at any depth, which is why the
+  peeked cards are sharp at rest and why there is nothing to schedule: each exit
+  already has a tween and the blur rides it, at zero where the card is still in
+  the pile and widest where it is gone.
+  - **Only the card leaving carries it, and that was the fix.** Blurring the one
+    arriving as well is what the reference does, and both soft at once is 160ms
+    of mush with nothing in it to read: the pass stops being a notice being
+    replaced and becomes a smear. Sharp underneath, the arriving notice is
+    legible from the first frame and the one dissolving off it is the only thing
+    moving.
+  - **The drop carries it too, for the other reason.** Without it the leaving
+    card and the one promoting are both sharp and both legible on top of each
+    other, which is worse than either: two notices' worth of type in one box
+    reads as a rendering fault rather than as one of them leaving.
+  - `gooey-chips` derives its own softening from the gap between two shapes
+    rather than from a timeline, and **the same move fails on a pile**: at rest
+    the front card and the one behind it are already 9px apart, so a distance
+    cannot tell a pile sitting still from a pile mid-pass. Riding each exit's
+    own tween is the same idea reached from the other end, since an exit is the
+    only thing here that ever moves a card out of the pile.
+- **Pointing at the close control collapses the pile into one card, and that
+  control clears the whole tray.** So the collapse is a preview of what is about
+  to leave rather than a flourish: by the time it is pressed the pile is one
+  card, and one card is what drops. Acting on a notice through its own button
+  retires that one alone, which is the other exit and the same motion at a
+  smaller scale.
+  - **The control unmounts under the pointer on a press, so no `pointerleave` is
+    coming to release the stance it was holding.** `clear` releases the lock
+    itself, or the pile would stay collapsed with nothing on screen saying why.
+- **The card you are reading is not a button, and the one behind it is.** What
+  advances the pile is the strip the second card is showing, so a press lands on
+  the notice it brings forward rather than on the one it takes away, and that
+  strip is also the only part of that card a pointer can reach, since the rest
+  of it is under the front card. The front card's own face does nothing, and its
+  copy is `pointer-events-none` with only its two real controls turned back on.
+  Measured: a press on the front card's body changes nothing, and three on the
+  strip walk the pile.
+  - **Nothing is nested.** A notice carries two controls of its own, so a card
+    that was itself a button would have to hold them inside it. The cycle face
+    belongs to the peeked card and the action and the close control to the front
+    one, which is three buttons on two cards rather than two inside a third. The
+    face sits last in the DOM and under the copy in paint order, so a screen
+    reader hears a notice before what to do with it.
+  - **Pressing that face unmounts it**, since the card it belongs to is now the
+    front and the next one back grows a face instead, so focus is handed along
+    or a keyboard user is left on `body` after one press. That is the same trap
+    `inert` on the cards behind would have been, and it is why they are not
+    inert: making a focused element inert blurs it.
+  - **Only when the press was a keyboard one**, which is the active element
+    matching `:focus-visible`. Moving focus on a mouse press paints a ring on
+    every click, since Chrome judges a scripted focus rather than the press that
+    led to it, which is what `sticker-peel` documents running into from the
+    other direction. Measured: three presses by Enter walk the pile with the
+    ring following, and three by mouse walk it with focus on `body` and no ring
+    anywhere.
+  - Measured: three tab stops, the face, the close control and the action, since
+    every card that is neither the front nor the one behind it takes
+    `tabIndex={-1}` and carries no face at all.
+- **The pile is a grid stack, not a set of absolute boxes.** Every card lands in
+  the same cell, so the pile is as tall as the tallest card in it and each one
+  is stretched to that, with no measuring anywhere. The copy is written to wrap
+  to two lines at both widths for the same reason, since a pile of four
+  different heights would need a peek per card.
+- **Every card carries the lift, unlike `folder-stack`**, where a shadow at rest
+  reaches nothing because the card in front paints over it. Here the pile stacks
+  upward, so a card's own top edge is the part nobody is covering and the halo
+  above it is what separates one peeked edge from the next. Three layers, a
+  contact line, a short cast and a wide ambient, which is `document-pocket`'s
+  recipe. It is inline, so the hairline is an `outline` rather than a ring: a
+  ring is a box-shadow too and an inline value replaces it outright, which is
+  `book-opening`'s swap.
+- **The corners are 12px and the action's 10, off the radius scale on purpose.**
+  `rounded-lg` is 6.4px, which is the site's card radius and what the frame
+  around this demo uses, and on a drawn object 280px wide it reads as a square
+  with the corners taken off. This is the standing `folder-stack` and
+  `document-pocket` give their own pixel geometry, and the two numbers live in
+  `stack.ts` so the card, the button lying under it and that button's focus ring
+  cannot drift apart.
+- **It invents no colour**, which is rare for a lab this visual and is
+  `crack-button`'s standing. The cards are `bg` on a `fill` stage with one
+  `text-primary` action each, and the only thing separating the notice being
+  read from the one behind it is tone, stepping while the card travels and under
+  the blur. **The peeked title is `text-secondary` rather than `text-muted`**,
+  since muted is 2.86:1 and that is the site's tone for a caption, where this
+  line is the whole of what the second hover stage exists to show.
+- **Neither exit confirms**, which is the shared rule's own exception for an
+  action that is cheap to reverse: the empty tray carries a reset,
+  `notch-drop`'s icon button and tooltip centred in the stage, waiting out the
+  drop before it arrives.
+- **Only the front notice can be retired, and the index check is what enforces
+  it.** A card already on its way out has left the list, so its index comes back
+  -1 and never matches, which is what stops a press landing on a dropping card
+  and retiring the one that replaced it.
+- **The stage is a fixed `h-105` rather than `aspect-8/5`.** 336px at every
+  width is the 8:5 of the index's preview card at the lab column's 538, and on a
+  390px phone 8:5 would leave 220px for a pile that wants 215 of them. Measured:
+  538 by 336 and 352 by 336, with the card at 280 by 153.7 and 253 by 160.8,
+  since prose leading is looser below `sm`, and no sideways scroll at either.
+- **Reduced motion keeps every state and drops the travel.** The pile still
+  opens, still advances and still clears, all in one step, and nothing blurs on
+  the way since a blur here is a fact about a flight that is not happening.
+- Verified in a browser at 1280px and 390px: the stances measure 0/8/14,
+  0/17/14, 0/38/14 and 0/0/0, the card's corner is 12px and its action's 10, a
+  press leaves the front notice at `y` 12 and scale 1.05 fully faded, hovering
+  the close control collapses all three peeks to 0 and pressing it empties the
+  tray, the reset brings all four back, the live region reads the front notice
+  and its place, a tap on a phone advances the pile without hovering it, and no
+  console errors.
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
