@@ -811,6 +811,73 @@ const LABS = {
       await wait(1800);
     },
   },
+
+  "notice-stack": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage with nothing padded or cut
+    focus: [0, 0, 538, 336],
+    /*
+     * The whole of it, in the order each part explains the one after: onto the
+     * front card so the second notice lifts over the third, onto that edge so
+     * it says what it is, two presses on that same edge so a notice can be
+     * watched lifting off and dissolving, then the close control, which
+     * collapses the pile into
+     * one card before it clears the tray. It ends by putting them back, so the
+     * clip loops on a full pile rather than on an empty stage.
+     *
+     * The press on the close control is inside the tooltip's own 200ms delay
+     * rather than after it. The collapse is most of the point of hovering that
+     * control and it wants to be seen, and a label opening over the demo for
+     * the rest of the clip is what `ember-burst` documents avoiding. The
+     * collapse is on the pile's one spring, so 120ms is most of it, and the
+     * margin is for the round trips: at 180 the real dwell came out past 200
+     * under the screencast's load and the label opened anyway.
+     */
+    async run({ m, page }) {
+      const cx = 269;
+      const press = async (locator, dwell) => {
+        const b = await locator.boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await wait(dwell);
+        await m.down();
+        await m.up();
+      };
+
+      await wait(700);
+
+      await m.move(cx, 200, 8);
+      await wait(800);
+      /*
+       * 100 is 13px above the front card's own top edge, which is inside the
+       * band the second stage opens and inside the strip that stage reveals.
+       * Both presses land there without moving again, since that strip is the
+       * only thing in this demo that advances the pile.
+       */
+      await m.move(cx, 100, 4);
+      await wait(1000);
+
+      await m.down();
+      await m.up();
+      await wait(850);
+      await m.down();
+      await m.up();
+      await wait(900);
+
+      await press(
+        page.locator(
+          '[data-lab-demo] button[tabindex="0"][aria-label="Clear the tray"]',
+        ),
+        120,
+      );
+      await wait(900);
+
+      await press(
+        page.getByRole("button", { name: "Put the notices back" }),
+        60,
+      );
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
