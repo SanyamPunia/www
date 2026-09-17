@@ -5758,6 +5758,19 @@ flights.
   about whether it is still part of the tray. Measured on a return: the pill
   comes up 0, 0.09, 0.56, 0.92, 1 while the chip is travelling the last 35px,
   where it used to be 0 for the whole flight and 1 a frame after it stopped.
+- **Every chip's clothes are written every frame, not only the ones the goo is
+  drawing, and that is what keeps a chip from being left half dressed.**
+  `setFlying` replaces the set rather than adding to it, so a chip still in the
+  air when the next press lands drops out of `flying`, out of `inGoo`, and used
+  to drop out of the melt write with them: its melt froze wherever the flight
+  had got to and nothing ever corrected it. A chip then sits in the row at a
+  third of its own opacity, or wears the slab's white ink on a white page,
+  which is a chip that has all but vanished. Measured by clicking every chip in
+  and out at 70ms: five of six left stale, at 0.33 to 0.87, and none at 120
+  clicks after. Clothes are a fact about where a chip is and every chip is
+  somewhere, so the goo has no business gating them, and `paint` writes them
+  before it decides whether to run again, so the one frame `run` always gets is
+  enough to settle them.
 - **The gap owns a chip's clothes and the clock owns exactly one case.** A chip
   that has been picked up gives its pill away at once, since what carries it the
   rest of the way is the blob already under it. Everything else, a chip tearing
