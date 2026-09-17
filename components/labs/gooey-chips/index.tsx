@@ -739,7 +739,8 @@ export default function GooeyChips() {
        */}
       <div
         ref={stage}
-        className="relative flex w-full items-center justify-center py-2"
+        data-carry={carried !== null}
+        className="relative flex w-full items-center justify-center py-2 data-[carry=true]:cursor-grabbing data-[carry=true]:[&_*]:cursor-grabbing"
         style={{ height: STAGE_H }}
       >
         <motion.div ref={field} className="relative w-full" style={{ height }}>
@@ -935,12 +936,21 @@ function Chip({
       className={cn(
         CHIP,
         /*
-         * `cursor-grab`, since a chip is carried at least as often as it is
-         * clicked. Ninth place the shared `cursor-pointer` rule is off.
+         * **`cursor-pointer` at rest, and the grab cursor only once a press has
+         * become a drag.** A chip is a toggle first and carried second, so a
+         * grab cursor sitting on it before anything is held says the click it
+         * is about to get will not work. `active:cursor-grabbing` is the same
+         * lie a frame shorter, since it fires on the press that is only ever a
+         * click. The grabbing cursor is the stage's, and the descendant half of
+         * that pair is what does the work: the label spans under the pointer
+         * inherit this declaration, so an inherited `grabbing` loses to it,
+         * which is the order `tether-button` documents for a button's own UA
+         * cursor. `sticker-peel` writes the same pair.
+         *
          * `touch-none` is on the chip alone, never the stage, so a thumb
          * scrolling past the demo is only trapped on a 30px target.
          */
-        "group absolute top-0 left-0 cursor-grab touch-none justify-center active:cursor-grabbing",
+        "group absolute top-0 left-0 cursor-pointer touch-none justify-center",
         !ready && "invisible",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2",
       )}
