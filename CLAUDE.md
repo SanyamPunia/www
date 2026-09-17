@@ -5721,9 +5721,19 @@ flights.
   at the tray's mouth, the last frame ran with the chip 8px out, which is
   `NECK.peak`, so it took the filter off on the widest blur there is and drew
   the glide that followed with no goo on it at all. `busy` asks
-  `MotionValue.isAnimating()` instead, which is the fact the loop wants, and a
-  value being dragged rather than animated has no animation on it, which is what
-  `carried` was always for.
+  `MotionValue.isAnimating()` instead, which is the fact the loop wants.
+- **A dragged value is `set` rather than animated, so `busy` is false for the
+  whole of a drag, and what covers that has to be the gesture's own answer and
+  not a rendered one.** Leaning on `carried` for it was the first try and is a
+  commit too late: `run` is called from the `pointermove` that passes the slop
+  and schedules the next frame itself, so that frame can arrive before React
+  has rendered the drag, and the loop then declares the gesture over on its
+  first frame. Measured on a chip dragged to the tray: one frame, then
+  `filter: none` until the release, so the demo's whole argument was missing
+  from the one gesture it is most about, and it looked like the goo only
+  working on chips that had been picked before. `handRef` is written by the
+  gesture, `carried` still drives what is rendered, and the loop takes whichever
+  is further ahead.
 - **The rule all three land on: whatever the geometry is doing, the blur has to
   be at its floor before the filter is taken off.** That is what makes the
   removal a no-op rather than a frame of animation nobody wrote. It also fixes
