@@ -364,6 +364,24 @@ export default function GooeyChips() {
   flyRef.current = flying;
   const carriedRef = useRef<Tag | null>(carried);
   carriedRef.current = carried;
+  /**
+   * Whether a hand is carrying a chip, written by the gesture rather than by a
+   * render.
+   *
+   * **`carried` is state, so it is a commit behind, and the loop cannot wait
+   * that long.** `run` is called from the `pointermove` that passes the slop
+   * and schedules the next frame itself, so that frame can arrive before React
+   * has rendered the drag at all: `carriedRef` still reads null, a dragged
+   * value is `set` rather than animated so `busy` is false too, and the loop
+   * declares the gesture over on its first frame and takes the filter off for
+   * the whole of it. Measured on a chip dragged to the tray: one frame, then
+   * `filter: none` until the release, so the demo's whole point was missing
+   * from the one gesture it is most about.
+   *
+   * `carried` still drives what is rendered, since a blob is markup and has to
+   * wait for a commit anyway. This is only for the loop.
+   */
+  const handRef = useRef(false);
   const chosenRef = useRef<readonly Tag[]>(chosen);
   chosenRef.current = chosen;
   const height = useMotionValue(TRAY_H);
@@ -429,9 +447,13 @@ export default function GooeyChips() {
 
     const tray = read(trayBox);
     let widest = 0;
-    /* a hand on a chip is movement the velocities cannot report, since a drag
-       that has paused is still a drag and the neck it is holding is live */
-    let moving = carriedRef.current !== null || busy(trayBox);
+    /* a hand on a chip is movement no animation reports, since a drag writes
+       its values rather than animating them and a drag that has paused is
+       still a drag holding a live neck. `handRef` is the gesture's own answer
+       and `carriedRef` the rendered one, and the loop wants whichever is
+       further ahead. */
+    let moving =
+      handRef.current || carriedRef.current !== null || busy(trayBox);
     const shapes: Array<{ rect: Rect; out: number }> = [];
 
     for (const [id, box] of boxes.current) {
@@ -595,6 +617,7 @@ export default function GooeyChips() {
         if (Math.hypot(dx, dy) < DRAG.slop) return;
         held.moved = true;
         dragged.current = true;
+        handRef.current = true;
         setCarried(tag);
         run();
       }
@@ -619,6 +642,7 @@ export default function GooeyChips() {
     (tag: Tag) => {
       const held = grab.current;
       grab.current = null;
+      handRef.current = false;
       if (!held || held.tag !== tag) return;
       if (!held.moved) return;
       setCarried(null);
