@@ -578,6 +578,23 @@ export const labsRegistry: LabMetadata[] = [
     reference: "https://annnimate.com/animations/gooey-filter-chips",
     hint: "Pick a tag to filter 20 camera lenses, or drag one into the tray.",
   },
+  {
+    slug: "notice-stack",
+    title: "Notice Stack",
+    description: [
+      "A pile of notices in a tray. Point at it and the one behind rises into a thicker edge, move onto that edge and it rises again to say what it is, and press that edge to advance: the front notice lifts toward you and dissolves while the one that was peeking comes forward into its place.",
+      "Key insight: nothing here crossfades content. Every card owns its own copy for the whole session and what changes is which depth it is at, so a notice arriving at the front is not being filled in, it is being uncovered. The body and the button it lands with were drawn the whole time, behind the card that was covering them.",
+      "The pile opens in two steps and only the second card ever moves. Shut it is three edges saying how many there are. Pointing at the front card lifts the second one over the third, into a thicker edge that says there is something there and not yet what, and moving onto that edge is a second question that gets the answer. A single hover jumping straight to the title would spend the reveal on a pointer that was only passing over on its way somewhere else.",
+      "A cycled notice leaves toward you and a cleared tray leaves downward, which is the whole difference between them. Cycling lifts the front card off the top of the pile, a little larger and a little lower, and it is gone: nearer for the moment it is in the air, which is what a card taken off a deck does. Pointing at the close control collapses the pile into one card first, since that control clears the whole tray, so the collapse is a preview of what is about to leave rather than a flourish.",
+      "The blur belongs to the exit, not to the pile. A notice leaving softens as it goes and nothing that is staying ever does, at any depth, so there is no resting blur on the peeked cards and nothing to schedule: each exit already has a tween and the blur rides it. Only the card leaving carries it. Blurring the one arriving as well is what the reference does, and both soft at once is 160ms of mush with nothing in it to read.",
+    ],
+    createdAt: "2026-09-18",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/notice-stack/index.tsx",
+    reference: "https://rauno.me/notes/5",
+    flush: true,
+    hint: "Point at the pile, then at the edge that rises. Press it to advance.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -661,6 +678,7 @@ export const IMPLEMENTED_LABS = [
   "pixel-reveal",
   "ember-burst",
   "gooey-chips",
+  "notice-stack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
