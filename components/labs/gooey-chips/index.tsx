@@ -460,14 +460,8 @@ export default function GooeyChips() {
     for (const [id, box] of boxes.current) {
       if (id === "tray") continue;
       if (busy(box)) moving = true;
-      /* only a shape the goo layer is drawing can grow a neck with the tray */
-      if (!gooRef.current.includes(id as Tag)) continue;
       const rect = read(box);
       const gap = gapBetween(rect, tray);
-      widest = Math.max(widest, neckAt(gap));
-      /* how much of this chip is still its own body rather than the slab's:
-         1 out in the row, 0 once it is inside the tray. See the pair loop. */
-      shapes.push({ rect, out: 1 - meltAt(gap) });
 
       /*
        * **The gap owns a chip's clothes, and the clock owns exactly one case.**
@@ -478,11 +472,32 @@ export default function GooeyChips() {
        * actually is from the tray. At rest the two ends fall out of the same
        * rule: a seated chip overlaps the tray, so its gap is 0 and its melt 1,
        * and one in the row is a field gap away, which is past the reach.
+       *
+       * **Every chip, not only the ones the goo is drawing, and that is what
+       * fixes a chip left half dressed.** `setFlying` replaces the set rather
+       * than adding to it, so a chip still in the air when the next press lands
+       * drops out of `flying`, out of `inGoo`, and used to drop out of this
+       * write with them: its melt froze wherever the flight had got to and
+       * nothing ever corrected it. What that looks like is a chip sitting in
+       * the row at a third of its own opacity, or one wearing the slab's white
+       * ink on a white page, which is a chip that has all but vanished.
+       * Measured by clicking every chip in and out at 70ms: five of six left
+       * stale, at 0.33 to 0.87. Clothes are a fact about where a chip is, and
+       * every chip is somewhere, so this is not the goo's business to gate.
+       * `paint` writes them before it decides whether to run again, so the one
+       * frame `run` always gets is enough to settle them.
        */
       if (!enteringRef.current.includes(id as Tag)) box.melt.set(meltAt(gap));
       /* the edge is the gap even for a chip the clock is melting, or one still
          in the air would be wearing a slab it has not reached */
       box.seat.set(seatAt(gap));
+
+      /* only a shape the goo layer is drawing can grow a neck with the tray */
+      if (!gooRef.current.includes(id as Tag)) continue;
+      widest = Math.max(widest, neckAt(gap));
+      /* how much of this chip is still its own body rather than the slab's:
+         1 out in the row, 0 once it is inside the tray. See the pair loop. */
+      shapes.push({ rect, out: 1 - meltAt(gap) });
     }
 
     /*
