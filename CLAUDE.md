@@ -5766,11 +5766,26 @@ flights.
   of the same rule rather than being set: a seated chip overlaps the tray, so
   its gap is 0 and its melt 1, and one in the row is a field gap away, which is
   past the reach.
-- **The pill is a layer at an opacity, not a colour being tweened.** A `var()`
-  cannot be interpolated, so a moving tone would mean reading the tokens off the
-  root at mount and mixing them by hand, which is what `halftone-ripple` has to
-  do for a canvas fill. A `bg-fill` span under the label at the melt's own
-  opacity needs none of that.
+- **One body per chip, never a pill over a blob.** A chip in the goo wears its
+  blob and a chip out of it wears its pill, and the pill stands down the moment
+  a blob exists rather than fading out on the melt. Both are the same box with
+  the same radius, so where they overlapped the pill's antialiased edge was
+  partly transparent over a near-black blob and the chip drew a dark outline
+  round itself. Measured on a chip springing home: the darkest pixel on its edge
+  was 26 against 107 once it had landed and the blob had gone, so the outline
+  was there for the length of every flight and left in one frame, which is what
+  it read as.
+- **So the blob carries the body's colour, and the tray is simply the one that
+  is always fully melted.** `color-mix` in sRGB from `fill` to `text-primary` on
+  the melt, which is the composite a pill at `1 - melt` over a near-black blob
+  already produced, so nothing about a chip's own appearance moves. `srgb` and
+  not `oklab` for that reason: the step point in `INK` was solved against the
+  sRGB composite.
+  - The one thing that does move is the neck, which now shades toward whichever
+    body it is leaving rather than being uniformly black. Measured at the peak
+    neck: 1.6% of the frame differs, confined to the ten rows of the gap itself,
+    by at most 13% grey. Two light chips webbing on a clear now web in their own
+    tone, where a black web between two light pills was the older answer.
 - **The label steps between two tones and never crosses, which is
   `window-shade`'s lesson arriving at a chip.** The ground under the word is
   going from the slab's near-black to the chip's own fill while the ink has to
