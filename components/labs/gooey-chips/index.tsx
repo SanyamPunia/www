@@ -63,21 +63,51 @@ import { LENSES, matches, TAGS, type Tag } from "./lenses";
  * actually filter.
  */
 
+/**
+ * The three springs, and the one rule for changing them.
+ *
+ * **To make this quicker, raise every stiffness together and take each damping
+ * with it by the square root of the same factor.** A spring's character is its
+ * damping ratio, `damping / (2 * sqrt(stiffness))`, and its speed is its
+ * frequency: scaling both that way moves the speed and leaves the character
+ * where it is. Raising stiffness on its own is the tempting edit and is a
+ * different animation, since it stiffens and un-damps at once, so the one
+ * spring here with a deliberate bounce gains a wobble nobody asked for.
+ *
+ * They were last taken up by half, which is a frequency of 1.225 on all three.
+ * Measured over three runs each, press to the last frame the loop runs: a pick
+ * 597ms to 449, a deselect 801 to 653 and a clear of six 799 to 649, so a
+ * fifth to a quarter off each. The pick gains the most because `GLIDE` is the
+ * one of the three that sits near critical damping, where a hundredth off the
+ * ratio also shortens the crawl into Motion's own rest threshold.
+ *
+ * The ratios held to about a hundredth across it, 0.920 to 0.908, 0.607 to
+ * 0.606 and 0.930 to 0.937, so `RETURN`'s overshoot, the only one anybody can
+ * see, went from 9.09% of its own travel to 9.16%, and the other two stayed
+ * under a fifth of one percent.
+ */
+
 /** how the field, the tray and a chip settling into it move */
-const GLIDE = { type: "spring", stiffness: 170, damping: 24 } as const;
+const GLIDE = { type: "spring", stiffness: 255, damping: 29 } as const;
 
 /**
  * A chip going back to the row, which overshoots a little where the glide does
  * not. Arriving is a chip being put down and leaving is one being let go, and
  * an overshoot on the way in would pull it back out of the goo it just entered.
  */
-const RETURN = { type: "spring", stiffness: 220, damping: 18 } as const;
+const RETURN = { type: "spring", stiffness: 330, damping: 22 } as const;
 
 /** the chips that are only closing the gap behind one that left */
-const REFLOW = { type: "spring", stiffness: 260, damping: 30 } as const;
+const REFLOW = { type: "spring", stiffness: 390, damping: 37 } as const;
 
-/** how the count and the chip's own colours change, in seconds */
-const TINT = 0.18;
+/**
+ * How the count and the chip's own colours change, in seconds.
+ *
+ * It rides the springs rather than sitting at its own number: a chip that
+ * arrives before it has finished giving up its pill is wearing that pill on
+ * the slab for the difference.
+ */
+const TINT = 0.15;
 
 /**
  * The blur the goo runs at when the neck is widest, in user units.
