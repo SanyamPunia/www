@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import {
   CHIP_H,
   CLEAR,
+  GAP,
   type Measured,
   type Plan,
   plan,
@@ -97,6 +98,22 @@ const GOO = 9;
  * row is already necked to the tray and the goo has nowhere to ramp from.
  */
 const NECK = { peak: 8, reach: 34 };
+
+/**
+ * The same two numbers for a neck between two chips, which is a different
+ * scale and was the tray's for one build too long.
+ *
+ * **A chip meets the tray's mouth from a long way out and another chip only by
+ * nearly touching it.** On the tray's numbers the row's own resting gap,
+ * `GAP.row` at 8, is exactly `NECK.peak`, so six chips sitting still in the row
+ * claimed the widest neck there is: measured, `stdDeviation` finished every
+ * clear at 9.8 of a possible 9.8 and the tray painted as a lozenge until the
+ * filter came off it, which is the radius snapping back rather than any radius
+ * changing. Both ends are the layout's own numbers so neither can drift:
+ * widest when two chips are as close as they ever get, which is the tray's
+ * internal gap, and gone before they are as far apart as two chips ever rest.
+ */
+const PAIR = { peak: GAP.tray, reach: GAP.row - 2 };
 
 /**
  * The floor the blur sits at whenever the filter is on.
@@ -199,13 +216,13 @@ function seatAt(gap: number): number {
   return Math.max(0, Math.min(1, 1 - gap / 6));
 }
 
-/** how wide a bump of goo the gap makes, peaked at `NECK.peak` */
-function neckAt(gap: number): number {
-  if (gap <= 0 || gap >= NECK.reach) return 0;
-  const t =
-    gap < NECK.peak
-      ? gap / NECK.peak
-      : 1 - (gap - NECK.peak) / (NECK.reach - NECK.peak);
+/** how wide a bump of goo the gap makes, peaked at `peak` and gone at `reach` */
+function neckAt(
+  gap: number,
+  { peak, reach }: { peak: number; reach: number } = NECK,
+): number {
+  if (gap <= 0 || gap >= reach) return 0;
+  const t = gap < peak ? gap / peak : 1 - (gap - peak) / (reach - peak);
   return Math.max(0, Math.min(1, t));
 }
 
@@ -229,6 +246,29 @@ interface Box {
   melt: ReturnType<typeof useMotionValue<number>>;
   /** what `seatAt` returns, which is always the gap and never a clock */
   seat: ReturnType<typeof useMotionValue<number>>;
+}
+
+/**
+ * Whether a shape has an animation attached to it.
+ *
+ * **Not whether it is moving, which this asked before and is a different
+ * question for exactly one frame.** `move` creates four springs and none of
+ * them writes a value until the frame after that, so every velocity on a box
+ * about to glide right across the stage reads zero. The loop believed it and
+ * shut itself down in the middle of a gesture: measured on a chip released at
+ * the tray's mouth, the last frame ran with the chip 8px out, which is
+ * `NECK.peak`, so it took the filter off on the widest blur there is and the
+ * glide that followed was drawn with no goo on it at all. An attached
+ * animation is the fact the loop actually wants. A value being dragged rather
+ * than animated has no animation on it, which is what `carried` is for.
+ */
+function busy(box: Box): boolean {
+  return (
+    box.x.isAnimating() ||
+    box.y.isAnimating() ||
+    box.w.isAnimating() ||
+    box.h.isAnimating()
+  );
 }
 
 export default function GooeyChips() {
@@ -361,24 +401,20 @@ export default function GooeyChips() {
     let widest = 0;
     /* a hand on a chip is movement the velocities cannot report, since a drag
        that has paused is still a drag and the neck it is holding is live */
-    let moving =
-      carriedRef.current !== null ||
-      trayBox.x.getVelocity() !== 0 ||
-      trayBox.w.getVelocity() !== 0;
-    const shapes: Array<{ rect: Rect; live: boolean }> = [];
+    let moving = carriedRef.current !== null || busy(trayBox);
+    const shapes: Array<{ rect: Rect; out: number }> = [];
 
     for (const [id, box] of boxes.current) {
       if (id === "tray") continue;
-      if (box.x.getVelocity() !== 0 || box.y.getVelocity() !== 0) moving = true;
+      if (busy(box)) moving = true;
       /* only a shape the goo layer is drawing can grow a neck with the tray */
       if (!gooRef.current.includes(id as Tag)) continue;
       const rect = read(box);
       const gap = gapBetween(rect, tray);
       widest = Math.max(widest, neckAt(gap));
-      shapes.push({
-        rect,
-        live: flyRef.current.includes(id as Tag) || carriedRef.current === id,
-      });
+      /* how much of this chip is still its own body rather than the slab's:
+         1 out in the row, 0 once it is inside the tray. See the pair loop. */
+      shapes.push({ rect, out: 1 - meltAt(gap) });
 
       /*
        * **The gap owns a chip's clothes, and the clock owns exactly one case.**
@@ -400,16 +436,27 @@ export default function GooeyChips() {
      * **And to each other, not only to the tray.** Two chips crossing are two
      * shapes with a gap between them, so the same bump applies: clear six at
      * once and they web together on the way out instead of passing through one
-     * another. A pair with nothing in flight is skipped, or the chips parked in
-     * the tray, which sit three pixels apart for ever, would hold the blur off
-     * its floor through every flight that happened near them.
+     * another. On `PAIR`'s scale, not the tray's.
+     *
+     * **Each one's share is how far out of the slab it is, and that replaced a
+     * flag saying whether it was in flight.** Two chips parked in the tray sit
+     * `GAP.tray` apart for ever and would hold the blur off its floor through
+     * every flight near them, which is what that flag was for. It was read off
+     * the `flying` list, which outlives the motion by however long the spring
+     * takes to be declared finished, so the last frame of every flight was
+     * still counting chips that had arrived: a clear ended on the widest blur
+     * there is and a pick ended on 4.18 of 9.8. Two chips inside the slab are
+     * not two shapes with a neck between them, they are one body, and `melt`
+     * already says exactly that as a function of the gap. So does the release:
+     * nothing here is a list any more.
      */
     for (let i = 0; i < shapes.length; i += 1) {
       for (let j = i + 1; j < shapes.length; j += 1) {
-        if (!shapes[i].live && !shapes[j].live) continue;
+        const share = shapes[i].out * shapes[j].out;
+        if (share === 0) continue;
         widest = Math.max(
           widest,
-          neckAt(gapBetween(shapes[i].rect, shapes[j].rect)),
+          share * neckAt(gapBetween(shapes[i].rect, shapes[j].rect), PAIR),
         );
       }
     }
