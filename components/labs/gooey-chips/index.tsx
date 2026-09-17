@@ -4,6 +4,7 @@ import { XIcon } from "@phosphor-icons/react";
 import {
   animate,
   motion,
+  useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -892,7 +893,11 @@ export default function GooeyChips() {
           >
             <Blob box={trayBox} radius={TRAY_R} />
             {inGoo.map((tag) => (
-              <Blob key={tag} box={boxes.current.get(tag)} />
+              <Blob
+                key={tag}
+                box={boxes.current.get(tag)}
+                melt={boxes.current.get(tag)?.melt}
+              />
             ))}
           </div>
 
@@ -905,6 +910,7 @@ export default function GooeyChips() {
               tag={tag}
               boxes={boxes}
               on={chosen.includes(tag)}
+              gooed={inGoo.includes(tag)}
               ready={Boolean(target)}
               onDown={start}
               onMove={carry}
@@ -1002,12 +1008,14 @@ function Chip({
   boxes,
   on,
   ready,
+  gooed,
   onDown,
   onMove,
   onUp,
   onClick,
 }: {
   tag: Tag;
+  gooed: boolean;
   boxes: React.RefObject<Map<string, Box>>;
   on: boolean;
   ready: boolean;
@@ -1059,12 +1067,23 @@ function Chip({
       {/*
        * **A chip in the goo has no pill of its own**, so nothing hard-edged
        * sits over the neck while it is forming: the blob under it is the whole
-       * of its shape. This is that pill, at the opacity the distance to the
-       * tray asks for.
+       * of its shape, and that blob carries this pill's colour until it is
+       * slab. This is that pill, for a chip with no blob under it.
+       *
+       * **It stands down the moment a blob exists rather than fading out on
+       * the melt, and that is not a tidy-up.** Both are the same box with the
+       * same radius, so where they overlap the pill's antialiased edge is
+       * partly transparent over a near-black blob and the chip draws a dark
+       * outline round itself: measured on a chip springing home, the darkest
+       * pixel on its edge was 26 against 107 once it landed and the blob went,
+       * which is the outline appearing for the length of a flight and leaving
+       * in one frame. One body per chip is the fix, and the composite is
+       * unchanged at every melt, since a pill at `1 - melt` over a near-black
+       * blob and a blob mixed the same way are the same colour.
        */}
       <motion.span
         aria-hidden="true"
-        style={{ opacity: own }}
+        style={{ opacity: gooed ? 0 : own }}
         className="absolute inset-0 rounded-full bg-fill transition-colors duration-200 group-hover:bg-fill-hover"
       />
       {/*
@@ -1114,12 +1133,27 @@ function Chip({
  * The tray is handed an explicit radius instead, since `rounded-full` on a
  * wrapped one is half its height. See `TRAY_R`.
  */
-function Blob({ box, radius }: { box: Box | undefined; radius?: number }) {
+function Blob({
+  box,
+  radius,
+  melt,
+}: {
+  box: Box | undefined;
+  radius?: number;
+  melt?: Box["melt"];
+}) {
+  /*
+   * **A blob is the shape's own body, so it carries that body's colour**, and
+   * the tray is simply the one that is always fully melted.
+   */
+  const slab = useMotionValue(1);
+  const per = useTransform(melt ?? slab, (m) => m * 100);
+  const tone = useMotionTemplate`color-mix(in srgb, var(--color-text-primary) ${per}%, var(--color-fill))`;
   if (!box) return null;
   return (
     <motion.span
       className={cn(
-        "absolute top-0 left-0 block bg-text-primary",
+        "absolute top-0 left-0 block",
         radius === undefined && "rounded-full",
       )}
       style={{
@@ -1128,6 +1162,7 @@ function Blob({ box, radius }: { box: Box | undefined; radius?: number }) {
         width: box.w,
         height: box.h,
         borderRadius: radius,
+        backgroundColor: tone,
       }}
     />
   );
