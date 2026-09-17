@@ -5613,9 +5613,29 @@ flights.
   needs, so it tears out at every width.
 - **A drag ends in a click on the chip it started on**, so a flag set once the
   press passes its slop is what stops every drop also toggling what it dropped.
-  `cursor-grab`, the ninth place the shared `cursor-pointer` rule is off, and
   `touch-none` on the chip alone so a thumb is only ever trapped on a 30px
   target.
+- **The chip keeps `cursor-pointer`, and the grab cursor waits for a drag that
+  really started.** This is the one lab with a drag that does not take the
+  shared rule off, and the reason is that a chip is a toggle first: a grab
+  cursor sitting on it before anything is held says the click it is about to
+  get will not work, and a click is what most readers give it.
+  `active:cursor-grabbing` is the same claim one frame shorter, since it fires
+  on the press that never becomes a drag. What the reader wants the hand to say
+  is not "this can be grabbed" but "this is grabbed".
+  - **It is written on the stage, not on the chip, and the descendant rule is
+    the half that does the work.** The chip declares `cursor-pointer` and the
+    label spans under the pointer inherit it, so an inherited `grabbing` from
+    the stage loses to that declaration, which is the same order
+    `tether-button` documents for the UA's own `cursor` on a button. So the
+    stage carries `data-[carry=true]:cursor-grabbing` and
+    `data-[carry=true]:[&_*]:cursor-grabbing`, which is `sticker-peel`'s pair.
+  - **`carried` is already the state the goo renders on**, so the attribute
+    costs no render a drag was not paying: it is set once when the press passes
+    `DRAG.slop` and cleared once on the release, never per frame.
+  - Measured on a chip: `pointer` at rest, `pointer` through a 150ms press that
+    never moved, `grabbing` on the chip and on the span under the hand once the
+    drag is live, and `pointer` again after the release.
 
 #### The neck did not exist, and the drag is what exposed it
 
@@ -5642,15 +5662,75 @@ flights.
   of 18.3, against 17.9 at the old blur. The spikes in a run of six separate
   picks belong to the six state commits and measure the same either way.
 
+#### The three springs
+
+- **To change the pace, raise every stiffness together and take each damping
+  with it by the square root of the same factor.** A spring's character is its
+  damping ratio and its speed is its frequency, so scaling both that way moves
+  one and leaves the other. Raising stiffness alone is the tempting edit and is
+  a different animation, since it stiffens and un-damps at once: `RETURN` is the
+  one spring here with a deliberate bounce and it would gain a wobble nobody
+  asked for.
+- They were last taken up by half, a frequency of 1.225 on all three. Measured
+  over three runs each, press to the last frame the loop runs: a pick 597ms to
+  449, a deselect 801 to 653, a clear of six 799 to 649. `GLIDE` gains the most
+  because it is the one sitting near critical damping, where a hundredth off the
+  ratio also shortens the crawl into Motion's own rest threshold.
+- The ratios held to about a hundredth, so `RETURN`'s overshoot went from 9.09%
+  of its own travel to 9.16% and the other two stayed under a fifth of one
+  percent. That is the check that the pace moved and the character did not.
+- **`TINT` rides them rather than sitting at its own number.** A chip that
+  arrives before it has finished giving up its pill wears that pill on the slab
+  for the difference.
+
 #### Chips neck to each other
 
 - **The loop only ever measured chip against tray**, so two chips crossing
   passed straight through one another. It measures the pairs as well now, which
   on a clear of six is the difference between six shapes leaving and one sheet
   of liquid tearing apart.
-- **A pair with nothing in flight is skipped**, or the chips parked in the tray,
-  which sit three pixels apart for ever, would hold the blur off its floor
-  through every flight that happened near them.
+- **A pair has its own two numbers, `PAIR`, and running it on the tray's was a
+  bug with a very visible tell.** A chip meets the tray's mouth from a long way
+  out and it meets another chip by nearly touching one, so `NECK.reach` at 34 is
+  the wrong scale for two pills. On it, the row's own resting gap, `GAP.row` at
+  8, is exactly `NECK.peak`: six chips sitting still in the row claimed the
+  widest neck there is. Both of `PAIR`'s ends are the layout's own numbers so
+  neither can drift, widest at `GAP.tray` and gone before `GAP.row`.
+- **Each chip's share of a pair is how far out of the slab it is, `1 - melt`,
+  and that replaced a flag saying whether it was in flight.** Two chips inside
+  the tray are not two shapes with a neck between them, they are one body, and
+  `melt` says exactly that as a function of the gap. The flag it replaces was
+  read off the `flying` list, which outlives the motion by however long the
+  spring takes to be declared finished, so the last frame of every flight was
+  still counting chips that had already arrived.
+- **Both of those only showed up at the moment the filter comes off, as the
+  tray's corner radius changing.** One `stdDeviation` rounds every corner in the
+  layer, so a blur left wide at rest rounds the tray into a lozenge, and taking
+  the filter off in the next step snaps it back to the radius it is drawn with.
+  Nothing about the radius was ever moving. Measured on the settled blur, out of
+  a possible 9.8: a pick used to finish at 4.18 and a clear at 9.80, and both
+  finish at the 0.80 floor now. Measured on the painted corner, dark pixels in a
+  46 by 46 crop: 1585 with the filter off, 1581 at the floor, 1349 at the peak.
+  So the step the reader saw was 236 pixels of corner arriving and leaving in
+  one frame, and what is left is 4.
+- **The loop stops on there being no animation attached, never on nothing
+  moving, and those differ for exactly one frame.** `move` creates four springs
+  and none of them writes a value until the frame after that, so every velocity
+  on a box about to glide across the stage reads zero. The loop believed it,
+  which let it shut down in the middle of a gesture: measured on a chip released
+  at the tray's mouth, the last frame ran with the chip 8px out, which is
+  `NECK.peak`, so it took the filter off on the widest blur there is and drew
+  the glide that followed with no goo on it at all. `busy` asks
+  `MotionValue.isAnimating()` instead, which is the fact the loop wants, and a
+  value being dragged rather than animated has no animation on it, which is what
+  `carried` was always for.
+- **The rule all three land on: whatever the geometry is doing, the blur has to
+  be at its floor before the filter is taken off.** That is what makes the
+  removal a no-op rather than a frame of animation nobody wrote. It also fixes
+  the same step at the other end, since a stale peak left on the node was what
+  the next gesture's first frame painted with. Measured at every resting state,
+  out of a possible 9.8: a pick, a hand-merge, six picked and a clear all finish
+  at 0.80 now, against 4.18, 9.80, 4.18 and 9.80 before.
 - Seven shapes is twenty-one pairs, so the pass is arithmetic and not a cost.
 
 #### How much a chip is wearing is the gap too
