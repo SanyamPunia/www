@@ -1217,6 +1217,36 @@ experiment is a directory under `components/labs/`.
   Keep it short: at the column's width the links leave it 394px, so 75 characters
   wrapped and 60 does not. It is not a replacement for `document-pocket`'s
   handwritten note, which is inside the drawing and points at one part of it.
+- **Below `sm` the two links are their icons alone, and that is what keeps that
+  row one row.** As words they are 131px of a 352px column, so the hint could
+  not fit beside them and took a line of its own, which left the links holding
+  the right of the next line with 205px of empty row to their left: an orphan
+  rather than a caption. As icons they are 52px, so the hint shrinks and wraps
+  its own text instead. `aria-label` carries the name at both widths, so nothing
+  is lost by painting the word or not, and each is a 24px target with the
+  footer's own background step, off the `--spacing` scale for the footer's
+  reason. No tooltip on the icon half, which is the one place the shared rule
+  for an icon-only control gives way: the other half of that rule says not to
+  tooltip a control that already shows its label, and this one shows it at every
+  width a pointer normally sits at.
+- **No `flex-wrap` on that row.** A hint that cannot fit is meant to wrap its
+  own text, never to push the links onto a line where nothing balances them.
+  `min-w-0` on the hint is what lets it shrink that far and `shrink-0` on the
+  links is what keeps them out of it. Measured across all 36 labs at 320, 390,
+  640 and 1280px: the links sit beside the hint at every one, and nothing
+  overflows.
+- **That row has one rule: two things on a line sit at opposite ends, and one
+  thing on a line starts at the left.** `justify-between` is what says it,
+  because it applies per line where `ml-auto` applied per row. On a narrow
+  column the hint takes a line on its own, and `ml-auto` held the links at the
+  right of the next one with 205px of empty row beside them, which read as
+  something that had fallen off the end of the sentence rather than as a
+  caption. Nothing here is a breakpoint, since what decides it is whether the
+  two fit and not how wide the screen is. The one exception is an entry with no
+  hint, which has nothing to share a line with: from `sm` up it keeps the demo's
+  bottom right corner and below `sm` it goes back to the left edge, since at
+  that width a lone right-aligned run is the same orphan. Measured across all 36
+  labs at 320, 390 and 1280px: no orphan and no overflow at any of them.
 - **`flush: true` keeps the frame and drops its padding**, so the experiment
   fills the frame edge to edge. For a demo whose whole surface is the
   interaction rather than a component sitting on a surface: the padding then
