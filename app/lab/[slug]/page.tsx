@@ -1,4 +1,11 @@
-import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+// the main barrel pulls in `createContext` and throws in RSC, but a type-only
+// import is erased before that can happen, and the ssr entry has no `Icon` type
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import {
+  ArrowSquareOutIcon,
+  ArrowUpRightIcon,
+  CodeIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Demo } from "@/components/blogs/demo";
@@ -93,21 +100,44 @@ export default async function LabDetailPage({
               )}
             </div>
 
-            {/* the hint says what to do with the demo and the links say where it
-                came from, so the two share one row from opposite ends. `ml-auto`
-                rather than `justify-between`, so the links stay right whether or
-                not the entry carries a hint. It wraps on a narrow column, where
-                the hint runs to two lines on its own. */}
+            {/* the hint says what to do with the demo and the links say where
+                it came from, so the two share one row from opposite ends.
+
+                Below `sm` the links are their icons alone, and that is what
+                keeps the row one row. As words they are 131px of a 352px
+                column, so the hint could not fit beside them and took a line of
+                its own, which left the links holding the right of the next line
+                with 205px of empty row to their left: an orphan rather than a
+                caption. As icons they are 52px, so the hint shrinks and wraps
+                its own text instead and the two stay at opposite ends at every
+                width from 320px up. `aria-label` carries the name at both, so
+                nothing is lost by painting the word or not.
+
+                No `flex-wrap`, for the same reason: a hint that cannot fit is
+                meant to wrap its own text, never to push the links onto a line
+                where nothing balances them. `min-w-0` on the hint is what lets
+                it shrink that far, and `shrink-0` on the links is what keeps
+                them out of it. */}
             {(lab.hint || lab.source || lab.reference) && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-meta text-text-muted">
+              <div className="flex items-center gap-x-4 text-meta text-text-muted">
                 {lab.hint && <p className="min-w-0">{lab.hint}</p>}
 
                 {(lab.source || lab.reference) && (
-                  <div className="ml-auto flex items-center gap-4 whitespace-nowrap">
+                  <div className="ml-auto flex shrink-0 items-center gap-1.25 whitespace-nowrap sm:gap-4">
                     {lab.reference && (
-                      <LabLink href={lab.reference}>Reference</LabLink>
+                      <LabLink
+                        href={lab.reference}
+                        label="Reference"
+                        icon={ArrowSquareOutIcon}
+                      />
                     )}
-                    {lab.source && <LabLink href={lab.source}>Source</LabLink>}
+                    {lab.source && (
+                      <LabLink
+                        href={lab.source}
+                        label="Source"
+                        icon={CodeIcon}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -138,20 +168,44 @@ export default async function LabDetailPage({
   );
 }
 
-function LabLink({ href, children }: { href: string; children: string }) {
+function LabLink({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  /** Painted below `sm` in place of the word. */
+  icon: PhosphorIcon;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group inline-flex items-center gap-1 transition-colors duration-200 hover:text-text-primary focus-visible:rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
+      // the name is the word whether or not the word is painted
+      aria-label={label}
+      className={cn(
+        "group cursor-pointer transition-all duration-200 hover:text-text-primary",
+        "focus-visible:rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15",
+        /* 24px and 12px exactly, off the `--spacing` steps for the reason the
+           footer's socials are: those land on 25.6 and 12.8 and put a mark on
+           fractional pixels. A word needs no target of its own, so the box and
+           its background step go away at `sm`. */
+        "inline-flex size-[1.5rem] items-center justify-center rounded-md hover:bg-fill active:bg-fill-hover",
+        "sm:size-auto sm:gap-1 sm:hover:bg-transparent sm:active:bg-transparent",
+      )}
     >
+      <Icon aria-hidden="true" className="size-[0.75rem] shrink-0 sm:hidden" />
       {/* the rule stays on the word. On the anchor it would run under the
           icon too, the same reason the back link wraps its label. */}
-      <span className="relative after:absolute after:inset-x-0 after:bottom-[-0.1em] after:h-[0.14em] after:rounded-full after:bg-stroke-strong after:transition-colors after:duration-200 group-hover:after:bg-text-primary">
-        {children}
+      <span className="relative hidden after:absolute after:inset-x-0 after:bottom-[-0.1em] after:h-[0.14em] after:rounded-full after:bg-stroke-strong after:transition-colors after:duration-200 group-hover:after:bg-text-primary sm:inline">
+        {label}
       </span>
-      <ArrowUpRightIcon aria-hidden="true" className="size-3 shrink-0" />
+      <ArrowUpRightIcon
+        aria-hidden="true"
+        className="hidden size-3 shrink-0 sm:block"
+      />
     </a>
   );
 }
