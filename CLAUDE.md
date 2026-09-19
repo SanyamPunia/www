@@ -6466,9 +6466,20 @@ it, `tide.ts` the tide itself, and `index.tsx` the box and its two controls.
     the curve, which is the trick the signature player's nib uses.
 - **Nothing renders while the tide runs.** The marker's transform, its drop and
   the curve's dash offset are written straight to their nodes off one motion
-  value, and the only thing that commits is the readout, because `torph` needs a
-  render to morph a character. The height changes about every six seconds and
-  the countdown about every one.
+  value, and the only thing that commits is the readout, since text is not an
+  attribute. The height changes about every six seconds and the countdown about
+  every one.
+- **Neither number morphs, and both carry tabular figures.** `torph` carries the
+  two words on that row, `rising` against `falling` and `High water in` against
+  `Low water in`, because a tide turning is one state replacing another and the
+  characters they share stay put. The height and the countdown are a clock
+  rather than a value being corrected: the countdown rewrites about once a
+  second, which is far more often than the morph's own 200ms, so a morph still
+  running when the next one started read as a smear. That is
+  `event-stacking`'s note about its airborne label, arriving at a readout that
+  ticks on its own rather than when a hand moves. Tabular is what the morph's
+  width transition had been covering for, since a `1` arriving in the height
+  shortens the string and shoves the unit and the state pill sideways.
 - **The axis times are derived from one low water and the period**, never
   written down three times, so the labels cannot drift from the curve above
   them: move the period and they move with it.
