@@ -608,6 +608,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-19",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/tide-card/index.tsx",
+    reference: "https://x.com/wherescz/status/2100473433897222224",
     flush: true,
     hint: "Press the pill. It opens into the tide and the water comes in.",
   },
