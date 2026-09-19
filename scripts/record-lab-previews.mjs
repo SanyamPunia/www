@@ -878,6 +878,54 @@ const LABS = {
       await wait(900);
     },
   },
+
+  "tide-card": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage with nothing padded or cut
+    focus: [0, 0, 538, 336],
+    /*
+     * One press each way, which is the whole experiment. Onto the pill first so
+     * its hover step is in the clip, then off it at once, since a pointer left
+     * where the pill was is a pointer sitting on the card that grows out of it.
+     * Three seconds open is the box landing, the three rows sliding in and
+     * resolving, the water coming in and three ticks of the countdown, which is
+     * every beat there is. It ends back on the pill, so the clip loops from the
+     * state the whole thing starts in.
+     *
+     * The close control is found rather than written down, since it hangs off
+     * the card's right edge and the card is sized from the stage. It is pressed
+     * by one instant move rather than `m.press`, which approaches over eight
+     * steps and can sit on the control long enough to arm its 200ms tooltip
+     * under the screencast's load, which is what `ember-burst` documents.
+     */
+    async run({ m, page }) {
+      const cx = 269;
+
+      await wait(700);
+      await m.move(cx, 168, 8);
+      await wait(420);
+      await m.down();
+      await m.up();
+      // bare stage under the card's foot, so nothing on the card is hovered
+      await m.move(cx, 322, 1);
+      await wait(3000);
+
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const close = await page
+        .getByRole("button", { name: "Close" })
+        .boundingBox();
+      await m.move(
+        close.x - demo.x + close.width / 2,
+        close.y - demo.y + close.height / 2,
+        1,
+      );
+      await wait(50);
+      await m.down();
+      await m.up();
+      await m.move(cx, 322, 1);
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
