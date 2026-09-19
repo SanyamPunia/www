@@ -368,8 +368,13 @@ export const RISING = "#22c55e";
 
 /**
  * `torph`'s numbers, the same 200ms on the same ease `book-opening` and
- * `halftone-ripple` use. What a minute passing does to the countdown is correct
- * it, and morphing the characters is what that looks like.
+ * `halftone-ripple` use.
+ *
+ * **It carries the two words and neither of the two numbers.** A morph is for a
+ * value being corrected, and a tide turning is exactly that: one state replaces
+ * another and the characters they share stay put. The height and the countdown
+ * are a clock instead, rewritten about every six seconds and about every one,
+ * so a morph still running when the next one starts read as a smear.
  */
 export const MORPH = {
   duration: 200,

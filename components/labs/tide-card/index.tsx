@@ -163,9 +163,18 @@ export default function TideCard() {
   const [card, setCard] = useState<Box | null>(null);
   /*
    * The tide's own state, which is the only thing here that commits: the height
-   * about every six seconds and the countdown about every one, because `torph`
-   * needs a render to morph a character. Everything the chart does is written
-   * straight to a node.
+   * about every six seconds and the countdown about every one, since both are
+   * text rather than an attribute. Everything the chart does is written straight
+   * to a node.
+   *
+   * **Neither of the two numbers morphs, and both carry tabular figures.** A
+   * morph is for a value being corrected, and these are a clock: the countdown
+   * rewrites about once a second, which is far more often than the 200ms the
+   * morph takes, so what it read as was a smear rather than a correction. The
+   * two words beside them still morph, since a tide turning really is one state
+   * replacing another. Tabular is what the morph's width transition was
+   * covering for: without it a `1` arriving in the height shortens the string
+   * and shoves the unit and the state pill sideways.
    */
   const [clock, setClock] = useState(() => ({
     height: formatHeight(heightAt(TIDE.start)),
@@ -451,10 +460,8 @@ export default function TideCard() {
                     Stacked, the two spent a third of the card on four lines
                     and left the chart squashed against the foot. */}
                 <p className="flex min-w-0 items-baseline gap-[2cqw] whitespace-nowrap leading-none">
-                  <span className="text-[max(22px,7.6cqw)] font-semibold text-inverse-text">
-                    <TextMorph duration={MORPH.duration} ease={MORPH.ease}>
-                      {clock.height}
-                    </TextMorph>
+                  <span className="text-[max(22px,7.6cqw)] font-semibold text-inverse-text tabular-nums">
+                    {clock.height}
                   </span>
                   <span className="text-[max(10px,3.2cqw)] text-inverse-text-secondary">
                     m
@@ -489,10 +496,8 @@ export default function TideCard() {
                       {clock.rising ? "High water in" : "Low water in"}
                     </TextMorph>
                   </p>
-                  <p className="whitespace-nowrap text-[max(14px,4.8cqw)] font-medium text-inverse-text leading-none">
-                    <TextMorph duration={MORPH.duration} ease={MORPH.ease}>
-                      {clock.turn}
-                    </TextMorph>
+                  <p className="whitespace-nowrap text-[max(14px,4.8cqw)] font-medium text-inverse-text tabular-nums leading-none">
+                    {clock.turn}
                   </p>
                 </div>
               </motion.div>
