@@ -155,6 +155,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "notice-stack": dynamic(() => import("@/components/labs/notice-stack"), {
     ssr: false,
   }),
+  "tide-card": dynamic(() => import("@/components/labs/tide-card"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

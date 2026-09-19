@@ -595,6 +595,22 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Point at the pile, then at the edge that rises. Press it to advance.",
   },
+  {
+    slug: "tide-card",
+    title: "Tide Card",
+    description: [
+      "A dark pill that says `Check the tide`. Press it and the button becomes the card, and a live tide arrives inside the box as it grows. Three rows slide in one after another and a cycle of water draws itself in under a marker that creeps along while the card is held open.",
+      "Key insight: the button is not replaced by the card, it is the card cropped to its title. Everything is laid out at the card's full size and mounted the whole time the button is a pill, so the only thing the morph moves is the box's own `overflow-hidden`. The label then needs no animation at all: it sits at the card's padding from the top left, and a box exactly one padding bigger than it on every side is a pill with that label centred in it.",
+      "The corner is never animated, because it never changes. `rounded-full` on a pill is half its height, so a box one padding taller than its own label carries a 27.6px corner, and giving the card that same corner is what lets one `border-radius` serve both ends. It is a constraint rather than a saving: a card wanting a tighter corner would have to ease a radius under an edge that is already moving, which reads as the shape wobbling.",
+      "The rows arrive down the card and each lands before it sharpens, which is what racking focus over something with depth looks like. They start while the box is still forming and are cropped at both ends on the way in, since a card that finishes growing and then fills itself is two events. Three curves carry it, one for the box, one for a row's slide and one for its focus, so the content's clock is linear and every curve on it is a function applied to that one number.",
+      "Everything the card says is one function evaluated somewhere. The curve is the tide's own height drawn, the readout is it at now, the state is its sign and the countdown is the distance to its next turn. And a tide is a cycle, which is the one thing that lets a live demo be honest at every opening: a journey lands, so a demo of one either ends dead or restarts something already half over, where here the phase is simply left wherever it got to.",
+    ],
+    createdAt: "2026-09-19",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/tide-card/index.tsx",
+    flush: true,
+    hint: "Press the pill. It opens into the tide and the water comes in.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -679,6 +695,7 @@ export const IMPLEMENTED_LABS = [
   "ember-burst",
   "gooey-chips",
   "notice-stack",
+  "tide-card",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
