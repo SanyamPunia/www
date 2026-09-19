@@ -1232,7 +1232,7 @@ experiment is a directory under `components/labs/`.
 - **No `flex-wrap` on that row.** A hint that cannot fit is meant to wrap its
   own text, never to push the links onto a line where nothing balances them.
   `min-w-0` on the hint is what lets it shrink that far and `shrink-0` on the
-  links is what keeps them out of it. Measured across all 36 labs at 320, 390,
+  links is what keeps them out of it. Measured across all 37 labs at 320, 390,
   640 and 1280px: the links sit beside the hint at every one, and nothing
   overflows.
 - **That row has one rule: two things on a line sit at opposite ends, and one
@@ -1245,7 +1245,7 @@ experiment is a directory under `components/labs/`.
   two fit and not how wide the screen is. The one exception is an entry with no
   hint, which has nothing to share a line with: from `sm` up it keeps the demo's
   bottom right corner and below `sm` it goes back to the left edge, since at
-  that width a lone right-aligned run is the same orphan. Measured across all 36
+  that width a lone right-aligned run is the same orphan. Measured across all 37
   labs at 320, 390 and 1280px: no orphan and no overflow at any of them.
 - **`flush: true` keeps the frame and drops its padding**, so the experiment
   fills the frame edge to edge. For a demo whose whole surface is the
@@ -1257,8 +1257,8 @@ experiment is a directory under `components/labs/`.
   `stamp-collection`, `book-opening`, `folder-stack`, `window-shade`,
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
-  `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst` and
-  `notice-stack` use it. `ember-burst` is the only entry where `flush` governs
+  `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
+  `notice-stack` and `tide-card` use it. `ember-burst` is the only entry where `flush` governs
   part of the frame rather than all of it: the stage runs to all four of its
   edges and the knob strip beneath carries its own padding, since a range track
   running into a hairline is not a control.
@@ -1268,7 +1268,7 @@ experiment is a directory under `components/labs/`.
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twenty experiments define their own hues**, `tab-overview` per terminal
+- **Twenty-one experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1282,7 +1282,8 @@ experiment is a directory under `components/labs/`.
   bunch, `pixel-reveal` a palette per picture, one for each of the five it
   can resolve, and `ember-burst` a temperature ramp, which is the one set in
   the lab that is not a choice at all: an ember's colour is what its heat looks
-  like, so the six stops are a measurement rather than a palette. Five of
+  like, so the six stops are a measurement rather than a palette, and
+  `tide-card` one green for a tide that is coming in. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -1295,7 +1296,9 @@ experiment is a directory under `components/labs/`.
   painting and its six inks are what it is made of. `halftone-ripple`'s is the
   narrowest in the lab: one value, and it is a state rather than a subject,
   since the same ripple goes out in `text-muted` when a press turns the button
-  off. See its own section.
+  off. See its own section. `tide-card`'s is the same shape and the same
+  width: the site ships one status tone and it means wrong, and a tide going out
+  is not wrong.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1448,7 +1451,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-six clips, 2.1MB with their stills, 3.4 to 9.0 seconds each, at 60
+- Thirty-seven clips, 2.2MB with their stills, 3.4 to 9.0 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -6259,6 +6262,288 @@ gestures.
   tray, the reset brings all four back, the live region reads the front notice
   and its place, a tap on a phone advances the pile without hovering it, and no
   console errors.
+
+### `tide-card`
+
+A pill that becomes a card. Press `Check the tide` and the button opens into a
+live tide: the station, the height now, and one cycle of water drawn in under a
+marker that creeps along it while the card is held open. `card.ts` is the two
+boxes and what happens between them, `wave.ts` the curve and where now sits on
+it, `tide.ts` the tide itself, and `index.tsx` the box and its two controls.
+
+- **The button is not replaced by the card, it is the card cropped to its
+  title.** One box, one ground, one label, and the whole of the morph is that
+  box's `overflow-hidden` opening. A button that opens a card is usually two
+  elements and a crossfade, and what a reader sees then is one thing being
+  swapped for another. Here the rows, the chart and the close control are laid
+  out at the card's full size and mounted the entire time the button is a pill,
+  so nothing mounts, nothing reflows and nothing can pop.
+- **So the label needs no animation, no second copy and no position of its
+  own.** It sits at `PAD` from the content's top left, and a box exactly `PAD`
+  bigger than it on every side is a pill with that label centred in it. Centred
+  in the button and top left in the card are the same one rule seen through two
+  crops. Measured: a title of 86.8 by 19.2 gives a pill of 122.8 by 55.2, and
+  the label's box does not move by a pixel from one end of the morph to the
+  other.
+- **The corner is never animated, because it never changes.** `rounded-full` on
+  a pill is half its height, so a box one padding taller than a 19.2px line box
+  carries a 27.6px corner, and giving the card that same corner is what lets one
+  `border-radius` serve both ends. The pill reads as a pill because it is 55px
+  tall, not because its radius is doing anything.
+  - It is a constraint rather than a saving, and it is worth knowing which way
+    round it works. A card that wanted a tighter corner would have to ease a
+    radius under an edge that is already moving, which reads as the shape
+    wobbling rather than growing. 27.6px on a 404 by 244 card is 11% of its
+    height, which is generous and is what the reference draws, so the constraint
+    cost nothing here. It would cost something on a card that wanted a 6px
+    corner.
+- **The content is laid out at the card's size whatever size the box is**, which
+  is what makes the crop honest: the pill is a 123px window onto a 404 by 244
+  drawing rather than a small version of it.
+- **The close control needs no entrance for the same reason.** At one padding
+  from the card's right edge it is simply outside the crop until the box is
+  nearly the card, so there is nothing to fade and nothing to schedule.
+- **It is also the one thing on the card that never blurs**, since it is a
+  control and not content.
+- **Both axes are on one clock, which is this piece's whole difference from
+  `island-menu`.** There a nav bar grows tall and then wide, because what is
+  being watched is a shape changing and two moves are what make it read as one.
+  Here the shape never changes: the card is already the card and the box is a
+  window onto it, so two clocks would be a window that opens in an L. Measured
+  off the reference's own frames, its two axes track each other to within four
+  points of progress the whole way, which is one clock within the error of
+  reading a still.
+- **So what is staged is the content instead.** The box is one move of 520ms and
+  the card arrives inside it: the rows slide into place and come into focus one
+  after another while the box is still opening, and then the water comes in.
+- **There are three curves, because the box, a row's position and a row's focus
+  are three different questions.** What decides an easing here is the slope it
+  leaves at, which is `y1 / x1`.
+  - **The box takes the drawer curve, `[0.32, 0.72, 0, 1]`, which leaves at 2.25
+    times its own average speed.** A press is answered in the first few frames
+    or it is not answered, and that is the one moment a reader is watching
+    closely. `island-menu`'s `[0.4, 0, 0.2, 1]` leaves at zero, which is an
+    ease-in start on an element responding to input: measured on this box, 4.6%
+    of the move in the first 80ms, so it sat still for five frames after the
+    press. `[0.22, 1, 0.36, 1]` leaves at 4.55, which is the lurch that lab
+    rejected as arriving hard, and it was right to. Measured in the page after
+    the change, timed from the press itself rather than through the harness: the
+    box has moved one frame later and is 33 to 44% of the way there at 80ms.
+  - **A row's slide takes `[0.23, 1, 0.32, 1]`, the strongest ease-out in the
+    piece, and it is the one place a lurch is the point.** The box crosses 280px
+    of stage and a row crosses 12, so front-loading 12px is what snappy means
+    and there is no distance for the eye to be thrown across.
+  - **A row's focus takes `ease`.** On the box's own curve a row went from 14px
+    of blur to none in 117ms of a 365ms window, because a curve that front-loads
+    spends a reveal before the eye has found it. A rack of focus is a barrel
+    turned at a near constant rate with a soft landing.
+- **So the content's clock is linear and every curve on it is a function applied
+  to that one number.** A global ease plus a windowed mapping does not compose:
+  the later a row's window sits, the flatter the part of the global curve it
+  lands on, so the last row would slide slower than the first for no reason
+  anyone chose. `bezier` in `card.ts` is eleven lines of bisection and it is
+  what lets one entrance carry two curves, which it has to, because a row is
+  doing two things at once.
+- **The rows do not arrive together, they arrive down the card, and each lands
+  before it sharpens.** A row slides its last 12px into place over the first 42%
+  of its own band, 198ms, and comes into focus over all of it, 471ms. The fast
+  half is the half the eye tracks, which is what makes a sequence read as snappy
+  rather than as three things fading. Traced per frame: the meta row is in place
+  at 262ms with 8.6px of blur still on it, the readout row at 362ms and the
+  chart at 412ms, and the focus is still racking down the card at 462ms at 1.1,
+  2.7 and 5.6px.
+  - **The layout never moves.** Every row sits where it will end up for the
+    whole morph and a transform carries it the last 12px, so nothing reflows and
+    the
+    claim that the card is laid out once survives the slide. The transform is
+    written as a string rather than through Motion's `y` shorthand, which is not
+    hardware accelerated.
+  - **It is a mapping rather than six tweens.** Each row reads a window of the
+    same two numbers, 76% of one wide and starting 12% apart, so the stagger
+    costs no animation of its own and nothing has to be kept in step with
+    anything. At a
+    620ms content beat that is 74ms between rows, inside the 30 to 80ms a
+    stagger has to stay in to read as one movement rather than as a queue.
+  - **The focus reverses for free and the position must not.** Running the one
+    number back down takes the last row out first, which is the order a hand
+    would put them away in and which nothing anywhere has to say. That is right
+    for the focus, since the card really is going out of focus.
+  - **It is wrong for the slide, and that shipped.** A row that rose into place
+    sank back out of it, 12px crammed into a 260ms exit, and did it while it
+    could still be read: traced through a close, the status row was already
+    dropping at 0.29 opacity and the meta row at 0.63. An entrance that rises
+    should not exit by sinking back into the same spot, and the exit is the one
+    place you want less motion rather than more. So position is a second value.
+    It is held at its place for the whole close and put back only once every row
+    is at zero opacity, which measures 49ms later with the box already a 125px
+    pill, so nothing can see it happen. An interrupted close reopens with the
+    rows where they are and no slide at all, which is the right answer rather
+    than a shortcoming: they never left.
+  - **The title is not one of the bands.** It is the anchor the whole morph
+    hangs on, and it is never faded, blurred, slid or moved.
+- **The rows start while the box is still forming, and being cropped on the way
+  in is the point.** The first row is on screen 70ms in, when the box is a third
+  of the way there, so it arrives into a box still growing round it and is cut
+  off at both ends while it does. A card that finishes growing and then fills
+  itself is two events. A row arriving into a box that is still opening is the
+  box uncovering it, which is the thing this whole piece claims.
+  - A row's opacity is the first 35% of its own focus rather than the first 60%,
+    which is what puts it on screen early and soft instead of late and sharp.
+  - **Both the filter and the transform come off entirely at rest**, never
+    sitting at `blur(0px)` and `translateY(0px)`, since each makes its element a
+    compositing layer whatever its value and there are three rows here rather
+    than one wrapper. Verified: all three read `none / none` once the card has
+    settled. Measured under a 4x CPU throttle with all three live, 96 frames
+    opening and 72 closing, both at a 16.7ms median and a 16.8ms worst, so
+    nothing is dropped.
+- **The content arrives by coming into focus, not by fading, and the difference
+  is a claim rather than a look.** A blur is distance where an opacity is
+  existence, so a card that resolves was behind the button the whole time and
+  too near to read, and a card that fades in was not there. `notice-stack` gives
+  its blur to the exit for the same reason from the other end: there a notice
+  leaving softens because it is going away, and nothing that is staying is ever
+  soft.
+- **Closing leads with the blur and lets the opacity follow it**, which falls
+  out of reading that same number backwards. By the time the box has moved a
+  fifth the card is unreadable, so the box never shrinks around type anyone is
+  still trying to read. The first build took the content away in a flat 180ms
+  and left the box shrinking around an empty ground with a label in the corner
+  of it, which is a different and worse thing to watch.
+- **The lift is derived from the box's height rather than animated**, the same
+  call the corner makes: a bigger object casts a bigger shadow, so the card's
+  lift is the pill's with one number changed and there is no second tween to
+  keep in step with the first. Three layers on `document-pocket`'s recipe, a
+  contact line, a short cast and a wide ambient one.
+
+- **Everything the card says is one function evaluated somewhere.** `heightAt`
+  is the tide, and the curve is that function drawn, the big readout is it at
+  now, the state is its sign and the countdown is the distance to its next turn.
+  There is no second copy of the tide anywhere, so the marker sits on the curve
+  because both are the same function rather than because two drawings were made
+  to agree.
+- **One number carries the tide and one carries the reveal, and the chart reads
+  their product.** Where the water's edge is, how much of the curve is solid and
+  where the marker sits are the same value, so they cannot drift apart.
+- **Placing the marker needs arc length and not width.** The solid half of the
+  curve is offset with `pathLength="1"`, which is length, and a curve climbing a
+  third of its box covers more length per unit of width where it is steep. On
+  this curve the two differ by up to 4.6% around the middle of the rise, which
+  is 13 units, so a marker placed by width would sit visibly off the end of its
+  own trail exactly where the tide is moving fastest.
+- **The cosine is sampled rather than approximated**, since it has no exact
+  Bézier, and sampling is also what makes the arc-length table exact: the
+  browser measures the same 120 segments the table sums, so the two cannot
+  differ by more than the float arithmetic.
+- **A tide is a cycle, and that is the one thing that lets a live demo be honest
+  at every opening.** A journey lands, so a demo of one either ends dead or
+  restarts something that was already half over, which is a thing a real tracker
+  never does. Here the phase is left wherever it got to when the card shuts, and
+  the chart is exactly one cycle, so water running off its right edge is the
+  same water arriving at its left and the drawing does not move. A window of any
+  other width would have to scroll.
+- **The phase runs at a minute a second**, so the countdown ticks about once a
+  second, the height moves about every six and the water is visibly coming in.
+  At the real rate the marker would cover a fiftieth of a pixel a second and
+  nothing on the card would change inside a session. Measured over 26 seconds
+  held open: 3.3m and 2h 28m to 3.7m and 2h 00m.
+- **Where the card opens is picked for the drawing, not for the number.** A
+  cosine is flat at both ends, so a phase near either turn puts the marker where
+  it has nowhere visible to go. 0.301 is two thirds up the rise, where the curve
+  is steepest.
+- **The water is a gradient rather than a flat fill, and it is clipped rather
+  than rebuilt.** At one alpha the area is a dark slab with a hard foot, where
+  what it stands for is depth. The edge is a clip rect whose width is driven, so
+  a path of 120 points is not restrung every frame.
+  - **A gradient stop resolves `currentColor` against the gradient element and
+    not against whatever references it**, so a Tailwind class on the path
+    painted nothing at all and the water was invisible. The stops name the
+    token directly.
+  - **The marker carries a drop line to the floor**, which is what explains
+    that clipped edge: a filled area cut off at a vertical with nothing on it
+    reads as a wall, and the same vertical with a marker sitting on top of it
+    reads as now.
+  - The marker's halo is the card's own ground, so it reads wherever it sits on
+    the curve, which is the trick the signature player's nib uses.
+- **Nothing renders while the tide runs.** The marker's transform, its drop and
+  the curve's dash offset are written straight to their nodes off one motion
+  value, and the only thing that commits is the readout, because `torph` needs a
+  render to morph a character. The height changes about every six seconds and
+  the countdown about every one.
+- **The axis times are derived from one low water and the period**, never
+  written down three times, so the labels cannot drift from the curve above
+  them: move the period and they move with it.
+- **The card scales with the stage and its type stops at a floor.** Everything
+  inside is `cqw` against the card, so a card on a phone is a miniature of the
+  same drawing, and at some width that stops being true: the meta row is 3cqw,
+  which is 12.1px on a lab column and 7.4px at 320. Every size carries a px
+  floor, and `CARD_MIN_H` is the other half of the same decision, since rows
+  that have stopped shrinking run out of the bottom of a card that has not.
+  Measured, 404 by 244 on a 538px column, 309 by 187 at 390 and 248 by 184 at
+  320, where the height floor is what is holding it.
+- **The stage is `aspect-8/5` with a floor under it.** The ratio is what the
+  index's preview card is, so on a lab column the clip is the whole stage with
+  nothing padded or cut, and `min-h-78` is what stops a phone's stage being
+  220px tall with a card that wants 184 of them. `notice-stack` makes the same
+  trade with a fixed height, and the floor keeps the 8:5 wherever there is room
+  for it. Measured: 537.6 by 336.0 on a column, 1.6001, and 351.6 by 249.6 at
+  390.
+- **The card is `text-primary`, which is the site's own primary button at card
+  size.** That is most of what says nothing was replaced: a card that opened in
+  white would be a different object that happened to appear where the button
+  was. It is the narrow use of a dark object on a light page that `notch-drop`'s
+  notch and `book-opening`'s boards take, and the page under it stays white.
+  - **The ink on it is the `inverse-*` text pair**, which is what reads on a
+    near-black whatever the token is named for: `inverse-text` is 16.68:1 on
+    `text-primary` and `inverse-text-secondary` is 5.38.
+  - **Its hover and press are white at low alpha**, never a fill step, which is
+    the rule this project already sets for shading a dark surface. The step in
+    is instant and only the step back is timed, `tether-button`'s asymmetry: at
+    200ms both ways a quick press never reaches its own colour.
+- **The one hue is a state rather than a subject**, and it is the narrowest
+  scoped exception in the lab beside `halftone-ripple`'s. The site ships one
+  status tone and it means wrong, and a tide going out is not wrong, so the
+  other state takes the quiet tone rather than a second hue, exactly as that
+  lab's ripple goes out in `text-muted` when a press turns its button off.
+  7.64:1 on the card's ground, scoped to this experiment, not a token, and
+  nothing else may reach for it.
+- **The station, the zone and the axis times keep their casing**, through
+  `[text-transform:none]`, since a station name and a clock time are data rather
+  than copy. That is `notch-drop`'s call for its meta line. The height is also
+  off the type scale and carries a weight, the standing `flip-clock`'s numerals
+  and `island-menu`'s wordmark have, since it is the thing the card exists to
+  say.
+- **The face and the close control are siblings, and neither is the box.** A
+  card carrying a close control cannot also be a button, which is the split
+  `notice-stack` documents. The face is an absolutely positioned button filling
+  the box while it is a pill, and each is `inert` in the stance the other owns,
+  so a screen reader is never handed a whole tide table out of a button that
+  says three words.
+- **The control that was pressed is the one that goes away, so focus is handed
+  across**, or a keyboard reader is left on `body` after one press. Only when
+  the press was a keyboard one: moving focus on a mouse press paints a ring on
+  every click, because Chrome judges a scripted focus rather than the press that
+  led to it, which `notice-stack` and `sticker-peel` both document running into.
+  Measured: Enter on the pill lands focus on the close control with its ring,
+  Escape lands it back on the pill with its ring, and a mouse press leaves
+  `document.activeElement` on `body` with no ring anywhere.
+- **The focus ring is the dark-ground variant, and it is stronger rather than
+  weaker.** The project's own pattern pins `ring-text-primary/15`, a near-black
+  ring on near-black, and Tailwind's ring paints its offset in
+  `--tw-ring-offset-color`, which defaults to white and would put a bright band
+  round the control. Same substitution `window-shade`, `island-menu` and
+  `ember-burst` make.
+- Escape closes the card, which is the courtesy the shared rules ask of anything
+  that opens over a page, and `select-none` sits on the stage, since every
+  gesture here is a press on one control and the card is a readout rather than
+  prose.
+- **Reduced motion keeps every state and drops the travel.** The card still
+  opens, arrives sharp and runs its tide, all in one step. Verified: 60ms after
+  a press the box already measures 404 by 244 with `filter: none` and the
+  content at full opacity.
+- Verified in a browser at 320, 390, 430 and 1280px: the pill holds 122.8 by
+  55.2 at every one, the corner is 27.59px at both ends of the morph, nothing
+  inside the card overflows it, the page never scrolls sideways, the tide
+  advances and turns, and no console errors.
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
