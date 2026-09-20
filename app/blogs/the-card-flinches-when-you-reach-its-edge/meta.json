@@ -1,0 +1,6 @@
+{
+  "title": "hit boxes, and the card that flinches",
+  "description": "Reach the edge of a card that tilts and it buzzes. The hit target is inside the transform, so hovering it moves it out from under you. Hold still and it does not buzz, it dies.",
+  "date": "2026-09-20",
+  "readTime": "4 min read"
+}
