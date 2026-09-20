@@ -834,16 +834,32 @@ both, says which one let them, and only then is told what the difference was.
   pointer and the thing it is pointing at, so drawing the card's flat position
   and leaving it there turns the argument into something a reader sees in one
   frame rather than something they are told.
-- **The counter only counts a leave fired with the pointer still inside the
-  box.** A leave with the pointer outside it is a reader who has gone somewhere
-  else, and counting those puts a number on both cards and says nothing.
-  Measured with a hand jittering at the left edge for about a second: 7 drops on
-  the broken one against 0 on the fixed one.
-- **The tilt and the perspective are picked so the demo's gap is the number the
-  prose quotes.** Half of 268px turned 12 degrees goes back 27.9px, which at a
-  perspective of 800 shrinks by 0.966, so the near edge lands 7.4px inside the
-  dashed line. The post says about eight pixels and means it about the real card
-  as well.
+- **The reader is given a task they can fail, and that is what makes the bug
+  findable at all.** Told in prose to go to the edge, a reader waves at the
+  middle of the card, watches it tilt nicely and learns nothing: the failure
+  lives in a few pixels at the rim and nothing was pointing at them. So there is
+  a marked strip to aim at with a target dot in the middle of it, and a bar that
+  fills only while the pointer is inside that strip. On the broken card the bar
+  starts again every time the hover drops, so the task cannot be finished at
+  all. That is the difference between asking "did you feel a flicker" and asking
+  "can you finish this", and only the second is a question a reader cannot
+  answer wrongly by accident.
+  - The strip belongs to the footprint and never to the card, so what the reader
+    watches is the card's own edge sliding in behind a strip that has not moved.
+  - The counter only counts a leave fired with the pointer still inside the box.
+    A leave with it outside is a reader who has gone somewhere else, and
+    counting those puts a number on both cards and says nothing. Measured with a
+    hand jittering in the strip for two seconds: 9 drops and no fill on the
+    broken one, 0 drops and held on the fixed one.
+- **The tilt is exaggerated past what a real card would use, and that is the
+  demo making a mechanism aimable rather than a mistake.** At a sane 12 degrees
+  through an 800px perspective the near edge pulls 6.8px in, and a target that
+  narrow is not one a reader can hold: measured, a hand aiming at the middle of
+  a 16px strip sat 8px in, which is 1.2px inside the card, and filled the bar on
+  the broken one. At 20 degrees through 700 the pull is 15.8px, so all 12px of
+  the strip is past the edge with 3.8px to spare. The eight pixels the post
+  quotes is `foil-card`'s own card at 8.94 degrees, and it is a claim about tilt
+  cards rather than about this drawing.
 - **Two headings, which is the post rail's minimum.** Fewer than two renders no
   list at all, and the second one carries the fact the post exists for: a still
   pointer does not make the card buzz, it makes it die, since a browser is not
