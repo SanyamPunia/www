@@ -511,7 +511,7 @@ export default function FoilCard() {
   };
 
   return (
-    <div className="@container relative flex aspect-8/5 min-h-82 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-bg ring-1 ring-stroke ring-inset">
+    <div className="@container relative flex aspect-8/5 min-h-82 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset">
       <div
         ref={slot}
         className="relative"
