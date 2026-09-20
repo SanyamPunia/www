@@ -612,6 +612,26 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the pill. It opens into the tide and the water comes in.",
   },
+  {
+    slug: "cube-orbit",
+    title: "Cube Orbit",
+    description: [
+      "Repeat a sequence of turns and the cube comes back to solved. The dial is one ring per cycle of that sequence, each turning one notch per repetition, and the cube is home on the repetition every ring is home on at once. The arc round the outside is how far through the lap you are.",
+      "Key insight: a ring's rotation is the permutation rather than a picture of one. A cycle's stickers sit on their ring in the order the sequence sends them, so turning that ring by a notch puts every one of them exactly where the sequence would have. The dial and the cube cannot drift apart, because they are the same arithmetic evaluated twice rather than a drawing checked against an answer.",
+      "The number is a fact about the sequence and not about Rubik's cubes. `R` is five four-cycles and comes home in four. `R U R' U'` is two threes and two sixes, so six. `R U` is 3, 7, 7 and 15, which is 105. And `R U2 D' B D'` is 1260, the longest any sequence of turns can take, because every cycle is home every time its own length divides the count and the cube is home at their least common multiple.",
+      "It used to report `cycles 4, 4, 4, 4, 4`, `order 4` and `home` under the stage, which is three pieces of jargon for a reader who was never told the premise, and the premise is the whole surprise. One sentence carries it now, the control that changes the sequence sits inside that sentence, and what a ring is arrives in plain words when one is pointed at. The demo also plays itself once on arrival, since two diagrams sitting still say nothing about what either of them does.",
+      "Nothing here is a table of turns copied out of somewhere. All six faces are derived from one rotation of one cubie, so they cannot disagree with each other and a sign error shows up as a cube that never comes home rather than as a drawing that is quietly wrong. The check is that the orders land on 4, 6, 105 and 1260.",
+      "A drawing of a cube can only ever show three faces, and the whole question here is whether all six are home, so the cube and its net are one object rather than a choice between them. One number folds it: `--fold` drives the five hinges, the angle it is seen from and how much bigger it gets on the way up, and the faces hang off each other the way the paper does, so a hinge is one rotation about an edge two faces already share. Pointing at a ring unfolds it, since that is the one moment all six are worth having, and a press keeps it flat.",
+      "A tick stands at every repetition that puts part of the cube back, in the band between the rings and the arc. Under `R U` the cube is a third of the way back together at 21 and at 42, and under a single quarter turn nothing comes back until the end and the band is empty, which is what makes the marks read as data rather than as a scale.",
+      "A run of 1260 repetitions repaints all 54 stickers on every frame, which is a strobe rather than a demo, so the drawing smears by its own speed: blur read off the dial's own speed is the wash a spinning thing actually looks like, and it costs one filter.",
+    ],
+    createdAt: "2026-09-20",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/cube-orbit/index.tsx",
+    reference: "https://x.com/TheMathFlow/status/2101154346583154801",
+    flush: true,
+    hint: "Turn the dial. Press the cube to unfold it, then point at a ring.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -697,6 +717,7 @@ export const IMPLEMENTED_LABS = [
   "gooey-chips",
   "notice-stack",
   "tide-card",
+  "cube-orbit",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
