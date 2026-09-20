@@ -45,18 +45,18 @@ const CARD = { w: 268, h: 160 };
  *
  * **Both are turned up past what a real card would use, and that is the
  * demo exaggerating a mechanism so it can be aimed at.** A card at a sane 12
- * degrees pulls its near edge 6.8px in, and a strip only 6.8px wide is not a
+ * degrees pulls its near edge 6.8px in, and a target only 6.8px wide is not one
  * target a reader can hold: measured, a hand aiming at the middle of a 16px
  * strip sat 8px in, which is 1.2px inside the card, and filled the bar on the
- * broken one. At 20 degrees through 700 the pull is 15.8px, so the whole strip
- * is past the edge with 3.8px to spare and the failure is something a reader
- * meets rather than hunts for.
+ * broken one. At 24 degrees through 700 the pull is 17.5px even measured at the
+ * far side of the tab, so every part of the target is past the edge and the
+ * failure is something a reader meets rather than hunts for.
  *
  * The eight pixels the post quotes is the real card in `foil-card`, measured on
  * a 420px card at 8.94 degrees, and it is a claim about tilt cards rather than
  * about this drawing.
  */
-const TILT = 20;
+const TILT = 24;
 const PERSPECTIVE = 700;
 
 /** A card has mass, so it arrives with a little overshoot. */
@@ -73,13 +73,24 @@ const SPRING = { stiffness: 220, damping: 20 };
  * you finish this", which is a question a reader cannot answer wrongly by
  * accident.
  *
- * 12px, and every pixel of it is past where the tilted card's edge lands, so
- * there is no part of the target that quietly works. The strip belongs to the
- * footprint and never to the card, since it marks a place on the screen rather
- * than a place on the object, and watching the card's own edge slide in behind
- * it is the bug drawn rather than described.
+ * 14 wide and 72 tall, which is a tab at the middle of that edge rather than a
+ * band down the whole of it.
+ *
+ * **Full height was the congestion.** It put four vertical lines inside 20px,
+ * the footprint, the tab, the tab's own border and the card's ring, and it
+ * crowded the card's rows far enough right that they needed a padding hack to
+ * clear it. A tab at mid-height leaves the top and bottom of that edge as one
+ * hairline, which is all they were ever meant to be, and the rows go back to
+ * sitting where they sit.
+ *
+ * Every pixel of it is past where the tilted card's edge lands, so no part of
+ * the target quietly works. It belongs to the footprint and never to the card,
+ * since it marks a place on the screen rather than a place on the object, and
+ * watching the card's own edge slide in behind it is the bug drawn rather than
+ * described.
  */
-const STRIP = 12;
+const TAB_W = 14;
+const TAB_H = 72;
 const HOLD = 1200;
 
 const ANSWERS = [
@@ -116,8 +127,8 @@ export default function Sandboxes() {
     <div className="my-8 flex flex-col gap-10">
       <div className="flex flex-col gap-4">
         <Step n={1}>
-          Hold the pointer inside the <Swatch /> strip on each card until its
-          bar fills.
+          Hold the pointer on the <Swatch /> tab at the left edge of each card
+          until its bar fills.
         </Step>
 
         <div className="relative left-1/2 w-[min(100vw-2rem,46rem)] -translate-x-1/2">
@@ -313,7 +324,7 @@ function Sandbox({
     /* the bar runs only while the pointer is in the strip. Anywhere else on the
        card would let a reader fill both of them from the middle, where there is
        no bug to meet. */
-    if (x <= STRIP) startHold();
+    if (x <= TAB_W) startHold();
     else stopHold();
   };
 
@@ -348,7 +359,7 @@ function Sandbox({
   );
 
   return (
-    <figure className="flex w-full max-w-full flex-col items-center gap-3">
+    <figure className="flex w-full max-w-full flex-col items-center gap-2.5">
       <div
         className="relative grid w-full max-w-full place-items-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset"
         style={{ height: STAGE.h, maxWidth: STAGE.w }}
@@ -370,47 +381,46 @@ function Sandbox({
               fixed && "pointer-events-none",
             )}
           >
-            <div className="flex flex-col gap-1.5 pl-3">
+            <div className="flex flex-col gap-1.5">
               <span className="h-2 w-24 rounded-full bg-fill-active" />
               <span className="h-2 w-16 rounded-full bg-fill" />
             </div>
-            <span className="ml-3 h-2 w-20 rounded-full bg-fill" />
+            <span className="h-2 w-20 rounded-full bg-fill" />
             {!fixed && control}
           </motion.div>
 
           {/*
-           * The target, and the bar, which are one object.
+           * The target.
            *
            * It sits after the card so it paints over it, and it belongs to the
            * footprint rather than to the card, so what the reader watches is
-           * the card's own edge sliding in behind a strip that has not moved.
+           * the card's own edge sliding in behind a tab that has not moved.
            * Transparent to the pointer, or it would take the events from the
            * control it exists to send them to.
+           *
+           * **The fill is not in here.** A bar rising inside 14px is a sliver,
+           * and the one thing a reader has to read while they hold should not
+           * be the smallest thing on the card. It runs under the card instead,
+           * where it has the card's own width to do it in.
            */}
           <div
             aria-hidden="true"
             className={cn(
-              "pointer-events-none absolute inset-y-0 left-0 overflow-hidden rounded-l-xl border-r border-dashed transition-colors duration-200",
-              done
-                ? "border-text-primary/40 bg-text-primary/10"
-                : "border-text-muted bg-fill-active",
+              "-translate-y-1/2 pointer-events-none absolute top-1/2 left-0 flex items-center justify-center rounded-r-lg transition-colors duration-200",
+              done ? "bg-text-primary/10" : "bg-fill-active",
             )}
-            style={{ width: STRIP }}
+            style={{ width: TAB_W, height: TAB_H }}
           >
-            <motion.div
-              style={{ scaleY: filled }}
-              className="absolute inset-0 origin-bottom bg-text-primary/30"
-            />
             {/* somewhere to aim, since a 12px band of grey is a thing a reader
                 has to go looking for and a dot is a thing they can point at */}
             {done ? (
               <CheckIcon
                 aria-hidden="true"
                 weight="bold"
-                className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-2.5 text-text-primary"
+                className="size-3 shrink-0 text-text-primary"
               />
             ) : (
-              <span className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex size-1.5">
+              <span className="flex size-1.5 shrink-0">
                 {/* a ping, so the eye is taken to the one 12px band the whole
                     task happens in. Tailwind emits these keyframes because
                     `animate-ping` is used, and `motion-safe` is what governs
@@ -424,6 +434,28 @@ function Sandbox({
 
           {fixed && control}
         </div>
+      </div>
+
+      {/*
+        The bar, at the card's own width.
+        
+        Constant motion, so it runs linear, and it resets rather than easing
+        back: the snap to zero is the feedback. The empty track picks up the
+        danger tint once a drop has happened, or the broken card reports its
+        failure only in words and the thing the reader is watching stays blank.
+      */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "h-1 w-full overflow-hidden rounded-full transition-colors duration-200",
+          drops > 0 && !done ? "bg-danger/15" : "bg-fill",
+        )}
+        style={{ maxWidth: CARD.w }}
+      >
+        <motion.div
+          style={{ scaleX: filled }}
+          className="h-full w-full origin-left rounded-full bg-text-primary"
+        />
       </div>
 
       {/*
@@ -457,7 +489,7 @@ function Sandbox({
             ? "held"
             : drops > 0
               ? `dropped ${drops === 1 ? "once" : `${drops} times`}`
-              : "hold the strip"}
+              : "hold the tab"}
         </span>
         {reveal ? (
           <span className="text-text-secondary">
@@ -543,16 +575,15 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 /**
- * The strip, at the size of the running text, so "the strip" in the
- * instruction and the strip on the card are visibly the same thing. Naming a
- * 12px band of grey in prose and hoping the reader finds it is the version
- * that does not work.
+ * The tab, at the size of the running text, so the word and the thing are
+ * visibly one thing. Naming a 14px patch of grey in prose and hoping a reader
+ * finds it is the version that does not work.
  */
 function Swatch() {
   return (
     <span
       aria-hidden="true"
-      className="mx-[0.15em] inline-block h-[0.95em] w-[0.5em] translate-y-[0.12em] rounded-[2px] border-text-muted border-r border-dashed bg-fill-active"
+      className="mx-[0.15em] inline-block h-[0.8em] w-[0.34em] translate-y-[0.06em] rounded-r-[3px] bg-fill-active"
     />
   );
 }

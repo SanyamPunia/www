@@ -849,28 +849,41 @@ deliberately does not share its shape.
   findable at all.** Told in prose to go to the edge, a reader waves at the
   middle of the card, watches it tilt nicely and learns nothing: the failure
   lives in a few pixels at the rim and nothing was pointing at them. So there is
-  a marked strip to aim at with a target dot in the middle of it, and a bar that
-  fills only while the pointer is inside that strip. On the broken card the bar
+  a marked tab to aim at with a target dot in the middle of it, and a bar that
+  fills only while the pointer is inside that tab. On the broken card the bar
   starts again every time the hover drops, so the task cannot be finished at
   all. That is the difference between asking "did you feel a flicker" and asking
   "can you finish this", and only the second is a question a reader cannot
   answer wrongly by accident.
-  - The strip belongs to the footprint and never to the card, so what the reader
-    watches is the card's own edge sliding in behind a strip that has not moved.
+  - The tab belongs to the footprint and never to the card, so what the reader
+    watches is the card's own edge sliding in behind a tab that has not moved.
   - The counter only counts a leave fired with the pointer still inside the box.
     A leave with it outside is a reader who has gone somewhere else, and
     counting those puts a number on both cards and says nothing. Measured with a
     hand jittering in the strip for two seconds: 9 drops and no fill on the
     broken one, 0 drops and held on the fixed one.
+- **The target is a 14 by 72 tab at the middle of the edge, and it was a band
+  down the whole of it.** Full height was the congestion: four vertical lines
+  inside 20px, the footprint, the tab, the tab's own dashed border and the
+  card's ring, with the card's rows shoved right by a padding hack to clear
+  them. At mid-height the top and bottom of that edge go back to being one
+  hairline and the rows go back to sitting where they sit.
+- **The bar is not in the tab, it runs under the card at the card's own width.**
+  A fill rising inside 14px is a sliver, and the one thing a reader has to read
+  while they hold should not be the smallest thing on the card. It is constant
+  motion, so it runs linear, and it snaps back to zero rather than easing, since
+  the snap is the feedback. The empty track picks up a `danger` tint once a drop
+  has happened, or the broken card reports its failure only in words while the
+  thing the reader is watching stays blank.
 - **The tilt is exaggerated past what a real card would use, and that is the
   demo making a mechanism aimable rather than a mistake.** At a sane 12 degrees
   through an 800px perspective the near edge pulls 6.8px in, and a target that
   narrow is not one a reader can hold: measured, a hand aiming at the middle of
-  a 16px strip sat 8px in, which is 1.2px inside the card, and filled the bar on
-  the broken one. At 20 degrees through 700 the pull is 15.8px, so all 12px of
-  the strip is past the edge with 3.8px to spare. The eight pixels the post
-  quotes is `foil-card`'s own card at 8.94 degrees, and it is a claim about tilt
-  cards rather than about this drawing.
+  a 16px band sat 8px in, which is 1.2px inside the card, and filled the bar on
+  the broken one. At 24 degrees through 700 the pull is 17.5px even measured at
+  the far side of the tab, so no part of the target quietly works. The eight
+  pixels the post quotes is `foil-card`'s own card at 8.94 degrees, and it is a
+  claim about tilt cards rather than about this drawing.
 - **The task is spaced as a task.** It was three groups at one `gap-5`, which
   reads as a list of three things rather than as something with an order, and
   the heaviest object on the block was the question, which is the part you do
@@ -884,10 +897,10 @@ deliberately does not share its shape.
   going was the quietest type on it. A filled pill stepping from `fill` to
   `danger` to the emphatic neutral is a readout, and it is what the reader is
   looking straight at while they hold.
-- **The strip carries a ping and the copy carries a swatch of it.** Naming a
-  12px band of grey in prose and hoping a reader finds it is the version that
-  does not work, so the instruction renders the strip inline at the running
-  text's own size and the target dot pings until that card has been held.
+- **The tab carries a ping and the copy carries a swatch of it.** Naming a 14px
+  patch of grey in prose and hoping a reader finds it is the version that does
+  not work, so the instruction renders the tab inline at the running text's own
+  size and the target dot pings until that card has been held.
   Tailwind emits those keyframes because `animate-ping` is used, and
   `motion-safe:` is what governs them, since `MotionProvider` reaches motion
   components and never a raw keyframe.
