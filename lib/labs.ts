@@ -12,6 +12,12 @@
 export interface LabMetadata {
   slug: string;
   title: string;
+  /**
+   * Two or three lines: what the thing is, then `key insight:` and the one
+   * decision that made it work, then at most one more note. Not a write-up.
+   * See CLAUDE.md, and note that the first line doubles as the page's meta
+   * description and is clamped at 155 characters.
+   */
   description: string[];
   /** ISO `YYYY-MM-DD`, formatted for display by `formatLabDate` */
   createdAt: string;
@@ -178,9 +184,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "tab-overview",
     title: "Tab Overview",
     description: [
-      "a terminal-style tab strip with three stages of one window: a row of labels, a taller strip where every tab shows what it holds on hover, and an overview grid filling the window so a tab can be picked by its shape rather than its title.",
-      "key insight: a tab is one element in all three stages, so a shared `layoutId` carries it between the strip and the grid. Motion tracks a card from where it was picked up to where it lands instead of one node vanishing while another appears in place, and tab order never changes, which is what makes that readable.",
-      "everything that moves runs on one spring, so the card, the strip and the window resize together. At different speeds they read as three pieces rather than one window. The previews are one component at two sizes, and a card keeps the smaller one in both the strip and the grid, so crossing between them changes its box and nothing else.",
+      "a terminal tab strip in three stages: a row of labels, a taller strip where each tab previews what it holds, and an overview grid where a tab is picked by its shape rather than its title.",
+      "key insight: a tab is one element in all three stages, so a shared `layoutId` carries it between the strip and the grid rather than one node vanishing while another appears in place. tab order never changes, which is what makes that readable.",
+      'everything runs on one spring so the card, the strip and the window resize together. `layout="position"` on the content plus `overflow-hidden` on the card is what stops the label riding the scale, and locking only the label is worse than locking neither.',
     ],
     createdAt: "2026-08-19",
     source:
@@ -192,10 +198,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "tether-button",
     title: "Tether Button",
     description: [
-      "A button pressed from a distance. The cursor shoots a web at the button's nearest edge, and the button goes down when the web lands rather than when the mouse does. Hold it and the strand pays out, hangs slack as the hand comes closer, and falls as it snaps back on release.",
-      "Key insight: one clamp into the button's rect, inset by its own radius, gives the nearest point on its boundary and also answers whether a press landed on the button at all. The anchor is then fixed, or the splat slides around the edge and stops reading as stuck.",
-      "The strand is two mirrored threads wound around a spine, one quadratic per half lobe. They ride the spine's local normal, so slack bends the spine and the twist follows it round instead of staying square to a straight axis.",
-      "The hands are OpenMoji glyphs, emoji as artwork rather than as a text glyph. Each pairs the black set's outline with the colour set's skin shape, since a stroke-only hand is transparent and the label read straight through it.",
+      "a button with its own cursor. pressing anywhere on the stage shoots a web at the nearest edge of the button, and the button goes down when the web lands rather than when the mouse does.",
+      "key insight: `cursor-none` has to go on the whole subtree, not just the stage. the UA stylesheet sets `cursor: default` on a `button`, and a real declaration beats an inherited value, so the system arrow comes back over the one thing you aim at.",
+      "the anchor is fixed at impact, so holding the press and moving the hand pays the strand out against one point. re-deriving the nearest edge every frame slides the splat around the button, and a splat that slides is not stuck to anything.",
     ],
     createdAt: "2026-08-20",
     source:
@@ -207,10 +212,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "document-pocket",
     title: "Document Pocket",
     description: [
-      "A pocket of paper. Hovering it fans the cards up and tilts the front panel forward, hovering one card sinks the rest so that one stands clear, and clicking a card grows it to the middle of the stage with the others pushed off to the sides. Each sheet carries its own hue, since five skeletons built from three arrangements are otherwise one texture.",
-      "Key insight: hover cannot be left to the DOM here. It hit tests boxes as they are currently animated, so a card that moves because it is hovered moves out from under the pointer, the hover drops, the card falls back, and it picks the pointer up again. The fan flickers, and a card cannot be reached at all unless the pointer crosses it inside one frame. One `pointermove` on the stage, tested against the fan's neutral geometry, has no loop left to close.",
-      "A card is staged by animating its `width` rather than by scaling it. At three times the size a scale paints a 1px hairline at 3px and turns a corner into a stadium, so poses are stage pixels and a card's contents are sized in `cqw` against the card itself. An element is never its own query container though, so that unit on the card's own padding resolves against the viewport instead and inflates the box past twice its size.",
-      "Three layers under one perspective, and none of them nested: an element carrying `perspective` is its own stacking context, and the cards have to interleave between the pocket's wall and its shorter front panel. The pocket's hover reach grows with it, from its own footprint when shut to the box around pocket and fan when open, or a diagonal out to an outer card crosses a dead band and shuts the fan halfway.",
+      "a pocket of paper. hovering fans the cards out and tilts the front panel forward, hovering one singles it out, and clicking grows it to the middle of the stage.",
+      "key insight: hover is answered by hit-testing the fan's neutral geometry, never the DOM. a card that moves because it was hovered moves out from under the pointer, the hover drops, the card falls back and the fan flickers. reading the boxes with nothing hovered means a hover cannot change the geometry that decides it.",
+      "a card is staged by animating `width`, never `scale`: 113px to 322px would paint its 1px hairline at 3px. contents are `cqw` against the card, but `cqw` on the card itself resolves against the stage, which inflated every card past twice its size before it was found.",
     ],
     createdAt: "2026-08-20",
     source:
@@ -222,11 +226,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "event-stacking",
     title: "Event Stacking",
     description: [
-      "A four-day calendar whose events are dragged between slots. A card dropped onto another joins it as a stack: the pile compresses to fit the cell it is in, the card underneath keeps a sliver of its own colour showing, and clicking the front card sends it to the back. Holding a press on a stack takes the whole thing, which then travels and lands as one.",
-      "Key insight: `layout` is what moves a card between cells, and `layout=\"position\"` on the card's content is what stops that being a mangling. A layout animation covers a resize with a transform, and joining a pile takes every member from 70px to 63px, so a plain child squashes vertically on the way in and springs back at the end. The locked box holds its real size through its parent's.",
-      "The drop is two animations at once. Drag writes a plain `x`/`y` offset from the card's own box, and the commit moves that box to another cell, so `dragSnapToOrigin` and `layout` each cover one half of the distance between them. Both ends land wherever the springs are, and matching the two is what keeps the card off a curve on its way into the slot.",
-      "Both piles answer the drag and the card in the air does not. The cell it is heading for counts it before it lands, and the cell it left drops it the moment it is over another one, so breaking a pair leaves a lone card holding the whole cell. The lifted card keeps the box it had at rest, since a card that resizes under the pointer reads as the pointer doing it.",
-      "A held pile travels by copying rather than by sharing. Drag writes to whichever motion value sits in the card the pointer has, so the rest of the pile subscribes to that one and mirrors it into its own, which is also what gives every card the same lean for nothing. The copy has to outlive the drop, since the leader's offset is still unwinding after the release.",
+      "a four-day calendar whose events drag between slots. drop a card on another and they join as a pile, and the pile compresses to fit the cell it is in.",
+      "key insight: `dragSnapToOrigin`'s spring has to match the `layout` spring exactly. drag writes an offset from a box the drop has already moved, and `layout`'s own transform unwinds from the old cell, so the two compose to the pointer on the first frame and the target cell on the last. different springs send the card round a curve.",
+      "`dragConstraints` is a plain object of numbers and never the grid's ref. ref constraints put a `ResizeObserver` on the draggable and rewrite `x`/`y` on every resize, which strands a card that changed height mid-drop a cell away from where it was dropped.",
     ],
     createdAt: "2026-08-23",
     source:
@@ -239,10 +241,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "stamp-collection",
     title: "Stamp Collection",
     description: [
-      "Three postage stamps laid out by hand on a dark table. Hovering one lifts it, clicking one brings it to the front of the stage and pushes the other two out behind it, and the print inside a focused stamp slides under its own window as the pointer moves around it.",
-      "Key insight: the paper is an SVG, not a `div` with a CSS mask. Both can punch the perforations, but only the SVG gives a `drop-shadow` that follows the scallops instead of the bounding box, and a stamp whose shadow is a rectangle is a rectangle. The holes sit centred on the edge line so half of each one bites in, which is what leaves convex paper between them.",
-      "A stamp is staged by animating its `width` and `height`, never by scaling it. A scale takes the perforated edge and the shadow blur with it, which is the one thing drawing the paper as vector was for. So the poses are stage pixels and the lettering is sized in `cqw` against the stamp itself, which makes it a query container for its own children and never for itself.",
-      "The print is drawn larger than its window on every side, so the parallax has somewhere to slide and no edge of it can cross the cream frame however far the pointer pushes. It runs on a looser spring than the stamp: the stamp arrives and stops, the print keeps drifting for a moment, which is what reads as glass.",
+      "three stamps on a dark table. hovering lifts one, clicking brings it to the front and pushes the others behind it, and the print inside a focused stamp slides under its own window.",
+      "key insight: the hover lift felt laggy for four separate reasons and only the last one mattered. it is a tween and not a spring, because 14px on a spring is 1.5px a frame and spends most of its time on the last two, and sub-pixel creep reads as sluggish however short the total is.",
+      "the paper is an SVG rather than a div with a CSS mask, so its `drop-shadow` follows the scallops instead of the bounding box. the holes sit centred on the edge line so half of each one bites in, which is the shape a torn perforation has.",
     ],
     createdAt: "2026-08-24",
     source:
@@ -255,11 +256,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "book-opening",
     title: "Book Opening",
     description: [
-      "A book on a table, fourteen sheets deep. Hovering it fans every leaf off the spine and lays the front board out to the left, and in cursor mode the fan answers the pointer instead: the further left of the shut book's fore-edge it goes, the further the cover comes round.",
-      "Key insight: the stage carries one number and every sheet multiplies it by the angle it lands on at full open, so fourteen transforms come off one inherited property and the browser is the thing interpolating them. The fan is that same lerp run across the stack rather than across time, which leaves one value in the file deciding how wide the book opens.",
-      "The smoothing is `a * (1 - t) + b * t` on a time constant rather than a fixed share of the gap per frame, which is a different curve on every refresh rate: 0.15 a frame settles in half the time at 120Hz that it does at 60Hz. Nothing overshoots, since paper does not bounce and a lerp toward a target cannot pass it, and the loop stops once the gap is under `1e-4`, since an exponential approach never actually lands.",
-      "The pointer's target grows with the book and never shrinks under it. A fanned sheet sits well outside the shut book's footprint, so a reach fixed at that footprint shuts the book the moment the pointer follows the paper, and a reach made of the sheets themselves cannot work at all: they move because they were hovered, which is the loop `document-pocket` exists to close.",
-      "Each board is two faces under `backface-visibility: hidden`, because a cover swung past 90 degrees shows its own back and a title read backwards is the one thing a book cannot do. The inside of both boards is paper, and each carries one end of the interpolation printed against its fore-edge, which is the only strip of a sheet its neighbour does not cover.",
+      "a book on a table, fourteen sheets deep. hovering fans every leaf off the spine and lays the front board out to the left.",
+      "key insight: one inherited custom property drives all fourteen transforms. the stage carries `--book-open` and each sheet is `rotateY(calc(var(--book-open) * var(--sheet-angle)))`, so a frame is one `setProperty` and nothing in the component renders.",
+      "the lerp is of the fore-edge and not of the angle. even angles are not even paper: a sheet's free end sits at `cos(angle)` of the way out, so half the fan was slivers and half was wide open pages. spacing the edges and taking the angle back out with `acos` shows the same strip of every sheet.",
     ],
     createdAt: "2026-08-27",
     source:
@@ -271,12 +270,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "folder-stack",
     title: "Folder Stack",
     description: [
-      "A drawer of card index folders, eight tabs deep, with alphabetical dividers between the groups and every tab cut to one of three positions the way a real index is. Hovering a folder pulls that one folder up out of the pile, and what it holds was behind the card in front of it the whole time.",
-      "The pile deals itself in on arrival, one card behind the next. Every folder is its own colour, and each holds a white sheet with a drawn trace of what its note says, which draws itself in from the left as the card comes out: a hedge with a train swelling through it, mud clicks under two gulls, ice giving way and the water settling, two guy wires three cycles against four. The viewBox stretches with the column and the strokes do not, so one trace fills a panel at any width and keeps its hairline.",
-      "Key insight: the reveal is occlusion. Every card is the same box in the same place for the life of the demo and exactly one `translateY` moves, so nothing fades, mounts or is measured, and the card in front of the one being read never has to give way.",
-      "The lift is a whole number of rows, which is not tidiness. A lifted card's paper edge cuts across whatever is behind it, so at any other value that edge lands part way through a tab and slices it. At a multiple of the row it lands exactly where a card's own paper starts, so every tab behind is either whole or gone, and at three rows, one whole turn of the cut cycle, it lands on a tab cut to the same position as its own and covers it exactly.",
-      "A card is also taller than it looks, by exactly the lift, and that was a flicker. A tab band is transparent either side of the tab in it, so what shows through one card's band is the paper of the card behind. Lifting takes the foot of that paper up too, and a card any shorter stops covering its last few pixels: the pointer there lands on the card behind, which lifts and leaves in its turn, and the pile walks down through itself.",
-      "`document-pocket` had to hit test its own neutral geometry, because a card that moves in response to being hovered moves out from under the pointer. Nothing here can: a lifted card's region strictly contains its resting one, nothing else on the stage moves at all, and so the state settles in at most one step. The hit region is the drawing rather than the box, down to the curve on each tab's shoulders.",
+      "a drawer of card index folders, eight tabs deep. hovering pulls that one folder up out of the pile.",
+      "key insight: the reveal is occlusion. every card is the same box in the same place and exactly one `translateY` moves, so the hovered card comes out from behind the card in front of it and there is nothing to fade, mount or measure.",
+      "the lift is a whole number of rows, and three of them. at any other value the lifted card's paper edge lands part way through a tab behind it and slices it, which reads as a rendering fault rather than as one card in front of another.",
     ],
     createdAt: "2026-08-28",
     source:
@@ -289,13 +285,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "window-shade",
     title: "Window Shade",
     description: [
-      "A cabin window with a shade you pull down by hand. The panel stays wherever it is let go, and the whole cabin crosses from a white ground to a near-black one as it comes, so half way down is a place to stop rather than a moment between two states.",
-      "Key insight: the theme is not a switch, it is the position of a control. The stage carries one number and every tone on it is a `color-mix` between one of the site's light tokens and its `inverse-*` twin at that number, so a deliberately light-only design gets a light and dark crossing without gaining a second theme. In `oklab` rather than sRGB, or the ramp is already dark for most of its travel.",
-      "Text is the one thing on the stage that cannot interpolate. A colour crossing from dark to light passes through the ground it is sitting on, and the ground is crossing the other way at the same time, so the two meet: the readout and the wall are the same value at half travel. It steps over 0.04 of the travel instead, where the two sides measure 4.2 and 4.0 against a wall that is 13.2 and 19.0 at the ends.",
-      "What holds the dark state is a gap rather than an effect. The panel is a couple of pixels narrower than the pane, which is the clearance it needs to slide at all, so a seated shade leaves two hairlines of daylight down its sides and a stage that would otherwise finish as an empty rectangle finishes as a closed shade in a dark cabin.",
-      "The cabin is line art and the only soft things in it are light: the pool on the wall, the falloff away from it, the bloom under the panel's foot and that leak. A panel joint in the sidewall is a groove rather than a tone, since a shadow carries it on the light wall and a lit lip carries it on the dark one, which is the one line here that escapes the flip.",
-      "Outside the glass the split is by distance instead, and nothing out there is a shape. The cloud is `feTurbulence` rather than the row of white ovals it started as, since a lump reads as a cartoon at any falloff and cloud is made of turbulence, not of ovals. The sun is a bloom with no disc in it, the wing reads by tone rather than by an outline round it, and a vignette and a film grain over the pane tie the three layers into one image. Two decks drift at a 2.8 ratio, which is what makes the parallax read as depth rather than as one thing moving. All of it then sits behind one blur, since a view drawn this precisely competes with the panel that is the actual demo, and the inner pane of a cabin window is scratched acrylic anyway: the sheen, the vignette and the grain stay sharp, being the glass rather than what is past it.",
-      "Grab and pull, not aim and jump, which is why this is not a native `range` the way the signature player's scrubber is: a range moves its thumb to the click, and a shade that leaps to meet your finger is not a shade. The cost is spelling out the keys. A phone keeps its scroll everywhere but the grip, and a tap on the glass throws the panel at whichever end it is not near.",
+      "a cabin window with a shade drawn down by hand, and a cabin that goes dark as it comes.",
+      "key insight: one number carries the panel and the whole palette. every tone on the stage is `color-mix(in oklab, <light token>, <inverse token>, var(--shade))`, so the theme is a position rather than a state and half way down is a place a reader can stop.",
+      "`oklab` and not the default `srgb`, which is already dark for most of its travel and lurches at the end. text cannot interpolate at all, since its tone has to cross the ground it sits on, so the ink steps over 0.04 of travel at the point where both sides are least unequal.",
     ],
     createdAt: "2026-08-29",
     source:
@@ -308,13 +300,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "rain-splatter",
     title: "Rain Splatter",
     description: [
-      "Coloured rain over a floor drawn in perspective, and the floor keeps everything that hits it. Each drop picks a depth on the way in, which sets how big it is, how hard it falls and how far up the stage it lands, so the near ones are fat and quick and go off the bottom edge while the far ones are specks that land near the horizon.",
-      "Key insight: the stage is two canvases and the split is the whole thing. One is cleared every frame and holds what is moving, the other is never cleared and holds what has landed. A mark is drawn exactly once, at the moment it is made, so the piece can accumulate a poster's worth of splatter and still cost one clear and a few hundred small fills a frame. Redrawing the accumulation every frame is the version that gets slower the longer you watch it, and it is also the version that cannot be right, since two overlapping opaque marks have an order and the order is when they landed.",
-      "Nothing authored a single ray. A splash throws specks, most of them high and a handful of them flat, and each one hops on its own gravity while the floor drags at it. What it leaves on landing is whatever speed it has left: one that came down slow beads into a dot, one that came in flat and fast skids into a stroke pointing back at the splash. The radiating look is that one rule, and the outriders past the end of a long ray are one bounce, capped at one so a splash cannot rattle its way across the floor.",
-      "The fall is a stretch, not a circle. A drop at full pelt covers about 20px between two frames at 60Hz, so a round one paints as a dotted line however smooth the arithmetic under it is. It is drawn from its leading edge instead, stretched back along its own travel and narrowed a little as it goes, which is both the motion blur a camera gets for free and what a falling drop actually looks like. It arrives already moving, since it has been falling for as long as it took to reach the top of the frame.",
-      "Fading laid paint has to be done in visible steps. A canvas holds 8 bits a channel, so an erase at an alpha under about 1/255 rounds to nothing and the oldest splatter never leaves. The stage owes itself a fade and spends it in whole 3% steps, which costs one `fillRect` every few frames and cannot round away.",
-      "The affordance is a preview rather than a cursor. A crosshair says the surface answers a pointer and stops there, so the stage draws a ring instead, at the size of the splash a press would make at that depth: move up the stage and it shrinks and flattens, which is the perspective explaining itself before you commit. The stage is a real button rather than a div holding a `tabIndex`, so the arrows aim the same ring and Enter drops on it, and Space is swallowed because a button swallows it rather than because this demo asked to.",
-      "The six inks sit beside the simulation rather than in the token file, the same exception `stamp-collection` gets for a printed stamp: colour is the subject here and not a tint on one. The one lie is that a sixth of every splash is thrown in someone else's ink, because a real cluster of this many colours is many splats layered over hours, and at any rate a demo can run at, that layering never happens.",
+      "a painting that makes itself. rain lands on a floor drawn in perspective, and every landing throws specks that bead or skid depending on how fast they arrive.",
+      "key insight: two canvases, and that split is the whole design. one is cleared every frame and holds what is moving, the other is never cleared and holds what has landed. a mark costs one draw and then nothing, which is what lets the piece accumulate thousands on one clear.",
+      "the fade is spent in whole steps, since a canvas holds 8 bits a channel and an erase under 1/255 rounds to nothing and silently stops fading. `destination-out` rather than a wash of the ground colour, so the layer stays transparent.",
     ],
     createdAt: "2026-08-29",
     source:
@@ -327,15 +315,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "sticker-peel",
     title: "Sticker Peel",
     description: [
-      "Five die-cut stickers loose on a board. Press one and pull, and the paper under your hand folds back over the rest of itself, so what is on top of the sticker is the back of the same sticker. Keep pulling and the last of it lets go, after which it follows the hand with the fold trailing behind it and lies down flat wherever it is dropped.",
-      "Key insight: the fold is a reflection, and a whole gesture is one direction and one number. Mirroring the sticker across a crease square to the peeling edge and half the peel in front of it carries that edge exactly onto the hand, which is what a fold is: the paper behind the crease is the same paper, seen from behind, standing in front of the crease. Advance the number and the crease sweeps across on its own.",
-      "The peeling edge is picked once and then held for the rest of the gesture, which is the difference between a sticker and a trick. Deriving it from the pull every frame is what a first version does, and it is wrong in the way that matters: a sticker carried across the board turns as the hand does, so the lifted corner hops from one side of it to another every time the drag changes direction. A corner that has come up has come up.",
-      "One vector is the whole input and it arrives from three directions. While a sticker is stuck its body cannot move, so the gap between the hand and the press is the whole of the pull. Once it is off the board the body chases the hand, so the same gap is the body's own lag. Once it is let go the gap decays to nothing. What reaches the crease is that gap's component along the frozen edge, so a drag that veers off it advances the peel more slowly and one that comes back does not advance it at all.",
-      "Which way the peel may move is three lines, because a peel is three situations. Stuck under a hand it only opens, since adhesive does not re-stick when a hand relaxes. Off the board under a hand the paper is free to relax, so it eases back to a carried fold or to whatever the drag is adding, whichever is more. Let go, it eases shut. Without that floor the carried curl is the lag alone, which goes to nothing every time the hand turns a corner.",
-      "So placing one is not a drop followed by an unfold. Releasing changes nothing except that the hand stops being written, and the body finishes arriving where it was already heading while the flap closes over it on the way. The two read as one movement because they are one movement.",
-      "One polygon clips both layers, which is the whole of the drawing. The face is clipped to the half of the board the sticker still lies on, so the peeled part stops painting where it left. The flap is the same sticker reflected and clipped to that same half, because a reflection carries the peeled half exactly onto it. Two layers, one clip, and nothing to keep in step with anything.",
-      "The board stays light, which four experiments before this one could not manage. `document-pocket`, `stamp-collection`, `book-opening` and their neighbours all had paper as the object, and paper on a white page is fog. Vinyl is not paper: the face is saturated, the only white on it is the die cut and that carries its own hairline, so the ground can be the quiet grey `folder-stack` uses. The backing is warm rather than white for the same reason, since a flap spends half its life overhanging onto the board.",
-      "The hit region is the die cut and not the box round it. A hexagon's bounding box claims a quarter of its own area in corners the shape does not have, and with five stickers loose on one board those corners are what decides which one a press reaches. A keyboard gets the same peel rather than a second code path: an arrow press takes hold of the leading edge and carries it a step, and the body catching up is the lag the fold is made of.",
+      "five die-cut stickers loose on a board. press one and pull, and the paper folds back over itself so what is on top of the sticker is the back of the same sticker.",
+      "key insight: the fold is a reflection. mirroring the sticker across a crease square to the pull carries the peeling edge exactly onto the hand, so one clip polygon serves both the face and the flap and there is no second clip to keep in step with the first.",
+      "the peel runs from an edge picked once and then held. deriving it from the pull every frame is the obvious build and it makes the lifted corner hop from one side of the sticker to another every time the hand changes direction.",
     ],
     createdAt: "2026-09-02",
     source:
@@ -347,14 +329,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "halftone-ripple",
     title: "Halftone Ripple",
     description: [
-      "A pill toggle with a count. Press it and a ripple of dots runs out across the button from under the pointer, on a fixed grid, so what spreads is a halftone screen being run rather than a glow.",
-      "Key insight: the ripple is a continuous field read at fixed points, and the grid is the whole of the pixelation. No dot ever moves. Every frame asks each point of the grid how far it is from the crest, and the answer is how big the dot there is, so the wave passes through the grid the way a wave passes through water, which stays where it is. Scaling a drawing of a ring would carry its dots along with it, and dots that travel are a texture sliding, not a print.",
-      "A dot has six sizes, not a continuum. The field under it is smooth, but a dot steps from one size to the next as the crest passes rather than sliding through every size between, so a frozen frame shows rings of dots at one size each and the motion reads as a screen being run. The radius goes with the square root of the field, since what the eye reads off a halftone is the ink's area and area goes with the square of the radius. On a straight line the small end of the field was nearly empty.",
-      "The crest sets out fast and slows as it goes, reaching the pill's far corner in about a second. The band it raises widens as it travels, which is dispersion and is what keeps the late ripple from thinning to a single ring, and the trailing half of the band is longer than the leading half, so a hole opens behind the crest a beat after it passes. The reference showed both: a disc around the press, then a band at the far end with clean paper behind it.",
-      "The ink is the state, not a decoration. A press that turns the button on sends the ripple out in the one hue this experiment owns, and the heart fills and takes the same hue while it is on. A press that turns it off sends the same ripple in the muted text tone, so the colour of the dots says which way the press went. The hue is a hot pink at 3.79:1 on the resting pill and 3.16 on the pressed one, which clears a graphic's floor on every ground the button paints while staying loud enough to be the show, and it lives in the component rather than in the token table.",
-      "A pointer's ripple leaves the point that was pressed, and a keyboard's leaves the heart, since Space has no point to start from and the heart is what the press is about. The rest of the states are the site's own: hover lifts the label a tone as well as the fill, because the fill's own hover step is 1.04:1 and exists in the token table more than on the screen, the press is the darker fill step, instant in and timed out, focus is the shared ring, and nothing scales. The count is corrected rather than swapped, so its digit morphs.",
-      "Nothing renders while a ripple runs. The canvas sits under the label and is clipped by the pill, a press pushes one record into a list, and one frame loop paints the list until it is empty and then stops asking for frames. Measured: 364 dots sampled a frame, no frames requested at rest, 64 for one ripple and none after it, and under a 4x CPU throttle with three ripples in the air at once 72 frames with the longest at 16.8ms.",
-      "Reduced motion keeps the press and drops the travel. The field still appears, as a soft disc around the finger that fades where it is rather than a crest crossing the pill. The toggle, the count and the hue all change as they would have, which is what happened, and the ripple was only how it looked.",
+      "a pill toggle with a heart and a count. pressing it sends a ripple of dots out across the button from under the pointer, on a fixed grid.",
+      "key insight: the ripple is a field sampled on a grid and no dot ever moves. every frame asks each grid point how far it is from the crest and the answer is the size of the dot there, which is what a halftone screen being run looks like. scaling a drawing of a ring reads as a texture sliding instead.",
+      "a dot has six sizes rather than sliding, and its radius goes with the square root of the field, since the eye reads a halftone's ink area and area goes with the square of the radius. the ink is the state: a press that turns the button off sends the same ripple in `text-muted`.",
     ],
     createdAt: "2026-09-03",
     source:
@@ -364,10 +341,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "notch-drop",
     title: "Notch Drop",
     description: [
-      "A notch hanging from the top edge of a page, and a page of things to carry to it. Lift one and the notch opens and asks for it. Hold it over the notch and the notch asks louder while the thing in your hand shrinks to fit. Let go and it is swallowed, a black drop leaving the card and merging into the notch, which says so and then closes back to its resting word.",
-      "Key insight: the notch is a liquid, and a liquid is two shapes under one filter. A blur wide enough to bleed the shapes into each other, then an alpha threshold hard enough to cut the bleed back to an edge, and any two black shapes that come within a few pixels grow a neck between them. The notch's body and the drop that leaves a card sit under that filter. Nothing with an edge worth keeping does, so the label is a separate layer over it.",
-      "The opening is a spring that overshoots, and the overshoot is the point. A box that resizes on an ease reads as a box resizing. A box that goes past its size and comes back reads as something soft giving way, which is what a notch that wants your card should look like. The thing in your hand is on a tighter spring, since a thing in a hand should feel held, and it shrinks to about half over the notch so the notch reads as the bigger mouth.",
-      "The drop is tested against the notch's box with some reach past its edge, and the hand's release is heard on the stage rather than on the card, with the pointer captured at the lift, so a hand that runs off the card or off the notch is still the hand carrying it. Escape and a lost window put the card back. A focused card and Enter go straight into the notch, on the same path, so the keyboard sees the same capture the pointer does.",
+      "a notch hanging from the top edge of a page of cards. lift a card, hold it over the notch, and let go: a black drop leaves the card and merges into the notch.",
+      "key insight: the notch is a liquid, which is two black shapes under one SVG filter. `feGaussianBlur` bleeds them into each other and an `feColorMatrix` alpha row of `22 -10` cuts the bleed back to an edge, so two shapes within a few pixels grow a neck.",
+      "the label is not under the filter, since the threshold destroys any edge worth keeping, so the face is a second layer animated to the same box. the opening spring overshoots on purpose: a box resizing on an ease is a box resizing.",
     ],
     createdAt: "2026-09-04",
     source:
@@ -379,10 +355,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "island-menu",
     title: "Island Menu",
     description: [
-      "A pill of a nav bar that opens into a menu in two moves. It grows tall first, a black slab rising off the bar with the bar's three controls still pinned to its foot, then wide, and only once it is the size of a menu does the menu arrive in it, the links one after another and the picture after them. Closing is the same three moves backwards.",
-      "Key insight: a box that grows in one axis at a time is a box you can watch grow. Height and width on one clock is a rectangle scaling, which the eye reads as a zoom and cannot follow. One axis, then the other, is a thing unfolding, and the order carries information: up first says the menu comes out of the bar rather than out of nowhere.",
-      "The order has to flip on the way out. A menu that grew tall then wide shrinks wide then short, or the shape it passes through on the way out is a shape it never had on the way in, and the close reads as a different object leaving. The content goes first in both directions, since a box should not resize around text that is still there.",
-      "The bar's three controls never move. They sit pinned to the foot of the box and ride it up as it grows, so the reader's hand is still on the button that opened it when it is time to close it. The button's glyph turns from a pill into a square on the same clock as the box, and its label morphs from Menu to Close.",
+      "a pill of a nav bar that opens into a menu in two moves. tall first, a black slab rising off the bar, then wide, and only then does the menu arrive in it.",
+      "key insight: the two moves overlap by 30% and their order flips with the direction. a menu that grew tall then wide has to shrink wide then short, or the shape it passes through on the way out is one it never had on the way in. butted end to end they read as two animations, and a spring runs both axes at once, which reads as a zoom.",
+      "the width is measured against the stage, and the stage needs `min-w-0` to be measurable at all: as a flex item at `min-width: auto` its used width is its own child's, so the ruler was elastic and the thing it measured was stretching it.",
     ],
     createdAt: "2026-09-06",
     source:
@@ -394,9 +369,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "custom-cursor",
     title: "Custom Cursor",
     description: [
-      "A gallery of four cards under a cursor of its own. Crossing into the stage swaps the arrow for a dot that follows the hand a beat behind, and hovering a card grows the dot into a pill naming the lab the card opens. Move to the next card and the name morphs into the next one rather than popping out and back in.",
-      "Key insight: a custom cursor is two positions, not one. The hand is where the browser says it is, and the drawn cursor is a tween chasing that point, retargeted on every move, so it arrives a beat late and settles rather than stopping dead. The lag is the whole feel of it, and it is also why the pill leans: its tilt is read off the speed of that chase, so a fast sweep tips it over and a stop swings it level.",
-      "It is desktop only by the pointer's own account. A touch has no hover to take a cursor from and no arrow to replace, so a finger gets the cards as plain links and nothing is drawn. Reduced motion keeps the dot and the pill and drops the chase: the cursor sits exactly on the hand and the pill arrives without the overshoot.",
+      "a gallery of four cards under a cursor of its own. crossing into the stage swaps the arrow for a dot that chases the hand, and hovering a card grows the dot into a pill naming the lab.",
+      "key insight: the dot and the pill are one element and nothing scales. a `clip-path` window decides how much of the pill shows, because `torph` sizes its box off `getBoundingClientRect`, which reports the transformed size, so a label changed while the pill was small got a box a fraction of its text's width.",
+      "the one lab on `gsap`. one `quickTo` per axis keeps a single tween and retargets it on every move, and the hand is read once a frame at the front of the ticker, so a burst of events at 120Hz costs one layout read rather than one each.",
     ],
     createdAt: "2026-09-07",
     source:
@@ -408,9 +383,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "radial-menu",
     title: "Radial Menu",
     description: [
-      "A file on a stage. Press it and pull, and a wheel of formats opens around the place it was, the shape of a game's weapon wheel: the hand carries the file, the wedge under the hand fills in and its name reads out in the empty slot, and letting go there converts the file. Letting go over the middle, or anywhere off a wedge, puts it back unchanged.",
-      "Key insight: the wheel is centred on where the file was, never on the hand, so it holds still while the hand moves. Which wedge is under the hand is arithmetic on the hand's angle and distance from that centre rather than a hit test on the wedges, since the file is what the pointer is over and the wedges could never see it. Past the outer edge still counts: a wheel is a direction picker, and a hand that overshoots has still pointed.",
-      "The keyboard gets the same wheel without the drag. Enter opens it on the top wedge, the arrows walk round it, Enter picks and Escape puts the file back. Reduced motion keeps every state and drops the travel: the wheel appears in place and the file is home in one step.",
+      "a file on a stage. press it and pull, and a wheel of five formats opens around where it was. let go over one and the file converts.",
+      "key insight: which wedge is under the hand is arithmetic and not a hit test. the file is what the pointer is over, so the wedges could never see it: `wedgeAt` maps the hand's angle onto five slices and returns null inside the dead zone, and the same maths serves a mouse, a finger and the arrow keys.",
+      "the wedge under the hand previews its format on the file itself, drawn once and reused through `<use>` under an SVG filter. jpg blocks up, gif dithers to six levels, avif softens a touch and pdf sets it small on a white page, so the wheel demos what the names mean.",
     ],
     createdAt: "2026-09-08",
     source:
@@ -422,9 +397,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "flip-clock",
     title: "Flip Clock",
     description: [
-      "A flip clock in 24-hour time. Three cards, hours in blue, minutes in green and seconds in terracotta, each a number split at a hinge across its middle. When a number changes, the top half falls forward through 180 degrees as a real flap, showing its back on the way down, and lands on the stop with a small bounce. The cards flip in from 00 when the page arrives, and the seconds keep the mechanism moving.",
-      "Key insight: the flap is the only thing that moves. Behind it the top half already shows the next number and the bottom half still shows the old one, so the card reads right on every frame of the fall: the flap's front is the old number's top, its back is the new number's bottom, and it lands exactly where the bottom half was. Nothing fades and nothing morphs, which is what a mechanical clock looks like.",
-      "The fall is gravity and the landing is a bounce. The first half of the run is an ease-in, since a falling card gathers speed, and the rest is the flap coming off the stop by eight degrees, then three, then resting. A press on a card sets it forward by one, so the hour and minute flaps can be watched without waiting for them.",
+      "a flip clock in 24-hour time. when a number changes the top half falls forward through 180 degrees as a real flap and lands on the stop with a bounce.",
+      "key insight: the flap's front is the old number's top and its back is the new number's bottom, pre-turned 180 degrees, so the card reads right on every frame of the fall and nothing fades or morphs.",
+      "a half is a full glyph box clipped to half a card, so both halves of both numbers meet at the hinge to the pixel whatever the glyph is. the cards carry a hue because black hid every bit of the depth pass: a sheen and a shadow on near-black are the same near-black.",
     ],
     createdAt: "2026-09-08",
     source:
@@ -436,9 +411,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "wrapped-pattern",
     title: "Wrapped Pattern",
     description: [
-      "A printed sheet that rolls into a column. Flat, it is a drawing: a half-drop grid of dots on pale paper, a hairline rule every third column and a hue that cycles every fifth. Press the mode and it curls until its two edges meet behind it, and from there a drag turns the column, it coasts when let go, and it idles on a slow turn.",
-      "Key insight: the roll is a bend rather than seventy-two strips each turning on their own. The sheet lies on a cylinder whose radius closes from infinite to the column's, so at every moment of the roll the strips lie edge to edge on one curved surface. One number carries all of them and one more turns the whole column, so the browser interpolates seventy-two transforms off two custom properties and nothing renders while the sheet rolls or the column turns.",
-      "The light is arithmetic on the same two numbers. A strip darkens by the cosine of the angle it has turned to, its bearing plus the column's own turn, computed in CSS, so the column is shaded on every frame of a drag without a script touching a strip. Everything printed on the sheet repeats on a period that divides its width, the dots at 20 and the colour cycle at 100, so the seam where the two edges meet has nothing to show and turning the column walks through the five hues in order.",
+      "a printed sheet that rolls into a column. flat it is a drawing, wrapped it turns under a drag, coasts when let go and idles on a slow turn.",
+      "key insight: the roll is a bend, not seventy-two strips turning about their own centres, which tears the print into ragged verticals on the way. the sheet lies on a cylinder whose radius closes from infinite to `R`, so at every point the strips still lie edge to edge on one curved surface.",
+      "two numbers drive everything and nothing renders. `--t` and `--rot` are written to the scene once a frame and every strip's transform, its shade and the shadow's width are `calc()` off them.",
     ],
     createdAt: "2026-09-09",
     source:
@@ -451,9 +426,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "book-shelf",
     title: "Book Shelf",
     description: [
-      "A shelf of twelve books. Press a spine and that book comes out of the row, turns to face you and lands in the middle of the stage with a scrim behind it, which is what a modal opening looks like. Press the scrim, press the book again, or press Escape, and it goes back to its slot.",
-      "Key insight: the thing arriving in the centre is the same object that was on the shelf, turned. A modal grown out of a card is two elements and a crossfade, and it reads as a card being replaced. A book is a box, so the spine is one face of it and the cover another: bringing the cover to the reader is a rotation of ninety degrees, nothing is faded into anything, and the cover lands centred on the box's own middle, so the travel to the centre is a plain translation the layout already knows.",
-      "The scrim is a plane inside the same 3D scene rather than a layer over it. A preserve-3d context paints by depth and ignores z-index, so an overlay stacked on top would sit behind the shelf whatever order it was given. At sixty pixels toward the reader it is in front of the row and behind the book, which is what a scrim is, and it needs no z-index at all.",
+      "a shelf of twelve books. press a spine and that book comes out of the row, turns to face you and lands in the middle of the stage with a scrim behind it.",
+      "key insight: the thing arriving in the centre is the object that was on the shelf, turned. the spine is the box's front face and the cover its right face, so bringing the cover to the reader is one rotation and nothing is faded into anything. a modal grown out of a card is two elements and a crossfade.",
+      "the scrim is a plane in the same 3D scene at `translateZ(100px)`, since a `preserve-3d` context paints by depth and ignores `z-index`. no `backdrop-filter` on it: chrome cuts the backdrop where the book sits and leaves two seams the height of the stage.",
     ],
     createdAt: "2026-09-11",
     source:
@@ -465,10 +440,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "shelf-drop",
     title: "Shelf Drop",
     description: [
-      "Six prints standing on a picture ledge. Press one and it is knocked off, tumbling as it goes. Some fall in front of the ledge and some fall behind it, and which one you get is the whole experiment.",
-      "Key insight: front and back are the same fall with a different sign on one number. The scene is `preserve-3d`, which paints by depth and ignores stacking order, so the ledge is a plane at a fixed depth and a card either travels to a depth in front of it or to one behind. A card going forward grows on the way down and passes over the fascia. One going back shrinks, is covered by the fascia for a few frames, and comes out underneath smaller than it went in. No z-index is involved in either.",
-      "Gravity accelerates and a tumble does not. A falling body covers ground as the square of the time, which is a quadratic ease-in, while it keeps whatever spin it left with, which is linear. Put both on one curve and the spin appears to wind up as the card falls, and the throw reads as a card being flung rather than dropped, so the vertical travel eases in and the rotation, the drift and the depth all run linear.",
-      "Which side comes next is drawn from a shuffled bag rather than a coin. A coin gives runs, and five backs in a row reads as a rule rather than as chance, which is the opposite of the thing being shown.",
+      "six prints standing on a picture ledge. press one and it is knocked off, tumbling as it goes. some fall in front of the ledge and some behind it, and which one you get is the experiment.",
+      "key insight: front and back are the same fall with a different sign on one number. the scene is `preserve-3d`, which paints by depth and ignores stacking order, so a card travels to a depth in front of the ledge and grows, or to one behind it and shrinks and comes out under the fascia. no `z-index` is involved in either.",
+      "gravity accelerates and a tumble does not, so the vertical travel eases in and the rotation, the drift and the depth all run linear. on one curve the spin appears to wind up as the card falls and the throw reads as a fling rather than a drop.",
     ],
     createdAt: "2026-09-12",
     source:
@@ -481,11 +455,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "crack-button",
     title: "Crack Button",
     description: [
-      "A Save button made of glass. Every press cracks it from the point you hit, each one does a little more damage than the last, and the eleventh takes the face apart. Repair it half cracked and the cracks run back into the points they came from. Repair it in pieces and a new pane is set down, because a pane on the floor cannot be mended.",
-      "Key insight: a crack is two strokes, not one. A fracture is a gap in a solid, so one face of it catches the light and the other is in shadow, which is white at low alpha alongside black at low alpha half a pixel apart. A single stroke of either is a scratch drawn on a button.",
-      "A crack is also a walk rather than a curve. It leaves the impact in a direction, wanders either side of it as it follows whatever flaw is in front of it, and throws off branches that do the same, so a branch here is a step, a small turn, a step, with a chance at each joint of spawning a child that leaves at an angle and dies sooner.",
-      "And a crack stops where it meets an older crack. A fracture cannot cross a free surface, since the stress driving it has nothing to pull against once it reaches an opening, so real broken glass is one connected web of T-junctions and never a pile of independent stars laid over each other. Truncating every walk at its first intersection is most of the difference between this reading as glass and reading as scribble.",
-      "The break is a partition of the face rather than a pile of shapes. Every shard is the wedge between two walks out of the last impact, so each edge is one walk shared by the two shards either side of it: nothing is drawn twice and no gap can open between neighbours.",
+      "a Save button made of glass. every press cracks it from the point it was hit, the cracks accumulate, and the eleventh takes the face apart.",
+      "key insight: a crack stops where it meets an older crack. a fracture cannot cross a free surface, so real broken glass is one connected web of T-junctions and never a pile of independent stars laid over each other. every walk is truncated at its first intersection with anything already open.",
+      "the break is a partition of the face rather than a pile of shapes: each shard is the wedge between two walks out of the last impact, so an edge is one walk shared by the two shards either side and no gap can open between them. the clip goes inside the thing that moves, or the pill becomes a window the pieces slide out of and vanish at.",
     ],
     createdAt: "2026-09-13",
     source:
@@ -497,15 +469,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "stem-picker",
     title: "Stem Picker",
     description: [
-      "A quantity stepper where the thing being counted is the thing you see. Press the plus and a stem arrives: it starts under the knot, small and invisible, swings up on an arc and settles into the fan with a little bounce. Press the minus and the newest one leaves the way it came. The bunch never empties, the floor is one stem.",
-      "Key insight: the arrival and the resting place are the same geometry. Every stem is pinned at the knot and differs from its neighbours by one number, the angle it leans at, so a stem arriving is that angle changing and nothing travels a path invented for the occasion. Arc an item into a straight row instead and the arc is decoration laid over the top, since the item swings in and then stops somewhere the swing does not explain.",
-      "Depth is scale about the knot, not a z translate. A stem enters at 0.62 and grows to 1 with its origin at the tie, so its bloom starts close to the knot and travels outward as it rises. That reads as something coming forward out of the bunch, and it costs no perspective, no `preserve-3d` and no stacking order, which is what a real z would have dragged in behind it.",
-      "Two springs, because two things happen on one press. The stem that arrives is being placed, and the ones already there shuffle over to make room. On one spring the whole bunch bounces every time, which reads as the table being knocked rather than a flower being added, so `rotate` takes the quieter spring and `scale` the livelier one. Only the arriving stem ever animates its scale, so the bounce lands on that stem alone.",
-      "The bunch is the control. Grip the tie and pull to draw stems in, push down to take them out, and the stepper stays for the keyboard. The pull tracks the hand and the count commits on the detents it crosses, so every stem still arrives as its own event. Past either end the bunch gives by a third of whatever the pull asked for and springs back, since a hard stop feels like hitting a wall where resistance says there is nothing further.",
-      "The stems touch, and that is what separates this from every other stepper demo. A landing stem knocks the two beside it and they swing back, hardest on the nearest, since the impulse falls off with the square of the distance. Without it the arrival and the re-spread are two independent animations that happen to overlap.",
-      "A bloom at the edge of the fan is seen turned away, so it is narrower. The bloom faces along its own stem, so the foreshortening is the cosine of the lean applied as a plain `scaleX`: 1.000 at the centre, then 0.988, 0.953, 0.895 and 0.816 at the outermost. A `rotateY` would have been a perspective and a stacking context per stem to squash a shape.",
-      "Leaving is a lift, not the arrival reversed. A hand taking a stem out pulls it clear and turns it further out on the way, where playing the entry backwards reads as an undo rather than as a stem being taken.",
-      "The wobble in each stem is seeded off its index rather than rolled. A stem is re-rendered every time the count changes, and a fresh roll would make the whole bunch twitch when one stem arrives.",
+      "a quantity stepper where the thing being counted is the thing you see. press the plus and a stem swings up into the fan, or grab the tie and pull to draw them in.",
+      "key insight: the arrival and the resting place are the same geometry. every stem is pinned at the knot and differs from its neighbours by one number, the angle it leans at, so a stem arriving is that angle changing. arc an item into a straight row instead and the arc is decoration laid over the top.",
+      "two springs, because two things happen on one press. `rotate` takes the quieter one and `scale` the livelier, and since only the arriving stem ever animates its scale, the bounce lands on that stem alone with no branch on which one is new.",
     ],
     createdAt: "2026-09-13",
     source:
@@ -518,17 +484,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "pixel-reveal",
     title: "Pixel Reveal",
     description: [
-      "One flat tile. Pick one of five pictures from the strip under the board, press generate, and that tile splits into four, then sixteen, and keeps halving until the tiles are small enough to stop being tiles, at which point the picture itself arrives over the top. One icon beside the press saves what resolved as a PNG, and the other opens the three numbers driving it.",
-      "The five are five different families of shapes rather than five palettes on one shape: rings inside rings, beds under beds, clouds inside clouds with a scatter of stars, a branch that is two smaller branches six times over, and a patch beside a patch. Five variations on one family would resolve the same way and there would be nothing to choose between them. A swatch is the picture itself, small, since a name for it says nothing about what is about to resolve.",
-      "Key insight: nothing fades in. Every level is a box filter over the one below it, so the picture is complete from the first frame and the filter is what throws it away. At one cell it is its own mean colour, at four it has its largest areas, at sixty-four it has its crystals. A reveal built as an opacity ramp over a finished image says nothing about why detail arrives in the order it does. This says it by construction.",
-      "There are no levels. An earlier build stepped the whole canvas from one grid to the next, and even with the tiles staggered it read as a set of layers arriving rather than as detail growing, because at every boundary the timing re-randomised and a region that had resolved early had no reason to stay early. It is a quadtree now: every tile splits on its own schedule, that schedule is inherited from its parent, and detail spreads out of the places it already reached. At any moment the canvas holds four or five tile sizes at once.",
-      "A tile's children come out of that tile, not out of a fresh grid. Four children sitting on their parent's box in its colour are that parent pixel for pixel, and over the flight each shrinks to a quarter of it and slides to its corner.",
-      "The motion is continuous, and getting there took two fixes a still frame cannot show. Measured as frame-to-frame difference, the first build spiked at every level boundary and then sat near zero for eight frames behind it, six times. The seam was tied to the flight rather than to the tile, so it collapsed to nothing every time tiles that had just arrived became parents, and departures spread evenly meant every level opened with the field almost still. After: six frames of two hundred and twenty-four below the still threshold, and the longest unbroken pause is fifty milliseconds.",
-      "Each tile leaves on its own beat, which is what gives a transition its ragged middle: some cells have already split while their neighbours are still one block, so the tiling is irregular the whole way through and only squares up at the end. A tile that has not left yet paints over the siblings that have, since it is still holding the whole parent box, and that is most of what makes the middle read as blocks of different sizes.",
-      "The subject is an agate slice for a reason that is not decorative. What survives a box filter is whatever the picture's largest areas are, so a subject built of nested areas at every scale has something to give at every level. A photograph of a face would be a grey square until halfway through.",
-      "The canvas rests on one flat tile rather than on nothing. An empty white box on a white stage is what a failed image looks like, and it threw the premise away besides: one cell is the picture's own mean colour, so level zero is a real frame of the run and not the absence of one. Pressing generate splits a pixel instead of filling a hole.",
-      "Three knobs sit beside the board rather than under it, since the width next to a square board in an 8:5 stage was the only part of the frame doing nothing. `drift` reaches zero, and that is the point of offering it: at zero every tile splits on the beat and the picture resolves as a grid stepping through its levels, which is the build this replaced. Leaving it reachable makes the difference visible rather than asserted.",
-      "The run is linear in the level rather than in the cell count, since each step doubles the grid. Even time per level is even time per doubling, which is what reads as steady: timed in the resolution instead, the first half would be over before anything had happened.",
+      "one flat tile that splits into four, then sixteen, and keeps halving until the tiles stop being tiles and the picture arrives over the top.",
+      "key insight: nothing fades in. every level is a box filter over the one below it, so the picture is complete from the first frame and the filter is what throws it away. a reveal built as an opacity ramp says nothing about why detail arrives in the order it does.",
+      "there are no levels either, which is the change that mattered most. it is a quadtree: every tile splits on its own schedule and inherits it from its parent, so detail spreads out of the places it already reached and the canvas holds four or five tile sizes at once.",
     ],
     createdAt: "2026-09-15",
     source:
@@ -541,18 +499,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "ember-burst",
     title: "Ember Burst",
     description: [
-      "A wick on a dark stage. Tap it and it strikes: a shower of embers leaves the flame's rim, rises, cools and goes out. Tap it again and it snuffs, and what comes off then is smoke rather than sparks, because lighting something and putting it out are different events and there is no reason one emission should serve both. Hold it and it blazes, feeding continuously at a rate that ramps. Drag it and it draws, since every spark leaves carrying the wick's own velocity, and it springs home when you let go, because a button that permanently relocates itself reads as a loose object rather than as the thing you press. The wick itself has no fill: a near-black disc is the one thing that does not light when the room does, so it read as a black puck sitting in a fire. Transparent, the light behind it shows through and it lights with everything else.",
-      "Key insight: an ember's colour is its age, so the burst cools rather than fading. The ramp runs near-white through yellow and orange into a deep red the ground swallows, so the shower is gone before its alpha has finished and what the eye reads is the heat leaving rather than an opacity being taken away.",
-      "Nothing is on a rail. The reference for this shape is a like button that tweens a ring of copies of its own icon out to a fixed radius, and every press of one looks like every other press of one. Each ember here is a body with a launch speed off a squared roll, drag, buoyancy scaled by its own heat and a little turbulence, so the burst is a ring for about two hundred milliseconds and a drifting plume after that. A press while the last one is still in the air adds to it.",
-      "Six things separate a shower of sparks from a particle system, and the first build had none of them. A spark is a streak rather than a dot, so each body keeps the last stretch of its own positions and the smear is drawn through them as a chain of glows, which is what a smear of light composites to and what comes out soft where a tapering polygon read as a drawn spoke. It sputters rather than dimming smoothly. A small one drags to a stop while a big one carries, so drag is per body rather than a shared constant and the reach runs from 65px to 368px. A small one burns out sooner, so life comes off the same roll that sizes it. A strike sprays rather than emitting on one frame. And about a fifth of them pop, throwing two or three pieces that start at full heat, since what a break exposes is fresh surface.",
-      "Each of those six is a knob, so the reader can take it back out. Run spray, drag, lift, pops and trail down to their floors together and back comes the wheel of equals expanding at one speed, which is the build this replaced and the shape the reference has. Leaving the floor reachable is what makes the difference visible rather than asserted.",
-      "The light is cast from where the heat is rather than from the wick. The frame loop returns the heat-weighted centroid of everything burning, and the wall's bright spot leans toward it, the disc catches it from the same direction and falls off with distance, and smoke left by the last snuff lights up when a strike goes through it. Lighting the middle whatever the sparks did was the one thing left in the picture a reader could catch being false. Bright light blooms on top of all of it, as a downsample to an eighth and an upsample back, which is a box blur the browser does on the GPU for two drawImage calls a frame.",
-      "Buoyancy carries the heat rather than a curve. A hot ember climbs, stalls as it cools and drifts down at the end, which is one rule doing the work a keyframed arc would need three of. Air resistance is `v *= exp(-DRAG * dt)` rather than a share of the speed per frame, so the reach is the same on a 60Hz display and a 120Hz one, and it is also what sets the reach: a body under drag alone travels `v0 / DRAG` and no further, which is 79px at the slow end of the launch and 226px at the fast one.",
-      "Every ember is a flame rather than a dot, and its tip points the way it came from, since hot gas trails behind a spark. So the burst reads as rays pointing back at the thing that threw them. A fast one is drawn long and a slow one round, which is the same body seen at two speeds and not two kinds of particle, and each leans on its own phase so a plume of them never beats in time.",
-      "The stage is dark because light needs something to be light against, and the room is lit by what the press threw. The wall's brightness is the heat still in the air, eased toward it so it does not cut out when the last ember dies, and the readout in the corner is the one honest number behind the picture: how many bodies are up there.",
-      "Pressing off centre pushes the burst the way the hand went and knocks the disc the same way. A keyboard press reports no coordinates, so it gets a burst with no lean at all.",
-      "Nothing renders while a burst is in the air. The bodies live in a ref, one frame loop paints them, and the wall's brightness and the count both go straight to their nodes. The loop stops asking for frames once the air is empty and the wall has finished dimming, so a stage nobody has pressed costs nothing.",
-      "The strike and the snuff are synthesised rather than fetched. A strike is two bursts of filtered noise a few hundredths apart, a scrape sweeping up and a low body under it that is the flame taking, and a snuff is one breath with no sweep anywhere in it. The page requests nothing for either.",
+      "a wick on a dark stage. tap it to strike, tap again to snuff it, hold it to blaze and drag it to draw.",
+      "key insight: an ember's colour is its age. the ramp runs near-white through yellow and orange into a deep red the ground swallows, so a spark is gone before its alpha has finished and what the eye reads is the heat leaving rather than an opacity being taken away.",
+      "dragging draws because the sparks leave carrying the wick's own velocity, at 62% of it, and nothing about the launch changes. the six things separating a spark from a particle are all knobs: run `spray`, `drag`, `lift`, `pops` and `trail` to their floors and what comes back is the wheel of equals the first build was.",
     ],
     createdAt: "2026-09-16",
     source:
@@ -564,13 +513,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "gooey-chips",
     title: "Gooey Chips",
     description: [
-      "Filter chips that merge into the tray they are dropped in. Pick one and it flies out of the row, grows a neck as it reaches the tray and fuses into the slab. Pick it again and it tears back out.",
-      "The trick is smaller than it looks. A hidden layer holds one plain rounded rect per shape under a gaussian blur into an alpha crush, so two rects near each other bleed together and the crush turns the overlap into a neck. The labels ride above that layer, outside the filter, which is why they stay sharp.",
-      "Key insight: the goo is a function of the gap, not of the clock. The reference schedules the blur on a timeline, up over half the flight and down at the end. This reads the distance between the flying chip and the tray on every frame and takes a bump off it: zero when they are far apart, widest when they are about to touch, and zero again once they overlap, because two shapes that have merged have no neck left to form. Nothing has to be kept in step with anything, one press and six at once behave the same, and the reverse falls out for free.",
-      "The goo layer draws every dark shape and the elements over it are text. Keeping a background on each chip and stripping it once the chip has landed, which is what the reference does, leaves that background's hard edge sitting over its own softened blob for the length of the flight. Here a chip that is in the goo has no background at all, so the silhouette is always the filter's.",
-      "Nothing is in flow. The obvious answer is Motion's layout animations, and it cannot work: a merge needs the blob under a chip to agree with that chip on every frame, and a layout animation's intermediate position is a transform the engine owns. One set of motion values per shape, read by both the chip and its blob, is what makes them impossible to pull apart.",
-      "The count is real. The reference reports a number from a hardcoded table of weights, which can only be believed. These chips filter an actual list and every tag on it is derivable from the row it sits on, so a reader can check any of it by reading a lens's own name.",
-      "A chip can also be carried in by hand, and that is what the gap being the input is for: hold one at the tray's mouth and the neck stays open for as long as you like, pull a seated one and it stretches until it breaks. Both are committed on the same gap the goo is drawn from, so the gesture and the effect cannot say different things. Building it is what exposed the bug underneath: the blur was peaking at a distance it could not bridge, so the neck only ever existed in the last two pixels and a spring crossed that in a frame. A hand can stop anywhere in it.",
+      "filter chips that merge into the tray they are dropped in. pick one and it flies out of the row, grows a neck and fuses into the slab, or carry one there by hand and hold it in the neck.",
+      "key insight: the goo is a function of the gap and not of the clock. it reads the distance between the flying chip and the tray on every frame: zero far apart, widest about to touch, and zero again once they overlap, because two shapes that have merged have no neck left. one press and six at once behave the same, and the tear falls out for free.",
+      "`sRGB` on the filter is load-bearing, since the default `linearRGB` lands the same alpha crush somewhere else and the neck comes out thin and grey. the blur has to be back at its floor before the filter comes off, or its removal is a frame of animation nobody wrote.",
     ],
     createdAt: "2026-09-17",
     source:
@@ -582,11 +527,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "notice-stack",
     title: "Notice Stack",
     description: [
-      "A pile of notices in a tray. Point at it and the one behind rises into a thicker edge, move onto that edge and it rises again to say what it is, and press that edge to advance: the front notice lifts toward you and dissolves while the one that was peeking comes forward into its place.",
-      "Key insight: nothing here crossfades content. Every card owns its own copy for the whole session and what changes is which depth it is at, so a notice arriving at the front is not being filled in, it is being uncovered. The body and the button it lands with were drawn the whole time, behind the card that was covering them.",
-      "The pile opens in two steps and only the second card ever moves. Shut it is three edges saying how many there are. Pointing at the front card lifts the second one over the third, into a thicker edge that says there is something there and not yet what, and moving onto that edge is a second question that gets the answer. A single hover jumping straight to the title would spend the reveal on a pointer that was only passing over on its way somewhere else.",
-      "A cycled notice leaves toward you and a cleared tray leaves downward, which is the whole difference between them. Cycling lifts the front card off the top of the pile, a little larger and a little lower, and it is gone: nearer for the moment it is in the air, which is what a card taken off a deck does. Pointing at the close control collapses the pile into one card first, since that control clears the whole tray, so the collapse is a preview of what is about to leave rather than a flourish.",
-      "The blur belongs to the exit, not to the pile. A notice leaving softens as it goes and nothing that is staying ever does, at any depth, so there is no resting blur on the peeked cards and nothing to schedule: each exit already has a tween and the blur rides it. Only the card leaving carries it. Blurring the one arriving as well is what the reference does, and both soft at once is 160ms of mush with nothing in it to read.",
+      "a pile of notices in a tray. point at it and the one behind rises into a thicker edge, move onto that edge and it rises again to read its title, and press to advance.",
+      "key insight: nothing here crossfades content. every card owns its own copy for the whole session and what changes is which depth it is at, so a notice arriving at the front is not being filled in, it is being uncovered.",
+      "the peek is one number because the cards scale about `50% 0`. scaling from the top never moves the edge the peek is measured from, where scaling about the centre drags it down by a height nothing here knows and every peek would carry a correction.",
     ],
     createdAt: "2026-09-18",
     source:
@@ -599,11 +542,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "tide-card",
     title: "Tide Card",
     description: [
-      "A dark pill that says `Check the tide`. Press it and the button becomes the card, and a live tide arrives inside the box as it grows. Three rows slide in one after another and a cycle of water draws itself in under a marker that creeps along while the card is held open.",
-      "Key insight: the button is not replaced by the card, it is the card cropped to its title. Everything is laid out at the card's full size and mounted the whole time the button is a pill, so the only thing the morph moves is the box's own `overflow-hidden`. The label then needs no animation at all: it sits at the card's padding from the top left, and a box exactly one padding bigger than it on every side is a pill with that label centred in it.",
-      "The corner is never animated, because it never changes. `rounded-full` on a pill is half its height, so a box one padding taller than its own label carries a 27.6px corner, and giving the card that same corner is what lets one `border-radius` serve both ends. It is a constraint rather than a saving: a card wanting a tighter corner would have to ease a radius under an edge that is already moving, which reads as the shape wobbling.",
-      "The rows arrive down the card and each lands before it sharpens, which is what racking focus over something with depth looks like. They start while the box is still forming and are cropped at both ends on the way in, since a card that finishes growing and then fills itself is two events. Three curves carry it, one for the box, one for a row's slide and one for its focus, so the content's clock is linear and every curve on it is a function applied to that one number.",
-      "Everything the card says is one function evaluated somewhere. The curve is the tide's own height drawn, the readout is it at now, the state is its sign and the countdown is the distance to its next turn. And a tide is a cycle, which is the one thing that lets a live demo be honest at every opening: a journey lands, so a demo of one either ends dead or restarts something already half over, where here the phase is simply left wherever it got to.",
+      "press `Check the tide` and the button opens into a live tide: the station, the height now, and one cycle of water under a marker that creeps along it.",
+      "key insight: the button is not replaced by the card, it is the card cropped to its title. one box, one ground, one label, and the whole morph is that box's `overflow-hidden` opening. the rows and the chart are laid out at full size the entire time the button is a pill, so nothing mounts and nothing can pop.",
+      "the content arrives by coming into focus rather than by fading, since a blur is distance where an opacity is existence. three curves carry it: the box leaves at 2.25 times its own average speed, a row's slide is the sharpest ease-out in the piece, and a rack of focus is plain `ease`.",
     ],
     createdAt: "2026-09-19",
     source:
@@ -616,14 +557,9 @@ export const labsRegistry: LabMetadata[] = [
     slug: "cube-orbit",
     title: "Cube Orbit",
     description: [
-      "Repeat a sequence of turns and the cube comes back to solved. The dial is one ring per cycle of that sequence, each turning one notch per repetition, and the cube is home on the repetition every ring is home on at once. The arc round the outside is how far through the lap you are.",
-      "Key insight: a ring's rotation is the permutation rather than a picture of one. A cycle's stickers sit on their ring in the order the sequence sends them, so turning that ring by a notch puts every one of them exactly where the sequence would have. The dial and the cube cannot drift apart, because they are the same arithmetic evaluated twice rather than a drawing checked against an answer.",
-      "The number is a fact about the sequence and not about Rubik's cubes. `R` is five four-cycles and comes home in four. `R U R' U'` is two threes and two sixes, so six. `R U` is 3, 7, 7 and 15, which is 105. And `R U2 D' B D'` is 1260, the longest any sequence of turns can take, because every cycle is home every time its own length divides the count and the cube is home at their least common multiple.",
-      "It used to report `cycles 4, 4, 4, 4, 4`, `order 4` and `home` under the stage, which is three pieces of jargon for a reader who was never told the premise, and the premise is the whole surprise. One sentence carries it now, the control that changes the sequence sits inside that sentence, and what a ring is arrives in plain words when one is pointed at. The demo also plays itself once on arrival, since two diagrams sitting still say nothing about what either of them does.",
-      "Nothing here is a table of turns copied out of somewhere. All six faces are derived from one rotation of one cubie, so they cannot disagree with each other and a sign error shows up as a cube that never comes home rather than as a drawing that is quietly wrong. The check is that the orders land on 4, 6, 105 and 1260.",
-      "A drawing of a cube can only ever show three faces, and the whole question here is whether all six are home, so the cube and its net are one object rather than a choice between them. One number folds it: `--fold` drives the five hinges, the angle it is seen from and how much bigger it gets on the way up, and the faces hang off each other the way the paper does, so a hinge is one rotation about an edge two faces already share. Pointing at a ring unfolds it, since that is the one moment all six are worth having, and a press keeps it flat.",
-      "A tick stands at every repetition that puts part of the cube back, in the band between the rings and the arc. Under `R U` the cube is a third of the way back together at 21 and at 42, and under a single quarter turn nothing comes back until the end and the band is empty, which is what makes the marks read as data rather than as a scale.",
-      "A run of 1260 repetitions repaints all 54 stickers on every frame, which is a strobe rather than a demo, so the drawing smears by its own speed: blur read off the dial's own speed is the wash a spinning thing actually looks like, and it costs one filter.",
+      "repeat a sequence of turns and the cube comes back to solved. the dial is one ring per cycle of that sequence, and the cube is home when every ring is.",
+      "key insight: a ring's rotation is the permutation rather than a picture of one. a cycle's stickers sit on their ring in the order the sequence sends them, so one notch puts every one of them exactly where the sequence would have, and the dial and the cube cannot drift apart.",
+      "one number folds the net into the cube. `--fold` drives the five hinges, the angle it is seen from and the light on each face, and the faces hang off each other the way the paper does, so a hinge is one rotation about an edge two faces already share.",
     ],
     createdAt: "2026-09-20",
     source:

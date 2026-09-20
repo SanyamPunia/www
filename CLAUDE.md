@@ -1210,6 +1210,19 @@ experiment is a directory under `components/labs/`.
   rather than an empty frame. An entry in the registry with no component 404s.
 - `file-tree-explorer` is the one slug whose directory is named differently
   (`file-tree`), carried over from the old repo.
+- **A `description` is two or three lines and nothing like a write-up.** What
+  the thing is, then `key insight:` and the one decision that made it work,
+  then at most one more note. Identifiers in backticks, lower case, no
+  paragraph that could be cut without losing a fact. The first eleven entries
+  set that shape and the later ones drifted into essays, up to twelve
+  paragraphs and 5.5KB on one lab, which is a page nobody reads sitting under a
+  demo that already showed them the thing. All 39 were cut back to it: 66KB to
+  26KB, and no entry is over three lines.
+  - **`description[0]` doubles as the page's meta description**, clamped to 155
+    characters by `metaDescription`, so it wants to be one sentence that ends
+    inside that.
+  - The long version of any of this belongs here in CLAUDE.md, which is where
+    every one of those paragraphs went.
 - **No preview images, and one preview clip per experiment.** The old registry
   pointed at screenshots of the dark build, wrong on a white page and wrong
   about what the components look like now. The detail page runs the real
