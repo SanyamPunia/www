@@ -47,6 +47,25 @@
   --color-danger: #b84a41;
 
   /*
+   * Done. The second status tone, and it was a deliberate addition rather than
+   * one that crept in: the site shipped only `danger` for a long time, and the
+   * note here said to add a success tone only when a surface needed one and to
+   * check the contrast the same way.
+   *
+   * What needed it is a task a reader completes. Marking that with the
+   * emphatic neutral, which is the call `the-submenu-closes-before-you-get-
+   * there` makes for a right answer, says "this row" and not "you did it".
+   *
+   * Weighted to match `danger` rather than picked by eye, so the pair reads as
+   * one set: 5.22:1 on `bg` against danger's 5.13, 5.00 on `surface` against
+   * 4.91, and 4.75 on `fill` against 4.67.
+   *
+   * It is not `selection`. That emerald is 1.7:1 on white, which is a highlight
+   * behind text and never a tone for text.
+   */
+  --color-success: #2d7a53;
+
+  /*
    * A dark ground, for the one case a light surface cannot serve: an asset
    * that is white on transparent and vanishes on `bg`. These are the previous
    * dark build's values, so the two versions of the site stay recognisably
