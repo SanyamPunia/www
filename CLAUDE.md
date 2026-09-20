@@ -223,6 +223,13 @@ deliberately replaced.
   Press is a background step instead: `hover:bg-fill` then
   `active:bg-fill-hover` on unfilled targets, `active:bg-fill-active` where the
   resting state is already filled. Do not reintroduce the scale.
+
+  **One lab overrides this override, and the test is the one the reasoning
+  above already states.** What the rule protects is a target small enough that
+  2% is sub-pixel, and `components/labs/foil-card/` is a 420px card under a
+  perspective, where 2% is 9px of edge and the tilt is resampling it on every
+  frame anyway. It presses by scaling and is documented as doing so. Nothing
+  smaller than that may, and no button, pill, row or inline target may.
 - **All lowercase**, via `text-transform` on `body` in `app/globals.css`, not by
   writing the copy in lowercase. The markup keeps real casing, so crawlers,
   screen readers and copied text still get "Oliv AI". Write new copy in
@@ -1237,7 +1244,7 @@ experiment is a directory under `components/labs/`.
 - **No `flex-wrap` on that row.** A hint that cannot fit is meant to wrap its
   own text, never to push the links onto a line where nothing balances them.
   `min-w-0` on the hint is what lets it shrink that far and `shrink-0` on the
-  links is what keeps them out of it. Measured across all 38 labs at 320, 390,
+  links is what keeps them out of it. Measured across all 39 labs at 320, 390,
   640 and 1280px: the links sit beside the hint at every one, and nothing
   overflows.
 - **That row has one rule: two things on a line sit at opposite ends, and one
@@ -1263,7 +1270,8 @@ experiment is a directory under `components/labs/`.
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
-  `notice-stack`, `tide-card` and `cube-orbit` use it. `ember-burst` and
+  `notice-stack`, `tide-card`, `cube-orbit` and `foil-card` use it.
+  `ember-burst` and
   `cube-orbit` are the two entries where `flush` governs part of the frame
   rather than all of it: the stage runs to all four of its edges and the strip
   beneath carries its own padding, since a range track or a row of pills
@@ -1313,6 +1321,12 @@ experiment is a directory under `components/labs/`.
   signature player's two stroke hues are the same exception outside the lab, and
   the narrowest use of it on the site, being two values behind a toggle that is
   off by default.
+
+  **`foil-card` is the one experiment in the lab with colour all over it and no
+  scoped set at all**, and it is not an omission: its colours are computed from
+  a wavelength rather than chosen, so there is nothing to scope. Do not add it
+  to the list above, and do not take it as licence to compute a palette
+  somewhere that a token would do. See its own section.
 
 ### The hover preview
 
@@ -1460,7 +1474,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-eight clips, 2.4MB with their stills, 3.4 to 9.0 seconds each, at 60
+- Thirty-nine clips, 2.5MB with their stills, 3.4 to 9.0 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -6936,6 +6950,252 @@ the net and giving the cube up. This is both, and it costs one number.
   step and reset the dial, pointing at a ring dims 50 of the 54 stickers and
   writes its line, swapping the sequence leaves none of them dimmed and no filter
   on the stage, a run ends solved with the arc full, and no console errors.
+
+### `foil-card`
+
+A profile card stamped with a dot-matrix hologram. Point at it and the card
+tips toward the pointer, weighted, while the foil under the print picks up
+colour. Press it and a wave crosses the foil, redder as it goes. `foil.ts` is
+the grating field and the painter, pure and DOM-free, the split
+`halftone-ripple` makes with `ripple.ts`, `card.ts` is the layout and where the
+card balances, and `index.tsx` is the stage, the gestures and the frame loop.
+
+- **None of the colour on this card is an ink, and that is the whole
+  experiment.** A dot-matrix hologram is a grid of microscopic diffraction
+  gratings stamped into foil, one per dot, each with its own groove pitch and
+  groove direction, and what leaves a dot is whichever wavelength its own
+  grating sends to the eye at the angle the card is being held at. So the
+  pointer is the light, every colour on the card is an angle, and tipping it
+  sweeps the spectrum across the grid. The reference is a card whose pixels
+  light up in random colours on hover, and this is the same picture with the
+  randomness taken out of it.
+- **The grating equation lands as one dot product, and it is the one specular
+  shading already computes.** The zeroth order leaves along the mirror
+  direction, where the in-plane part of the half vector between the light and
+  the eye is nothing, and the first order needs that part to equal one
+  wavelength over the pitch. So a frame is: rotate the eye and the light into
+  the card's own frame once, then per dot take `a + v`, dot it against the
+  dot's groove normal and multiply by the pitch. Nothing per dot is a matrix.
+- **The half vector is why the card has a quiet disc under the pointer.**
+  Straight beneath the light that in-plane part is zero, so no dot there can
+  answer with a visible wavelength and the colour rings it instead. That is
+  what a foil does, and it is not a bug to design out. Measured with the light
+  at the card's middle, the nearest lit dot is 15px away.
+- **The pitch is spread across its range in the log, and that is what keeps
+  the coverage even.** The answer is the pitch times the angle, so a linear
+  spread hands a small angle a different share of the dots than a large one
+  and the card comes out bright at one radius and washed at another. A log
+  spread makes that share one number: the visible octave over the range's own,
+  0.719 over 2.110, which is 34%.
+- **A dot's pitch is two thirds its own and one third its neighbourhood's.**
+  Pure noise is television static and a pure field lights in solid patches,
+  which reads as a stain. Two thirds of the way over, neighbouring dots span
+  most of the range while a slow drift still biases whole regions, which is
+  the scatter with structure under it that a stamped foil has.
+- **Three diffraction orders, not one, because a grating sends the series.**
+  The answer divided by one, by two and by three, each weaker in turn, which
+  widens the window a dot can answer in from 380 to 780 nanometres to 380 to
+  2340. Measured with the light at the card's middle: 2011 of 6300 dots carry
+  colour on the first order alone and 3156 with three. The quiet disc is
+  unchanged, since the innermost order is the first one either way.
+- **A press sends a ridge, and a ridge does three things to a sheet.** It
+  stretches it over the crest, and a wider groove sends a longer wavelength, so
+  the wave is a redshift travelling outward. It tips the sheet on its flanks,
+  so the dots the slope runs through are turned and answer somewhere else
+  again. And a tipped flank faces the light differently, so it catches more of
+  it on the side turned toward the lamp and less on the side turned away. All
+  three come off one gaussian: the stretch is its height and the other two are
+  its slope. Nothing about it is a brightness ramp on a timeline.
+  - **The third one is what lets the wave be seen at all past the bloom.**
+    Without it the only thing a ridge changes is which wavelength a dot
+    answers with, and a dot with no light on it answers with nothing, so the
+    far half of the card never showed a wave go past. The light term is the
+    incidence cosine with the ridge's slope taken out of it, which is what a
+    tipped facet does.
+  - **The slope is accumulated as a vector rather than projected per ripple**,
+    since the two things it drives want two different projections: against the
+    dot's grooves it decides the wavelength, and against the direction of the
+    light it decides how much of that light the dot catches.
+  - **The crest is 84 card pixels wide, which is about a third of the card's
+    height.** At 34 it was a ripple in water: a band that narrow disturbs a
+    couple of rows of dots at a time, so it crossed the card and almost nothing
+    saw it go. A card is stiff, and a bending wave in a stiff plate has a long
+    wavelength, so the wide one is also the honest one. It runs at 520 card
+    pixels a second for a second, which crosses the whole card, and its
+    amplitude decays linearly rather than as a square, or the crest is spent
+    before it is halfway across.
+- **The card is weighted rather than hinged through its middle.** Its balance
+  point is the ink-weighted centroid of everything printed on it, measured off
+  the rendered card through `data-ink` rather than declared, so moving a line
+  moves the balance with it. The portrait is the only solid block of ink there,
+  so the point lands at 0.616 across and 0.286 down, and the card turns about
+  it: `transform-origin` is that point too. Measured at the four edge midpoints:
+  the left edge tips it 8.94 degrees against the right's 5.55, and the bottom
+  8.95 against the top's 3.55. A pointer on the balance point itself reads 0.00
+  on both axes.
+  - **A disc inks π/4 of its box and a lowercase line of type about a fifth of
+    its line box**, which is the whole of `COVER`. Every text node takes the
+    same figure, so the only thing it decides is how the type weighs against
+    the portrait, which is the one comparison the balance point turns on.
+  - The lumps are measured with `offsetLeft` and `offsetWidth` rather than
+    rects, since the card carries a 3D transform and a rect of a rotated box is
+    its bounding box rather than its own.
+- **This is the one place in the codebase where a press scales something, and
+  it is a deliberate override rather than an oversight.** The site's own rule
+  is that nothing scales on press and that there is no `active:scale-[0.98]`
+  anywhere, and the reason it gives is specific: an inline target sits wherever
+  text layout puts it, so 2% of it is a fraction of a pixel of edge, under the
+  threshold for reading as motion and over the threshold for changing
+  antialiasing, and what a reader sees is fine detail smearing sideways rather
+  than anything shrinking. None of that holds here. The card is 420px, so 2% is
+  9px of edge and reads plainly as movement, and it is already under a
+  perspective and already resampled on every frame of the tilt, so there is no
+  crisp resting raster for the transform to smear. **Do not read this as the
+  rule loosening.** It stands everywhere else, and the test it turns on is
+  whether the thing being scaled is small enough for 2% to be sub-pixel.
+  - The press is `1 - press * 0.018` on a spring at a 0.44 damping ratio, which
+    overshoots its own target in both directions: measured across one press,
+    the card bottoms out at 0.9781, which is 9.2px of edge, and comes back past
+    its own size to 1.0045 before settling. That overshoot is what makes it
+    read as a press on something rather than as a box being resized.
+  - It is a second spring off the same target the shadow reads, since a shadow
+    closing is not a thing that bounces and a card being pressed is.
+  - The scale sits last in the transform, so it happens in the card's own plane
+    rather than moving it in z, and it is about the balance point like the tilt,
+    so the card shrinks toward where it is being held.
+- **The shadow is a sibling of the card and not a `box-shadow` on it.** A
+  shadow lies on the table and does not tip with the thing casting it: this one
+  slides out from under whichever end has lifted and closes on a press. Three
+  layers on `document-pocket`'s recipe, at `notice-stack`'s own values.
+- **Nothing on this stage is a container, and the card is the only object on
+  it.** The stage was `bg-fill` and the foot of the card carried a `bg-fill`
+  pill, and both were the same mistake seen twice: a filled box behind a thing
+  reads as a tray the thing is sitting on, and neither of these trays moves
+  when the card tips. So the stage is `bg` with the frame's own hairline, the
+  card floats on it with a hairline and a lift, and the foot is two quiet runs
+  of print. What separates the card from its ground is the drawing, which is
+  `folder-stack`'s call arriving at one object instead of nine.
+- **The card's type is off the scale on purpose**, sized as a share of the card
+  like everything else on it, which is the standing `flip-clock`'s numerals and
+  `tide-card`'s height have: it is printing on a drawn object rather than copy
+  on a surface. The name and the role are the same size and separate by tone
+  alone, which is the site's own rule for a title and its sub-line, and the
+  stylesheet lowercases both, so the card reads as the rest of the site does.
+- **The pointer is measured against the card's untransformed box, never its
+  rotated one.** Reading the rotated box would let the tilt move the coordinate
+  that produced it, which is the loop `document-pocket` has to hit test neutral
+  geometry to avoid. The cost is a few pixels of disagreement at the edges,
+  where a tilted card overhangs its layout box, and the reading is clamped for
+  that.
+- **The card is a drawing and the button over it is the control**, which is the
+  split `notice-stack` and `tide-card` make: a card carrying its own content
+  cannot also be a button, or its accessible name is everything printed on it.
+  The gesture is an `aria-describedby` rather than part of the name, since a
+  name is read on every focus.
+- **That button is a sibling of the card and never a child of it, and this
+  shipped wrong.** As a child it carries the tilt, so its hit area is the
+  rotated card, and a face that turns away from the eye under a perspective
+  also shrinks: the painted edge nearest the pointer pulls about 8.5px inward
+  and the pointer that caused the tilt is left standing off its own target. The
+  leave fires, the card levels, the edge comes back under the pointer, and it
+  tilts away again. That is `document-pocket`'s loop exactly, and measuring the
+  pointer against the untransformed slot closed only half of it: the coordinate
+  was stable and the hit test was not.
+  - **With a genuinely still pointer it does not oscillate, it latches off.** A
+    browser is not required to re-evaluate hover under a pointer that has not
+    moved, so nothing fires when the edge comes back and the card sits dead
+    until the hand moves. A real hand is never still, so what a reader sees is
+    a flicker. Traced with the pointer parked 2px inside the left edge: the
+    card reached -7.14 degrees with a `div` under the pointer rather than the
+    button, one leave, and then 0.00 degrees for the rest of the trace.
+  - Untransformed at `inset-0` of the slot the region is the card's layout box
+    and cannot move, so no loop is available. Same trace after: one enter, no
+    leaves, the button under the pointer on every frame and the tilt holding
+    -8.93 degrees.
+  - It is safe in the direction that matters. The tilt only ever pulls the edge
+    *nearest* the pointer inward, and the edge that overhangs the layout box is
+    the far one, where the pointer is not.
+  - The cost is that the focus ring no longer tips with the card, and the gain
+    is that there is a focus ring at all: inside the card it was drawn outside
+    the button's box and clipped away by the card's own `overflow-hidden`.
+- **No tooltip on that button, which is the one place the shared rule for an
+  ambiguous control gives way.** The control is the card and the card is the
+  stage, so a label opening over it covers the whole of the thing it describes,
+  which is the reason `ember-burst` refuses its own tooltip while a hand is
+  down, taken one step further. The registry's `hint` names the gesture beside
+  the demo and the `aria-describedby` names it for a reader with no pointer.
+- **No transition on the focus ring either**, which is `book-shelf`'s and
+  `document-pocket`'s call for a drawn object: the shared rule that makes one
+  non-negotiable is written for inputs, selects and textareas, and nothing here
+  is one.
+- **Focus only lights the card when the browser calls that focus visible.** A
+  press focuses the button through its own compatibility mouse event, which
+  lands after the release has already put the card down, so an ungated handler
+  picked it straight back up: on a phone that was a card which answered one tap
+  and then never let go. `sticker-peel` documents the same heuristic from the
+  other side.
+- **A touch `pointerleave` is a lift and not a departure**, `book-opening`'s
+  trap, and here it cost the whole touch path. The pointer stops existing when
+  the finger comes off, so the leave lands right after the release with nothing
+  having gone anywhere, and ungated it put the light out on the frame of the
+  tap. The wave is drawn in diffracted light, so a tap sent one and then
+  cancelled the light that would have shown it: measured, zero coloured dots at
+  every sample through a tap. Gated, and with the light held for the length of
+  the wave rather than cut on the release, a tap lights the card, shows its
+  wave and goes out.
+- **Reduced motion keeps every state and drops the travel**, and it is handled
+  in the component: `MotionProvider` governs motion components and never a
+  `useSpring`, which `event-stacking` documents. Both the target and the sprung
+  value are live and the render picks which one is shown. The wave becomes a
+  disc that fades where it stands, `halftone-ripple`'s call. Verified: 60ms
+  after a move the card is already on its angle.
+- **It invents no colour token and scopes no hue.** The card is `bg` on a `bg`
+  stage with the site's own three text tones on it, the tooth of the
+  paper is `text-muted` read off the token at mount, since a canvas fill cannot
+  take a `var()`, and everything else is a wavelength. This is the strongest
+  form of the exception the lab's other scoped palettes take, and also the one
+  case where there is nothing to scope.
+- **A foil is pastel, and landing there took three numbers rather than one.**
+  The tooth runs 0.05 to 0.14 alpha, which is a grain you can see and not one
+  you read: at twice that it was the loudest thing on a resting card. A lit dot
+  then gives half of itself to its wavelength and half to the paper under it,
+  where at 0.92 every dot near the pointer was a pixel of pure spectrum and a
+  card full of them was painful to look at, which is not what a foil does
+  either: a dot is small and diffracts a fraction of the light landing on it,
+  so what comes back is a tint. And the irradiance falls off as the cube of the
+  cosine rather than the square, so the colour is a bloom around the pointer
+  instead of a wash carrying real colour into all four corners. A press drives
+  the light to 1.35 and not 1.8.
+- **The grid is one blit and one punch.** The painter writes one pixel a dot
+  into a buffer, the buffer is drawn up to the card with smoothing off, and the
+  gaps between the dots are punched with a `destination-in` pattern rather than
+  baked in, so what shows through a gap is the card's own paper. A whole number
+  of device pixels a dot, or the blit blurs the grid.
+- **Nothing renders while any of it moves.** Four motion values carry the card,
+  one frame loop paints the foil, and it stops asking for frames once the light
+  is off and the last wave has crossed. Measured: 0 frames requested over 1.5s
+  at rest, and under a 4x CPU throttle with a press held and the pointer
+  dragging, 120 frames at a 16.7ms median, a 16.7ms 95th percentile and a
+  16.8ms worst.
+- **The card is sized by a custom property and never by `cqw` on itself**,
+  which is `document-pocket`'s trap: an element is a query container for its
+  descendants and never for itself, so the card's own radius in `cqw` would
+  resolve against the stage and come out a third too large. `--card` is
+  declared on the box that is the card's size and everything, including that
+  box, reads it. The cap is what the share already comes to at the lab column's
+  width, so it binds on every wider stage and the share only ever decides a
+  narrow one.
+- Its clip is 156KB against a 64KB average, and the subject is why rather than
+  the recording: a field of per-dot colour that changes every frame is the
+  worst thing there is to hand an inter-frame codec. It was 366KB before the
+  colour was toned down, so most of that was the intensity rather than the
+  idea.
+- Verified in a browser at 320, 360, 390, 430, 768 and 1280px: the stage holds
+  538 by 336 from a 640px window up and 352 by 262 on a 390px phone, the card
+  420 by 240 and 295 by 169, nothing inside the card overflows it at any width,
+  the page never scrolls sideways, the arrow keys move the light and Enter
+  presses without the page taking the space key, a tap on a phone lights the
+  card and puts it out again, and no console errors.
 
 ## Motion
 
