@@ -1001,6 +1001,63 @@ const LABS = {
       await wait(1900);
     },
   },
+
+  "foil-card": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // stage and nothing is padded or cut
+    focus: [0, 0, 538, 336],
+    /*
+     * A hand crossing the card, twice, with a press at each end.
+     *
+     * The light is the pointer, so what the clip has to show is the bloom
+     * tracking it and the card tipping under it, and neither reads from a
+     * pointer that teleports. `m.move`'s own steps all land in one tick, so
+     * the two crossings are walked by hand at about a frame apart instead,
+     * which is the rate a real hand generates events at.
+     *
+     * It opens outside the card, so the first thing the clip shows is the
+     * foil unlit, and it finishes outside it, so the last thing is the foil
+     * going out. Both are the claim: no pointer, no light.
+     */
+    async run({ m }) {
+      const walk = async (from, to, ms) => {
+        const steps = Math.max(2, Math.round(ms / 16));
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          await m.move(
+            from[0] + (to[0] - from[0]) * t,
+            from[1] + (to[1] - from[1]) * t,
+            1,
+          );
+          await wait(14);
+        }
+      };
+
+      await m.move(24, 300, 1);
+      await wait(600);
+
+      await walk([24, 300], [130, 96], 420);
+      await wait(260);
+      await walk([130, 96], [404, 244], 900);
+      await wait(200);
+
+      await m.down();
+      await wait(70);
+      await m.up();
+      await wait(820);
+
+      await walk([404, 244], [176, 118], 760);
+      await wait(180);
+      await m.down();
+      await wait(70);
+      await m.up();
+      await wait(900);
+
+      // off the card, where the light goes out and the card comes level
+      await walk([176, 118], [508, 318], 320);
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
