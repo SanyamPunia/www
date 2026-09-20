@@ -163,6 +163,11 @@ in the light tokens to sit it against.
   nothing at all, and the room the burst lights has no lift available to it.
   The stage inverts and the strip of knobs under it stays light, so the set
   covers the picture and never the controls.
+- `components/labs/cube-orbit/` unfolds a cube, and a cube is a black plastic
+  thing with its stickers stuck on it. A white sticker is the page's own colour,
+  so without a ground under it a sixth of the cube is not there at all. Only the
+  six blocks of plastic invert and the stage stays light, which is the narrow
+  use `book-opening`'s boards make: one object opts in, not the ground.
 - `components/labs/window-shade/` is the one caller that does not pick an end.
   **It reads both sets at once and asks for the point between them**, since the
   whole experiment is a cabin crossing from lit to dark on the position of a
@@ -1232,7 +1237,7 @@ experiment is a directory under `components/labs/`.
 - **No `flex-wrap` on that row.** A hint that cannot fit is meant to wrap its
   own text, never to push the links onto a line where nothing balances them.
   `min-w-0` on the hint is what lets it shrink that far and `shrink-0` on the
-  links is what keeps them out of it. Measured across all 37 labs at 320, 390,
+  links is what keeps them out of it. Measured across all 38 labs at 320, 390,
   640 and 1280px: the links sit beside the hint at every one, and nothing
   overflows.
 - **That row has one rule: two things on a line sit at opposite ends, and one
@@ -1258,9 +1263,10 @@ experiment is a directory under `components/labs/`.
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
-  `notice-stack` and `tide-card` use it. `ember-burst` is the only entry where `flush` governs
-  part of the frame rather than all of it: the stage runs to all four of its
-  edges and the knob strip beneath carries its own padding, since a range track
+  `notice-stack`, `tide-card` and `cube-orbit` use it. `ember-burst` and
+  `cube-orbit` are the two entries where `flush` governs part of the frame
+  rather than all of it: the stage runs to all four of its edges and the strip
+  beneath carries its own padding, since a range track or a row of pills
   running into a hairline is not a control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
@@ -1268,7 +1274,7 @@ experiment is a directory under `components/labs/`.
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twenty-one experiments define their own hues**, `tab-overview` per terminal
+- **Twenty-two experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1283,12 +1289,15 @@ experiment is a directory under `components/labs/`.
   can resolve, and `ember-burst` a temperature ramp, which is the one set in
   the lab that is not a choice at all: an ember's colour is what its heat looks
   like, so the six stops are a measurement rather than a palette, and
-  `tide-card` one green for a tide that is coming in. Five of
+  `tide-card` one green for a tide that is coming in, and `cube-orbit` the six
+  colours a Rubik's cube is made of. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
-  brand marks already get. `stamp-collection` has a stronger claim than any of them, since a postage
-  stamp is a printed object and its colours are the object. Each is scoped to its
+  brand marks already get. `cube-orbit` has the strongest claim in the lab and
+  `stamp-collection` the next: a postage stamp is a printed object and its
+  colours are the object, and a Rubik's cube is six colours before it is
+  anything else, since the puzzle is stated in them. Each is scoped to its
   experiment, the values are not tokens, and nothing else may reach for them.
   `window-shade`'s claim is the same shape as `stamp-collection`'s: daylight is
   the thing its shade is for, so the blue is the subject rather than a tint on
@@ -1451,7 +1460,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-seven clips, 2.2MB with their stills, 3.4 to 9.0 seconds each, at 60
+- Thirty-eight clips, 2.4MB with their stills, 3.4 to 9.0 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -5475,7 +5484,8 @@ what makes the difference visible rather than asserted.
 - **`cursor-grab`, which is the ninth place the shared `cursor-pointer` rule is
   off**, after `tether-button`, `event-stacking`, `window-shade`,
   `sticker-peel`, `notch-drop`, `custom-cursor`, `radial-menu` and
-  `wrapped-pattern`. The wick is dragged as often as it is tapped.
+  `wrapped-pattern`, and before `cube-orbit`. The wick is dragged as often as it
+  is tapped.
 - **`touch-none` is on the wick alone and never on the stage**, so a thumb
   scrolling past the demo is not trapped by the dark box, which on a phone is
   most of what is on screen. That is the trade `window-shade` documents for its
@@ -6555,6 +6565,378 @@ it, `tide.ts` the tide itself, and `index.tsx` the box and its two controls.
   55.2 at every one, the corner is 27.59px at both ends of the morph, nothing
   inside the card overflows it, the page never scrolls sideways, the tide
   advances and turns, and no console errors.
+
+### `cube-orbit`
+
+A Rubik's cube walked round its own cycle. Repeat a sequence of turns and the
+cube comes back to solved. The dial is one ring per cycle of that sequence, each
+turning one notch per repetition, and the cube is home on the repetition every
+ring is home on at once. `cube.ts` is the permutation model and `layout.ts` the
+geometry, both pure and DOM-free, which is the split `document-pocket` makes
+with `poses.ts`.
+
+- **The number is a fact about the sequence rather than about Rubik's cubes.**
+  Every permutation splits into disjoint cycles, a cycle of length L is home
+  every L repetitions, so the whole cube is home at the least common multiple of
+  its cycles' lengths. That is the one thing the dial has to draw, and it is why
+  a ring is the right shape for it.
+- **A ring's rotation is the permutation rather than a picture of one.** A
+  cycle's stickers sit on their ring in the order the sequence sends them, so
+  turning the ring by one notch puts every one of them exactly where the
+  sequence would have. The dial and the net cannot drift apart, because they are
+  the same arithmetic evaluated twice rather than a drawing checked against an
+  answer. Slot 0 sits at the index line, so a ring's marked dot is back under
+  the caret exactly when that cycle is home.
+- **Nothing here is a table of turns copied out of somewhere.** All six faces
+  come from one rotation of one cubie, so they cannot disagree with each other
+  and a sign error shows up as a cube that never comes home rather than as a
+  drawing that is quietly wrong. Each face carries its own frame, an `up` and a
+  `right`, and `right` cross `up` is that face's outward normal for all six,
+  which is the one check that says a frame is not mirrored: get one wrong and
+  the cube still turns, it just turns into its own reflection. Verified against
+  the known answers: a quarter turn is 4, `R U` is 105, `R U R' U'` is 6, and
+  `R U2 D' B D'` is 1260, which is the largest order in the cube group.
+- **The two objects are sized against each other and measured, not eyeballed.**
+  The cube is the subject and the dial is the readout, so the readout must not
+  dominate. Three passes:
+  - At the cube's first size the folded state measured 159 units of ink against
+    the dial's 232, with margins of 52, 59 and 34 across the stage, which is an
+    object pushed into a corner beside one filling its half.
+  - Growing the cube to match fixed the balance and left the stage crowded: 192
+    and 232 side by side in a 536 box is 79% of the width in ink, at margins of
+    36, 43 and 34, and two heavy objects that close together read as congested
+    however even the gaps are.
+  - Both were taken down about a tenth, to 172 and 210, which leaves the
+    margins at 47, 53 and 54 folded and 41, 47 and 54 flat. The rule is that a
+    frame this size wants its margins wider than the gap between what is in it,
+    not equal to it.
+- **The rings are spread between a fixed outside and a fixed inside, never on a
+  fixed step.** The four sequences carry four, four, four and six cycles, and
+  1260 is the only one needing six: no sequence of turns reaches the largest
+  order in the cube group with fewer, which a search over every sequence up to
+  four turns confirms, where the best four-ring one manages 420. A fixed step
+  made all four dials as dense as that one. Spread between two radii instead, a
+  four-ring dial gets 18.7 units a ring against the six-ring dial's 11.2, and
+  a dot takes a third of whatever its ring was given, so a crowded dial has
+  small nodes and a roomy one has full-size ones. The hole in the middle is the
+  same size either way, so the count always has room whatever surrounds it.
+- **The four sequences are picked for the range of their answers**, 4, 6, 105
+  and 1260, and the opener is the trivial one on purpose. A reader who is shown
+  that one quarter turn comes home in four believes the claim before it gets
+  strange, and the escalation is then the reward rather than the premise. They
+  are also all under seven cycles, which is what keeps the dial to six rings and
+  every ring far enough from its neighbour to read.
+- **Only the cube's plastic inverts and the stage stays light.** A cube is a
+  black plastic thing with its stickers stuck on it, and a white sticker is the
+  page's own colour, so without a ground under it a sixth of the cube is not
+  there at all. That is the narrow use of the `inverse-*` set `book-opening`'s
+  boards make. On the dial, where there is no plastic, every dot takes the same
+  `text-muted` rim instead: a rim tinted per hue would leave white as the one
+  dot drawn differently, where one rim for all six is a drawing convention.
+- **Nothing on the dial is drawn in `text-primary`, and the stage is quieter
+  for it.** The lap arc, the caret and the mark on each ring's home dot were all
+  near-black to start with, and together they put a heavy black arc round a
+  drawing whose subject is six colours, with four to six dark-rimmed dots
+  stacked on the index line at rest reading as a column of ink down the middle
+  of it. The caret and the home mark take `text-secondary` now, which is a clear
+  step above the other dots' `text-muted` without becoming ink, and the arc goes
+  quieter still. The near-black is left to the plastic, the type and the lead
+  pill.
+- **The viewBox is exactly 8:5 and not the column's own 538 by 336.** Those are
+  1.60119 and 1.6, so a viewBox of the measured column letterboxes the drawing
+  by a quarter of a pixel and puts an offset between a pointer's place on the
+  box and its place in the drawing. 536 by 335 is the same size to within a
+  pixel and divides exactly. Measured in a browser: the stage renders 537.59 by
+  335.98 and the dial's own grab region is a circle 230 square.
+
+#### What the reader has to decode
+
+The first build reported `cycles 4, 4, 4, 4, 4`, `order 4` and `home` in a strip
+under the stage, and put the live count at 30px in the middle of the dial. That
+is three pieces of jargon for a reader who was never told the premise, with the
+answer set at 12px inside one of them and the least interesting number on the
+stage set as the largest thing on it. Everything below is that pass.
+
+- **One sentence carries the claim, and the control that changes it sits inside
+  the sentence.** `repeat [R U] 105 times and the cube solves itself` states the
+  premise, names the sequence, gives the scale of a press and sets the
+  expectation, in the slot the three readouts used to have. The sequence picker
+  lives in that line rather than in the row below, so the thing being repeated
+  is named once and is visibly the thing the sentence is about.
+  - It is a flex row and not prose with an inline pill. A control inside a real
+    line box is what `InlineLink` spends `leading-none` and `em` padding on, and
+    a row of three flex items wraps on a narrow column for free.
+  - `text-body` rather than `text-meta`, since it is a sentence and the site's
+    scale says so. The order takes `text-primary` and `tabular-nums` against the
+    line's `text-secondary`, so the number is the one thing in the strip with
+    full contrast.
+- **The lap arc is the scale the count has no other way to get.** A number
+  running to 1260 says nothing about how far along it is, and what a reader
+  mid-run wants is how much longer rather than what the total was. It is a
+  `pathLength="1"` circle with a dash of 1 and a gap of 1, so the whole of it is
+  one dash offset written per frame. `butt` caps rather than round, or a lap at
+  zero paints a dot at the top where there is nothing to report. **It is drawn
+  in `text-muted` on a `stroke-strong` track**, which is the quietest pair that
+  still reads as a filled arc: it went near-black first and then
+  `text-secondary`, and both made a readout the loudest thing in a drawing whose
+  subject is six colours. Measured at 40 of 105, the filled third is plainly
+  darker than the rest of the ring, and nothing in the frame competes with the
+  cube. It sits 12
+  units outside the outermost ring at nearly three times their width, so seven
+  concentric circles still read as one arc around six tracks.
+- **The count and the word `solved` are two elements that trade places, never
+  one label that changes.** A `0` with `solved` under it reads as "zero solved",
+  which is the opposite of what has happened, and at rest the count is zero and
+  carries nothing anyway. So arriving is the number being replaced by the word,
+  on a 200ms crossfade, and that is also the only thing marking the arrival.
+- **Pointing at a ring says what it is, in words, where its stickers are already
+  lit.** `these 7 stickers come back every 7 repeats` replaced the permanent
+  `cycles 15, 7, 7, 3`: a ring is twelve dots on a circle until you can see
+  which twelve squares of the cube they are, and a count is worth nothing until
+  it is attached to the thing it counts. The ring's own dots stay lit and every
+  other ring's drop to 26%, so what the pointer picks out is one loop and the
+  squares it holds rather than a loop on its own. The hovered track steps to 80%
+  of the muted tone rather than to the whole of it, which reads beside its
+  neighbours at 42% without darkening the ring a reader is looking straight at.
+  - **It is a caption under the cube and not a footnote on the stage.** It sat
+    in the stage's bottom left corner at first, which put it 68 units below the
+    thing it describes and aligned to the stage rather than to it. Under the
+    cube, centred on it and the same width, it reads as a label. It is
+    absolutely positioned, so nothing in the strip moves when it arrives, and
+    its box is a little wider than the cube it sits under, which is what keeps
+    it to one line. A caption may be wider than its figure. What it may not be
+    is two lines with one word alone on the second, which is what
+    `these 7 stickers come back every 7 repeats` wrapped to before the copy was
+    cut to `7 stickers, back every 7 repeats`.
+  - **Only the flat cube is ever under it**, since the thing that shows the
+    caption is the thing that unfolds the cube. That is what lets the folded
+    cube overrun the net's own box without ever colliding with it.
+- **It plays itself once when it scrolls into view**, which is the signature
+  player's call and for its reason: without it the demo is two diagrams sitting
+  still, and a reader has no way to know that either of them moves or what
+  pressing anything would do. One lap on the opening sequence is four
+  repetitions and about a second and a half, so what a reader is shown is the
+  whole claim rather than a sample of it. **The autoplay is gated on reduced
+  motion and the controls are not**, which is exactly the line: a press is a
+  request and an autoplay is not. It waits for the preference to resolve rather
+  than reading `null` as "no", since the hook returns null until it has an
+  answer. Measured on load: the count steps 1, 2, 3 and home between 1.3s and
+  1.8s, and under the setting it never moves at all.
+
+#### The cube is its own net
+
+A drawing of a cube can only ever show three faces, and the whole question this
+demo asks is whether all six are home. The first build answered that by drawing
+the net and giving the cube up. This is both, and it costs one number.
+
+- **`--fold` runs 0 to 1 and drives everything**: the five hinges, the angle the
+  whole thing is seen from, how much bigger it gets on the way up, and the light
+  on each face. So a cross of six faces and a cube are two readings of the same
+  markup rather than two drawings that have to agree. That is `book-opening`'s
+  `--book-open` and `window-shade`'s `--shade` one level up, where one property
+  carried fourteen transforms and here it carries eight and the camera.
+- **The faces hang off each other the way the paper does.** Everything is a
+  child of the front except the back, which is a child of the right, so a hinge
+  is one rotation about the edge two faces already share and nothing computes a
+  position. The net's own layout is the geometry: `bottom: 100%` with the origin
+  on that edge and `rotateX(90deg)` is the top face, and the same three lines
+  with different values are the other four.
+- **A turn of a single face was built on top of this and taken out again.** A
+  layer carries nine cubies' facelets from five different faces, and no
+  arrangement of parents can rotate a set that crosses them, so it needed all 54
+  as siblings with the hinge chain composed into each one's own transform. That
+  worked, and the trigger never did: a single step played its turns, a run or a
+  drag could not, and the only way to ask for a single step was to tab focus
+  onto the dial and press an arrow. A gesture nobody finds is not a feature, and
+  the demo is about a repetition rather than about a quarter turn.
+- **It is HTML and not part of the SVG.** CSS is the only thing on this page
+  that folds paper, and `transform-style: preserve-3d` has no meaning inside an
+  `<svg>`. Everything in it is sized as a share of the stage through one
+  `--block` in `cqw`, so it scales with the drawing beside it and nothing is
+  measured in JS.
+- **`backface-visibility: hidden` is what leaves exactly three faces showing.**
+  CSS sorts planes by depth rather than by pixel, so without it the inside of
+  the far faces paints through the near ones and the cube is a box of ghosts.
+  That is `book-opening`'s call for its two boards.
+- **The scene is pushed half a face forward along the front's own normal, and
+  only once it is folded.** A cube grows backward from its front face, so
+  centring the face is not centring the cube: measured, the folded box sat 27px
+  right and 17 up of where the net's middle had been. The correction rides
+  `--fold` like everything else, so the flat net is unaffected.
+- **The light fades out with the fold.** Six faces lying flat all point the same
+  way and there is nothing for one of them to catch, so the shading is
+  `opacity: var(--fold)` over white and black at low alpha on each face's own
+  colour, which is this project's rule for anything on an `inverse-*` ground.
+  A cube whose three visible faces are lit identically reads as a diagram of a
+  cube rather than a cube.
+- **The faces touch, where the blocks of the first build had a gap between
+  them.** A fold needs a shared edge, and two plates a few units apart hinge
+  into a cube with a slot down every edge. What separates them flat is that the
+  seam between two faces is a double gutter against the single one inside a
+  face, which is enough at this size.
+- **Pressing the cube is the only thing that folds it, and that was a
+  correction.** Pointing at a ring used to unfold it too, on the grounds that a
+  ring's stickers are spread over all six faces and that is the moment they are
+  worth having. What it missed is that the dial is also the drag surface and the
+  only keyboard target on the stage, so reaching it with a mouse at all, which
+  is what focusing it takes, unfolded the cube, and any twitch of the hand
+  afterwards unfolded it again. The rings' hit bands meet, so there was no part
+  of the dial that was not also a trigger. **A control's own job has to survive
+  being approached.** The highlight and the caption still answer a hover and now
+  light whichever of a cycle's stickers are facing you, which is the reason to
+  press the cube rather than an accident that replaces it.
+  - **The cube is a real `<button>` carrying `aria-pressed`**, which is also the
+    whole of the touch path, since a finger has no hover to open it with. The
+    attribute carries the pin rather than the peek, because the peek is the
+    pointer's and not a state anyone chose.
+- **Opening takes longer than closing**, 520ms against 400ms, on the drawer
+  curve that leaves at more than twice its own average speed. What starts the
+  fold is a pointer arriving on a ring, and an ease that begins flat reads as
+  the cube thinking about it. Closing is the demo tidying up rather than
+  answering, so it is quicker.
+
+#### The lap, and what it sounds like
+
+- **A tick stands at every repetition that puts part of the cube back**, in the
+  band between the rings and the arc, as long as the part is big. A cycle of
+  length L returns its own stickers every L repetitions, so the count at step k
+  is the total length of the cycles whose length divides k. Under `R U` the cube
+  is a third of the way back together at 21 and at 42. Under a single quarter
+  turn nothing comes back until the end and the band is empty, which is what
+  makes the marks read as data rather than as a scale: they are there on three
+  presets and absent on the fourth.
+  - Capped at 170, keeping the highest. A lap of 1260 with a two-cycle in it
+    returns something on every second step, and 630 hairlines round a 600 unit
+    circle is a grey band rather than a reading.
+- **The label under the count is how far is left, not the unit.** Both ways home
+  are then on screen at once: the count is how far back solved is behind you and
+  `43 to go` is how far on it is ahead, which is the whole of the shortest path
+  on a cycle. `repeats` was a word that said nothing the sentence under the
+  stage had not already said.
+- **A click a notch, and nothing above a walking pace.** `dial-sound.ts` follows
+  `crack-sound.ts`: one context, one noise buffer, a filtered burst per event,
+  nothing fetched. A run crosses two hundred notches a second and a click each
+  is a machine gun, so the ticks are gated on speed, which gives the right
+  result for free: a hand turning the dial clicks, a run spins silently through
+  its middle, and the clicks come back one at a time as it decelerates onto the
+  last few notches. The band climbs as the lap closes, so a dial coming home
+  sounds like it is tightening. The one arrival worth a tone rather than a click
+  gets two sine partials a fifth apart.
+
+#### The dial
+
+- **It is turned by its rim, one repetition per notch of the outer ring.** So a
+  hand that grabs a dot on the outermost ring and drags it to the next slot has
+  applied the sequence once, and every inner ring is visibly turning faster than
+  the hand, which is the whole picture: they come home more often, and the cube
+  only comes home when they all do at once.
+- **An HTML box over the drawing rather than an SVG circle**, since the
+  project's focus ring is a box-shadow and a box-shadow does not paint on an SVG
+  element. It is positioned as a percentage of the stage, and the stage and the
+  viewBox are both exactly 8:5, so it lands on the drawing at every width.
+- **`role="slider"`, because a dial with detents is one**, with the arrow keys,
+  the page keys and Home spelled out. `aria-valuenow` and `aria-valuetext` are
+  written to the node beside the rest of the frame rather than rendered, or a
+  drag would be a state update per frame.
+- **Letting go coasts to a notch and stops on it.** The flick's target is
+  rounded before it is animated to, never snapped to afterwards: two animations
+  in a row is a coast and then a correction, and the correction is the part a
+  reader sees.
+- **A move with nothing held ends a turn whose lift was never heard**, which is
+  nib's rule: a window that loses focus mid-drag sends no `pointerup`, and a
+  dial that keeps turning under a hand that is no longer down is worse than one
+  that lets go early.
+- **A hand on the dial is turning it rather than reading it, so the highlight is
+  off for as long as one is down.** It dims five sixths of the cube, and a drag
+  is the one moment the whole cube is worth watching: left on, the net goes dark
+  for the length of every turn and the churn the gesture exists for happens
+  behind it. This was visible in the recorded preview before it was visible
+  anywhere else. It comes back on the next move rather than on the release, and
+  that falls out of there being no move event to answer, which is
+  `stamp-collection`'s call for a stamp arriving under a hand that never moved.
+- **A sequence swap has to clear the highlight rather than forget it.** A ring's
+  stickers belong to the sequence that drew them, so a `lit` left at its old
+  index refuses the very call that puts the net back, and the cube keeps two
+  thirds of itself dimmed under a set of rings that no longer holds it.
+- `cursor-grab`, the tenth place the shared "cursor-pointer on every clickable
+  element" rule is off, and `touch-none` on the grip alone, so a thumb scrolling
+  past the demo is never trapped by the stage.
+
+#### The run, and what it costs
+
+- **A lap is one tween however far it has to go.** The distance is 4 repetitions
+  on one sequence and 1260 on another, so a fixed rate is either a demo that is
+  over before it starts or one that runs for two minutes. A fixed duration with
+  a hard landing reads the same at both. Traced per frame on the 1260 sequence:
+  0, 16, 87, 289, 680, 936, 1074, 1158, 1209, 1239, 1255 and home, over 422
+  frames with a median gap of 16.7ms and a worst of 19.
+- **The drawing smears by its own speed, and that is what makes a fast run
+  watchable rather than a strobe.** 1260 repetitions in five seconds repaints
+  all 54 stickers on every frame, and a full-field colour change at 60Hz is both
+  unreadable and the kind of flashing nobody asked to look at. Blurring by speed
+  turns it into the wash a spinning thing actually looks like, and it costs one
+  filter. Measured on that run: the blur reaches its 4.4px cap through the middle
+  and is back under a pixel for the last second, so the notches that matter are
+  the sharp ones.
+  - **The smear goes on a wrapper and never on the element carrying the cube,
+    and that was a bug with a very plain tell.** A `filter` makes its own
+    element a grouping element, which forces `transform-style` to compute to
+    `flat`, so a blur written onto the scene collapsed all six faces onto one
+    plane: a run showed a single 3x3 square and the cube came back on the frame
+    the blur cleared. One wrapper between the two is the whole fix, since the
+    flattening applies to the element that has the filter and not to its
+    descendants. Measured through a 1260 run: `transform-style` holds
+    `preserve-3d` at every blur from 1.17px to the 4.39px cap, and the cube's
+    ink holds 141px where a flattened one is 101.
+  - **The speed is this frame against the last one, never the motion value's own
+    velocity, and that was a bug worth keeping.** Motion works a velocity out
+    from the frame before, so a `set` landing after a long idle divides a real
+    change by a 30ms floor and reports a value that never happened: swapping the
+    sequence sets the dial back to zero from wherever it was left, which read as
+    400 repetitions a second and pinned the blur at its maximum for as long as
+    the drawing sat still. Measured before the fix, `blur(4.4px)` on a settled
+    stage, and `none` after.
+- **Nothing renders while the dial moves.** A ring is one `transform` write, the
+  arc is one dash offset, a sticker is one `fill` and only when its colour moved,
+  and the count goes straight to its node. The one piece of React state the
+  drawing feeds is where the dial came to rest, written by `settle` alone, so a
+  drag across seventy repetitions is one render rather than seventy. It exists
+  for the one question a per-frame DOM write cannot answer, which is whether the
+  control that goes back to solved has anything left to do, and that is only ever
+  asked of a dial standing still.
+- **The whole orbit is walked once when the sequence changes**, so scrubbing the
+  dial is a lookup. The longest orbit any sequence of turns has is 1260 states of
+  54 bytes, which is 68KB.
+- **The sequence label keeps its casing and takes the mono face.** Lowercase is
+  a different turn in cube notation, so this is data rather than copy, which is
+  `notch-drop`'s call for its meta line. `R'` is written with a real prime and
+  never a typewriter apostrophe. The control is the site's own mode selector,
+  one pill whose label is the current value with two arrows saying a press swaps
+  it, and the label morphs through `torph`, which is `book-opening`'s call. It
+  carries an `aria-label`, since `torph` renders its text as aria-hidden
+  character spans and a button whose only child is one has no name at all.
+- **The lengths are listed with commas and never middots.** The shared rule bans
+  a `·` between items, and here it would also be a lie: what the lengths give is
+  their least common multiple and not their product, which on `R U` are 105 and
+  315.
+- **Reduced motion keeps every state, drops the travel, and changes what the
+  lead control does.** A lap that arrives in one step is a lap from solved back
+  to solved, which is a control that visibly does nothing, and a demo whose one
+  control does nothing is not a demo: that is `flip-clock`'s line about a clock
+  that does not change. So the pill reads `Repeat once` and applies the sequence
+  once a press, which is the same claim with no travel in it and the better half
+  of it anyway, since what a press then shows is every ring stepping one notch
+  at once. The drag is direct manipulation and is unchanged. Verified: three
+  presses walk the dial 0, 1, 2, 3 with the outer ring reading exactly
+  `rotate(90)`, `rotate(180)` and `rotate(270)`, and no blur is ever written.
+- Verified in a browser at 320, 390, 430, 768 and 1280px: the stage holds an
+  exact 8:5 at every one with nothing overflowing it and no sideways scroll, the
+  four sequences report orders 4, 6, 105 and 1260 against cycles `4, 4, 4, 4, 4`,
+  `6, 6, 3, 3`, `15, 7, 7, 3` and `15, 14, 9, 4, 2, 2`, the arrow keys and Home
+  step and reset the dial, pointing at a ring dims 50 of the 54 stickers and
+  writes its line, swapping the sequence leaves none of them dimmed and no filter
+  on the stage, a run ends solved with the arc full, and no console errors.
+
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
