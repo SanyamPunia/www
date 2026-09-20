@@ -161,6 +161,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "cube-orbit": dynamic(() => import("@/components/labs/cube-orbit"), {
     ssr: false,
   }),
+  "foil-card": dynamic(() => import("@/components/labs/foil-card"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

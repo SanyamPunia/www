@@ -632,6 +632,21 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Turn the dial. Press the cube to unfold it, then point at a ring.",
   },
+  {
+    slug: "foil-card",
+    title: "Foil Card",
+    description: [
+      "a profile card stamped with a dot-matrix hologram. point at it and it tips toward the pointer, weighted, while the foil under the print picks up colour.",
+      "key insight: none of that colour is an ink. a dot-matrix hologram is a grid of microscopic diffraction gratings, one per dot, and what leaves a dot is whichever wavelength its own grating sends to the eye at the angle the card is held at. the whole equation is one dot product against the half vector, and straight under the light that part is zero, so the dot beneath the pointer is dark and the coloured orders ring it.",
+      "a press stretches the foil, and a stretched grating has a wider pitch, so the wave leaving the finger is a redshift rather than a ring of brightness. the card is weighted too: it turns about the ink-weighted centroid of its own print, measured off the rendered card, so a finger on the empty end has much the longer lever.",
+    ],
+    createdAt: "2026-09-20",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/foil-card/foil.ts",
+    reference: "https://jackandjill.ai",
+    flush: true,
+    hint: "Point at the card to move the light. Press to send a wave through it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -718,6 +733,7 @@ export const IMPLEMENTED_LABS = [
   "notice-stack",
   "tide-card",
   "cube-orbit",
+  "foil-card",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
