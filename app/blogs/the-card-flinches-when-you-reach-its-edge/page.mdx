@@ -1,55 +1,62 @@
+import { Term, Terms } from "@/components/blogs/terms";
 import Sandboxes, { Replay } from "./sandboxes";
 
 Every card that tilts under your pointer has this at its edges. You reach for a
 corner, it buzzes, and you back off toward the middle. It looks like a rendering
-fault and it is not. Every hover in there is real and every leave is correct.
+fault. Every hover in there is real and every leave is correct.
 
-Two cards below. Identical tilt, identical geometry. One of them has a fix in it.
+Two cards below. Same tilt, same geometry. One has a fix in it.
 
 <Sandboxes />
 
 ## it stops when you look at it
 
-Park the pointer at the edge and hold it genuinely still. The buzzing stops. The
-card tilts once, drops the hover, levels, and then nothing happens at all,
-because a browser is not obliged to run hit testing again when the pointer has
-not moved. When the edge comes back under you, nothing fires.
+Park the pointer at the edge and hold it still. The buzzing stops. The card
+tilts once, drops the hover, levels, and then nothing. A browser is not required
+to re-run hit testing for a pointer that has not moved,[^spec] so the edge comes
+back under you and nothing fires.
 
-```
-t(ms)  rotateY  under the pointer
-   16   -7.14   div        tilted, and already off its own target
-  214   -0.24   button     levelled, target back, and nothing fires
- 1512    0.00   button     enter 1, leave 1
-```
+| t | `rotateY` | under the pointer |
+| --- | --- | --- |
+| 16ms | -7.14° | the stage |
+| 214ms | -0.24° | the button, nothing fired |
+| 1512ms | 0.00° | the button, nothing fired |
 
-So the one thing you would do to inspect it is the one thing that makes it go
-away. A hand is never quite still, which is the only reason you get a buzz
-rather than a dead card.
+One enter and one leave across the whole 1.5 seconds, with the pointer parked
+the entire time.
 
-What it is doing in between is not complicated. Hover is answered against the
-box the browser painted, which is after the transform, and a face that turns
-away from your eye under a perspective also gets smaller. The edge you are
-pointing at pulls about eight pixels inward and leaves you standing off the
-target that moved it.
+Inspecting it is what kills it. A hand is never quite still, and that jitter is
+the only reason you get a buzz instead of a dead card.
 
-The region that decides the state is moved by that state. That is the whole bug.
+The browser tests hover against the box it painted, which is after the
+transform. A face turning away under a perspective also gets smaller, so the
+edge you are aiming at pulls about eight pixels inward[^eight] and leaves you
+standing off the target that moved it.
+
+> The region that decides the state is moved by that state. That is the whole
+> bug.
 
 ## the timer, the deadband, the hitbox
 
 Three answers, in the order people reach for them.
 
-A timer on the leave is the first one, and it fixes nothing. It slows the buzz
-down to the length of the timer, and against a still pointer it does nothing
-whatsoever, because there is no second event coming to wait for.
+<Terms>
+  <Term name="A timer on the leave">
+    Fixes nothing. It slows the buzz to the length of the timer, and against a
+    still pointer it does nothing at all, because no second event is coming.
+  </Term>
 
-A deadband is the second, and it works. Make the region you leave larger than the
-region you enter, and the oscillation has nowhere left to sit. Control theory
-calls that hysteresis and electronics sells a part that does only this, the
-Schmitt trigger. It is still the weaker answer, because it keeps the feedback
-path and damps it.
+  <Term name="A deadband">
+    Works. Make the region you leave larger than the one you enter and the
+    oscillation has nowhere to sit.[^schmitt] Still the weaker of the two, since
+    it damps the loop rather than removing it.
+  </Term>
 
-The third one deletes the path. The card keeps the transform, and the hit target
-sits beside it on the same layout box, where no amount of tilting can reach it.
+  <Term name="A hit target outside the transform">
+    Removes the loop. The card keeps the transform, and the target sits beside
+    it on the layout box where tilting cannot reach it.
+  </Term>
+</Terms>
 
 ```tsx
 // a child, so it carries the tilt and the hit box goes with it
@@ -66,13 +73,24 @@ sits beside it on the same layout box, where no amount of tilting can reach it.
 
 ## what to call it
 
-Games have worked that way forever. Collision geometry is authored separately
-from render geometry, which is why a character's hitbox does not animate with
-every frame of their animation. Control theory names the failure rather than the
-fix: a binary controller whose output moves its own input, with no deadband
-between the two thresholds, is **chattering**, and the oscillation it settles
+Games solved this decades ago by authoring collision geometry separately from
+render geometry. It is why a character's hitbox does not animate with every
+frame of their animation.
+
+Control theory names the failure rather than the fix. A binary controller whose
+output moves its own input is **chattering**, and the oscillation it settles
 into is a limit cycle.
 
-The web has no word for it, which is probably why it keeps getting shipped.
+The web has no word for it, so it keeps getting shipped.
 
 <Replay />
+
+[^spec]: CSS does not say whether an element still matches `:hover` after it
+moves out from under a pointer that did not itself move. Chrome waits for the
+next pointer event.
+
+[^eight]: Measured on `foil-card`, the lab this came out of: a 420px card at
+8.94 degrees pulls its near edge in by 8.1px.
+
+[^schmitt]: Control theory calls that hysteresis. A Schmitt trigger is the same
+idea in a chip: one threshold going up, a lower one coming down.

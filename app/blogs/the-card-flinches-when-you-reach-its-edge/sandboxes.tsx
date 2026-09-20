@@ -141,7 +141,22 @@ export default function Sandboxes() {
      * with real air between them already read in the right order and the
      * numerals were chrome on a block that is mostly chrome already.
      */
-    <div className="my-8 flex flex-col gap-10">
+    /*
+     * `select-none` on the whole block, never on the stages alone.
+     *
+     * The task is a slow drag across a card and then a hold at its edge, which
+     * is a gesture aimed squarely at a run of type: without it the pointer
+     * paints the card's own bars, the instruction above them and the four
+     * answers below, in the site's emerald and with a pair of `SelectionPins`
+     * carets on the ends. A drag that starts on a stage and leaves it anchors
+     * on the nearest text it can find, which is why the guard sits on the
+     * parent rather than on the boxes, the call `gooey-chips` documents.
+     *
+     * Nothing in here is prose. Every line is an instruction, a control or a
+     * readout about one, so there is nothing a reader would want to copy, and
+     * the post's own paragraphs on either side still select.
+     */
+    <div className="my-8 flex select-none flex-col gap-10">
       <div className="flex flex-col gap-4">
         <p className="text-pretty text-body text-text-primary">
           Hold the pointer on the <Swatch /> tab at the left edge of each card
@@ -430,7 +445,7 @@ function Sandbox({
             aria-hidden="true"
             className={cn(
               "-translate-y-1/2 pointer-events-none absolute top-1/2 left-0 flex items-center justify-center rounded-r-lg transition-colors duration-200",
-              done ? "bg-text-primary/10" : "bg-fill-active",
+              done ? "bg-success/10" : "bg-fill-active",
             )}
             style={{ width: TAB_W, height: TAB_H }}
           >
@@ -440,7 +455,7 @@ function Sandbox({
               <CheckIcon
                 aria-hidden="true"
                 weight="bold"
-                className="size-3 shrink-0 text-text-primary"
+                className="size-3 shrink-0 text-success"
               />
             ) : (
               /* `relative` is load-bearing. The halo below is `absolute
@@ -487,9 +502,17 @@ function Sandbox({
             drops > 0 && !done ? "bg-danger/15" : "bg-fill",
           )}
         >
+          {/* the fill goes green on the frame the hold lands, and that is the
+              confirm: the bar is the thing the reader has been watching, so it
+              is where the answer belongs. `transition-colors` and not a
+              `transition-all`, or the scale would ease and the bar would stop
+              tracking the hand. */}
           <motion.div
             style={{ scaleX: filled }}
-            className="h-full w-full origin-left rounded-full bg-text-primary"
+            className={cn(
+              "h-full w-full origin-left rounded-full transition-colors duration-200",
+              done ? "bg-success" : "bg-text-primary",
+            )}
           />
         </div>
 
@@ -512,8 +535,18 @@ function Sandbox({
           <span
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors duration-200",
+              /*
+               * Green for done, `danger` for a drop, quiet for neither.
+               *
+               * This is the first caller of `--color-success` and the reason it
+               * exists. The emphatic neutral that grades the quiz below says
+               * "this row" rather than "you did it", which is right for marking
+               * a correct answer among four and wrong for confirming a task the
+               * reader just finished. The wash is 10%, where the text measures
+               * 4.59:1, the same weight the danger pill carries at 4.61.
+               */
               done
-                ? "bg-text-primary/8 text-text-primary"
+                ? "bg-success/10 text-success"
                 : drops > 0
                   ? "bg-danger/8 text-danger"
                   : "bg-fill text-text-secondary",
@@ -562,7 +595,7 @@ function Sandbox({
 
 export function Replay() {
   return (
-    <figure className="my-8 flex flex-col items-center gap-3">
+    <figure className="my-8 flex select-none flex-col items-center gap-3">
       <div
         className="relative grid w-full place-items-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset"
         style={{ height: STAGE.h }}
