@@ -403,6 +403,11 @@ function blogPost(slug: string): string | null {
  * turning into a stray tag an agent has to guess at. Everything else, headings
  * and code fences included, passes through untouched.
  *
+ * **`Terms` is the one component that is unwrapped rather than dropped**, since
+ * what it holds is prose and dropping it would take a third of a section with
+ * it. Its rows come back as a bold term and a paragraph, which is what a
+ * definition list is in plain markdown.
+ *
  * **The fence flag is why this is a fold and not a regex over the whole file.**
  * Plenty of the code inside a fence starts with `<` or the word `import`, and a
  * pass that could not see where a fence began stripped lines out of the middle
@@ -413,6 +418,7 @@ function mdxBody(slug: string): string {
   if (!fs.existsSync(file)) return "";
 
   let fenced = false;
+  let terms = false;
   const kept: string[] = [];
 
   for (const line of fs.readFileSync(file, "utf-8").split("\n")) {
@@ -428,6 +434,32 @@ function mdxBody(slug: string): string {
     }
 
     if (/^import\s/.test(line)) continue;
+
+    /*
+     * `Terms`, unwrapped into a bold term and a paragraph under it.
+     *
+     * Every line inside it is indented to read as JSX, and four spaces is a
+     * code block in markdown, so the body has to be trimmed as well as
+     * unwrapped or the whole list comes out as a fence.
+     */
+    if (line.trim() === "<Terms>") {
+      terms = true;
+      continue;
+    }
+    if (line.trim() === "</Terms>") {
+      terms = false;
+      continue;
+    }
+    if (terms) {
+      const text = line.trim();
+      const opens = text.match(/^<Term name="([^"]+)">$/);
+      if (opens) {
+        kept.push(`**${opens[1]}**`, "");
+        continue;
+      }
+      kept.push(text === "</Term>" ? "" : text);
+      continue;
+    }
 
     /*
      * A self-closing capitalised element on its own line, which is how every

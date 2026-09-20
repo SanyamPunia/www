@@ -5,9 +5,18 @@ import type { NextConfig } from "next";
 const withMDX = createMDX({
   extension: /\.mdx?$/,
   options: {
-    // ids on every heading, which is what `TocRail` links to and what makes a
-    // section addressable on its own. Named as a string, not imported: plugins
-    // are passed to Turbopack's Rust side, which cannot take a JS function.
+    /*
+     * Both are named as strings and never imported: plugins are passed to
+     * Turbopack's Rust side, which cannot take a JS function.
+     *
+     * `remark-gfm` is here for footnotes, which is what lets a measurement or a
+     * citation leave the running line instead of becoming a parenthesis. Tables
+     * arrive in the same plugin rather than being asked for, and
+     * `mdx-components.tsx` styles them for that reason.
+     */
+    remarkPlugins: ["remark-gfm"],
+    // ids on every heading, which is what `PostRail` links to and what makes a
+    // section addressable on its own.
     rehypePlugins: ["rehype-slug"],
   },
 });
