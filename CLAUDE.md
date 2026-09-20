@@ -818,6 +818,43 @@ same move in both, says which one let them, and is told what the difference was.
   `th` and `td` in `mdx-components.tsx`, which is worth doing deliberately rather
   than smuggling in behind one table.
 
+### `the-card-flinches-when-you-reach-its-edge`
+
+Two cards, one question, and a bug that came out of `foil-card`. Same build as
+`the-submenu-closes-before-you-get-there`: the reader tries the same move in
+both, says which one let them, and only then is told what the difference was.
+
+- **The demo is an A/B with exactly one variable.** Both sandboxes read the
+  pointer against the untransformed slot, so the tilt they compute is identical,
+  and the only thing that differs is whether the `<button>` is a child of the
+  tilted card or a sibling of it. Anything else differing would make the
+  comparison say nothing.
+- **The dashed footprint is what makes the bug visible.** The submenu post's bug
+  is invisible until it is explained, and this one is a gap opening between the
+  pointer and the thing it is pointing at, so drawing the card's flat position
+  and leaving it there turns the argument into something a reader sees in one
+  frame rather than something they are told.
+- **The counter only counts a leave fired with the pointer still inside the
+  box.** A leave with the pointer outside it is a reader who has gone somewhere
+  else, and counting those puts a number on both cards and says nothing.
+  Measured with a hand jittering at the left edge for about a second: 7 drops on
+  the broken one against 0 on the fixed one.
+- **The tilt and the perspective are picked so the demo's gap is the number the
+  prose quotes.** Half of 268px turned 12 degrees goes back 27.9px, which at a
+  perspective of 800 shrinks by 0.966, so the near edge lands 7.4px inside the
+  dashed line. The post says about eight pixels and means it about the real card
+  as well.
+- **Two headings, which is the post rail's minimum.** Fewer than two renders no
+  list at all, and the second one carries the fact the post exists for: a still
+  pointer does not make the card buzz, it makes it die, since a browser is not
+  obliged to run hit testing again when nothing has moved.
+- **`Replay` is also what a reader on a touch screen gets**, since the sandboxes
+  are a hover demo and a finger has no hover to give them.
+- The stage is `bg-fill`, which is the submenu post's own call for a sandbox
+  surface rather than the white `Demo` frame the labs sit in.
+- The bug is `foil-card`'s, and that lab's section carries the traces this post
+  quotes.
+
 ### `details-you-can-measure`
 
 **Unpublished for now, under `app/blogs/_details-you-can-measure/`.** The
