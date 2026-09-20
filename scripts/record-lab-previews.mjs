@@ -926,6 +926,81 @@ const LABS = {
       await wait(900);
     },
   },
+
+  "cube-orbit": {
+    // the stage is the drawing's own 8:5, 538 by 336, so the clip is the whole
+    // stage and the sentence and controls under it are left out
+    focus: [0, 0, 538, 336],
+    /*
+     * A turn of the dial, a coast, a ring lit, and then a lap.
+     *
+     * The dial is dragged by its rim rather than by a control, so the gesture
+     * is the angle walked round the outer ring: two and a half turns, which on
+     * the opening sequence is ten repetitions, fast enough to leave a flick
+     * behind it. Holding still on a ring afterwards is what the clip is for as
+     * much as the spin, since it is the only frame that says which four squares
+     * of the cube a ring is holding, and the line it writes under the net says
+     * it in words.
+     *
+     * The demo plays itself once on arrival, and that happens inside `SETTLE`
+     * rather than inside the clip, so the recording still opens on a settled
+     * cube rather than on one already spinning.
+     *
+     * The run is pressed by one instant move rather than `m.press`, which
+     * approaches over eight steps: the lead pill has no tooltip, but the reset
+     * beside it does, and a pointer that drifts is a label over the demo for
+     * the length of the clip.
+     */
+    async run({ m, page }) {
+      const cx = 377;
+      const cy = 168;
+      // the drag is taken outside every ring, since landing on one unfolds the
+      // cube and the clip should open on a cube rather than on its net. The
+      // bands meet, so there is no quiet radius between two rings: the only
+      // ones are past the outermost and inside the innermost.
+      const r = 105;
+      const at = (deg, rad = r) => [
+        cx + rad * Math.cos((deg * Math.PI) / 180),
+        cy + rad * Math.sin((deg * Math.PI) / 180),
+      ];
+
+      // the demo runs a whole lap on arrival, so the gesture waits that out
+      // rather than interrupting it
+      await wait(1000);
+      await m.move(...at(-90), 8);
+      await wait(150);
+      await m.down();
+      for (let step = 1; step <= 45; step++) {
+        await m.move(...at(-90 + step * 15), 1);
+        await wait(14);
+      }
+      await m.up();
+      await wait(800);
+
+      // open the cube out into its net, which is a press on the cube itself
+      await m.click(133, 168);
+      await wait(700);
+
+      // then hold on the outer ring, which lights that cycle across all six
+      // faces and names it
+      await m.move(...at(-90, 93), 6);
+      await wait(1200);
+
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const lead = await page
+        .getByRole("button", { name: "Run" })
+        .boundingBox();
+      await m.move(
+        lead.x - demo.x + lead.width / 2,
+        lead.y - demo.y + lead.height / 2,
+        1,
+      );
+      await wait(60);
+      await m.down();
+      await m.up();
+      await wait(1900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
