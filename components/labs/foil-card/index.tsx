@@ -591,7 +591,7 @@ export default function FoilCard() {
                 style={{ fontSize: span(META, 9.5) }}
                 className="whitespace-nowrap text-text-muted leading-none"
               >
-                Gurugram, India
+                India
               </p>
               {/* no pill behind it. A filled lozenge is a container, and the
                   only object on this stage is the card: the foot of it is two

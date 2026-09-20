@@ -7078,11 +7078,12 @@ card balances, and `index.tsx` is the stage, the gestures and the frame loop.
   point is the ink-weighted centroid of everything printed on it, measured off
   the rendered card through `data-ink` rather than declared, so moving a line
   moves the balance with it. The portrait is the only solid block of ink there,
-  so the point lands at 0.616 across and 0.286 down, and the card turns about
+  so the point lands at 0.631 across and 0.261 down, and the card turns about
   it: `transform-origin` is that point too. Measured at the four edge midpoints:
-  the left edge tips it 8.94 degrees against the right's 5.55, and the bottom
-  8.95 against the top's 3.55. A pointer on the balance point itself reads 0.00
-  on both axes.
+  the left edge tips it 8.94 degrees against the right's 5.21, and the bottom
+  8.95 against the top's 3.12. A pointer on the balance point itself reads 0.00
+  on both axes. Shortening the location line from two words to one moved that
+  point from 0.616 and 0.286, which is the bullet above proving itself.
   - **A disc inks π/4 of its box and a lowercase line of type about a fifth of
     its line box**, which is the whole of `COVER`. Every text node takes the
     same figure, so the only thing it decides is how the type weighs against
