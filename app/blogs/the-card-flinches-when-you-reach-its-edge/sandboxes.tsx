@@ -15,6 +15,7 @@ import {
   useSpring,
 } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { TextMorph } from "torph/react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -93,6 +94,20 @@ const TAB_W = 14;
 const TAB_H = 72;
 const HOLD = 1200;
 
+/**
+ * How the state under each card changes, through `torph`.
+ *
+ * What a drop does to that line is correct it, and morphing the characters that
+ * changed is what a correction looks like. 160ms rather than the site's usual
+ * 200: measured, a hand jittering in the tab drops about every 180ms, and
+ * `tide-card` documents what happens when a morph is still running as the next
+ * one starts, which is a smear. This one lands first.
+ */
+const MORPH = {
+  duration: 160,
+  ease: "cubic-bezier(0.32, 0.72, 0, 1)",
+} as const;
+
 const ANSWERS = [
   { id: "left", label: "Only the left one" },
   { id: "right", label: "Only the right one" },
@@ -121,15 +136,17 @@ export default function Sandboxes() {
      * It was three groups at one `gap-5`, which reads as a list of three
      * things rather than as a task with an order. The instruction belongs to
      * the cards, so it sits `gap-4` from them, and the question is a separate
-     * move, so it sits `gap-10` from both. The numerals say which comes first
-     * without a word being spent on it.
+     * move at `gap-10` from both. The spacing is the whole of what orders it:
+     * numbered markers were tried and taken back out, since two plain lines
+     * with real air between them already read in the right order and the
+     * numerals were chrome on a block that is mostly chrome already.
      */
     <div className="my-8 flex flex-col gap-10">
       <div className="flex flex-col gap-4">
-        <Step n={1}>
+        <p className="text-pretty text-body text-text-primary">
           Hold the pointer on the <Swatch /> tab at the left edge of each card
           until its bar fills.
-        </Step>
+        </p>
 
         <div className="relative left-1/2 w-[min(100vw-2rem,46rem)] -translate-x-1/2">
           <div className="grid justify-items-center gap-4 sm:grid-cols-2">
@@ -141,8 +158,8 @@ export default function Sandboxes() {
 
       <fieldset className="min-w-0 rounded-lg ring-1 ring-stroke ring-inset">
         <div className="flex flex-col gap-4 p-5">
-          <legend>
-            <Step n={2}>Which one let you fill it?</Step>
+          <legend className="text-body text-text-primary">
+            Which one let you fill it?
           </legend>
 
           <div className="flex flex-col gap-1">
@@ -348,6 +365,12 @@ function Sandbox({
     aimY.set(0);
   };
 
+  const state = done
+    ? "held"
+    : drops > 0
+      ? `dropped ${drops === 1 ? "once" : `${drops} times`}`
+      : "hold the tab";
+
   const control = (
     <button
       type="button"
@@ -359,7 +382,7 @@ function Sandbox({
   );
 
   return (
-    <figure className="flex w-full max-w-full flex-col items-center gap-2.5">
+    <figure className="flex w-full max-w-full flex-col items-center gap-3">
       <div
         className="relative grid w-full max-w-full place-items-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset"
         style={{ height: STAGE.h, maxWidth: STAGE.w }}
@@ -420,7 +443,12 @@ function Sandbox({
                 className="size-3 shrink-0 text-text-primary"
               />
             ) : (
-              <span className="flex size-1.5 shrink-0">
+              /* `relative` is load-bearing. The halo below is `absolute
+                 size-full`, so without it the 100% resolves against the
+                 nearest positioned ancestor, which is the tab: the halo came
+                 out 14 by 72 and `animate-ping` scaled it to 28 by 144, a grey
+                 stadium straddling the target rather than a pulse on the dot. */
+              <span className="relative flex size-1.5 shrink-0">
                 {/* a ping, so the eye is taken to the one 12px band the whole
                     task happens in. Tailwind emits these keyframes because
                     `animate-ping` is used, and `motion-safe` is what governs
@@ -437,66 +465,86 @@ function Sandbox({
       </div>
 
       {/*
-        The bar, at the card's own width.
+        The meter: the track, then its own legend under it.
         
-        Constant motion, so it runs linear, and it resets rather than easing
-        back: the snap to zero is the feedback. The empty track picks up the
-        danger tint once a drop has happened, or the broken card reports its
-        failure only in words and the thing the reader is watching stays blank.
-      */}
-      <div
-        aria-hidden="true"
-        className={cn(
-          "h-1 w-full overflow-hidden rounded-full transition-colors duration-200",
-          drops > 0 && !done ? "bg-danger/15" : "bg-fill",
-        )}
-        style={{ maxWidth: CARD.w }}
-      >
-        <motion.div
-          style={{ scaleX: filled }}
-          className="h-full w-full origin-left rounded-full bg-text-primary"
-        />
-      </div>
+        It was three things stacked and centred, the stage, a bar, and a label
+        and a pill floating under the middle of it, which reads as three
+        unrelated rows rather than as one readout belonging to the card. The
+        track is the card's width, the label sits at its left end and the state
+        at its right, so the group is one object and the bar's weight is the
+        weight of something that is clearly a meter.
 
-      {/*
-        The state, as a pill rather than a caption.
-        
-        It was `text-meta text-text-muted`, which made the only thing on the
-        block reporting whether the task is going the quietest type on it. A
-        filled pill that changes tone is a readout, and the reader is looking
-        straight at it while they hold.
+        The fill is constant motion, so it runs linear, and it snaps back to
+        zero rather than easing: the snap is the feedback. The empty track
+        picks up the danger tint once a drop has happened, or the broken card
+        reports its failure in words while the thing being watched stays blank.
       */}
-      <figcaption className="flex flex-wrap items-center justify-center gap-2 text-meta">
-        <span className="font-mono text-text-muted">{label}</span>
-        <span
+      <div className="w-full" style={{ maxWidth: CARD.w }}>
+        <div
+          aria-hidden="true"
           className={cn(
-            "flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors duration-200",
-            done
-              ? "bg-text-primary/8 text-text-primary"
-              : drops > 0
-                ? "bg-danger/8 text-danger"
-                : "bg-fill text-text-secondary",
+            "h-1 w-full overflow-hidden rounded-full transition-colors duration-200",
+            drops > 0 && !done ? "bg-danger/15" : "bg-fill",
           )}
         >
-          {done ? (
-            <CheckIcon
-              aria-hidden="true"
-              weight="bold"
-              className="size-3 shrink-0"
-            />
-          ) : null}
-          {done
-            ? "held"
-            : drops > 0
-              ? `dropped ${drops === 1 ? "once" : `${drops} times`}`
-              : "hold the tab"}
-        </span>
-        {reveal ? (
-          <span className="text-text-secondary">
-            {fixed ? "target beside the card" : "target inside the card"}
+          <motion.div
+            style={{ scaleX: filled }}
+            className="h-full w-full origin-left rounded-full bg-text-primary"
+          />
+        </div>
+
+        <figcaption className="mt-2 flex items-center justify-between gap-3 text-meta">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="shrink-0 font-mono text-text-muted">{label}</span>
+            {reveal ? (
+              <>
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
+                />
+                <span className="truncate text-text-secondary">
+                  {fixed ? "target beside the card" : "target inside the card"}
+                </span>
+              </>
+            ) : null}
           </span>
-        ) : null}
-      </figcaption>
+
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors duration-200",
+              done
+                ? "bg-text-primary/8 text-text-primary"
+                : drops > 0
+                  ? "bg-danger/8 text-danger"
+                  : "bg-fill text-text-secondary",
+            )}
+          >
+            {done ? (
+              <CheckIcon
+                aria-hidden="true"
+                weight="bold"
+                className="size-3 shrink-0"
+              />
+            ) : null}
+            {/*
+              `whitespace-nowrap` and never `truncate`: torph lays its own
+              characters out and an `overflow-hidden` box on the same element
+              clips them mid-morph.
+
+              No `sr-only` copy beside it. The installed torph does not mark
+              its character spans `aria-hidden`, measured: the pill's
+              `textContent` read "hold the tabhold the tab" with one there, so
+              the duplicate was an announcement made twice rather than an
+              announcement rescued.
+            */}
+            <span className="whitespace-nowrap tabular-nums">
+              <TextMorph duration={MORPH.duration} ease={MORPH.ease}>
+                {state}
+              </TextMorph>
+            </span>
+          </span>
+        </figcaption>
+      </div>
     </figure>
   );
 }
@@ -554,23 +602,6 @@ export function Replay() {
         The pointer never moves. The card does.
       </figcaption>
     </figure>
-  );
-}
-
-/**
- * A numbered instruction, which is what says which thing to do first.
- *
- * A `span` and not a `p`, since one of the two sits inside a `<legend>`, and a
- * legend takes phrasing content. `flex` makes it lay out the same either way.
- */
-function Step({ n, children }: { n: number; children: React.ReactNode }) {
-  return (
-    <span className="flex items-start gap-2.5 text-pretty text-body text-text-primary">
-      <span className="mt-[0.16em] flex size-6 shrink-0 items-center justify-center rounded-full bg-fill-active font-mono text-meta text-text-secondary">
-        {n}
-      </span>
-      <span className="min-w-0">{children}</span>
-    </span>
   );
 }
 

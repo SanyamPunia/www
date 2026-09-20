@@ -868,13 +868,30 @@ deliberately does not share its shape.
   card's ring, with the card's rows shoved right by a padding hack to clear
   them. At mid-height the top and bottom of that edge go back to being one
   hairline and the rows go back to sitting where they sit.
-- **The bar is not in the tab, it runs under the card at the card's own width.**
-  A fill rising inside 14px is a sliver, and the one thing a reader has to read
-  while they hold should not be the smallest thing on the card. It is constant
-  motion, so it runs linear, and it snaps back to zero rather than easing, since
-  the snap is the feedback. The empty track picks up a `danger` tint once a drop
-  has happened, or the broken card reports its failure only in words while the
-  thing the reader is watching stays blank.
+- **The bar is not in the tab, it runs under the card at the card's own width,
+  and it is a meter rather than three stacked rows.** A fill rising inside 14px
+  is a sliver, and the one thing a reader has to read while they hold should not
+  be the smallest thing on the card. It was then a bar with a label and a pill
+  floating under the middle of it, which is three unrelated rows: the track is
+  the card's width, the label sits at its left end and the state at its right,
+  so the group is one readout and the bar's weight is the weight of something
+  that is plainly a meter.
+  - Constant motion, so the fill runs linear, and it snaps back to zero rather
+    than easing, since the snap is the feedback. The empty track picks up a
+    `danger` tint once a drop has happened, or the broken card reports its
+    failure only in words while the thing the reader is watching stays blank.
+  - **The state morphs through `torph` at 160ms and not the site's usual 200.**
+    What a drop does to that line is correct it. Measured, a hand jittering in
+    the tab drops about every 180ms, and a morph still running when the next one
+    starts is the smear `tide-card` documents, so this one lands first.
+  - **No `sr-only` copy beside the morph, and the note elsewhere in this file
+    saying one is needed does not hold for torph 0.0.10.** Measured on this
+    pill: the installed version does not mark its character spans `aria-hidden`,
+    so a duplicate read the state twice, `textContent` coming back as "hold the
+    tabhold the tab". The `aria-label`s that `island-menu`, `pixel-reveal` and
+    `cube-orbit` put on their morphing buttons are still right, since an
+    explicit name is correct either way, but check the rendered spans before
+    adding another one on that reasoning.
 - **The tilt is exaggerated past what a real card would use, and that is the
   demo making a mechanism aimable rather than a mistake.** At a sane 12 degrees
   through an 800px perspective the near edge pulls 6.8px in, and a target that
@@ -884,14 +901,14 @@ deliberately does not share its shape.
   the far side of the tab, so no part of the target quietly works. The eight
   pixels the post quotes is `foil-card`'s own card at 8.94 degrees, and it is a
   claim about tilt cards rather than about this drawing.
-- **The task is spaced as a task.** It was three groups at one `gap-5`, which
-  reads as a list of three things rather than as something with an order, and
-  the heaviest object on the block was the question, which is the part you do
-  last. The instruction belongs to the cards, so it sits `gap-4` from them, and
-  the question is a separate move at `gap-10`. Two numerals say which comes
-  first without a word spent on it, and the second one lives inside the
-  `<legend>`, which is why `Step` renders a `span`: a legend takes phrasing
-  content and a `<p>` in one is invalid.
+- **The task is spaced as a task, and the spacing is all of what orders it.**
+  It was three groups at one `gap-5`, which reads as a list of three things
+  rather than as something with an order, and the heaviest object on the block
+  was the question, which is the part you do last. The instruction belongs to
+  the cards, so it sits `gap-4` from them, and the question is a separate move
+  at `gap-10`. Numbered markers were tried on the two lines and taken back out:
+  two plain sentences with real air between them already read in the right
+  order, and the numerals were chrome on a block that is mostly chrome.
 - **The state under each card is a pill and not a caption.** At `text-meta
   text-text-muted` the only thing on the block reporting whether the task was
   going was the quietest type on it. A filled pill stepping from `fill` to
@@ -901,6 +918,14 @@ deliberately does not share its shape.
   patch of grey in prose and hoping a reader finds it is the version that does
   not work, so the instruction renders the tab inline at the running text's own
   size and the target dot pings until that card has been held.
+  - **`relative` on the dot's wrapper is load-bearing, and leaving it off
+    shipped.** The halo is `absolute size-full`, so its 100% resolves against
+    the nearest positioned ancestor, and without `relative` that was the tab
+    rather than the 4.8px dot: the halo came out 14 by 72 and `animate-ping`
+    scaled it to 28 by 144, which paints a grey stadium straddling the target
+    rather than a pulse on the dot. Measured before and after: 28 by 144
+    against 6.1 by 6.1 mid-ping. Tailwind's own snippet carries the `relative`
+    and it is the whole reason it is there.
   Tailwind emits those keyframes because `animate-ping` is used, and
   `motion-safe:` is what governs them, since `MotionProvider` reaches motion
   components and never a raw keyframe.
