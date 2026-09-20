@@ -8,19 +8,48 @@ Two cards below. Identical tilt, identical geometry. One of them has a fix in it
 
 <Sandboxes />
 
-## the fix
+## it stops when you look at it
 
-Hover is answered against the box the browser painted, which is after the
-transform. A face that turns away from your eye under a perspective also gets
-smaller, so the edge you are pointing at pulls about eight pixels inward and
-leaves you standing off the target that moved it. The leave fires, the card
-levels, the edge comes back under you, and it tilts away again.
+Park the pointer at the edge and hold it genuinely still. The buzzing stops. The
+card tilts once, drops the hover, levels, and then nothing happens at all,
+because a browser is not obliged to run hit testing again when the pointer has
+not moved. When the edge comes back under you, nothing fires.
+
+```
+t(ms)  rotateY  under the pointer
+   16   -7.14   div        tilted, and already off its own target
+  214   -0.24   button     levelled, target back, and nothing fires
+ 1512    0.00   button     enter 1, leave 1
+```
+
+So the one thing you would do to inspect it is the one thing that makes it go
+away. A hand is never quite still, which is the only reason you get a buzz
+rather than a dead card.
+
+What it is doing in between is not complicated. Hover is answered against the
+box the browser painted, which is after the transform, and a face that turns
+away from your eye under a perspective also gets smaller. The edge you are
+pointing at pulls about eight pixels inward and leaves you standing off the
+target that moved it.
 
 The region that decides the state is moved by that state. That is the whole bug.
 
-So the region stops being the drawing. The card keeps the transform, and the hit
-target sits beside it on the same layout box, where no amount of tilting can
-reach it.
+## the timer, the deadband, the hitbox
+
+Three answers, in the order people reach for them.
+
+A timer on the leave is the first one, and it fixes nothing. It slows the buzz
+down to the length of the timer, and against a still pointer it does nothing
+whatsoever, because there is no second event coming to wait for.
+
+A deadband is the second, and it works. Make the region you leave larger than the
+region you enter, and the oscillation has nowhere left to sit. Control theory
+calls that hysteresis and electronics sells a part that does only this, the
+Schmitt trigger. It is still the weaker answer, because it keeps the feedback
+path and damps it.
+
+The third one deletes the path. The card keeps the transform, and the hit target
+sits beside it on the same layout box, where no amount of tilting can reach it.
 
 ```tsx
 // a child, so it carries the tilt and the hit box goes with it
@@ -35,38 +64,15 @@ reach it.
 </Slot>
 ```
 
+## what to call it
+
 Games have worked that way forever. Collision geometry is authored separately
 from render geometry, which is why a character's hitbox does not animate with
-every frame of their animation. Control theory has a name for what happens
-without that separation: a binary controller whose output moves its own input,
-with no deadband between the two thresholds, is **chattering**, and the
-oscillation it settles into is a limit cycle.
+every frame of their animation. Control theory names the failure rather than the
+fix: a binary controller whose output moves its own input, with no deadband
+between the two thresholds, is **chattering**, and the oscillation it settles
+into is a limit cycle.
 
-The fix control theory reaches for is hysteresis, a wider region to leave than
-to enter, which in electronics is a Schmitt trigger. It works here too, and it
-is the weaker answer, because it keeps the feedback path and damps it. Moving
-the target deletes the path.
-
-What most people try first is a timer on the leave. That one fixes nothing. It
-slows the buzz down to the length of the timer, and it cannot touch the next
-part at all.
-
-## the pointer that never moved
-
-Hold still at the edge and it does not buzz. It flinches once and then dies. A
-browser is not obliged to run hit testing again when the pointer has not moved,
-so when the card levels and the edge comes back, nothing fires. Traced two
-pixels inside the left edge of a real card:
-
-```
-t(ms)  rotateY  under the pointer
-   16   -7.14   div        tilted, and already off its own target
-  214   -0.24   button     levelled, target back, and nothing fires
- 1512    0.00   button     enter 1, leave 1
-```
-
-A hand is never quite still, which is the only reason you get a buzz rather than
-a dead card. The same trace once the target moved out of the transform reads
-`button` on every frame, holding 8.93 degrees, one enter and no leaves.
+The web has no word for it, which is probably why it keeps getting shipped.
 
 <Replay />

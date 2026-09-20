@@ -820,9 +820,20 @@ same move in both, says which one let them, and is told what the difference was.
 
 ### `the-card-flinches-when-you-reach-its-edge`
 
-Two cards, one question, and a bug that came out of `foil-card`. Same build as
-`the-submenu-closes-before-you-get-there`: the reader tries the same move in
-both, says which one let them, and only then is told what the difference was.
+Two cards, one question, and a bug that came out of `foil-card`. The sandbox
+shares its build with `the-submenu-closes-before-you-get-there`, and the post
+deliberately does not share its shape.
+
+- **It is a diagnosis, then three answers, then a name, and that order is the
+  whole of why it is not the sibling's post again.** The submenu post hands over
+  the fix in the paragraph after its demo, which is right for a bug whose answer
+  is a shape you have to be shown. This one's best material is that the bug
+  hides from you: park the pointer and it stops, so the first thing anyone would
+  do to inspect it is the one thing that makes it go away. That leads. Then the
+  three answers people reach for, in the order they reach for them, worst first.
+  Then the naming, which gets a section rather than a clause because the useful
+  finding is that three other fields have a word for this and the web does not.
+  Taking the sibling's sequence would have buried the surprise mid-paragraph.
 
 - **The demo is an A/B with exactly one variable.** Both sandboxes read the
   pointer against the untransformed slot, so the tilt they compute is identical,
@@ -860,10 +871,27 @@ both, says which one let them, and only then is told what the difference was.
   the strip is past the edge with 3.8px to spare. The eight pixels the post
   quotes is `foil-card`'s own card at 8.94 degrees, and it is a claim about tilt
   cards rather than about this drawing.
-- **Two headings, which is the post rail's minimum.** Fewer than two renders no
-  list at all, and the second one carries the fact the post exists for: a still
-  pointer does not make the card buzz, it makes it die, since a browser is not
-  obliged to run hit testing again when nothing has moved.
+- **The task is spaced as a task.** It was three groups at one `gap-5`, which
+  reads as a list of three things rather than as something with an order, and
+  the heaviest object on the block was the question, which is the part you do
+  last. The instruction belongs to the cards, so it sits `gap-4` from them, and
+  the question is a separate move at `gap-10`. Two numerals say which comes
+  first without a word spent on it, and the second one lives inside the
+  `<legend>`, which is why `Step` renders a `span`: a legend takes phrasing
+  content and a `<p>` in one is invalid.
+- **The state under each card is a pill and not a caption.** At `text-meta
+  text-text-muted` the only thing on the block reporting whether the task was
+  going was the quietest type on it. A filled pill stepping from `fill` to
+  `danger` to the emphatic neutral is a readout, and it is what the reader is
+  looking straight at while they hold.
+- **The strip carries a ping and the copy carries a swatch of it.** Naming a
+  12px band of grey in prose and hoping a reader finds it is the version that
+  does not work, so the instruction renders the strip inline at the running
+  text's own size and the target dot pings until that card has been held.
+  Tailwind emits those keyframes because `animate-ping` is used, and
+  `motion-safe:` is what governs them, since `MotionProvider` reaches motion
+  components and never a raw keyframe.
+- **Three headings**, against the rail's minimum of two.
 - **`Replay` is also what a reader on a touch screen gets**, since the sandboxes
   are a hover demo and a finger has no hover to give them.
 - The stage is `bg-fill`, which is the submenu post's own call for a sandbox

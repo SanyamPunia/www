@@ -104,26 +104,34 @@ export default function Sandboxes() {
   const name = useId();
 
   return (
-    <div className="my-8 flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <p className="font-mono text-meta text-text-muted">try this</p>
-        <p className="text-pretty text-body text-text-primary">
-          Hold the pointer inside the marked strip on each card until the bar
-          fills. Do not chase the card if it moves.
-        </p>
-      </div>
+    /*
+     * Two steps, spaced as two steps.
+     *
+     * It was three groups at one `gap-5`, which reads as a list of three
+     * things rather than as a task with an order. The instruction belongs to
+     * the cards, so it sits `gap-4` from them, and the question is a separate
+     * move, so it sits `gap-10` from both. The numerals say which comes first
+     * without a word being spent on it.
+     */
+    <div className="my-8 flex flex-col gap-10">
+      <div className="flex flex-col gap-4">
+        <Step n={1}>
+          Hold the pointer inside the <Swatch /> strip on each card until its
+          bar fills.
+        </Step>
 
-      <div className="relative left-1/2 w-[min(100vw-2rem,46rem)] -translate-x-1/2">
-        <div className="grid justify-items-center gap-4 sm:grid-cols-2">
-          <Sandbox label="left" reveal={sent} />
-          <Sandbox label="right" fixed reveal={sent} />
+        <div className="relative left-1/2 w-[min(100vw-2rem,46rem)] -translate-x-1/2">
+          <div className="grid justify-items-center gap-4 sm:grid-cols-2">
+            <Sandbox label="left" reveal={sent} />
+            <Sandbox label="right" fixed reveal={sent} />
+          </div>
         </div>
       </div>
 
       <fieldset className="min-w-0 rounded-lg ring-1 ring-stroke ring-inset">
         <div className="flex flex-col gap-4 p-5">
-          <legend className="text-body text-text-primary">
-            Which one let you fill the bar?
+          <legend>
+            <Step n={2}>Which one let you fill it?</Step>
           </legend>
 
           <div className="flex flex-col gap-1">
@@ -402,10 +410,15 @@ function Sandbox({
                 className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-2.5 text-text-primary"
               />
             ) : (
-              <span
-                aria-hidden="true"
-                className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-1.5 rounded-full bg-text-muted"
-              />
+              <span className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex size-1.5">
+                {/* a ping, so the eye is taken to the one 12px band the whole
+                    task happens in. Tailwind emits these keyframes because
+                    `animate-ping` is used, and `motion-safe` is what governs
+                    them, since `MotionProvider` reaches motion components and
+                    never a raw keyframe. */}
+                <span className="absolute inline-flex size-full rounded-full bg-text-muted opacity-60 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-full rounded-full bg-text-muted" />
+              </span>
             )}
           </div>
 
@@ -413,31 +426,43 @@ function Sandbox({
         </div>
       </div>
 
-      <figcaption className="flex items-center gap-1.5 text-meta text-text-muted">
-        <span className="font-mono">{label}</span>
+      {/*
+        The state, as a pill rather than a caption.
+        
+        It was `text-meta text-text-muted`, which made the only thing on the
+        block reporting whether the task is going the quietest type on it. A
+        filled pill that changes tone is a readout, and the reader is looking
+        straight at it while they hold.
+      */}
+      <figcaption className="flex flex-wrap items-center justify-center gap-2 text-meta">
+        <span className="font-mono text-text-muted">{label}</span>
         <span
-          aria-hidden="true"
-          className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
-        />
-        {done ? (
-          <span className="text-text-primary">held</span>
-        ) : drops > 0 ? (
-          <span className="text-danger">
-            dropped {drops === 1 ? "once" : `${drops} times`}
-          </span>
-        ) : (
-          <span>hold the strip</span>
-        )}
-        {reveal ? (
-          <>
-            <span
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors duration-200",
+            done
+              ? "bg-text-primary/8 text-text-primary"
+              : drops > 0
+                ? "bg-danger/8 text-danger"
+                : "bg-fill text-text-secondary",
+          )}
+        >
+          {done ? (
+            <CheckIcon
               aria-hidden="true"
-              className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
+              weight="bold"
+              className="size-3 shrink-0"
             />
-            <span className="text-text-secondary">
-              {fixed ? "target beside the card" : "target inside the card"}
-            </span>
-          </>
+          ) : null}
+          {done
+            ? "held"
+            : drops > 0
+              ? `dropped ${drops === 1 ? "once" : `${drops} times`}`
+              : "hold the strip"}
+        </span>
+        {reveal ? (
+          <span className="text-text-secondary">
+            {fixed ? "target beside the card" : "target inside the card"}
+          </span>
         ) : null}
       </figcaption>
     </figure>
@@ -497,6 +522,38 @@ export function Replay() {
         The pointer never moves. The card does.
       </figcaption>
     </figure>
+  );
+}
+
+/**
+ * A numbered instruction, which is what says which thing to do first.
+ *
+ * A `span` and not a `p`, since one of the two sits inside a `<legend>`, and a
+ * legend takes phrasing content. `flex` makes it lay out the same either way.
+ */
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <span className="flex items-start gap-2.5 text-pretty text-body text-text-primary">
+      <span className="mt-[0.16em] flex size-6 shrink-0 items-center justify-center rounded-full bg-fill-active font-mono text-meta text-text-secondary">
+        {n}
+      </span>
+      <span className="min-w-0">{children}</span>
+    </span>
+  );
+}
+
+/**
+ * The strip, at the size of the running text, so "the strip" in the
+ * instruction and the strip on the card are visibly the same thing. Naming a
+ * 12px band of grey in prose and hoping the reader finds it is the version
+ * that does not work.
+ */
+function Swatch() {
+  return (
+    <span
+      aria-hidden="true"
+      className="mx-[0.15em] inline-block h-[0.95em] w-[0.5em] translate-y-[0.12em] rounded-[2px] border-text-muted border-r border-dashed bg-fill-active"
+    />
   );
 }
 
