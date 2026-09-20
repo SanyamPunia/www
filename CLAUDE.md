@@ -81,6 +81,7 @@ token here first.
 | `text-muted` | `#9b9b9b` | metadata, footer |
 | `accent` | `#3b82f6` | **logo mark only**, never text or links |
 | `danger` | `#b84a41` | invalid input, see below |
+| `success` | `#2d7a53` | a task the reader completed, see below |
 | `selection` | `#34d399` | text selection highlight, see below |
 | `link-work` | `#2f6f6a` | the home page's `/work` link, see Inline links |
 | `link-blogs` | `#4a5b96` | the home page's `/blogs` link |
@@ -117,13 +118,33 @@ straddling caret has to survive both the white page and the highlight, which no
 light grey does: over the emerald, `text-muted` is 1.26 and `text-secondary`
 1.52, so the inner half simply disappears.
 
-**`danger` is the one status tone.** Hue carries meaning here rather than
-decoration, the same exception the brand marks and the syntax colours get, so
-it does not reopen "no accent colour on text or links". It is 4.91:1 on
-`surface` and is the lightest red that still clears 4.5:1 at the 14.4px
-semibold it is used at. `#c2544b` was the first pick and fails at 4.31. There
-is deliberately no success or warning tone, add one only when a surface needs
-it, with the contrast checked the same way.
+**`danger` and `success` are the two status tones, and there is no third.** Hue
+carries meaning here rather than decoration, the same exception the brand marks
+and the syntax colours get, so neither reopens "no accent colour on text or
+links". Add a warning tone only when a surface needs one, with the contrast
+checked the same way both of these were.
+
+`danger` is 4.91:1 on `surface` and is the lightest red that still clears 4.5:1
+at the 14.4px semibold it is used at. `#c2544b` was the first pick and fails at
+4.31.
+
+**`success` is weighted to match it rather than picked by eye**, so the pair
+reads as one set: 5.22:1 on `bg` against danger's 5.13, 5.00 on `surface`
+against 4.91, 4.75 on `fill` against 4.67. On a 10% wash of itself over `bg` the
+text measures 4.59, which is the danger pill's own 4.61.
+
+- **What it means is "done", never "correct".** Marking a right answer among
+  four is the emphatic neutral's job, which
+  `the-submenu-closes-before-you-get-there` documents at length and still does.
+  What needed a green is a task the reader finishes: a filled row says "this
+  one" and not "you did it". The two live on one page in
+  `the-card-flinches-when-you-reach-its-edge`, where the hold meter goes green
+  and the quiz below it grades neutral.
+- **It is not `selection`.** That emerald is 1.7:1 on white, which is a
+  highlight behind text and never a tone for text.
+- A lab still scopes its own green where the meaning is narrower than "done".
+  `notch-drop`'s `GO` marks the moment a drop becomes possible, and it stays
+  scoped.
 
 **The `inverse-*` set is not dark mode.** Nothing switches to it and there is
 still no `dark:` variant anywhere. It is a surface a component opts into when a
@@ -645,6 +666,79 @@ files:
   `strong` renders as a tone step, not bold, since nothing on this site is
   bold. List bullets are `before:` dots for the same reason as elsewhere: a
   flex parent blockifies its children and kills a real marker.
+- **Prose is written in beats: one idea to a paragraph, and the gap between two
+  of them does the work indentation would.** Paragraphs are `mb-5`, a little
+  over two thirds of a line. At `mb-4` that gap was 0.55 of a line and a run of
+  short paragraphs read as one broken column. The limit is the other way round
+  as well: four consecutive one-line paragraphs is a stutter, not a rhythm, so
+  an opening that states a symptom in three sentences is one paragraph and not
+  three.
+- **A pulled line is a `blockquote`, in the primary tone.** A post quotes itself
+  far more often than it quotes anyone else, lifting out the one sentence the
+  argument turns on. Set in the muted tone it read as an aside, which is the
+  opposite of what pulling it out was for.
+- **Footnotes, through `remark-gfm`.** A measurement, a citation or a piece of
+  trivia leaves the running line instead of becoming a parenthesis, and a
+  paragraph carrying two parentheses has stopped being a paragraph. Keep a note
+  to a sentence or two that backs the exact claim its marker sits on. A note
+  that could be deleted without weakening the line should be.
+  - `components/blogs/footnote.tsx` is both ends of the round trip, and both
+    scroll through `lib/scroll.ts` for `HeadingAnchor`'s reason: a page that
+    jumps for one control and glides for another leaves the reader unable to
+    tell how far they moved.
+  - **The backref is an icon, never the `↩︎` the plugin writes.** That character
+    is a glyph standing in for an icon, which the project bans, and it inherits
+    the prose font rather than the icon scale.
+  - **The marker's rise lives on the `sup` and its size on the anchor, and
+    splitting them is the whole of getting it to sit right.**
+    `vertical-align: super` raises a box by a share of its parent's font size,
+    which measured 11px above the baseline on a 14.4px line: level with the cap
+    height of the line above, and it read as a digit that had come loose. The
+    replacement is `relative -top-[0.3em]` at body size, since an `em` written
+    on the marker is 0.7 of the one that is wanted. `ml-[0.12em]` is the thin
+    space in front of it. Hard against the word it reads as a letter of it.
+  - **The rule above the notes is dashed**, where `hr` between sections is
+    solid. A solid rule divides two pieces of content and the notes are not a
+    piece of content, they are the apparatus under one. `stroke-strong` rather
+    than `stroke`, since a dashed line at `stroke`'s lightness is close to not
+    being there, and it is the tone every other dashed line on the site uses.
+  - The `footnote-label` heading is intercepted in `mdx-components.tsx` and
+    rendered as the site's quiet section label rather than the leader rule, and
+    visible rather than `sr-only`: a reader who has just followed a marker down
+    should see what they landed in. It appears in `PostRail` like any section.
+- **Tables parse now, and they arrived with footnotes rather than being asked
+  for.** Styling them was the cheaper half of enabling the plugin, since the
+  alternative is a construct that silently renders unstyled the first time
+  someone writes one. Header and rows are both `text-body`, separated by tone
+  alone: at `text-meta` the header was 12px against the rows' 14.4 and the table
+  read as two type sizes stacked.
+  - **No `tabular-nums`, and it was there as a default before it was measured.**
+    Inter's tabular figures are wider than its proportional ones, so a column of
+    them reads as a size up from the prose even though it is not one. Measured
+    against the same string in a paragraph: the body text is 160.77px in both to
+    two decimals, while `1512ms` goes 49.92px to 55.27 and `-7.14°` 13% wider.
+    The table looked bigger and only the digits were. A column that has to align
+    down the page can ask for it per post.
+  - **An identifier in a cell needs a code span.** `body { text-transform:
+    lowercase }` is not exempt for table cells, so a bare `rotateY` header
+    renders `rotatey`.
+- **`Terms` in `components/blogs/terms.tsx` is a named thing and what it is**,
+  which is the shape an argument takes when it weighs three approaches rather
+  than making one. The pairs are separated by space and nothing else, since
+  hairlines between them read as a table.
+  - **It is a component and not an element in the map, and the reason
+    generalises.** MDX routes markdown-generated elements through
+    `mdx-components.tsx` and leaves literal JSX alone, so a `<dl>` written in a
+    post comes out with no styling at all. Measured: a bare `<dl>` with bare
+    `<dt>` rows. Anything markdown cannot generate has to be a component.
+  - **A term carries no marker and no indent**, so every line starts on the
+    prose's own left edge. A bullet hanging in the margin was tried and taken
+    back out: it says "list" where the space above each pair already says it,
+    and it is a second kind of dot on a page whose real lists have one. What
+    separates a term from the section heading above it is that heading's own
+    medium weight and leader rule, which nothing in the block has.
+  - Markdown inside its children still parses, so a description can carry a code
+    span, a link or a footnote marker the way a paragraph can.
 - Content headings start at **h2**. The shell renders the h1, so an h1 in the
   body would be a second one.
 - Code fences render through `components/ui/code-block.tsx`. `sugar-high`
@@ -663,6 +757,13 @@ files:
 - A post's demo component is **colocated** in the post directory when only that
   post uses it, and lives in `components/blogs/` when it might not be. Its
   import goes at the top of `page.mdx`.
+- **A component in the prose has to be handled by `lib/markdown.ts` as well.**
+  That fold recognises a self-closing capitalised element on its own line and
+  leaves a note in its place, so anything else leaks into the markdown variant
+  as a literal tag. `Terms` is the one component unwrapped rather than dropped,
+  since what it holds is prose: its rows come back as a bold term and a
+  paragraph, trimmed, or four spaces of JSX indentation turns the list into a
+  code fence.
 
 ### The post rail
 
@@ -813,10 +914,9 @@ same move in both, says which one let them, and is told what the difference was.
 - `select-none` on the stages and the illustration. Dragging across a menu is the
   gesture the piece is about, and without it a text selection paints over every
   row on the way past.
-- **No tables in this MDX pipeline.** There is no `remark-gfm`, so pipe syntax
-  renders as literal pipes. Adding one means the plugin plus `table`, `thead`,
-  `th` and `td` in `mdx-components.tsx`, which is worth doing deliberately rather
-  than smuggling in behind one table.
+- **This post had no tables to write and that is still true, but the pipeline
+  has them now.** `remark-gfm` went in for footnotes and tables came with it.
+  See Blogs above.
 
 ### `the-card-flinches-when-you-reach-its-edge`
 
@@ -936,6 +1036,33 @@ deliberately does not share its shape.
   surface rather than the white `Demo` frame the labs sit in.
 - The bug is `foil-card`'s, and that lab's section carries the traces this post
   quotes.
+- **It is the first post written to the prose conventions in Blogs above**, and
+  the first caller of three of them: footnotes, a table and `Terms`. Each
+  earned its place rather than being tried out here.
+  - **Three notes, and each backs the exact claim its marker sits on.** What CSS
+    leaves undefined, where the eight pixels was measured, and what a Schmitt
+    trigger is. The body states the rule and the note gives the specifics, so
+    neither repeats the other.
+  - **The trace is a table, and it was a code fence.** As a fence it took syntax
+    highlighting on text that is not code, colouring the figures and the commas,
+    and its fourth column had no header at all. Three labelled columns and one
+    line under them saying the count.
+  - **The three fixes are a `Terms` list** rather than three paragraphs, since
+    what the section does is weigh named approaches. The eye can run the names
+    without reading the bodies.
+- **`select-none` on the whole block, never on the stages alone.** The task is a
+  slow drag across a card and a hold at its edge, which is a gesture aimed at a
+  run of type: without it the pointer paints the card's bars, the instruction
+  above them and the four answers below, in the site's emerald and with a pair
+  of `SelectionPins` carets. A drag that starts on a stage and leaves it anchors
+  on the nearest text, which is why the guard is on the parent. Nothing in the
+  block is prose. Measured after: no range from a drag across both stages, a
+  triple click on the instruction or a drag out into the paragraph below, and
+  the post's own prose still selects.
+- **The held meter is the first caller of `--color-success`, and the quiz below
+  it still grades neutral.** Confirming a task the reader finished and marking
+  one right answer among four are different jobs, and the emphatic neutral only
+  does the second. See Colour tokens.
 
 ### `details-you-can-measure`
 
@@ -7200,14 +7327,14 @@ card balances, and `index.tsx` is the stage, the gestures and the frame loop.
   shadow lies on the table and does not tip with the thing casting it: this one
   slides out from under whichever end has lifted and closes on a press. Three
   layers on `document-pocket`'s recipe, at `notice-stack`'s own values.
-- **Nothing on this stage is a container, and the card is the only object on
-  it.** The stage was `bg-fill` and the foot of the card carried a `bg-fill`
-  pill, and both were the same mistake seen twice: a filled box behind a thing
-  reads as a tray the thing is sitting on, and neither of these trays moves
-  when the card tips. So the stage is `bg` with the frame's own hairline, the
-  card floats on it with a hairline and a lift, and the foot is two quiet runs
-  of print. What separates the card from its ground is the drawing, which is
-  `folder-stack`'s call arriving at one object instead of nine.
+- **The stage is `bg-fill` and the card is the only object on it.** The card is
+  white paper, so a white stage leaves it a hairline and a lift and nothing
+  else, which is the fog `document-pocket`, `folder-stack` and `sticker-peel`
+  each document and each answer with the same quiet grey ground.
+  - **A pill inside the card is a different thing and stays gone.** The foot
+    carried a `bg-fill` pill for a while, and a filled box behind a run of type
+    reads as a tray that type is sitting on, where nothing on a printed card
+    sits on a tray. The foot is two quiet runs of print now.
 - **The card's type is off the scale on purpose**, sized as a share of the card
   like everything else on it, which is the standing `flip-clock`'s numerals and
   `tide-card`'s height have: it is printing on a drawn object rather than copy
