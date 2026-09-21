@@ -583,6 +583,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Point at the card to move the light. Press to send a wave through it.",
   },
+  {
+    slug: "heart-flipbook",
+    title: "Heart Flipbook",
+    description: [
+      "a like button and the strip it is played from. press the heart and a ring goes out, the confetti scatters and the heart lands in the middle of it.",
+      "key insight: twitter's own heart is not an animation. it is a sprite sheet of 29 frames played with `steps(28)`, and it gets away with that because 29 frames over 800ms is one image every 28.6ms, which is under two display frames. the strip here is baked from the same painter that draws the live version, so swapping between them changes nothing you can see in the button.",
+      "the ring is one stroked circle and never a disc with a smaller disc masked out of it. `r` grows while `lineWidth` shrinks, so the inner edge and the outer one travel at different rates from one shape, which is the seed dot, the disc, the hole punching through and the annulus thinning away in that order. the `run` knob is what breaks the flipbook, since the same 29 frames over 2.4s are 86ms apart.",
+    ],
+    createdAt: "2026-09-21",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/heart-flipbook/burst.ts",
+    flush: true,
+    hint: "Open the sheet, then press the heart and swap to live.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -670,6 +684,7 @@ export const IMPLEMENTED_LABS = [
   "tide-card",
   "cube-orbit",
   "foil-card",
+  "heart-flipbook",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
