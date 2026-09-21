@@ -1058,6 +1058,59 @@ const LABS = {
       await wait(900);
     },
   },
+  "heart-flipbook": {
+    /*
+     * The sheet is what this lab is, so the window runs from just above the
+     * burst's envelope to just below the sheet's lane: the heart sits at 168,
+     * the pill at 360 and the lane at 384 to 414. 538 by 336 is the card's own
+     * 8:5, so nothing is padded or cut.
+     *
+     * It only fits because `prep` opens the sheet before the box is measured.
+     * Shut, the demo is 390px tall and this runs 34px past it onto the page's
+     * hint line.
+     */
+    focus: [0, 88, 538, 336],
+    prep: async ({ page }) => {
+      await page.getByRole("button", { name: /Show the sheet/i }).click();
+    },
+    /*
+     * Like, unlike, like, with the filmstrip running underneath.
+     *
+     * It opens with the pointer off the button, so the first frames are the
+     * demo at rest and the hover step is something the clip shows happening
+     * rather than something it starts inside.
+     *
+     * The hover is short on purpose. The tooltip arms at 200ms and would sit
+     * under the heart for most of the clip, which is `ember-burst`'s note, and
+     * Radix closes it on a click and will not reopen without a fresh
+     * `pointerenter`, so the one press at the start keeps it shut for the rest.
+     *
+     * The middle press is the unlike, which throws no burst: that is what the
+     * real button does, and a clip that only ever likes never shows the fill
+     * leaving.
+     */
+    async run({ m }) {
+      const press = async () => {
+        await m.down();
+        await wait(60);
+        await m.up();
+      };
+
+      await m.move(70, 120, 2);
+      await wait(600);
+
+      await m.move(227, 168, 4);
+      await wait(170);
+      await press();
+      await wait(1650);
+
+      await press();
+      await wait(800);
+
+      await press();
+      await wait(1700);
+    },
+  },
 };
 
 function crop(rect, bounds) {
@@ -1105,12 +1158,33 @@ async function record(page, slug, lab, tmp) {
 
   // centre the demo in the viewport before anything is measured, so a tall one
   // is not half off screen and nothing scrolls mid-gesture
-  await page.evaluate(() => {
-    const demo = document.querySelector("[data-lab-demo]");
-    const r = demo.getBoundingClientRect();
-    window.scrollBy(0, r.top - (window.innerHeight - r.height) / 2);
-  });
+  const centre = () =>
+    page.evaluate(() => {
+      const demo = document.querySelector("[data-lab-demo]");
+      const r = demo.getBoundingClientRect();
+      window.scrollBy(0, r.top - (window.innerHeight - r.height) / 2);
+    });
+  await centre();
   await page.waitForTimeout(SETTLE);
+
+  /*
+   * Put the demo into the state the clip is about, before anything is measured
+   * and before the recording starts.
+   *
+   * A gesture cannot do this. Recording opens on the settled demo and the
+   * gesture runs inside it, so a demo that has to be opened first spends the
+   * clip's first second in the wrong state, and if opening it also makes the
+   * demo taller, the crop that fits the open one runs past the shut one onto
+   * the page's own hint line. `heart-flipbook` is the case: its sheet lives in
+   * a disclosure and the demo is 100px shorter with it shut.
+   */
+  if (lab.prep) {
+    await lab.prep({ page });
+    await page.waitForTimeout(500);
+    // it may have changed size, so centre it again before it is measured
+    await centre();
+    await page.waitForTimeout(400);
+  }
 
   const box = await page.locator("[data-lab-demo]").boundingBox();
 
