@@ -82,3 +82,50 @@ export function scrollToHeading(id: string): boolean {
   window.history.pushState(null, "", `#${id}`);
   return true;
 }
+
+/**
+ * How long a landing stays marked, in milliseconds.
+ *
+ * It has to outlast the glide, since a mark that expires mid-travel is one
+ * nobody sees. A smooth scroll across a post runs a few hundred milliseconds,
+ * so this is that plus about a second of standing still.
+ */
+const ARRIVAL_MS = 1600;
+
+let arrived: HTMLElement | null = null;
+let clearing: number | undefined;
+
+/**
+ * Mark the element a scroll just landed on, for long enough to be read.
+ *
+ * A footnote's marker is a numeral at 0.7em in the middle of a paragraph, so
+ * coming back to it lands the reader on a word they cannot pick out: the
+ * control they pressed is at the foot of the page and the thing it pointed at
+ * says nothing about itself. This is the same shape as `HeadingAnchor`'s tick,
+ * where the control scrolls itself out from under the pointer and the
+ * confirmation has to be held rather than tied to a hover.
+ *
+ * **Written to the node, never held in React state.** Nothing on the page has
+ * to render for a numeral to change colour, and the element being marked is a
+ * sibling rendered from MDX rather than a child of the control that was
+ * pressed, so no component is holding the answer to begin with.
+ *
+ * One at a time. A second press before the first has expired clears the old
+ * mark rather than leaving two on the page, which would say the reader is in
+ * two places.
+ */
+export function markArrival(id: string): void {
+  const node = document.getElementById(id);
+  if (!node) return;
+
+  arrived?.removeAttribute("data-arrived");
+  window.clearTimeout(clearing);
+
+  arrived = node;
+  node.dataset.arrived = "true";
+
+  clearing = window.setTimeout(() => {
+    node.removeAttribute("data-arrived");
+    if (arrived === node) arrived = null;
+  }, ARRIVAL_MS);
+}
