@@ -1,20 +1,28 @@
-import { Term, Terms } from "@/components/blogs/terms";
-import Sandboxes, { Replay } from "./sandboxes";
+import Sandboxes, { Anatomy, Replay } from "./sandboxes";
 
-Every card that tilts under your pointer has this at its edges. You reach for a
-corner, it buzzes, and you back off toward the middle. It looks like a rendering
-fault. Every hover in there is real and every leave is correct.
+Reach for the edge of a card that tilts under your pointer and it buzzes. It
+looks like a rendering fault. It is not.
 
-Two cards below. Same tilt, same geometry. One has a fix in it.
+Hovering the card tilts it away from you. Tilted, it is no longer under your
+pointer, so the hover drops and the card comes back. Now you are hovering it
+again.
+
+<Replay />
+
+Every hover in there is real and every leave is correct. Nothing fires that
+should not.
+
+Two cards below. Same tilt, same geometry. One of them has a fix in it.
 
 <Sandboxes />
 
 ## it stops when you look at it
 
-Park the pointer at the edge and hold it still. The buzzing stops. The card
-tilts once, drops the hover, levels, and then nothing. A browser is not required
-to re-run hit testing for a pointer that has not moved,[^spec] so the edge comes
-back under you and nothing fires.
+Park the pointer at the edge and hold it perfectly still. The buzzing stops.
+
+The card tilts once, drops the hover, levels, and then nothing happens at all. A
+browser is not required to re-run hit testing for a pointer that has not
+moved,[^spec] so the edge comes back under you and no second event fires.
 
 | t | `rotateY` | under the pointer |
 | --- | --- | --- |
@@ -25,65 +33,46 @@ back under you and nothing fires.
 One enter and one leave across the whole 1.5 seconds, with the pointer parked
 the entire time.
 
-Inspecting it is what kills it. A hand is never quite still, and that jitter is
-the only reason you get a buzz instead of a dead card.
+So inspecting it is what kills it. A hand is never quite still, and that jitter
+is the only reason you get a buzz instead of a dead card.
 
-The browser tests hover against the box it painted, which is after the
+## why the edge moves
+
+The browser tests hover against the box it painted, which is the box after the
 transform. A face turning away under a perspective also gets smaller, so the
-edge you are aiming at pulls about eight pixels inward[^eight] and leaves you
-standing off the target that moved it.
+edge you are aiming at pulls about eight pixels inward.[^eight]
 
-> The region that decides the state is moved by that state. That is the whole
-> bug.
+You are still pointing at where the card was. The card is not there any more.
 
-## the timer, the deadband, the hitbox
+> Hovering it moves the thing you are hovering. That is the whole bug.
 
-Three answers, in the order people reach for them.
+## the fix
 
-<Terms>
-  <Term name="A timer on the leave">
-    Fixes nothing. It slows the buzz to the length of the timer, and against a
-    still pointer it does nothing at all, because no second event is coming.
-  </Term>
+Put the thing that catches the pointer on something that does not tilt.
 
-  <Term name="A deadband">
-    Works. Make the region you leave larger than the one you enter and the
-    oscillation has nowhere to sit.[^schmitt] Still the weaker of the two, since
-    it damps the loop rather than removing it.
-  </Term>
+<Anatomy />
 
-  <Term name="A hit target outside the transform">
-    Removes the loop. The card keeps the transform, and the target sits beside
-    it on the layout box where tilting cannot reach it.
-  </Term>
-</Terms>
+The card keeps its transform and stops taking the pointer at all. The button
+goes beside it instead, stretched over the slot they both sit in, so the hit box
+is the slot's box and never moves.
 
 ```tsx
-// a child, so it carries the tilt and the hit box goes with it
+// a child, so it tilts with the card and the hit box goes with it
 <Card style={{ transform }}>
   <button className="absolute inset-0" />
 </Card>
 
-// a sibling, so the hit box is the layout box and cannot move
+// a sibling, so the hit box is the slot's box and cannot move
 <Slot>
   <Card style={{ transform }} className="pointer-events-none" />
   <button className="absolute inset-0" />
 </Slot>
 ```
 
-## what to call it
+## in short
 
-Games solved this decades ago by authoring collision geometry separately from
-render geometry. It is why a character's hitbox does not animate with every
-frame of their animation.
-
-Control theory names the failure rather than the fix. A binary controller whose
-output moves its own input is **chattering**, and the oscillation it settles
-into is a limit cycle.
-
-The web has no word for it, so it keeps getting shipped.
-
-<Replay />
+Anything that moves when you hover it can do this. Keep the thing that catches
+the pointer still, and let the thing you can see move.
 
 [^spec]: CSS does not say whether an element still matches `:hover` after it
 moves out from under a pointer that did not itself move. Chrome waits for the
@@ -91,6 +80,3 @@ next pointer event.
 
 [^eight]: Measured on `foil-card`, the lab this came out of: a 420px card at
 8.94 degrees pulls its near edge in by 8.1px.
-
-[^schmitt]: Control theory calls that hysteresis. A Schmitt trigger is the same
-idea in a chip: one threshold going up, a lower one coming down.

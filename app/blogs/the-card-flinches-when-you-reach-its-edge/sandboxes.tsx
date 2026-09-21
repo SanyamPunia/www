@@ -638,6 +638,116 @@ export function Replay() {
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+ * ANATOMY
+ *
+ * Where the target lives, drawn rather than described.
+ *
+ * Two still pictures of one moment: the card tilted, the pointer parked at the
+ * same place in both, and an outlined box showing what would catch it. The only
+ * difference is whether that box turned with the card, and what the reader
+ * reads is a strip of grey being under the cursor or not being there at all.
+ *
+ * **Neither the caption nor the labels may name a side.** The panels are a
+ * `sm:grid-cols-2` and they stack below that, where "on the left" is a
+ * sentence about a layout the reader is not looking at.
+ *
+ * Nothing here moves and nothing answers a pointer. `Replay` has the motion,
+ * `Sandboxes` has the gesture, and this is the geometry the code block under it
+ * writes out.
+ * ───────────────────────────────────────────────────────── */
+
+/** The diagram's own card, smaller than the sandbox's so two fit one column. */
+const PLAN = { w: 210, h: 124 };
+
+/**
+ * Where the pointer is parked, in px inside the card's resting left edge.
+ *
+ * At 24 degrees through 700 a 210px card pulls that edge 14.6px in, so a
+ * pointer 5px inside it stands 9.6px clear of the tilted card and is plainly
+ * outside it. Further in and the two panels start to look alike, which is the
+ * one thing this drawing cannot afford.
+ */
+const AIM = 5;
+
+function Plan({ fixed, label }: { fixed: boolean; label: string }) {
+  const tilt = `perspective(${PERSPECTIVE}px) rotateY(${-TILT}deg)`;
+
+  return (
+    <div className="relative grid h-60 w-full place-items-center overflow-hidden rounded-lg bg-fill ring-1 ring-stroke ring-inset">
+      <span className="absolute top-3 left-3 font-mono text-meta text-text-muted">
+        {label}
+      </span>
+
+      <div className="relative" style={{ width: PLAN.w, height: PLAN.h }}>
+        {/*
+          What catches the pointer, drawn twice and in two layers, which is the
+          only arrangement that reads.
+
+          Its area goes under the card, so the card stays white and the only
+          grey on the stage is the part of the target the card is not covering.
+          In the sibling case that is a strip down the left, and it is exactly
+          where the pointer is standing.
+
+          Its edge goes over the card, or the child case would have nothing in
+          it at all: there the target and the card are the same box, so an area
+          under the card is an area nobody can see, and the reader would have to
+          take the target on trust in the one panel that is supposed to explain
+          the bug.
+        */}
+        <div
+          className="absolute inset-0 rounded-xl bg-text-primary/10"
+          style={fixed ? undefined : { transform: tilt }}
+        />
+
+        <div
+          className="absolute inset-0 flex flex-col justify-between rounded-xl bg-bg p-3 ring-1 ring-stroke"
+          style={{ transform: tilt }}
+        >
+          <div className="flex flex-col gap-1">
+            <span className="h-1.5 w-20 rounded-full bg-fill-active" />
+            <span className="h-1.5 w-12 rounded-full bg-fill" />
+          </div>
+          <span className="h-1.5 w-16 rounded-full bg-fill" />
+        </div>
+
+        <div
+          className="absolute inset-0 rounded-xl border-2 border-text-primary/30"
+          style={fixed ? undefined : { transform: tilt }}
+        />
+
+        {/* parked at the same place in both, which is the whole comparison */}
+        <CursorIcon
+          aria-hidden="true"
+          weight="fill"
+          className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-4 text-text-primary"
+          style={{ left: AIM }}
+        />
+      </div>
+
+      <span className="absolute right-3 bottom-3">
+        <Tag danger={!fixed}>{fixed ? "hits" : "misses"}</Tag>
+      </span>
+    </div>
+  );
+}
+
+export function Anatomy() {
+  return (
+    <figure className="my-8 flex select-none flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Plan label="inside the card" fixed={false} />
+        <Plan label="beside the card" fixed />
+      </div>
+
+      <figcaption className="text-meta text-text-muted">
+        The outlined box is what catches the pointer, and the pointer is parked
+        at the same place in both.
+      </figcaption>
+    </figure>
+  );
+}
+
 /**
  * The tab, at the size of the running text, so the word and the thing are
  * visibly one thing. Naming a 14px patch of grey in prose and hoping a reader
