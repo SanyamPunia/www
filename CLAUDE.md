@@ -689,6 +689,28 @@ files:
   - **The backref is an icon, never the `↩︎` the plugin writes.** That character
     is a glyph standing in for an icon, which the project bans, and it inherits
     the prose font rather than the icon scale.
+  - **The backref marks where it lands, and the marker does not.** Coming back
+    puts the reader in the middle of a paragraph with the thing they are looking
+    for set at 0.7em, and the control they pressed is a screen away, so nothing
+    on arrival says which word they left. `markArrival` in `lib/scroll.ts` writes
+    `data-arrived` to the marker for 1.6s, which outlasts the glide, and the
+    marker takes the filled emphatic neutral for it, the site's own way of saying
+    "this one" with no accent colour to spend. Going down needs none of it: it
+    lands the reader at the top of a short labelled list, where the row under the
+    viewport's edge is the row they asked for.
+    - **A grey wash cannot do this job at this size.** `fill-active` is 1.34:1 on
+      the page, which reads across a row and is nothing across 8px of numeral.
+    - **The pill is padding cancelled by a negative margin**, so the line is set
+      exactly where it was and the ground is painted over the space either side.
+      `0.15em` is the ceiling and the `ml-[0.12em]` in front of the marker is what
+      sets it: the marker's em is 0.7 of the prose's, so that reach is 1.51px
+      against a 1.73px gap and the pill cannot touch the word it marks. Measured
+      on a 14.4px line, the pill is 7.80 by 14.41px where the digit alone is 4.80
+      by 12.00, and the first glyph after the marker sits at the same x either
+      way.
+    - It is written to the node rather than held in state, since nothing has to
+      render for a numeral to change colour, and one mark is live at a time: two
+      would say the reader is in two places.
   - **The marker's rise lives on the `sup` and its size on the anchor, and
     splitting them is the whole of getting it to sit right.**
     `vertical-align: super` raises a box by a share of its parent's font size,
@@ -850,9 +872,45 @@ for one section instead of the whole post.
   the `aria-label` carries the copied state instead. A toast was tried and
   removed: three copies stack three toasts, and the tick is right where the
   reader is already looking.
-- The crossfade is `CodeBlock`'s, so both copy controls on a post behave the
-  same way. It is not a true path morph. Nothing here can compile one, and
-  `torph` animates text rather than geometry.
+- **The swap to the tick is a real path morph, in `components/ui/copy-mark.tsx`,
+  and both copy controls on a post render it** so the two still behave
+  identically. It replaced a 150ms `AnimatePresence` crossfade, which at 12px
+  reads as the icon going briefly out of focus rather than as one shape becoming
+  another.
+  - **The glyphs are drawn there rather than imported, and that is what a morph
+    costs.** Motion interpolates the numbers inside a string when the parts
+    between them match, so two `d` values morph only if they carry the same
+    commands in the same order, and no two Phosphor icons do. A `path` helper
+    builds each glyph from subpaths of points, which guarantees the structure by
+    construction. The shared rule bans a text character standing in for an icon
+    and this is not one, it is the call `island-menu` makes for its own drawn
+    box: nothing off the shelf can express the in-between.
+  - **The tick is written once per pair rather than once**, since a partner has
+    to match its own glyph's structure. The copy mark's is five points in two
+    subpaths and the hash mark's is eight points in four, and both draw the same
+    three-point tick with the leftovers folded onto it. A line drawn twice costs
+    nothing, since the second copy lands on the first.
+  - **Which point goes where is solved rather than chosen, and it decides
+    whether the middle of the morph is legible.** A point may only land on a walk
+    along the tick, since consecutive points draw a segment and the only segments
+    that exist are its two arms. Of the walks available these are the ones with
+    the least travel: 32 units against 61 for the copy mark and 48 against 76 for
+    the hash, measured in the 24 unit box. The first mapping sent the square's
+    bottom-left corner clean across the icon and crossed its own strokes, and
+    every frame of the middle was a scribble. Now the square's right edge becomes
+    the long arm, its left edge the short one, and the top and bottom collapse,
+    so what the eye sees is a square being squeezed flat.
+  - **280ms on `island-menu`'s curve, and both numbers are about spending time in
+    the middle.** `torph`'s own `[0.32, 0.72, 0, 1]` was the first pick and leaves
+    at over twice its average speed: sampled per frame at 240ms, the fold was over
+    by 120 and the only readable frames were the first three. This curve leaves at
+    zero, which that lab warns about for a box answering input, and the warning
+    was measured on a 520ms move. At 280ms it is 19% through by 80ms, and the
+    press has already been answered by the control's own tone.
+  - **Reduced motion is read in the component**, since `MotionProvider`'s
+    `reducedMotion="user"` governs transforms and layout and `d` is neither.
+    Measured under the setting: two distinct `d` values across the change rather
+    than sixteen.
 - The anchor holds its box whether or not it is visible, so revealing it never
   shifts the leader rule beside it. It sits before that rule, since a control
   past the rule's end reads as belonging to the next thing down.
@@ -924,16 +982,50 @@ Two cards, one question, and a bug that came out of `foil-card`. The sandbox
 shares its build with `the-submenu-closes-before-you-get-there`, and the post
 deliberately does not share its shape.
 
-- **It is a diagnosis, then three answers, then a name, and that order is the
-  whole of why it is not the sibling's post again.** The submenu post hands over
-  the fix in the paragraph after its demo, which is right for a bug whose answer
-  is a shape you have to be shown. This one's best material is that the bug
-  hides from you: park the pointer and it stops, so the first thing anyone would
-  do to inspect it is the one thing that makes it go away. That leads. Then the
-  three answers people reach for, in the order they reach for them, worst first.
-  Then the naming, which gets a section rather than a clause because the useful
-  finding is that three other fields have a word for this and the web does not.
-  Taking the sibling's sequence would have buried the surprise mid-paragraph.
+- **It states the loop, draws it, hands it over, and then explains it, and that
+  order was a rewrite.** The first version opened on the symptom and led with
+  the bug hiding from you, on the argument that a still pointer killing it is
+  the post's best material. It is still the best material and it is now the
+  section after the demo. What a reader needs first is the one sentence that
+  makes everything after it make sense, which is that hovering the card moves
+  the card out from under the pointer, and the rest of the post is that sentence
+  with the details filled in. The sequence is the loop in two sentences,
+  `Replay` so it can be seen, the sandboxes so it can be felt, the surprise, the
+  geometry behind it, the fix, and two lines saying where else it applies.
+  - **It ends on the fix and nothing after it.** Two sections were cut on the
+    same pass as the rewrite: the weaker answers, a timer and a deadband, and a
+    section naming the failure, which pointed out that games keep collision
+    geometry separate from render geometry and that control theory calls a
+    binary controller moving its own input **chattering**. Both were true and
+    both were the post carrying on past its own answer. If the naming comes
+    back, it is a footnote on the close and not a section.
+  - **The register is the conversation that produced the rewrite.** The test on
+    a sentence is whether it would survive being said out loud to someone who
+    has just met the bug. "The region that decides the state is moved by that
+    state" was the pulled line and did not survive it. "Hovering it moves the
+    thing you are hovering" is the same claim and does.
+- **`Anatomy` in `sandboxes.tsx` is the fix, drawn.** The code block names a
+  child and a sibling, which is only a picture to a reader who already has the
+  picture, and "so where does the button go" is the question the prose kept
+  failing to answer. Two still panels: the card tilted, the pointer parked at
+  the same place in both, and an outlined box for whatever catches it. That box
+  turns with the card in one panel and stands still in the other, and the answer
+  is whether the pointer is inside it.
+  - **Three layers, and their order is the whole of getting it to read.** The
+    target's area goes under the card, so the card stays white and the only grey
+    on the stage is the strip the card is not covering, which is exactly where
+    the pointer is standing. Its edge goes over the card, or the child panel has
+    nothing in it at all, since there the target and the card are the same box.
+    Built as one filled layer over the card, both panels were grey blobs with no
+    card left in them.
+  - **Nothing in it may name a side.** The panels are `sm:grid-cols-2` and stack
+    below that, where "on the left" describes a layout the reader is not looking
+    at.
+  - The geometry is measured rather than chosen. At 24 degrees through 700 a
+    210px card pulls its left edge 14.6px in, so the pointer is parked 5px inside
+    the resting edge and stands 9.6px clear of the tilted card. Further in and
+    the two panels start to look alike, which is the one thing this drawing
+    cannot afford.
 
 - **The demo is an A/B with exactly one variable.** Both sandboxes read the
   pointer against the untransformed slot, so the tilt they compute is identical,
@@ -1029,27 +1121,37 @@ deliberately does not share its shape.
   Tailwind emits those keyframes because `animate-ping` is used, and
   `motion-safe:` is what governs them, since `MotionProvider` reaches motion
   components and never a raw keyframe.
-- **Three headings**, against the rail's minimum of two.
-- **`Replay` is also what a reader on a touch screen gets**, since the sandboxes
-  are a hover demo and a finger has no hover to give them.
+- **Four headings**, against the rail's minimum of two.
+- **`Replay` leads rather than closes, and that is also what fixes the touch
+  case.** It is the loop drawn, so it belongs beside the two sentences that
+  state the loop. At the foot of the post it was a closing flourish, and a
+  reader on a touch screen met the sandboxes first, which are a hover demo and
+  give a finger nothing at all, and only reached the one thing they could
+  actually watch after the whole argument. It loops forever with nobody driving
+  it, which is motion at the top of a post, and that is the price: it is the
+  subject of the post and it is quiet, 208px of greys.
 - The stage is `bg-fill`, which is the submenu post's own call for a sandbox
   surface rather than the white `Demo` frame the labs sit in.
 - The bug is `foil-card`'s, and that lab's section carries the traces this post
   quotes.
 - **It is the first post written to the prose conventions in Blogs above**, and
-  the first caller of three of them: footnotes, a table and `Terms`. Each
-  earned its place rather than being tried out here.
-  - **Three notes, and each backs the exact claim its marker sits on.** What CSS
-    leaves undefined, where the eight pixels was measured, and what a Schmitt
-    trigger is. The body states the rule and the note gives the specifics, so
-    neither repeats the other.
+  the first caller of two of them: footnotes and a table. Each earned its place
+  rather than being tried out here.
+  - **Two notes, and each backs the exact claim its marker sits on.** What CSS
+    leaves undefined, and where the eight pixels was measured. The body states
+    the rule and the note gives the specifics, so neither repeats the other. A
+    third explained a Schmitt trigger and went with the section that referred to
+    it.
   - **The trace is a table, and it was a code fence.** As a fence it took syntax
     highlighting on text that is not code, colouring the figures and the commas,
     and its fourth column had no header at all. Three labelled columns and one
     line under them saying the count.
-  - **The three fixes are a `Terms` list** rather than three paragraphs, since
-    what the section does is weigh named approaches. The eye can run the names
-    without reading the bodies.
+  - **`Terms` was the third, and it has no caller now.** It held the three
+    answers while the winner was the last of them, then the two weaker ones
+    after the winner became its own section, and then nothing once those were
+    cut. The component and its unwrapping in `lib/markdown.ts` are both still
+    there, since what they are is part of the MDX authoring surface rather than
+    a feature of this post.
 - **`select-none` on the whole block, never on the stages alone.** The task is a
   slow drag across a card and a hold at its edge, which is a gesture aimed at a
   run of type: without it the pointer paints the card's bars, the instruction
@@ -1388,10 +1490,13 @@ paragraph under it.
     "Stop looping". Radix closes a tooltip on click and needs a fresh
     `pointerenter`, so the changed copy is only seen after the pointer leaves and
     comes back, which is the same behaviour `heading-anchor` documents.
-- **Play and pause crossfade with a turn and a dip under them.** Not a path
-  morph: nothing here can compile one, and a triangle and two bars share no
-  points to morph between, which is the same call `heading-anchor` makes for its
-  tick. `sync` rather than `CodeBlock`'s `mode="wait"`, with both glyphs
+- **Play and pause crossfade with a turn and a dip under them, and this is the
+  one control on the site where a morph was considered and refused.** A triangle
+  and two bars are not the same shape drawn twice: `CopyMark` can morph a square
+  into a tick because both are written as one polyline of the same length, and
+  there is no polyline that is honestly both a filled triangle and a pair of
+  filled bars. So this stays a crossfade, and it is the right one anyway, since a
+  transport glyph is read at a glance rather than watched. `sync` rather than `CodeBlock`'s `mode="wait"`, with both glyphs
   absolute, so they overlap through the swap and the button is never briefly
   empty. This control can be pressed twice in a row, where a copy control's
   confirmed state stands for two seconds. Measured across one press: 24 of 39
@@ -1529,19 +1634,18 @@ experiment is a directory under `components/labs/`.
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
-  `notice-stack`, `tide-card`, `cube-orbit` and `foil-card` use it.
-  `ember-burst` and
-  `cube-orbit` are the two entries where `flush` governs part of the frame
-  rather than all of it: the stage runs to all four of its edges and the strip
-  beneath carries its own padding, since a range track or a row of pills
-  running into a hairline is not a control.
+  `notice-stack`, `tide-card`, `cube-orbit`, `foil-card` and `heart-flipbook`
+  use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the three entries
+  where `flush` governs part of the frame rather than all of it: the stage runs
+  to all four of its edges and the strip beneath carries its own padding, since
+  a range track or a row of pills running into a hairline is not a control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twenty-two experiments define their own hues**, `tab-overview` per terminal
+- **Twenty-three experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1556,8 +1660,9 @@ experiment is a directory under `components/labs/`.
   can resolve, and `ember-burst` a temperature ramp, which is the one set in
   the lab that is not a choice at all: an ember's colour is what its heat looks
   like, so the six stops are a measurement rather than a palette, and
-  `tide-card` one green for a tide that is coming in, and `cube-orbit` the six
-  colours a Rubik's cube is made of. Five of
+  `tide-card` one green for a tide that is coming in, `cube-orbit` the six
+  colours a Rubik's cube is made of, and `heart-flipbook` the ring's two hues
+  and the six its confetti is thrown in. Five of
   them are the
   same case: colour is the differentiator between shapes built from the same few
   parts, so it carries meaning rather than decorating, which is the exception the
@@ -1574,7 +1679,11 @@ experiment is a directory under `components/labs/`.
   since the same ripple goes out in `text-muted` when a press turns the button
   off. See its own section. `tide-card`'s is the same shape and the same
   width: the site ships one status tone and it means wrong, and a tide going out
-  is not wrong.
+  is not wrong. `heart-flipbook`'s set is the one that had to be redrawn rather
+  than chosen: its reference lightens the ring as it expands, which is right on
+  black and backwards on `bg`, so what travels is the hue and not the lightness.
+  Its heart is separate again and is not part of that set, being X's own like
+  pink under the brand-hex exception. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1733,7 +1842,7 @@ assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Thirty-nine clips, 2.5MB with their stills, 3.4 to 9.0 seconds each, at 60
+- Forty clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -7456,6 +7565,154 @@ card balances, and `index.tsx` is the stage, the gestures and the frame loop.
   the page never scrolls sideways, the arrow keys move the light and Enter
   presses without the page taking the space key, a tap on a phone lights the
   card and puts it out again, and no console errors.
+
+### `heart-flipbook`
+
+A like button, and the strip it is played from. Press the heart and a ring goes
+out, confetti scatters and the heart lands in the middle of it. `burst.ts` is
+the model and the painter, pure apart from the context it is handed, the split
+`halftone-ripple` makes with `ripple.ts`, and `index.tsx` is the stage, the
+gestures and the frame loop.
+
+- **Twitter's own heart is not an animation, and that is the whole reason this
+  sits beside `halftone-ripple` rather than repeating it.** It is a sprite
+  sheet: one PNG of 29 frames played with `background-position` and `steps(28)`.
+  The most copied micro-interaction on the web is a flipbook, and it gets away
+  with that because 29 frames over 800ms is one image every 28.6ms, which is
+  under two display frames. So the burst is built properly, baked into a strip
+  from the same painter, and one control swaps between them. In the button they
+  are one thing.
+- **One painter, two deliveries, and everything is drawn about (0, 0).** The
+  live canvas translates to the heart and paints a frame, and the sheet
+  translates to each tile's centre and paints the same frame from the same call.
+  A flipbook baked by different code would look like the live version rather
+  than being it, and the comparison would say nothing. Sampled at eight points
+  across the run, the two are the same picture and the strip is the only thing
+  on the stage that differs.
+- **The strip is what makes the finding visible, since the button cannot.** It
+  is the frames themselves, with the tile currently on screen boxed as it plays.
+  In live mode that box gives way to a continuous playhead, which is the same
+  timeline with nothing quantised. Without it a reader swaps the mode, sees no
+  change and learns nothing.
+  - **A hairline between every pair of tiles, and that is what makes 17px read
+    as 29 pictures.** Without them the strip is a band of texture, and a band of
+    texture under a button is a progress bar, which is the one thing it must not
+    be taken for. Drawn on the half pixel so a 1px line lands on a pixel rather
+    than across two, and never at either end, where the canvas's own ring is.
+  - **The strip, the mode control and the numbers are one block.** The mode is a
+    fact about the strip and the numbers describe it, so they take its two ends
+    on the row beneath, which is the rule the lab page's own hint row follows.
+    The first build had the strip alone against the stage's foot, the mode pill
+    below the stage beside two knobs it has nothing to do with, and 127px of
+    white between the strip and the button it belongs to.
+- **The ring is one stroked circle and never a disc with a smaller disc masked
+  out of it.** `r` grows while `lineWidth` shrinks, so the inner edge at `r -
+  w/2` and the outer at `r + w/2` travel at different rates from one shape,
+  which is the seed dot, the solid disc, the hole punching through and the
+  annulus thinning away in that order. The hole is a share of the outer edge, so
+  at the end of the ring's life the two meet exactly, the width is zero and the
+  ring is gone without anything having to say so.
+- **The heart is one path string and two renderers.** The button's resting heart
+  is an SVG `path`, so CSS owns the hover and the fill and nothing runs a loop
+  for them, and the burst's heart is that same data in a `Path2D`. They have to
+  be one shape, because the canvas heart lands at scale 1 and the DOM heart
+  takes over from underneath it.
+  - **The canvas heart is stroked as well as filled, and that is what makes the
+    handover exact.** The DOM heart carries `stroke-width: 2` in the same 24
+    unit box, so its ink runs one unit past the path on every side: a fill alone
+    measures 32.67px at a 40px heart against the DOM's 36, so the heart grew
+    3.33px in the frame the canvas let go of it. Measured after, against the DOM
+    heart at the same size: PSNR 29.8dB, and magnified six times the two shapes
+    coincide with the difference confined to a one pixel edge ramp, which is
+    Chrome's canvas rasterizer against its SVG one and is invisible at size.
+  - **Two further passes at that difference were tried and reverted**, rounding
+    the canvas's CSS box to its backing store and blitting the tile on whole
+    device pixels. Both produced byte-identical screenshots, so neither is in
+    the file and neither is worth trying again on this stage.
+- **The confetti leaves the ring's rim rather than the centre.** Seven pairs, an
+  inner dot and an outer one at slightly different angles, which is the
+  reference's own count and is what makes it read as two loose clusters rather
+  than a starburst. Launched from zero they spend the first third of their life
+  inside the annulus, drawn as specks caught in a donut: the ring's outer edge
+  is already past 33 when the first dot is born, so anything under that is
+  behind it.
+  - **Its reach is the reference's proportion too, and the first build
+    overshot.** Measured off the stills, the furthest dot sits about 1.35 ring
+    diameters out. At 62 against a 42 ring that was 1.69, which threw the
+    confetti clear of the picture and made the burst's envelope 28px taller than
+    it had to be, all of it white space the stage then carried at rest.
+- **Two knobs, and neither can break the burst.** `frames` and `run` change how
+  the animation is delivered and never what it is. The ring's life, the heart's
+  entrance and the confetti's reach are bound to each other, and a reader who
+  moved one would see a shape rather than a finding, which is `pixel-reveal`'s
+  call for `FLIGHT` and `WAIT`.
+  - **`run` is what breaks the flipbook, and that is the finding from the other
+    side.** The same 29 frames over 2.4s are 85.7ms apart and it stutters
+    plainly. The readout reports the number rather than the setting: `29
+    frames`, `28.6ms each`, `steps(28)`.
+  - `steps(28)` is on the stage because 29 images have 28 steps between them,
+    which everyone gets wrong once. **The readout sheds an item at a time as the
+    room runs out**, since the pill beside it is fixed: measured at 12px mono
+    the three items and their dots come to 241px, which needs a 418px stage to
+    sit beside a 110px pill, so `steps()` waits for `@md` and the frame count
+    for `@sm`. The cost of a frame is the last to go, since the strip already
+    shows how many tiles there are and the knob already says the number.
+- **The heart's ink is X's own like pink, which is the brand-hex exception
+  arriving at an interaction rather than a logo.** A recreation of one company's
+  button in a different pink is a recreation of nothing. 3.84:1 on `bg`, and it
+  is deliberately not `halftone-ripple`'s `INK`, which that section documents as
+  being nothing else's.
+- **The ring and the confetti are a scoped set that had to be redrawn for a
+  white page.** The reference lightens its ring as it expands, which is right on
+  black and backwards on `bg`, so what travels here is the hue and not the
+  lightness: `#e3197f` at 4.46 into `#9b4fd4` at 4.71. The six confetti hues are
+  deepened until each clears a graphic's floor, 3.41 to 5.18, where the
+  reference's are pastel because they sit on black.
+- **An unlike throws no burst**, which is what the real button does: the burst
+  belongs to the press that turns it on, and an unlike is the fill leaving. The
+  recorded clip presses three times for that reason, since a clip that only ever
+  likes never shows the other half.
+- **The button and the sheet are shares of the stage**, `--heart` and `--tile`
+  declared on it and read by its descendants, the arrangement `document-pocket`
+  documents at length. The painter's scale is the rendered heart's width over
+  the one the sheet was baked at, so whatever CSS decides a heart is, the burst
+  is that size too and the sheet is blitted smaller rather than re-baked.
+  Measured: the heart is 46px on the lab column, 30px at 390 and 24px at 320.
+  - **`--heart` is 8.6cqw and was 7.44, which is 46px against 40.** The two knob
+    lanes under the stage are 24px black numerals on 500px tracks, so at 40 the
+    loudest thing in the frame was a setting and the quietest was the subject.
+  - **The subject hangs off the stage's top and the sheet block off its foot, so
+    the tile size grows into the gap between them and moves neither.** A tile is
+    square and capped at `--tile`, so `frames` changes the strip's height by up
+    to 23px: centred in the remaining space that slid the heart under the
+    reader's pointer, and bottom-anchored alone it moved the stage's foot
+    instead. The ceiling is read back off the row's `max-height`, since an
+    unregistered custom property computes to its own text and
+    `getPropertyValue("--tile")` hands back the literal `clamp(...)`.
+  - **Two lanes under the stage rather than `Panel`'s three cells**, since the
+    mode control now sits in the stage beside the sheet it modes. Two in two
+    columns balance, where `Panel` refuses two because its odd third lane would
+    sit beside an empty cell.
+- **The count is off the type scale**, the standing `flip-clock`'s numerals and
+  `tide-card`'s height have: the button is a drawn object sized in shares of the
+  stage, and a token size would not scale with it.
+- **Nothing renders while a burst runs.** One frame loop writes to the canvas
+  and the strip's marks go straight to their nodes. Measured: 0 frames requested
+  over 1.5s at rest and 0 over 1.5s after a burst has settled. Live mode reports
+  its own count, which is about 48 at 60Hz over 800ms.
+- **Reduced motion keeps the press and drops the travel.** The heart fills at
+  once and the confetti appears at its widest and fades where it stands over
+  320ms, `halftone-ripple`'s call. There is no ring, since a ring is a fact
+  about a flight that is not happening.
+- It is `flush`, white, with its own inset ring, `notch-drop`'s stage, and
+  `aspect-8/5`, which is the shape of the index's preview card, so the recorded
+  clip is the stage with nothing padded or cut.
+- Verified in a browser at 320, 390, 430 and 1280px: the stage measures 282 by
+  176, 352 by 220, 392 by 245 and 538 by 336, there is no sideways scroll at any
+  of them, the readout holds one line at every width, nothing in the sheet block
+  overruns the stage's foot at either end of the `frames` knob, the count goes
+  1284 to 1285 and back, the flipbook and the live drawing are the same picture
+  at eight sampled points, and no console errors.
 
 ## Motion
 
