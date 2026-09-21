@@ -1,9 +1,8 @@
 "use client";
 
-import { CheckIcon, HashIcon } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "motion/react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { CopyMark } from "@/components/ui/copy-mark";
 import { Tooltip } from "@/components/ui/tooltip";
 import { isPlainClick, scrollToHeading } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
@@ -26,9 +25,11 @@ import { cn } from "@/lib/utils";
  * modified click still falls through to the real `href`, which is the half of
  * being an anchor that matters.
  *
- * Phosphor's hash, never a literal `#` character. The two draw the same shape
- * and only one of them is an icon: a text character inherits the prose font and
- * cannot be sized off the icon scale.
+ * A drawn hash, never a literal `#` character. The two make the same shape and
+ * only one of them is an icon: a text character inherits the prose font and
+ * cannot be sized off the icon scale. It came off Phosphor's when the swap to
+ * the tick became a morph, since a morph needs two paths built the same way and
+ * no two library icons are. See `CopyMark`.
  *
  * Hidden until the heading is hovered, because a permanent marker on every
  * heading is a lot of chrome for a control most readers never want. The space
@@ -88,26 +89,12 @@ export function HeadingAnchor({ id }: { id: string }): React.ReactNode {
         )}
       >
         {/*
-         * A crossfade, the same treatment `CodeBlock`'s copy button uses, so
-         * the two copy controls on a post behave identically. Not a true path
-         * morph: nothing here can compile one, `torph` animates text only.
+         * A morph, the same treatment `CodeBlock`'s copy button uses, so the
+         * two copy controls on a post behave identically. The hash is drawn in
+         * `CopyMark` rather than imported, since Phosphor's own hash and check
+         * share no structure and so cannot interpolate.
          */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={copied ? "copied" : "idle"}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="inline-flex"
-          >
-            {copied ? (
-              <CheckIcon aria-hidden="true" className="size-3.75" />
-            ) : (
-              <HashIcon aria-hidden="true" className="size-3.75" />
-            )}
-          </motion.span>
-        </AnimatePresence>
+        <CopyMark mark="hash" copied={copied} />
       </a>
     </Tooltip>
   );
