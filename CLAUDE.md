@@ -1782,9 +1782,9 @@ working.
 
 `pnpm previews` records every clip and `pnpm previews <slug>` one of them. It
 drives the dev server already listening on `PREVIEW_BASE`, port 3100 by default,
-so `pnpm dev` has to be up. An experiment whose component changes is re-recorded.
-Nothing else in the repo reproduces these files, so they are checked in as
-assets.
+so `pnpm dev` has to be up. An experiment whose component changes is
+re-recorded. Nothing else in the repo reproduces these files, so they are
+checked in as assets.
 
 - **It drives the real page in a real browser, and agent-browser records it.**
   `agent-browser open` launches the installed Chrome through its
@@ -1797,22 +1797,31 @@ assets.
 - **The clips are 60 frames a second, and the capture is what decides that.**
   Playwright's own recorder hands over about 25 frames a second whatever the
   page does, and the first clips were that, encoded at 30. agent-browser's
-  `record` runs Chrome's screencast into ffmpeg at the rate it is asked for
-  and holds a frame only when Chrome produced none, and Chrome produces one
-  per compositor frame. Measured on the custom cursor lab at `--fps 60`: 298
+  `record` runs Chrome's screencast into ffmpeg at the rate it is asked for and
+  holds a frame only when Chrome produced none, and Chrome produces one per
+  compositor frame. Measured on the custom cursor lab at `--fps 60`: 298
   distinct frames in 5.0s, and its own stop report says so, `frames` against
   `capturedFrames`. The gesture table did not change, since Playwright still
   drives it.
 - **The clip is one video pixel per CSS pixel and there is no way to ask for
-  more.** Chrome's screencast returns frames at the viewport's CSS size
-  whatever the device scale factor, measured 1280x1000 with the page at a
-  factor of 2, and Playwright's recorder before it only ever scaled a page
-  down. So the 537px column is captured at 537px and upscaled to 640x400 at
-  encode time, which is still 1.75x what the 307px card paints.
+  more.** Chrome's screencast returns frames at the viewport's CSS size whatever
+  the device scale factor, measured 1280x1000 with the page at a factor of 2,
+  and Playwright's recorder before it only ever scaled a page down. So the 537px
+  column is captured at 537px and upscaled to 640x400 at encode time, which is
+  still 1.75x what the 307px card paints.
 - **A `focus` rect per lab, in the demo's own coordinates**, corrected to the
   card's 8:5 inside the demo box and padded in white where the demo is the wrong
   shape for it. Cropping past the demo's edge pulls in the heading and the
   description, which is page chrome rather than the experiment.
+- **A `prep` runs before the demo is measured and before the recording starts**,
+  for a demo that has to be put into a state the clip is about. A gesture cannot
+  do it: recording opens on the settled demo and the gesture runs inside it, so
+  a demo that has to be opened first spends the clip's opening second in the
+  wrong state, and if opening it also makes the demo taller then the crop that
+  fits the open one runs past the shut one onto the page's own hint line.
+  `heart-flipbook` is the only caller: its sheet is in a disclosure and the demo
+  is 100px shorter with it shut. The demo is re-centred after it, since it may
+  have changed size.
 - **Three labs measure their crop instead of declaring one.**
   `file-tree-explorer` and `multi-step-form` both grow as they are used, so the
   rect is the demo's own ink at its largest, and `sonner-extended-toast` has its
@@ -1837,13 +1846,13 @@ assets.
   frame is a still of the thing and not the page arriving.
 - **`spring-image` suppresses `selectstart` for the recording.** A drag across
   the copy beside the photo selects it, and the site paints a selection in
-  `#34d399` with a caret at each end, so a clip about a spring turned into a clip
-  about the selection colour. The gesture itself is unchanged.
+  `#34d399` with a caret at each end, so a clip about a spring turned into a
+  clip about the selection colour. The gesture itself is unchanged.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60
-  frames a second.
+- Forty clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
+  second.
 
 ### `tab-overview`
 
@@ -7594,17 +7603,67 @@ gestures and the frame loop.
   In live mode that box gives way to a continuous playhead, which is the same
   timeline with nothing quantised. Without it a reader swaps the mode, sees no
   change and learns nothing.
-  - **A hairline between every pair of tiles, and that is what makes 17px read
-    as 29 pictures.** Without them the strip is a band of texture, and a band of
-    texture under a button is a progress bar, which is the one thing it must not
-    be taken for. Drawn on the half pixel so a 1px line lands on a pixel rather
-    than across two, and never at either end, where the canvas's own ring is.
-  - **The strip, the mode control and the numbers are one block.** The mode is a
-    fact about the strip and the numbers describe it, so they take its two ends
-    on the row beneath, which is the rule the lab page's own hint row follows.
-    The first build had the strip alone against the stage's foot, the mode pill
-    below the stage beside two knobs it has nothing to do with, and 127px of
-    white between the strip and the button it belongs to.
+  - **The sheet is a `fill` lane with one hairline between each pair of frames,
+    and it lives in a disclosure under the stage with the two knobs.** Shut, the
+    demo is a like button and nothing else, which is the honest resting state:
+    the whole claim is that this looks like an ordinary like button. Five builds
+    got the sheet's own treatment here and each was wrong in a way worth naming.
+    No separators reads as a band of texture, and a band of texture under a
+    button reads as a progress bar. Hairlines inside a bordered white box on the
+    white stage reads as a table, or as an empty input. White cells on a
+    `fill-active` rail reads as a toolbar, because `fill-active` is the pressed
+    state of a pill and not a surface, and nothing on this site is a filled grey
+    slab. **This site separates things with line, not with tone**, which is what
+    `folder-stack` says when it gives every card a full hairline outline so the
+    tones underneath can be a step apart rather than a world apart. So the lane
+    is the same `fill` as every pill on the page, the rules are `stroke-strong`
+    at 1.21:1 on it, where `stroke` is 1.03 and is not there at all, and nothing
+    on it is near-black.
+  - **The disclosure is `rain-splatter`'s, down to the grid row.** A single row
+    going `0fr` to `1fr` with the panel in an `overflow-hidden` child, which is
+    the one way to animate to a height the browser works out for itself, the
+    padding inside the collapsing box so a shut panel is genuinely zero pixels,
+    `inert` while shut, and the trigger above what it opens so neither the stage
+    nor the pill moves when it arrives. Measured: 3 focusable elements shut and
+    5 open, and the demo goes 390px to 491.
+  - **The pill says `sheet` rather than `tune`**, since the sheet is what a
+    reader came for and the two knobs are what they can do to it once it is
+    open. It holds its hover while open through `aria-expanded:`, the site's
+    rule for any trigger.
+  - **Out of the stage it is a lane rather than the full-bleed band it was.** In
+    the panel it is one item beside two others, so it takes the shape they take,
+    and a rounded lane has no edge to collide with the frame's own inset ring.
+    The band did collide: at `inset-x-0 bottom-0` it painted over the stage's
+    own `ring-inset` and the left and right rules stopped dead where it began.
+    **Any full-bleed child of a ringed stage has that trap waiting**, and the
+    fix is to inset it by exactly the ring's width.
+  - **The frame playing is lifted onto white and ringed in `stroke-strong`, and
+    the lift is what marks it.** The ring is the same tone as the rules either
+    side, 1.21:1 on the band, so what separates the marked cell is that its box
+    closes on four sides and its interior is the white the frame was drawn for.
+    Two heavier passes came first and both read as a selected spreadsheet cell:
+    `text-primary` at 2px, which took a quarter of an 18px frame, then
+    `text-muted` at 1px, which was still the darkest thing on a band of pastel.
+    The live playhead keeps `text-muted`, since a 1px line needs more contrast
+    to read than a box does. The lift is a second element under the canvas
+    rather than a fill on the ring's own, since the rules either side are drawn
+    on the canvas and would otherwise paint over the ring's vertical edges and
+    wash them out. A positioned element paints above a static sibling whatever
+    the DOM order, so the canvas is `relative` for this.
+  - **The mode sits in the stage's top right corner, not under the sheet.** A
+    corner reads as placed where a lone item on a line reads as dropped, and
+    under a full-width band it had 400px of nothing beside it. Right rather than
+    left, so it comes after the subject in the reading order. `book-opening`
+    puts its own mode control in a corner for the same reason. Three builds got
+    here: below the stage beside two knobs it has nothing to do with, then at
+    the left end of a row under the strip, then this.
+  - **A readout sat beside that pill and is gone**, `29 frames · 28.6ms each ·
+    steps(28)`. Three pieces of jargon on a stage that already answers two of
+    them: the strip shows how many frames there are and the knobs say the
+    numbers, and `steps(28)` is CSS syntax that means nothing to a reader who
+    has not already been told what a sprite sheet is. It belongs in the post,
+    where there is room to explain it. The frame counter that fed live mode's
+    half of it went with it, since nothing else read it.
 - **The ring is one stroked circle and never a disc with a smaller disc masked
   out of it.** `r` grows while `lineWidth` shrinks, so the inner edge at `r -
   w/2` and the outer at `r + w/2` travel at different rates from one shape,
@@ -7636,11 +7695,19 @@ gestures and the frame loop.
   inside the annulus, drawn as specks caught in a donut: the ring's outer edge
   is already past 33 when the first dot is born, so anything under that is
   behind it.
-  - **Its reach is the reference's proportion too, and the first build
-    overshot.** Measured off the stills, the furthest dot sits about 1.35 ring
-    diameters out. At 62 against a 42 ring that was 1.69, which threw the
-    confetti clear of the picture and made the burst's envelope 28px taller than
-    it had to be, all of it white space the stage then carried at rest.
+  - **Its reach and its size are both the reference's proportion, and the first
+    build was wrong on both.** Measured off the stills, the furthest dot sits
+    about 1.35 ring diameters out and a dot is about 0.147 of the heart's width.
+    The reach was 1.69, which threw the confetti clear of the picture and made
+    the burst's envelope 28px taller than it had to be. The size was worse: at a
+    5.6 base against a 46px heart the dots ran 0.21 to 0.36 of it, roughly
+    double, and that is most of why the shower read as heavy discs rather than
+    as a light scatter. They run 0.12 to 0.21 now.
+  - **Deepening a decoration to clear a contrast floor is the mistake to avoid
+    here, and this lab made it twice.** The first pass pushed every confetti hue
+    until it cleared 3:1 and drew a shower of hard saturated discs where the
+    reference throws pastel. The floor exists for a graphic a reader has to
+    read. Check what the thing is before spending contrast on it.
 - **Two knobs, and neither can break the burst.** `frames` and `run` change how
   the animation is delivered and never what it is. The ring's life, the heart's
   entrance and the confetti's reach are bound to each other, and a reader who
@@ -7648,26 +7715,20 @@ gestures and the frame loop.
   call for `FLIGHT` and `WAIT`.
   - **`run` is what breaks the flipbook, and that is the finding from the other
     side.** The same 29 frames over 2.4s are 85.7ms apart and it stutters
-    plainly. The readout reports the number rather than the setting: `29
-    frames`, `28.6ms each`, `steps(28)`.
-  - `steps(28)` is on the stage because 29 images have 28 steps between them,
-    which everyone gets wrong once. **The readout sheds an item at a time as the
-    room runs out**, since the pill beside it is fixed: measured at 12px mono
-    the three items and their dots come to 241px, which needs a 418px stage to
-    sit beside a 110px pill, so `steps()` waits for `@md` and the frame count
-    for `@sm`. The cost of a frame is the last to go, since the strip already
-    shows how many tiles there are and the knob already says the number.
+    plainly.
 - **The heart's ink is X's own like pink, which is the brand-hex exception
   arriving at an interaction rather than a logo.** A recreation of one company's
   button in a different pink is a recreation of nothing. 3.84:1 on `bg`, and it
   is deliberately not `halftone-ripple`'s `INK`, which that section documents as
   being nothing else's.
-- **The ring and the confetti are a scoped set that had to be redrawn for a
-  white page.** The reference lightens its ring as it expands, which is right on
-  black and backwards on `bg`, so what travels here is the hue and not the
-  lightness: `#e3197f` at 4.46 into `#9b4fd4` at 4.71. The six confetti hues are
-  deepened until each clears a graphic's floor, 3.41 to 5.18, where the
-  reference's are pastel because they sit on black.
+- **The ring and the confetti are a scoped set, and it is light.** The reference
+  lightens its ring as it expands, which is right on black and backwards on
+  `bg`, so what travels here is the hue and not the lightness: `#ef4f9a` at 3.36
+  into `#ae6fe0` at 3.41. The ring is the burst's whole form, so it carries the
+  meaning and clears a graphic's 3:1 floor, and it only just does. **The six
+  confetti hues sit under that floor on purpose, at 2.29 to 2.99, because
+  confetti is not a graphic that carries anything.** The heart says the state
+  and the ring is the shape, and those two clear it.
 - **An unlike throws no burst**, which is what the real button does: the burst
   belongs to the press that turns it on, and an unlike is the fill leaving. The
   recorded clip presses three times for that reason, since a clip that only ever
@@ -7681,25 +7742,24 @@ gestures and the frame loop.
   - **`--heart` is 8.6cqw and was 7.44, which is 46px against 40.** The two knob
     lanes under the stage are 24px black numerals on 500px tracks, so at 40 the
     loudest thing in the frame was a setting and the quietest was the subject.
-  - **The subject hangs off the stage's top and the sheet block off its foot, so
-    the tile size grows into the gap between them and moves neither.** A tile is
-    square and capped at `--tile`, so `frames` changes the strip's height by up
-    to 23px: centred in the remaining space that slid the heart under the
-    reader's pointer, and bottom-anchored alone it moved the stage's foot
-    instead. The ceiling is read back off the row's `max-height`, since an
-    unregistered custom property computes to its own text and
+  - **The button centres in the whole stage, since the sheet left it.** It hung
+    off the top for a while, at 88% of the stage, with the sheet pinned to the
+    foot so the tile size the `frames` knob sets grew into the gap between them
+    and moved neither: centred in the remaining space that slid the heart under
+    the reader's pointer, and bottom-anchored alone it moved the stage's foot
+    instead. With the sheet in a panel there is nothing under the button to make
+    room for. The tile ceiling is still read off the row's `max-height`, since
+    an unregistered custom property computes to its own text and
     `getPropertyValue("--tile")` hands back the literal `clamp(...)`.
-  - **Two lanes under the stage rather than `Panel`'s three cells**, since the
-    mode control now sits in the stage beside the sheet it modes. Two in two
-    columns balance, where `Panel` refuses two because its odd third lane would
-    sit beside an empty cell.
+  - **Two lanes rather than `Panel`'s three cells**, since the mode control is
+    in the stage. Two in two columns balance, where `Panel` refuses two because
+    its odd third lane would sit beside an empty cell.
 - **The count is off the type scale**, the standing `flip-clock`'s numerals and
   `tide-card`'s height have: the button is a drawn object sized in shares of the
   stage, and a token size would not scale with it.
 - **Nothing renders while a burst runs.** One frame loop writes to the canvas
   and the strip's marks go straight to their nodes. Measured: 0 frames requested
-  over 1.5s at rest and 0 over 1.5s after a burst has settled. Live mode reports
-  its own count, which is about 48 at 60Hz over 800ms.
+  over 1.5s at rest and 0 over 1.5s after a burst has settled.
 - **Reduced motion keeps the press and drops the travel.** The heart fills at
   once and the confetti appears at its widest and fades where it stands over
   320ms, `halftone-ripple`'s call. There is no ring, since a ring is a fact
@@ -7708,11 +7768,11 @@ gestures and the frame loop.
   `aspect-8/5`, which is the shape of the index's preview card, so the recorded
   clip is the stage with nothing padded or cut.
 - Verified in a browser at 320, 390, 430 and 1280px: the stage measures 282 by
-  176, 352 by 220, 392 by 245 and 538 by 336, there is no sideways scroll at any
-  of them, the readout holds one line at every width, nothing in the sheet block
-  overruns the stage's foot at either end of the `frames` knob, the count goes
-  1284 to 1285 and back, the flipbook and the live drawing are the same picture
-  at eight sampled points, and no console errors.
+  176, 352 by 220, 392 by 245 and 538 by 336 and never moves when the panel
+  opens, the strip measures correctly while the panel is shut so there is no
+  glitch on the first open, there is no sideways scroll at any width, the count
+  goes 1284 to 1285 and back, the flipbook and the live drawing are the same
+  picture at eight sampled points, and no console errors.
 
 ## Motion
 
