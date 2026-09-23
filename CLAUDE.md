@@ -1634,18 +1634,19 @@ experiment is a directory under `components/labs/`.
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
-  `notice-stack`, `tide-card`, `cube-orbit`, `foil-card` and `heart-flipbook`
-  use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the three entries
-  where `flush` governs part of the frame rather than all of it: the stage runs
-  to all four of its edges and the strip beneath carries its own padding, since
-  a range track or a row of pills running into a hairline is not a control.
+  `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook` and
+  `arc-menu` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
+  three entries where `flush` governs part of the frame rather than all of it:
+  the stage runs to all four of its edges and the strip beneath carries its own
+  padding, since a range track or a row of pills running into a hairline is not
+  a control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twenty-three experiments define their own hues**, `tab-overview` per terminal
+- **Twenty-four experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1683,7 +1684,11 @@ experiment is a directory under `components/labs/`.
   than chosen: its reference lightens the ring as it expands, which is right on
   black and backwards on `bg`, so what travels is the hue and not the lightness.
   Its heart is separate again and is not part of that set, being X's own like
-  pink under the brand-hex exception. See its own section.
+  pink under the brand-hex exception. See its own section. `arc-menu`'s five
+  are the most literal reading of the exception in the lab: they are marbles,
+  and a marble's colours are what the object is made of, the same claim
+  `stamp-collection` and `cube-orbit` make for a printed stamp and a puzzle
+  stated in six colours.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1819,9 +1824,11 @@ checked in as assets.
   a demo that has to be opened first spends the clip's opening second in the
   wrong state, and if opening it also makes the demo taller then the crop that
   fits the open one runs past the shut one onto the page's own hint line.
-  `heart-flipbook` is the only caller: its sheet is in a disclosure and the demo
-  is 100px shorter with it shut. The demo is re-centred after it, since it may
-  have changed size.
+  There are two callers. `heart-flipbook`'s sheet is in a disclosure and the
+  demo is 100px shorter with it shut, and `arc-menu` is fanned out so the
+  clip's first frame is a dial rather than the empty stage its resting state
+  is, since that frame is also the card's poster. The demo is re-centred after
+  it, since it may have changed size.
 - **Three labs measure their crop instead of declaring one.**
   `file-tree-explorer` and `multi-step-form` both grow as they are used, so the
   rect is the demo's own ink at its largest, and `sonner-extended-toast` has its
@@ -1851,7 +1858,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
+- Forty-one clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -6067,8 +6074,9 @@ flights.
   `touch-none` on the chip alone so a thumb is only ever trapped on a 30px
   target.
 - **The chip keeps `cursor-pointer`, and the grab cursor waits for a drag that
-  really started.** This is the one lab with a drag that does not take the
-  shared rule off, and the reason is that a chip is a toggle first: a grab
+  really started.** This is the first of the two labs with a drag that do not
+  take the shared rule off, `arc-menu`'s plus being the other, and the reason
+  is that a chip is a toggle first: a grab
   cursor sitting on it before anything is held says the click it is about to
   get will not work, and a click is what most readers give it.
   `active:cursor-grabbing` is the same claim one frame shorter, since it fires
@@ -7773,6 +7781,308 @@ gestures and the frame loop.
   glitch on the first open, there is no sideways scroll at any width, the count
   goes 1284 to 1285 and back, the flipbook and the live drawing are the same
   picture at eight sampled points, and no console errors.
+
+### `arc-menu`
+
+A launcher whose items ride an arc. Press the plus and five marbles file out
+from under it, one after another, and swing round a circle to where they rest.
+Press it again and they retract the way they came. `track.ts` is the geometry
+and the strand, pure and DOM-free, the split `document-pocket` makes with
+`poses.ts`, `marbles.tsx` draws what rides it, `marble-sound.ts` is what one
+clearing the neck sounds like, and `index.tsx` is the stage, the gestures and
+the loop.
+
+- **One scalar carries it.** `advance` is how far the leader has travelled from
+  the mouth in radians, and every other ball's travel comes off that. A ball's
+  angle, its scale and whether it is on screen at all come off its travel, so a
+  press, an arrow key and a hand cranking the plus round the arc are that one
+  number moving at different speeds. It is `book-opening`'s claim about its
+  fourteen sheets with a strand in place of a stack.
+- **The scalar runs between two ends and nothing else, and everything reads
+  those same two.** Zero is the whole strand inside the mouth and `OPEN` is the
+  strand spread. A press animates between them, the crank is clamped to them,
+  and a release resolves to one of them.
+- **Shutting is the opening run backwards.** A ball retracts along the arc it
+  came out on and the tail is home first, which is the mirror of the order they
+  left in. The first build ran the track as a one-way loop instead, carrying
+  them on round the rest of the lap, which is what the reference does: the wrap
+  back to zero is free, because both ends of a lap paint the same empty
+  picture, and it reads as a second opening rather than as the menu closing. Do
+  not put it back.
+
+**Why the two directions cannot share a curve.**
+
+- **Whichever ball is last through the mouth spends its whole passage in
+  whatever part of the curve the end of the move lands on.** That falls out of
+  one scalar carrying five items: their passages are five samples of the same
+  curve taken at five different points along it, so the curve decides not just
+  how long the move takes but which ball dawdles. Measured per frame on a rigid
+  strand, the five passages in ms:
+
+  | closing curve | corkscrew | oxblood | clearie | cat's eye | aggie |
+  |---|---|---|---|---|---|
+  | `drawer` | **408** | 33 | 33 | 33 | 33 |
+  | `burst` | 100 | 49 | 33 | 33 | 33 |
+  | `ramp` | 66 | 50 | 48 | 66 | 66 |
+
+- **`drawer` is the open's own curve, and it is the one that cannot be used to
+  close.** Its flat tail is right on the way out, since five balls are coming
+  to rest on screen and the last one out is the tail, the smallest ball. On the
+  way in the last one through is the leader, the biggest ball on the stage, and
+  it takes 408ms to shrink into the button against 33 for every one of the
+  others. That is the last ball visibly dawdling, and it is what shipped before
+  anyone measured it.
+- **`burst` is the default and the answer.** It matches the open's launch, so
+  the two read as one gesture and its reverse, and it lands while still moving,
+  which costs nothing because at that instant the only thing on screen is the
+  leader going behind the button. Measured in the page, open against close: 50%
+  of the travel at 145 and 124ms, 90% at 295 and 324.
+- **Matching them is not the same as matching their durations.** A curve with
+  the open's launch and a steady run after it covered 90% at 591ms against the
+  open's 295 even though the two left at the same speed, and what that reads as
+  is an exit slower than the entry. What a reader clocks is when the movement
+  is over, not when the tween is. It is also why the open runs 800ms to the
+  close's 420 and the two still finish together.
+- **`ramp` accelerates, and it fixes the wrong half.** It puts the slow part at
+  the start, where the strand is still spread and nothing is in the mouth at
+  all, so the passages come out even and the press has no answer in it: the
+  tail does not start shrinking until 224ms against 40ms on `burst`.
+- **All three curves and a rigid strand were a panel under the stage once**,
+  two mode pills and a live readout of the five passages, so a reader could
+  press close and watch the leader dawdle or not. It is gone. It is a good
+  experiment and it is not this demo: a strip of controls and five numbers
+  under a menu makes the menu a specimen, and everything it proved is written
+  down here with the numbers it produced. The measurements below are that
+  panel's own.
+
+**The strand is a chain rather than a rail.**
+
+- Every ball follows the one ahead through its own exponential instead of
+  sitting a fixed arc behind the leader, so the strand pays out under a fast
+  hand and gathers when the hand stops, which is what a string of beads does
+  and what makes the crank feel like one. `LINK_TAU` is 12ms, which at the
+  open's peak is about 14 degrees of lag a link and 56 across the strand, so it
+  stretches by a quarter of its own length and comes back.
+- **A chain evens the passages out on its own, which is the second thing the
+  panel found.** The lag per link swamps the curve's own tail for everything
+  except the leader, which the scalar drives directly. Measured on `burst`: 99,
+  75, 80, 81 and 66ms against the rigid strand's 100, 49, 33, 33 and 33. The
+  curve still decides the leader and no longer decides anybody else.
+- **The loop lands the chain by hand on its last frame.** An exponential only
+  ever approaches, so without it a ball sits a ten thousandth of a radian out
+  of the mouth forever and never reads as gone. It cost the readout four of its
+  five numbers while there was a readout, and it still costs the click, which
+  reads the same crossing.
+- Reduced motion takes the rigid strand, since a lag is nothing but travel.
+
+**The geometry.**
+
+- **The spacing between two neighbours is a share of the two radii it
+  separates**, so a big ball is given more room than a small one and the spread
+  is a fact about the sizes rather than a number picked by eye. It carries the
+  spread as well, since the strand covers 218 degrees whatever the balls are
+  sized at: taking them down leaves more ground between them rather than
+  bunching them into a shorter chain. Measured, the four gaps at rest are 36.6,
+  28.0, 37.0 and 35.0px of clear ground between the rims.
+- **The scale ramps over the arc a ball's own centre spends inside the
+  button**, which is the chord equal to the button's radius and comes to 19.6
+  degrees. A ball is at full size exactly when it stops being something the
+  mouth is hiding, so the ramp is derived from the two radii rather than being
+  a duration, and it is also what the stopwatch and the click read.
+- **The size sequence is irregular**, big then tiny then middling, which makes
+  a row of circles an assortment rather than a carousel of equal dots. It runs
+  2.5 to 1 where the reference's runs 4.4: at that spread the biggest ball is
+  wider than the track it rides, and five of them fill the dial rather than
+  sitting on it.
+- **The composition is 70% of the stage's height and the rest is ground.** The
+  dial is the subject and the stage is the room it stands in. The first build
+  divided the whole height between the biggest ball's overhang, two radii of
+  track and the button's, which fills the frame edge to edge and reads as a
+  poster of itself. `FILL` is the one number that takes it down, and the
+  composition is centred in what is left. Measured: 537.6 by 336 on the lab
+  column, the track at radius 85.8, the balls 68.7, 54.9, 42.9, 36.0 and 27.5px
+  across, the button 58.4, and 50px of clear stage above and below.
+- **Every length is a share of the track's radius**, so nothing carries a pixel
+  and the whole arrangement scales with the stage. Measured on a 390px phone,
+  the stage is 351.6 by 249.6 and nothing overflows.
+- **The settled pose is the leader ten degrees past the far side**, which
+  leaves the strand running from the lower left, up and over the top, and down
+  to the right. It is bounded below by the strand's own 218 degrees plus the
+  mouth and above by the lap, and 0.78 of a lap sits in the middle of what is
+  left. The tail rests at 62.6 degrees against a 19.6 degree mouth, so both
+  ends are clear.
+
+**The crank.** The plus is the handle, and pressing it and turning about the
+track's centre is what pulls the marbles out by hand.
+
+- **What the hand writes is the angle it turns through, never its travel in
+  pixels.** The same hand movement is a different amount of arc at the top of
+  the dial than at its side, so a bearing is the only reading that makes a
+  degree of hand a degree of strand. Measured: 120 degrees of hand turns the
+  strand 119.9.
+- **It is the turn and not the bearing, so the strand keeps whatever it already
+  had.** A hand that presses the plus while the peek is showing has the leader
+  a peek ahead of it rather than exactly under it, which is the same thing a
+  second crank from a strand left part way out does. Absolute would put the
+  leader under the hand always and would jump the strand to the hand's bearing
+  on every press, which is a flinch on a control whose whole job is to be
+  pressed.
+- **The turn is accumulated from the press rather than from the moment the
+  crank engages**, so the slop costs the leader no ground. Discarding it left
+  the strand trailing the hand by the slop's own 3.3 degrees for the rest of
+  the gesture.
+- **A hand passing near the centre turns nothing.** A bearing taken within a
+  quarter of the radius of the centre is noise, and acting on it spins the
+  strand through half a lap for a few pixels of hand.
+- **A release resolves to one of the two ends rather than parking where it was
+  let go.** A menu a third of the way out is not a state anyone asked for. The
+  throw decides it when there is one, off Motion's own velocity, which reads
+  zero once a value has been still for a frame or two, so a hand that stopped
+  before letting go is a placement and the halfway line decides. A free coast
+  came first and it is the wrong idea here: it is right for a dial that has no
+  poses, and this has exactly two.
+- **A move's duration is scaled by how far it actually goes.** A tween's
+  duration is fixed however short the move, so a resolve from most of the way
+  open would take as long as the whole thing. The floor is a third, since a
+  very short move still needs to be seen.
+- **A drag ends in a click on the button it started on**, so a flag set once
+  the press passes its slop is what stops every crank also toggling. On nib's
+  rules otherwise: down on the plus, move, up, cancel and blur on the window,
+  and `buttons === 0` ends a crank whose lift was never heard.
+- **A ball in flight is a target moving under the pointer**, so the layer is
+  transparent to it for as long as anything is travelling, written to the node
+  rather than held in state. A crank would otherwise render twice a gesture for
+  something no pixel depends on.
+- **The plus keeps `cursor-pointer` and the grab cursor waits for a crank that
+  really started**, which is `gooey-chips`'s pair and its reason: the plus is a
+  toggle first, and a grab cursor sitting on it before anything is held says
+  the click it is about to get will not work. The stage carries
+  `data-[crank]:cursor-grabbing` and the same on its descendants, since the
+  button declares its own and an inherited value loses to a declared one.
+
+**The rest.**
+
+- **The marbles are drawn, and they were five of this site's own lab stills.**
+  Cropped hard enough to carry a colour, three of the five were screenshots of
+  other experiments reduced to abstraction, and two other labs already put lab
+  stills in a frame. A demo about a strand of objects passing a gate should own
+  its objects. A marble is also a solved drawing problem: a handful of flat
+  shapes behind glass, legible at 27px and at 69px, with the kind saying as
+  much as the colour. Five kinds and no two built from the same parts, which is
+  what makes them an assortment.
+  - The hues are the twenty-fourth scoped set in the lab and make the same
+    claim as the others. They are not tokens and nothing else may reach for
+    them.
+  - Each draws its interior only. The light on them is one shared pass in
+    `index.tsx`, since there is one lamp over the stage and not five: a soft
+    light off the upper left and the far edge falling away, both in percentages
+    so one string serves every size. It was a full glass treatment first, a
+    hard specular and a heavy rim, and five of those read as a bag of toys.
+- **Picking one is what the menu is for.** The marble is held, the strand goes
+  home, and the plus wears a ring in that marble's own colour, which is the
+  only thing a resting stage has to say it with. The balls were links to other
+  labs before the marbles, which was honest and put the payoff on another page.
+  - **A line in the strip read out what was held and it is gone.** Two rings
+    already say it, one on the marble and one on the plus, and a sentence
+    restating them is the demo narrating itself. It also left the disclosure's
+    trigger sharing a row with a caption, where a trigger belongs on its own
+    above the thing it opens.
+- **A ball clearing the neck clicks, pitched by its size.** The same crossing
+  the scale ramp and the stopwatch read, so the sound is derived from the
+  geometry rather than scheduled: five clicks out and five in, and a crank
+  pulls them one at a time. `crack-sound.ts` sets the shape and
+  `cube-orbit`'s `dial-sound.ts` the size, and it needs no speed gate, since
+  the fastest thing it can produce is five clicks over the length of an open.
+- **Hovering the trigger peeks the strand, and the peek is a sliver.** `PEEK`
+  is three fifths of the mouth, where the leader is two thirds grown and its
+  centre is still inside the button, so what stands past the rim is the top of
+  a ball behind the plus rather than a ball beside it. Measured: 10.6px of it,
+  and nothing else has left the mouth at all.
+  - Two earlier values were both far too much. Reaching the second ball takes a
+    whole strand gap, which carries the leader 84px out of the mouth, and
+    clearing it takes a gap and a mouth, which is 108px. Either is the menu
+    opening rather than a hint that it can.
+  - Mouse and pen only, the gate `folder-stack` documents, and off under
+    reduced motion, which is the line `book-opening` draws between a state and
+    the travel to it. A peek is nothing but travel and it answers a hover
+    rather than a press.
+  - **`PEEK` is the floor the trigger reports against, not zero.** A press
+    shuts the menu when the strand is showing, and if that test were `advance >
+    0` then hovering the plus would arm it to shut something it has not opened.
+    `spread` in `track.ts` is the one test, and `aria-expanded`, the cross and
+    the `inert` on the layer all read it.
+  - A press disarms the peek until the pointer has been away, or shutting the
+    menu would peek it straight back out under the hand that just shut it.
+- **The trigger sits before the marbles in the tree and over them by `z-10`,
+  because the two orders are not the same question.** What paints last is the
+  thing hiding the mouth, and what a reader tabs into first is the trigger.
+  With the button last in the tree, which is what the paint order alone asks
+  for, Tab went from the plus straight out of the demo and the menu's own items
+  were only reachable backwards.
+- **Each ball carries its own tooltip, which is the site's answer to a control
+  with no text on it.** It was a readout in the dial's hole first, on
+  `radial-menu`'s reasoning that a dial's middle is the one place nothing else
+  wants, and that is right for a value the dial is set to and wrong for the
+  name of the thing under the pointer: the label floated in the middle of the
+  ring a whole dial's width from the ball it named.
+  - **`skipDelayDuration` is 0 on the provider.** Radix's default opens the
+    next tooltip instantly for 300ms after the last one closed, which is right
+    for a toolbar and wrong for six triggers inside a dial's width: a pointer
+    crossing the stage trails labels behind it. Every one waits its own 200ms.
+  - **The trigger's own label sits under the button**, because the peek comes
+    out up and to the left, which is exactly where a tooltip on top would sit,
+    and a label covering the thing it describes is `ember-burst`'s note. It is
+    refused outright while a hand is down.
+- **Escape shuts it**, which is the courtesy anything that opens over a page
+  owes, and the arrow keys nudge the strand a twelfth of a lap from the
+  trigger's focus, since a path reachable only by pointer is the thing
+  `event-stacking`'s hint argues against.
+- **The plus is drawn rather than imported.** It is part of a face sized by the
+  stage, so its weight is a share of the button and not an icon's stroke, which
+  is the standing `flip-clock`'s numerals have. Turning it 45 degrees is the
+  cross for free, and **that turn is the one departure from the reference**,
+  which keeps a plus throughout: a control that takes everything away has to
+  say which way a press goes, and `aria-expanded` cannot be seen.
+- **The button's hover and press are white at alpha over a dark face**, never a
+  fill token, which is this project's rule for shading one, and the step in is
+  instant where only the step back is timed, `tether-button`'s asymmetry.
+- **Reduced motion keeps every state and drops the travel.** A press lands the
+  strand on its pose in one step, the chain is off, since a lag is nothing but
+  travel, the peek does not happen, and the crank is direct manipulation and is
+  unchanged.
+- **No `will-change-transform` on a ball, and it was there.** The hint pins a
+  compositing layer whose raster is taken at whatever scale the element is
+  currently at, and every ball starts at zero, so the layer is allocated empty
+  and a later scale-up paints nothing: the ball is a white disc with a hairline
+  round it for the rest of the session, which is exactly what it looked like.
+  The drawing is in the DOM the whole time, which is what says it is a paint
+  problem rather than a React one. Removing it costs nothing measurable, since
+  the transform is written every frame anyway: under a 4x CPU throttle across
+  an open and a close, 130 frames at a 16.6ms median and a 17.9ms 95th.
+- **Nothing renders while any of it moves.** One loop writes five transforms
+  and stops when the chain has landed and the scalar is still. The only state
+  in the file is what is held, whether the strand is showing, and whether a
+  hand is on the dial.
+- **`select-none` on the stage**, since every gesture there is a press or a
+  drag on one control, and `touch-none` on the plus alone, so a thumb scrolling
+  past the demo is never trapped by the stage.
+- It is `flush` on `bg-fill` with its own inset ring, and `aspect-8/5` with a
+  `min-h-78` floor: the ratio is the index preview card's, so the clip is the
+  whole stage, and the floor is what stops a 390px phone giving a 220px stage
+  to a composition that wants 250.
+- **Its clip is recorded with a `prep` that fans the strand out first**, which
+  is the second caller of that hook. The first frame is what the card paints as
+  a poster and what a reduced-motion reader is left with, and this demo's
+  resting state is an empty stage with a plus on it. The gesture then names a
+  marble by its tooltip, picks it, and cranks the strand back out by hand,
+  which runs to its own stop and lands on the settled pose, so the last frame
+  is the first one apart from the ring the pick left.
+- Verified in a browser at 320, 390 and 1280px: the balls rest at the five
+  angles the geometry asks for, a press opens and shuts it with `aria-expanded`
+  and the label following, Escape shuts it, a crank keeps a degree of hand to a
+  degree of strand, a pick rings the plus, Tab runs the plus and then the five
+  marbles, a tap on a phone opens it without scrolling the page, and no console
+  errors.
 
 ## Motion
 
