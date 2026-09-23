@@ -1111,6 +1111,68 @@ const LABS = {
       await wait(1700);
     },
   },
+
+  "arc-menu": {
+    // the stage is the card's own 8:5, 538 by 336, so the clip is the whole
+    // demo and nothing is padded or cut
+    focus: [0, 0, 538, 336],
+    /*
+     * `prep` fans the strand out before the box is measured, which is what
+     * makes the still worth having: the clip's first frame is what the card
+     * paints as a poster and what a reduced-motion reader is left with, and
+     * this demo's resting state is an empty stage with a plus on it.
+     */
+    prep: async ({ page }) => {
+      await page.getByRole("button", { name: /Fan the marbles out/i }).click();
+      await wait(1200);
+    },
+    /*
+     * A marble named by its own tooltip, that marble picked, and the strand
+     * cranked back out by hand.
+     *
+     * The crank finishes at its own stop, which is the settled pose, so the
+     * clip ends on the frame it opened with apart from the ring the pick left
+     * on the plus. It is also why the crank comes last: from the settled pose
+     * the strand is already against that stop and a hand has nowhere to take
+     * it.
+     *
+     * Every press arrives on the plus and leaves it at once, since dwelling
+     * there peeks the strand back out and opens the trigger's own label.
+     */
+    async run({ m }) {
+      // the track, which `track.ts` derives from the stage's own height
+      const CX = 269;
+      const CY = 170.6;
+      const R = 85.8;
+      const BUTTON_Y = 256.4;
+      const at = (deg) => {
+        const d = (deg * Math.PI) / 180;
+        return [CX - R * Math.sin(d), CY + R * Math.cos(d)];
+      };
+
+      await m.move(60, 60, 1);
+      await wait(450);
+
+      // the leader, which names itself and is then taken
+      await m.move(353, 187, 8);
+      await wait(750);
+      await m.down();
+      await wait(60);
+      await m.up();
+      await m.move(60, 60, 1);
+      await wait(900);
+
+      await m.move(CX, BUTTON_Y, 1);
+      await m.down();
+      for (let deg = 5; deg <= 290; deg += 5) {
+        await m.move(...at(deg), 1);
+        await wait(11);
+      }
+      await m.up();
+      await m.move(60, 60, 1);
+      await wait(800);
+    },
+  },
 };
 
 function crop(rect, bounds) {
