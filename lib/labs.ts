@@ -597,6 +597,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Open the sheet, then press the heart and swap to live.",
   },
+  {
+    slug: "arc-menu",
+    title: "Arc Menu",
+    description: [
+      "a launcher whose items ride an arc. press the plus and five marbles file out from under it, swing round a circle and settle.",
+      "key insight: one scalar carries the whole strand, and that has a consequence nobody expects. whichever ball is last through the mouth spends its entire passage in whatever part of the curve the end of the move lands on, so an ease-out puts the crawl on the last one in. measured per frame: 408ms for the leader, the biggest ball, against 33 for each of the others, which is why the two directions cannot share a curve.",
+      "the strand is a chain rather than a rail. each ball follows the one ahead through its own exponential instead of sitting a fixed arc behind the leader, so it pays out under a fast hand and gathers when the hand stops. a hover peeks a sliver of the leader past the button's rim, and a crank turns a degree of strand per degree of hand.",
+    ],
+    createdAt: "2026-09-23",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/arc-menu/track.ts",
+    flush: true,
+    hint: "Press the plus, or crank it round the arc. Pick a marble.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -685,6 +699,7 @@ export const IMPLEMENTED_LABS = [
   "cube-orbit",
   "foil-card",
   "heart-flipbook",
+  "arc-menu",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

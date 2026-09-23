@@ -167,6 +167,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "heart-flipbook": dynamic(() => import("@/components/labs/heart-flipbook"), {
     ssr: false,
   }),
+  "arc-menu": dynamic(() => import("@/components/labs/arc-menu"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
