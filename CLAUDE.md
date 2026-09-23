@@ -1634,8 +1634,8 @@ experiment is a directory under `components/labs/`.
   `rain-splatter`, `sticker-peel`, `notch-drop`, `custom-cursor`,
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
-  `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook` and
-  `arc-menu` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
+  `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
+  `arc-menu` and `venetian-blind` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
   three entries where `flush` governs part of the frame rather than all of it:
   the stage runs to all four of its edges and the strip beneath carries its own
   padding, since a range track or a row of pills running into a hairline is not
@@ -1858,7 +1858,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-one clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
+- Forty-two clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8082,6 +8082,75 @@ track's centre is what pulls the marbles out by hand.
   and the label following, Escape shuts it, a crank keeps a degree of hand to a
   degree of strand, a pick rings the plus, Tab runs the plus and then the five
   marbles, a tap on a phone opens it without scrolling the page, and no console
+  errors.
+
+### `venetian-blind`
+
+A venetian blind over a page, tilted by its two cords. Pull the left cord down
+and the slats turn open, pull the right one and they shut. `blind.ts` is the
+geometry, pure and DOM-free, and `index.tsx` is the stage, the pull and the
+frame loop.
+
+- **The page behind never moves.** Every line on it is uncovered by the slats
+  turning, never faded in, which is `folder-stack`'s claim about occlusion.
+- **The tilt runs down the blind rather than landing on every slat at once.**
+  Each slat follows the one above it through its own exponential, `arc-menu`'s
+  chain turned on its side, the way a ladder tape carries the drum's turn down
+  one rung at a time. Measured on a hard tug: 280ms after the pull the head
+  slat is at 0.99 and the foot at 0.76. A slow pull shows no lag.
+- **A slat is taller than its pitch, 1.12 times**, so a shut blind overlaps
+  itself and no gap opens until `cos(angle)` falls under `PITCH / SLAT_H`, which
+  is 27 degrees. That dead band at the start of a pull is what a real blind
+  does. The most a slat turns is 80 degrees, since a slat seen edge on paints
+  nothing.
+- **No two slats hold the same angle.** A hashed error of up to 2.4 degrees,
+  scaled by `t * (1 - t)`, so it is zero when the blind is shut flat and when
+  the tapes pull it level, and widest in between. An integer hash, for
+  `stem-picker`'s reason.
+- **No `preserve-3d` on the slat layer.** Each slat is flattened in document
+  order under one `perspective`, so a lower slat always paints over the one
+  above it. That is correct because the slats turn top toward the room.
+- **It invents no colour and scopes no hue.** Slats are `fill-hover` at 98%, so
+  a shut blind shows a faint ghost of the page, the way thin aluminium lets
+  light through. The page is `bg`, so a gap reads as light coming through.
+  Shading is white and black at low alpha: a lit lip on each slat, a crown, a
+  dark line where the next slat tucks under, a face that darkens as it turns
+  down, and a faint cast on the page under each tilted slat.
+- **The two cords are one loop**, so pulling one lifts the other by the same
+  length. The open cord hangs short on a shut blind and the shut cord long,
+  which tells a reader which one to pull.
+- **The acorn under the hand is exact and the slats lag it.** While held, the
+  cord's value is the hand's. Released, it eases to its target on `CORD_TAU`.
+  A press that travels under 4px is a tug all the way to that cord's end.
+- **Pulling past a stop stretches the cord** by a third of the overshoot, up to
+  1.6cqw, and it springs back. Pushing a cord up past its stop does nothing,
+  since a cord cannot be pushed.
+- **A cord is a pendulum.** A spring on its angle about the rail, at a damping
+  ratio of 0.3, aimed at the hand's sideways offset while held and at zero
+  after. At 0.2 it rang for four seconds after every release.
+- **The hit regions grow outward from the midline between the two cords**, so
+  they never overlap, and they are never narrower than 1.4rem. On a 390px phone
+  the cords hang 10px apart and each region is 22px wide.
+- **The grabbing cursor is on the stage while a cord is held**, through
+  `data-carry` and its descendant pair, since the hand leaves the acorn's box in
+  the first pixels of a pull. `notch-drop`'s call. `cursor-grab` on the acorns
+  is one more place the shared `cursor-pointer` rule is off.
+- **`role="slider"` over the column the cords hang in**, since a half-open blind
+  is a real place to stop. The arrows step the tilt, Home and End go to the
+  ends, and Enter or Space tug it to the other end. `aria-valuenow` is written
+  from the frame loop, only when the rounded value changes.
+- **The page's type is `max(0.625rem, 2.68cqw)`, off the scale on purpose.** It
+  is 14.4px on the lab column and shrinks with a phone's stage, where
+  `text-body` wrapped into the line below. `foil-card`'s standing for printed
+  type on a drawn object.
+- **Nothing renders while any of it moves**, and the loop stops when the cords,
+  the strain, the swing and every slat have landed. Measured: 0 frames
+  requested over 1.5s after a pull has settled.
+- **Reduced motion takes every gap in one step and never swings.** The slats
+  still open.
+- It is `flush` with its own inset ring, since the slats paint over the frame's.
+- Verified in a browser at 1280 and 390px: a pull and a tap on each cord, the
+  arrow keys, a touch tap on a phone, no sideways scroll, and no console
   errors.
 
 ## Motion
