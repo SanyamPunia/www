@@ -1583,7 +1583,8 @@ experiment is a directory under `components/labs/`.
   experiment gets the column's full width. It is for a demo that draws its own
   container: the frame's hairline then sits a padding-width outside the
   experiment's own edge, and the two nested boxes read as chrome around chrome.
-  `tab-overview` is the only entry using it.
+  `tab-overview` and `venetian-blind` use it. The blind draws no edge at all:
+  its slats run the full width, so the blind is its own edge.
 - **`hint` on a registry entry is one line naming the gesture**, rendered by the
   page beside the source links rather than inside the demo. For an experiment
   whose affordance is not visible: `event-stacking` looks like a calendar and
@@ -1635,7 +1636,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu` and `venetian-blind` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
+  and `arc-menu` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
   three entries where `flush` governs part of the frame rather than all of it:
   the stage runs to all four of its edges and the strip beneath carries its own
   padding, since a range track or a row of pills running into a hairline is not
@@ -8148,7 +8149,10 @@ frame loop.
   requested over 1.5s after a pull has settled.
 - **Reduced motion takes every gap in one step and never swings.** The slats
   still open.
-- It is `flush` with its own inset ring, since the slats paint over the frame's.
+- **It is `bare` and draws no border.** It was `flush` with an inset ring of its
+  own, since the slats paint over the frame's. With no frame and no ring the
+  slats and the rail mark the edge of the blind, and the demo reads as a blind
+  on the page rather than a blind in a box.
 - Verified in a browser at 1280 and 390px: a pull and a tap on each cord, the
   arrow keys, a touch tap on a phone, no sideways scroll, and no console
   errors.
