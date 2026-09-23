@@ -611,6 +611,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the plus, or crank it round the arc. Pick a marble.",
   },
+  {
+    slug: "venetian-blind",
+    title: "Venetian Blind",
+    description: [
+      "a venetian blind over a page, tilted by its two cords. pull the left cord and the slats turn open, pull the right one and they shut.",
+      "key insight: the tilt runs down the blind instead of landing on every slat at once. each slat follows the one above it through its own exponential, the way a ladder tape carries the drum's turn down one rung at a time, so a hard tug reaches the foot a beat after the head and a slow pull shows no lag at all.",
+      "the slats are taller than their pitch, so a shut blind overlaps itself and no light gets through until each slat is past 27 degrees. that dead band at the start of a pull is what a real blind does too.",
+    ],
+    createdAt: "2026-09-23",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/venetian-blind/index.tsx",
+    flush: true,
+    hint: "Pull the left cord to open the slats, the right to shut them.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -700,6 +714,7 @@ export const IMPLEMENTED_LABS = [
   "foil-card",
   "heart-flipbook",
   "arc-menu",
+  "venetian-blind",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

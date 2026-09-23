@@ -170,6 +170,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "arc-menu": dynamic(() => import("@/components/labs/arc-menu"), {
     ssr: false,
   }),
+  "venetian-blind": dynamic(() => import("@/components/labs/venetian-blind"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
