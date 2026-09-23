@@ -1173,6 +1173,52 @@ const LABS = {
       await wait(800);
     },
   },
+  "venetian-blind": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The open cord pulled down slowly and held, so the slats turn and the page
+     * arrives in bands, then a tap on the shut cord, which is a tug all the way
+     * and shows the tilt running down the blind, then half a pull on the open
+     * cord again so the clip ends on a half-open blind rather than a blank one.
+     *
+     * The cords are found by their hit regions, which the component moves with
+     * each acorn, so every press lands on the acorn wherever it now hangs.
+     */
+    async run({ page }) {
+      const hit = (i) =>
+        page.locator("[data-lab-demo] [role=slider] > span").nth(i);
+      const centre = async (i) => {
+        const b = await hit(i).boundingBox();
+        return [b.x + b.width / 2, b.y + b.height / 2];
+      };
+
+      await wait(700);
+      let [x, y] = await centre(0);
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + 4, y + 70, { steps: 60 });
+      await wait(700);
+      await page.mouse.up();
+      await wait(900);
+
+      [x, y] = await centre(1);
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await wait(50);
+      await page.mouse.up();
+      await page.mouse.move(4, 4);
+      await wait(1100);
+
+      [x, y] = await centre(0);
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x - 3, y + 40, { steps: 40 });
+      await page.mouse.up();
+      await page.mouse.move(4, 4);
+      await wait(1400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
