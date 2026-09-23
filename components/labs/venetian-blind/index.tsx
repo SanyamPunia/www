@@ -613,12 +613,6 @@ export default function VenetianBlind() {
           />
         ))}
       </div>
-
-      {/* the frame's own edge, which the slats would otherwise paint over */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-stroke ring-inset"
-      />
     </div>
   );
 }

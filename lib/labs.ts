@@ -623,7 +623,7 @@ export const labsRegistry: LabMetadata[] = [
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/venetian-blind/index.tsx",
     reference: "https://x.com/samdape/status/2102774261912068585",
-    flush: true,
+    bare: true,
     hint: "Pull the left cord to open the slats, the right to shut them.",
   },
 ];
