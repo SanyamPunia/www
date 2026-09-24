@@ -44,6 +44,13 @@ const GROUND = "#2c4bdb";
 const INK = "#fff4dc";
 
 /**
+ * Film grain over the ground, `document-pocket`'s tile. `overlay` works on the
+ * mid-tone cobalt where it would do nothing to black, so the grain reads as a
+ * tooth in the cloth ground rather than as dust sitting on it.
+ */
+const GRAIN = `url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
+
+/**
  * The hoist, as a spring on the cloth's offset down the pole.
  *
  * Underdamped at a ratio of 0.36, so running up 4 units carries it about 1.3
@@ -429,6 +436,11 @@ export default function GustFlag() {
         hand.current = null;
       }}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
+        style={{ backgroundImage: GRAIN }}
+      />
       {/* No tooltip. A label that opens under a 200px drawing covers the stage
           the gust plays on, and the flag says what it does by moving. The
           `aria-label` carries the action for a reader with no pointer. */}
@@ -444,7 +456,7 @@ export default function GustFlag() {
           if (event.key === "Enter" || event.key === " ") armFlag();
         }}
         className={cn(
-          "cursor-pointer touch-manipulation rounded-lg",
+          "relative cursor-pointer touch-manipulation rounded-lg",
           /*
            * The flag is the press feedback: it runs up the pole on the frame
            * of the click, so there is no fill step behind it. The hover lifts
