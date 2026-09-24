@@ -8230,6 +8230,11 @@ While it is up it never stops fluttering, and a pointer moving past it is wind.
   are consts in `index.tsx`, not tokens, and nothing else may reach for them.
 - **The stage carries no inset ring**, since the tomato is its own edge on the
   white page.
+- **The ground carries a film grain**, `document-pocket`'s `feTurbulence` tile
+  at 18% in `overlay`. A flat cobalt read as a vector fill. Overlay does most to
+  a mid tone, so the grain shows on the cobalt and stays out of the way. The
+  layer sits under the button, which is `relative` for that, so the flag stays
+  clean.
 - **There is no fill step behind the button**, which is the site's usual press
   feedback. The flag runs up the pole on the frame of the click, so it is its
   own feedback, and a square behind the drawing reads as a selection box.
