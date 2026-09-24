@@ -1636,10 +1636,10 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  and `arc-menu` use it. `ember-burst`, `cube-orbit` and `heart-flipbook` are the
-  three entries where `flush` governs part of the frame rather than all of it:
-  the stage runs to all four of its edges and the strip beneath carries its own
-  padding, since a range track or a row of pills running into a hairline is not
+  `arc-menu` and `gust-flag` use it. `ember-burst`, `cube-orbit` and
+  `heart-flipbook` are the three entries where `flush` governs part of the
+  frame rather than all of it: the stage runs to all four of its edges and the
+  strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
   a control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
@@ -1647,7 +1647,7 @@ experiment is a directory under `components/labs/`.
   via `var(--color-*)`. `cursor-origin-button` had one and it was folded into
   Tailwind, including its asymmetric enter/leave timing, so prefer that when
   touching the others.
-- **Twenty-four experiments define their own hues**, `tab-overview` per terminal
+- **Twenty-five experiments define their own hues**, `tab-overview` per terminal
   session, `document-pocket` per sheet of paper, `event-stacking` per event,
   `stamp-collection` per print, `folder-stack` per record, `sticker-peel` per
   sticker, `window-shade` for the sky outside it, `rain-splatter` for the ink
@@ -1689,7 +1689,10 @@ experiment is a directory under `components/labs/`.
   are the most literal reading of the exception in the lab: they are marbles,
   and a marble's colours are what the object is made of, the same claim
   `stamp-collection` and `cube-orbit` make for a printed stamp and a puzzle
-  stated in six colours.
+  stated in six colours. `gust-flag`'s pair is a cobalt ground and a cream ink,
+  and its claim is the weakest in the lab and stated as such: a flag is made to
+  be seen, and the same flag in near-black on white read as bland. See its own
+  section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1859,7 +1862,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-two clips, 2.6MB with their stills, 3.4 to 9.0 seconds each, at 60 frames a
+- Forty-three clips, 2.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8156,6 +8159,149 @@ frame loop.
 - Verified in a browser at 1280 and 390px: a pull and a tap on each cord, the
   arrow keys, a touch tap on a phone, no sideways scroll, and no console
   errors.
+
+### `gust-flag`
+
+A flag toggle, after a bookmark animation whose motion was moved onto a flag.
+Press it and the flag runs up the pole, a gust rolls along the cloth from the
+pole to the tails with a halftone fill behind it, the tails whip out and three
+splashes come off them with a snap. Press again and it goes back down, empty.
+While it is up it never stops fluttering, and a pointer moving past it is wind.
+`flag.ts` is the geometry, pure and DOM-free, `flag-sound.ts` the snap, and
+`index.tsx` is the button, the wind and the frame loop.
+
+- **The bookmark's motion needs a swallowtail flag and not any flag.** The
+  reference's travelling swell ends on the bookmark's two bottom corners and
+  throws its three splashes off those corners and the notch. Turned 90 degrees,
+  a swallowtail has the same three points, so every beat maps one to one. On a
+  flag the swell also gets a cause: it is a gust entering at the pole and
+  snapping off the tails.
+- **The cloth is described once in its own coordinates, and everything drawn
+  goes through one `warp`.** `u` runs along the cloth from the pole and `v`
+  across it from the top edge. The outline, the solid fill, the halftone dots
+  and the points the splashes leave from are all `(u, v)` pairs pushed through
+  the same function, so they bend by the same rule and cannot disagree. The
+  dots ride the swell with the cloth they are printed on.
+- **The swell is a vertical stretch about the cloth, not a displacement of the
+  outline.** The top edge moves up and the bottom edge down by one amount at
+  each `u`, an asymmetric gaussian around the gust's front. The trailing half
+  is longer, so the cloth closes a beat after the gust has passed. The tails
+  also stretch along the cloth while the swell is on them.
+- **The pole holds the hoist edge, and that is the one change from the
+  reference.** There the top edge swelled the most. Here that edge is tied to
+  the pole, so `hold(u)` is zero at the pole, climbs over the first few units,
+  grows toward the free end, and gives the tails extra. Without it the edge on
+  the pole stretches away from the pole.
+- **The outline is sampled densely, which is the whole trick.** A swell can
+  only bend an edge that has points along it. The reference's own path repeats
+  `10 35.428 10 30.743` down each straight side for this reason. The rest shape
+  is built once in real units with its rounded corners, one sample a unit,
+  then divided into `(u, v)`.
+- **The fill is a solid run and a halftone band ahead of it.** Behind the fill
+  position the cloth is solid. Ahead of it, columns of dots shrink through five
+  sizes over 0.34 of the cloth. The first column's dots are wider than half the
+  pitch, so they merge with each other and with the solid into the scalloped
+  edge the reference has. Both are clipped to the outline, so the solid can be
+  a loose quad that overhangs the cloth.
+- **The fill runs 0.03 behind the gust's front.** The two are one number, so
+  the halftone edge and the swell arrive at the tails together. A fill that was
+  already there when the gust began is a floor the gust cannot take back.
+- **The hop is the hoist.** The reference icon goes up a little and comes back.
+  Here the cloth sits 4 units down the pole at rest and a press runs it to the
+  top on an underdamped spring, a ratio of 0.36, which carries it about 1.3
+  units past the top before it settles. Lowering uses the same spring.
+- **The splashes are round-capped segments whose tail chases the head.** At
+  birth both ends sit on one point and a round cap paints it as a dot. The
+  head runs out on an ease-out and the tail follows it a third of the life
+  later, so each splash is a drop coming off a corner, then a dash, then a dot
+  again as the tail catches up. That is the reference's last two frames. They
+  leave when the front passes 1.04, from wherever the tips are on that frame.
+  The notch sits 8 units behind the tips, so its drop starts further out and
+  travels further, and all three finish level.
+- **Lowering drains the fill back to the pole through the same halftone band**,
+  in 380ms with no gust and no splash. A press that undoes a gust in flight
+  fades the swell out over 200ms instead of cutting it.
+- **It scopes one pair, a cobalt ground and a cream ink.** It first shipped as
+  the site's own near-black on white and read as bland: a flag is a thing meant
+  to be seen, and the swell and the splashes are colour arriving on a field.
+  The reference's tomato was the second pass and was taken off for being the
+  reference's. The cream is 6.1:1 on the cobalt. At rest the flag is at 70%
+  opacity, and the hover and a raised flag take it to full. `GROUND` and `INK`
+  are consts in `index.tsx`, not tokens, and nothing else may reach for them.
+- **The stage carries no inset ring**, since the tomato is its own edge on the
+  white page.
+- **There is no fill step behind the button**, which is the site's usual press
+  feedback. The flag runs up the pole on the frame of the click, so it is its
+  own feedback, and a square behind the drawing reads as a selection box.
+- **No tooltip, which is the one place the shared rule for an icon-only control
+  gives way.** It sat under the pole and covered the stage the gust plays on,
+  and the flag says what it does by moving. The `aria-label` names the action,
+  "Raise the flag" or "Lower the flag".
+- **The focus ring is an outline in the cream ink**, `window-shade`'s
+  substitution. The project's ring pins `text-primary` at 15%, which is nothing
+  on tomato, and paints a white offset band.
+- **The drawing is `clamp(7rem, 36cqw, 12rem)` wide**, 194px on the lab column
+  in a 538 by 336 stage. At 50cqw it filled the stage and left the splashes
+  nowhere to go.
+- **A raised flag never stops fluttering, and that is the change that matters
+  most.** A raised flag sitting dead still is the least flag-like thing it can
+  do. `flutter` in `flag.ts` is a wave running from the pole to the tails, 1.15
+  waves long, moving the whole cross-section so both edges go the same way,
+  where the gust's swell moves them apart. The pole holds it too, so its height
+  grows along the cloth. The press gust rides on top of it rather than starting
+  from a dead stop.
+  - The phase is integrated per frame rather than read off the clock, so wind
+    speeding the wave up never makes it jump.
+  - A lowered flag in still air hangs, with no flutter at all, so the loop can
+    stop there.
+- **The halftone stays after the fill and becomes the light on the folds.**
+  Where the flutter tilts the cloth down and away from a light above, the solid
+  part is punched with dots of the ground colour, sized by the tilt. So the
+  screen that ran the fill in is still there on a raised flag, as the shadow in
+  each trough, and the folds read as folds rather than as an outline wobbling.
+  - The tilt is read off `flutter` itself, so the shading cannot drift from the
+    shape.
+  - The dots sit on the fill's grid and stay under half the pitch, so a shadow
+    is a denser screen and never a hole.
+  - The smallest of the four sizes is dropped. At that step the tilt near the
+    pole left a column of specks that read as dust.
+- **The pointer is wind.** Its speed near the cloth raises the flutter, up to
+  2.8 times still air's, and its vertical travel pushes the tails across. Both
+  fall off as a gaussian with distance from the cloth's middle and die over
+  0.7s once the pointer stops. It is measured in the SVG's own units, so the
+  wind is the same strength at every size the drawing renders at. Mouse and pen
+  only, `folder-stack`'s gate, since a finger dragging past is a scroll.
+  - **The loop has to count live wind as motion, and not counting it was a
+    bug.** A swipe past a lowered flag starts the loop, and its first frame has
+    a `dt` of 0, so the flutter has not grown yet. With only the flutter in the
+    test, that frame reported nothing moving and the loop stopped. A raised
+    flag hid it, since the hoist kept the loop alive.
+- **The splashes land with a snap**, synthesised in `flag-sound.ts` on
+  `crack-sound.ts`'s shape: one context, one noise buffer, nothing fetched. A
+  snap is two wide, low bursts 35ms apart, one per tail. It plays when the gust
+  reaches the tails, from inside the frame loop, so the clock is unlocked on
+  `pointerdown` and on Enter or Space, `poke-sound.ts`'s two-step.
+- **The viewBox runs from -3**, so the top splash has room above the pole. At
+  the first size it left through the top of the stage.
+- **Nothing renders while any of it moves.** One loop writes six path strings
+  and the splashes' opacity. It cancels and reschedules rather than skipping a
+  request, `book-opening`'s call.
+- **A raised flag keeps the loop running, which is the cost of the flutter,
+  so the loop also stops off screen.** An `IntersectionObserver` marks the
+  stage seen or not, the loop ends on its next frame once it is not, and the
+  observer starts it again on the way back. Measured: 0 frames a second with
+  the flag lowered in still air, 0 once the wind from a swipe has died, 60
+  while raised, 0 while raised and scrolled off screen, and running again on
+  return. Under a 4x CPU throttle a raised flag holds a 16.7ms median and a
+  16.8ms worst frame.
+- **Reduced motion keeps both states and drops the travel.** The flag is up and
+  full, or down and empty, in one step. There is no swell, no splash, no
+  flutter and no wind, since all four are nothing but travel.
+- It is `flush` and `aspect-8/5`, the shape of the index's preview card, so the
+  recorded clip is the whole stage.
+- Verified in a browser at 1100 and 390px: the gust, the fill and the splashes
+  stay inside the stage at both, Enter and Space toggle without scrolling the
+  page, an unsave mid-gust settles empty, and no console errors.
 
 ## Motion
 
