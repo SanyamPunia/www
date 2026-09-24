@@ -626,6 +626,20 @@ export const labsRegistry: LabMetadata[] = [
     bare: true,
     hint: "Pull the left cord to open the slats, the right to shut them.",
   },
+  {
+    slug: "gust-flag",
+    title: "Gust Flag",
+    description: [
+      "a flag toggle. press it and the flag runs up the pole, a gust rolls along the cloth with a halftone fill riding behind it, and the tails throw three splashes.",
+      "key insight: the cloth is described once in its own coordinates, along it from the pole and across it from the top edge, and every point drawn goes through one `warp`. so the outline, the solid fill, the halftone dots and the spots the splashes leave from all bend by the same rule and cannot disagree.",
+      "a raised flag never stops fluttering, and the halftone stays after the fill as the light on the folds: where the wave tilts the cloth away, the screen punches through. move the pointer past it and the pointer is wind.",
+    ],
+    createdAt: "2026-09-25",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/gust-flag/flag.ts",
+    flush: true,
+    hint: "Press the flag to raise it, and move past it to blow.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -716,6 +730,7 @@ export const IMPLEMENTED_LABS = [
   "heart-flipbook",
   "arc-menu",
   "venetian-blind",
+  "gust-flag",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

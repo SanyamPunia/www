@@ -173,6 +173,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "venetian-blind": dynamic(() => import("@/components/labs/venetian-blind"), {
     ssr: false,
   }),
+  "gust-flag": dynamic(() => import("@/components/labs/gust-flag"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
