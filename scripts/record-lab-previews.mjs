@@ -1219,6 +1219,47 @@ const LABS = {
       await wait(1400);
     },
   },
+  "gust-flag": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * Raise, then a pointer swept past the raised flag so the wind shows on
+     * top of its flutter, then lower and raise again, so the clip shows the
+     * gust and the splashes twice and the halftone draining back to the pole
+     * in between, and ends on a raised flag that is still moving.
+     *
+     * The pointer comes in from the corner and presses on the cloth, so the
+     * clip opens on the flag at rest and the hover step shows first.
+     */
+    async run({ m }) {
+      const press = async () => {
+        await m.down();
+        await wait(60);
+        await m.up();
+      };
+
+      await m.move(60, 300, 2);
+      await wait(600);
+
+      await m.move(265, 151, 4);
+      await wait(250);
+      await press();
+      await wait(1700);
+
+      await m.move(470, 70, 5);
+      await m.move(110, 240, 6);
+      await m.move(430, 110, 5);
+      await wait(900);
+
+      await m.move(265, 151, 4);
+      await wait(200);
+      await press();
+      await wait(900);
+
+      await press();
+      await wait(2100);
+    },
+  },
 };
 
 function crop(rect, bounds) {
