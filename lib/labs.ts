@@ -637,6 +637,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-25",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/gust-flag/flag.ts",
+    reference: "https://x.com/kippe07/status/2103036199774585026",
     flush: true,
     hint: "Press the flag to raise it, and move past it to blow.",
   },
