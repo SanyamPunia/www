@@ -8364,6 +8364,9 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
   never the site's ring. That ring paints its offset in white, which over the
   poster read as a white border on every new pill, since a keyboard post hands
   focus to the pill it made.
+- **A pill has an entrance and no exit.** It only unmounts when its composer
+  opens in its place, and a fade out left a ghost pill showing through the
+  composer while the composer faded in over it.
 - **A keyboard post hands focus to the new pill with the mark switched off.**
   Even in the pill's own hue, the mark read as a stray border on every post,
   and the pill arriving already says where the comment went. `data-quiet` is
