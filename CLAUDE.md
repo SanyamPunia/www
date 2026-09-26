@@ -8364,6 +8364,10 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
   never the site's ring. That ring paints its offset in white, which over the
   poster read as a white border on every new pill, since a keyboard post hands
   focus to the pill it made.
+- **A keyboard post hands focus to the new pill with the mark switched off.**
+  Even in the pill's own hue, the mark read as a stray border on every post,
+  and the pill arriving already says where the comment went. `data-quiet` is
+  set with the focus and cleared on blur, so Tab away and back shows the mark.
 - **A hidden `Mark a region` button is the keyboard path.** It appears at the
   top left on focus and drops a box in the middle with its composer open.
 - **The hues are scoped, one per comment, cycling**, and they are the only thing
