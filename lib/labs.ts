@@ -641,6 +641,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the flag to raise it, and move past it to blow.",
   },
+  {
+    slug: "region-comment",
+    title: "Region Comment",
+    description: [
+      "a poster under review. drag across it to mark a region and a composer comes up under the box. post it and the box keeps its colour and carries the comment as a pill.",
+      "key insight: the composer answers the box, not the page. it lands under the box's left edge, flips above it when the stage runs out, and fades in travelling a few pixels away from the box, so it reads as coming out of the thing it is about. both it and the pill are fixed heights, so where they go is arithmetic rather than a measurement.",
+      "a composer holding unsaved words does not close on a stray press: the press goes back to the field. press a pill to edit it, and a saved comment takes two presses to delete.",
+    ],
+    createdAt: "2026-09-26",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/region-comment/index.tsx",
+    flush: true,
+    hint: "Drag across the poster to mark it, then leave a comment.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -732,6 +746,7 @@ export const IMPLEMENTED_LABS = [
   "arc-menu",
   "venetian-blind",
   "gust-flag",
+  "region-comment",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
