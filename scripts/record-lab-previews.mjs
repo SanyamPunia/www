@@ -1264,7 +1264,7 @@ const LABS = {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
     /*
-     * Two regions marked and commented, the lighthouse and then the birds, so
+     * Two regions marked and commented, the ring and then the dot grid, so
      * the clip shows the box being drawn, the composer coming up under it and
      * the pill it leaves behind, twice. It opens on the bare poster.
      */
@@ -1284,8 +1284,8 @@ const LABS = {
 
       await m.move(500, 300, 2);
       await wait(500);
-      await mark(22, 118, 104, 228, "Brighten the lamp");
-      await mark(378, 30, 460, 82, "Fewer birds");
+      await mark(248, 228, 318, 298, "Thicken the ring");
+      await mark(460, 30, 512, 82, "Fewer dots");
       await wait(600);
     },
   },
