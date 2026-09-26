@@ -120,9 +120,19 @@ export default function RegionComment() {
     if (chase.current === null) return;
     const id = chase.current;
     chase.current = null;
-    stage.current
-      ?.querySelector<HTMLElement>(`[data-pill="${id}"]`)
-      ?.focus({ preventScroll: true });
+    const pill = stage.current?.querySelector<HTMLElement>(
+      `[data-pill="${id}"]`,
+    );
+    if (!pill) return;
+    /*
+     * Focus lands on the pill so a keyboard reader keeps their place, but the
+     * focus mark stays off until they move. Right after a post the mark only
+     * says where the composer went, which the pill arriving already says, and
+     * it read as a stray border. `data-quiet` clears on blur, so tabbing back
+     * to the pill shows the mark as usual.
+     */
+    pill.dataset.quiet = "true";
+    pill.focus({ preventScroll: true });
   }, [editing, notes]);
 
   const open = (note: Note, fresh: boolean) => {
@@ -485,7 +495,10 @@ function Pill({
       onPointerEnter={() => onHot(true)}
       onPointerLeave={() => onHot(false)}
       onFocus={() => onHot(true)}
-      onBlur={() => onHot(false)}
+      onBlur={(e) => {
+        delete e.currentTarget.dataset.quiet;
+        onHot(false);
+      }}
       className={cn(
         "absolute z-10 flex cursor-pointer items-center rounded-full px-3 text-meta leading-none",
         "transition-[filter] duration-150 hover:brightness-110",
@@ -496,6 +509,7 @@ function Pill({
          * saw on every keyboard post, since focus lands on the new pill.
          */
         "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid",
+        "data-[quiet=true]:outline-none",
       )}
       style={{
         outlineColor: HUES[note.hue],
