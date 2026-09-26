@@ -652,6 +652,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-26",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/region-comment/index.tsx",
+    reference: "https://x.com/nonzeroexitcode/status/2103203539174436892",
     flush: true,
     hint: "Drag across the poster to mark it, then leave a comment.",
   },
