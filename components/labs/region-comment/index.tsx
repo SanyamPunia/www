@@ -489,9 +489,16 @@ function Pill({
       className={cn(
         "absolute z-10 flex cursor-pointer items-center rounded-full px-3 text-meta leading-none",
         "transition-[filter] duration-150 hover:brightness-110",
-        FOCUS,
+        /*
+         * An outline in the pill's own hue with a clear gap, never the site's
+         * ring. That ring paints its 2px offset in white, which over a poster
+         * reads as a white border stuck to the pill, and it is what a reader
+         * saw on every keyboard post, since focus lands on the new pill.
+         */
+        "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid",
       )}
       style={{
+        outlineColor: HUES[note.hue],
         left: place.left,
         top: place.top,
         height: PILL_H,
