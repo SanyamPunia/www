@@ -8310,7 +8310,7 @@ While it is up it never stops fluttering, and a pointer moving past it is wind.
 
 ### `region-comment`
 
-A flat poster of a coast at dusk, marked up the way a design review is. Drag
+A flat poster of geometric shapes, marked up the way a design review is. Drag
 across it and a dashed box follows the hand, and letting go brings a composer
 up under the box. Posting leaves the box in its colour with the comment on a
 pill under it. `scene.tsx` is the poster, `place.ts` the placement, pure and
@@ -8330,6 +8330,14 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
 - **A composer holding unsaved words does not close on a stray press.** The
   press refocuses the field. A clean composer closes, and a plain click that
   only dismissed it drops no new box.
+- **The poster is abstract, and it was a coast at dusk.** Scenery asks the
+  reader to judge a picture, and a review tool is about pointing at parts of
+  one. Separate flat shapes (a disc, a block, a half sun, a ring, stripes, a
+  dot grid) give every box one obvious thing to be about.
+- **Bright, light colours at full strength, with room between every shape.**
+  The first abstract pass was dark and overlapping, and it crowded the boxes
+  and pills drawn over it. A pastel pass after it read as faded rather than
+  light. Every shape is a clean, high-lightness hue, and none of them overlap.
 - **The poster opens with no comments on it.** Two seeded ones showed the posted
   state, and they also said the review was already done. The registry's `hint`
   says what to do instead.
@@ -8352,6 +8360,10 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
 - **Enter posts and Escape closes, and after either the focus goes to the
   pill.** Only on a keyboard close, for `notice-stack`'s reason: a scripted
   focus after a mouse press paints a ring on every click.
+- **A pill's focus mark is an outline in its own hue with a clear 2px gap**,
+  never the site's ring. That ring paints its offset in white, which over the
+  poster read as a white border on every new pill, since a keyboard post hands
+  focus to the pill it made.
 - **A hidden `Mark a region` button is the keyboard path.** It appears at the
   top left on focus and drops a box in the middle with its composer open.
 - **The hues are scoped, one per comment, cycling**, and they are the only thing
