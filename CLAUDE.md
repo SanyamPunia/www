@@ -1636,7 +1636,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu` and `gust-flag` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag` and `region-comment` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1862,7 +1862,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-three clips, 2.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Forty-four clips, 2.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8307,6 +8307,69 @@ While it is up it never stops fluttering, and a pointer moving past it is wind.
 - Verified in a browser at 1100 and 390px: the gust, the fill and the splashes
   stay inside the stage at both, Enter and Space toggle without scrolling the
   page, an unsave mid-gust settles empty, and no console errors.
+
+### `region-comment`
+
+A flat poster of a coast at dusk, marked up the way a design review is. Drag
+across it and a dashed box follows the hand, and letting go brings a composer
+up under the box. Posting leaves the box in its colour with the comment on a
+pill under it. `scene.tsx` is the poster, `place.ts` the placement, pure and
+DOM-free, and `index.tsx` the drawing, the composer and the pills.
+
+- **The composer answers the box, not the page.** It sits under the box's left
+  edge, then above the box, then over the box's foot on a stage too short for
+  either. It never leaves the stage, since a composer hanging past the frame
+  lands on the prose below.
+- **It fades in over 200ms on `[0.23, 1, 0.32, 1]` and travels 6px away from
+  the box**, down when it is below and up when it is above, so it reads as
+  coming out of the box. The exit is 120ms and shorter than the entrance.
+- **The composer and the pill are fixed heights in rem, which is what makes
+  the placement arithmetic.** The side decides the entrance direction, and
+  Motion needs that at mount. Measuring the composer first would land a frame
+  after the animation started.
+- **A composer holding unsaved words does not close on a stray press.** The
+  press refocuses the field. A clean composer closes, and a plain click that
+  only dismissed it drops no new box.
+- **The poster opens with no comments on it.** Two seeded ones showed the posted
+  state, and they also said the review was already done. The registry's `hint`
+  says what to do instead.
+- **A plain click with no drag drops a 22% by 30% box around the point**, and a
+  drag under 14px on either side is a slip and makes nothing.
+- **The dashes are an SVG rect with no viewBox**, so a dash is 6px on every box.
+  A dashed CSS border spaces its dashes per side and no two boxes match. The
+  box being written for marches, through the `ants` keyframe in `globals.css`
+  behind `motion-safe:`.
+- **The draft box is written to the node during a drag**, so drawing renders
+  nothing, and the stage's listeners are bound to the node, `document-pocket`'s
+  call for a surface with no honest role.
+- **A pill is no wider than its box, with a floor of 9rem or 28% of the stage.**
+  At 12rem the pills ran into each other on a phone, and at a 6rem floor they
+  cut every comment to two words on the lab column.
+- **A saved comment takes two presses to delete, and a draft takes one.** The
+  first press turns the trash control `danger`, typing disarms it. A draft has
+  nothing to lose, so it is discarded at once. This is the inline form of the
+  confirm rule, since a dialog over a demo is heavier than the thing it guards.
+- **Enter posts and Escape closes, and after either the focus goes to the
+  pill.** Only on a keyboard close, for `notice-stack`'s reason: a scripted
+  focus after a mouse press paints a ring on every click.
+- **A hidden `Mark a region` button is the keyboard path.** It appears at the
+  top left on focus and drops a box in the middle with its composer open.
+- **The hues are scoped, one per comment, cycling**, and they are the only thing
+  tying a box to its pill and its post button. Each clears 4.5:1 under white:
+  5.31, 5.11, 5.31, 6.39 and 5.66. The poster's inks are a second scoped set in
+  `scene.tsx`. Neither is a token.
+- **The field draws no ring of its own.** It has focus for as long as the
+  composer is open, so the card's outline steps from `stroke` to
+  `stroke-strong` instead.
+- `cursor-crosshair` on the stage, one more place the shared `cursor-pointer`
+  rule is off, since the stage is drawn on. `touch-none` covers the whole
+  stage, which traps a thumb scrolling past it on a phone. That is the price of
+  drawing with a finger.
+- Reduced motion keeps every state. `MotionProvider` drops the travel and the
+  ants stop.
+- Verified in a browser at 1280 and 390px: a drag opens the composer, a stray
+  press keeps typed text, Enter posts and focuses the pill, a pill reopens its
+  comment, no sideways scroll, and no console errors.
 
 ## Motion
 
