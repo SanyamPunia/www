@@ -660,3 +660,14 @@ textarea {
     translate: -50% 0;
   }
 }
+
+/*
+ * Marching ants on the box a comment is being written for, for
+ * `components/labs/region-comment/`. One whole dash plus its gap, so the loop has
+ * no seam, and it is `motion-safe:` at the call site.
+ */
+@keyframes ants {
+  to {
+    stroke-dashoffset: -11;
+  }
+}
