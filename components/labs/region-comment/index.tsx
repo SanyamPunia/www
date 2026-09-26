@@ -350,23 +350,25 @@ export default function RegionComment() {
           <Dashes color="var(--ink)" marching={false} />
         </div>
 
-        {ready && (
-          <AnimatePresence initial={false}>
-            {notes
-              .filter((n) => n.id !== openId)
-              .map((note) => (
-                <Pill
-                  key={note.id}
-                  note={note}
-                  place={placePill(note.rect, W, H)}
-                  onOpen={() => {
-                    if (!guard()) open(note, false);
-                  }}
-                  onHot={(on) => setHot(on ? note.id : null)}
-                />
-              ))}
-          </AnimatePresence>
-        )}
+        {/*
+         * No presence on the pills. A pill only unmounts when its composer opens
+         * in its place, and an exit fade left a ghost pill showing through the
+         * composer while that faded in over it.
+         */}
+        {ready &&
+          notes
+            .filter((n) => n.id !== openId)
+            .map((note) => (
+              <Pill
+                key={note.id}
+                note={note}
+                place={placePill(note.rect, W, H)}
+                onOpen={() => {
+                  if (!guard()) open(note, false);
+                }}
+                onHot={(on) => setHot(on ? note.id : null)}
+              />
+            ))}
 
         {ready && (
           <AnimatePresence>
@@ -490,7 +492,6 @@ function Pill({
       aria-label={`Edit comment: ${note.text}`}
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0, transition: { ...ENTER, delay: 0.06 } }}
-      exit={{ opacity: 0, y: -4, transition: LEAVE }}
       onClick={onOpen}
       onPointerEnter={() => onHot(true)}
       onPointerLeave={() => onHot(false)}
