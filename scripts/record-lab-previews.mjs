@@ -1260,6 +1260,35 @@ const LABS = {
       await wait(2100);
     },
   },
+  "region-comment": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * Two regions marked and commented, the lighthouse and then the birds, so
+     * the clip shows the box being drawn, the composer coming up under it and
+     * the pill it leaves behind, twice. It opens on the bare poster.
+     */
+    async run({ m, page }) {
+      const mark = async (x0, y0, x1, y1, words) => {
+        await m.move(x0, y0, 5);
+        await wait(200);
+        await m.down();
+        await m.move(x1, y1, 14);
+        await m.up();
+        await wait(450);
+        await page.keyboard.type(words, { delay: 45 });
+        await wait(350);
+        await page.keyboard.press("Enter");
+        await wait(900);
+      };
+
+      await m.move(500, 300, 2);
+      await wait(500);
+      await mark(22, 118, 104, 228, "Brighten the lamp");
+      await mark(378, 30, 460, 82, "Fewer birds");
+      await wait(600);
+    },
+  },
 };
 
 function crop(rect, bounds) {
