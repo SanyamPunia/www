@@ -25,11 +25,9 @@ import { cn } from "@/lib/utils";
  * modified click still falls through to the real `href`, which is the half of
  * being an anchor that matters.
  *
- * A drawn hash, never a literal `#` character. The two make the same shape and
- * only one of them is an icon: a text character inherits the prose font and
- * cannot be sized off the icon scale. It came off Phosphor's when the swap to
- * the tick became a morph, since a morph needs two paths built the same way and
- * no two library icons are. See `CopyMark`.
+ * Phosphor's hash, never a literal `#` character. The two make the same shape
+ * and only one of them is an icon: a text character inherits the prose font
+ * and cannot be sized off the icon scale. See `CopyMark` for the swap.
  *
  * Hidden until the heading is hovered, because a permanent marker on every
  * heading is a lot of chrome for a control most readers never want. The space
@@ -76,7 +74,7 @@ export function HeadingAnchor({ id }: { id: string }): React.ReactNode {
         }}
         aria-label={copied ? "Link copied" : "Copy link to this section"}
         className={cn(
-          "inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-muted transition-all duration-200 hover:bg-fill hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 group-hover:opacity-100",
+          "inline-flex size-6 shrink-0 cursor-pointer select-none items-center justify-center rounded-md text-text-muted transition-all duration-200 hover:bg-fill hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 group-hover:opacity-100",
           /*
            * Held visible while copied, and that is what makes the tick
            * readable at all. This control scrolls the heading it sits on, so
@@ -88,12 +86,8 @@ export function HeadingAnchor({ id }: { id: string }): React.ReactNode {
           copied ? "text-text-primary opacity-100" : "opacity-0",
         )}
       >
-        {/*
-         * A morph, the same treatment `CodeBlock`'s copy button uses, so the
-         * two copy controls on a post behave identically. The hash is drawn in
-         * `CopyMark` rather than imported, since Phosphor's own hash and check
-         * share no structure and so cannot interpolate.
-         */}
+        {/* the same fade and scale `CodeBlock`'s copy button uses, so the two
+            copy controls on a post behave identically */}
         <CopyMark mark="hash" copied={copied} />
       </a>
     </Tooltip>
