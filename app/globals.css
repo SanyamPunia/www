@@ -111,7 +111,7 @@
   --breakpoint-rail: 68rem;
 
   /*
-   * The one shadow on the site, for a stage a reader pokes.
+   * The stage shadow, for a stage a reader pokes.
    *
    * Three layers, each faint on its own: a contact line, a short cast for
    * form, and a wide ambient one for lift. A single shadow dark enough to read
@@ -123,6 +123,17 @@
   --shadow-stage:
     0 1px 2px rgb(0 0 0 / 0.03), 0 3px 8px -3px rgb(0 0 0 / 0.05),
     0 18px 32px -20px rgb(0 0 0 / 0.1);
+
+  /*
+   * A frame drawn as a shadow rather than a border, for an illustration's
+   * container. The 1px spread is the edge, and the two short casts under it
+   * give the frame a little depth a flat ring cannot. Black at alpha, so it
+   * sits on any ground the same way. Code blocks and the figures in
+   * `why-nested-rounded-corners-show-an-extra-curve` use it.
+   */
+  --shadow-frame:
+    0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06),
+    0 2px 4px 0 rgb(0 0 0 / 0.04);
 
   /*
    * The whole design sits at 0.8 of a conventional scale. That factor is baked
