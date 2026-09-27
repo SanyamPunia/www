@@ -1289,6 +1289,29 @@ const LABS = {
       await wait(600);
     },
   },
+  "forecast-list": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * In on the first row and down the list, holding on the snow long enough
+     * for it to settle on the letters, then out, so the clip shows the card
+     * riding and changing, the snow building and the word shaking it off.
+     */
+    async run({ m }) {
+      const rows = [46, 86, 126, 166, 206];
+      const hold = [900, 900, 1000, 1900, 1100];
+      await m.move(470, 300, 2);
+      await wait(500);
+      for (const [i, y] of rows.entries()) {
+        await m.move(260, y, i === 0 ? 8 : 6);
+        await wait(hold[i]);
+      }
+      await m.move(260, rows[3], 6);
+      await wait(1400);
+      await m.move(470, 300, 8);
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
