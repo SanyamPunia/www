@@ -656,6 +656,21 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Drag across the poster to mark it, then leave a comment.",
   },
+  {
+    slug: "forecast-list",
+    title: "Forecast List",
+    description: [
+      "a week of forecasts as five rows of type. point at a row and a card of that day's weather opens beside the list, and the word takes the weather too.",
+      "key insight: the letters are measured, not guessed. the row's text is drawn onto a canvas in its own font and read back, which gives the top edge of the ink in every column, so snow settles on the letters and slumps, rain lands on them and runs down the stroke it hit, and leaving the row shakes it all off.",
+      "the card beside the list is one card. it rides from row to row while its sky slides through it in the direction of travel behind a feathered edge, and its icon shrinks out and grows back in place.",
+    ],
+    createdAt: "2026-09-27",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/forecast-list/index.tsx",
+    reference: "https://useplanes.com/components/shader-index",
+    flush: true,
+    hint: "Point at a day, then run down the list.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -748,6 +763,7 @@ export const IMPLEMENTED_LABS = [
   "venetian-blind",
   "gust-flag",
   "region-comment",
+  "forecast-list",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

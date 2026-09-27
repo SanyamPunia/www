@@ -179,6 +179,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "region-comment": dynamic(() => import("@/components/labs/region-comment"), {
     ssr: false,
   }),
+  "forecast-list": dynamic(() => import("@/components/labs/forecast-list"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
