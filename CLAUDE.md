@@ -203,9 +203,15 @@ recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 `inverse-text-secondary` is 6.12:1. Check any new pairing: `#6f6f6f` was the
 first choice for the secondary tone and fails at 3.94.
 
-**`--shadow-stage` is the one shadow token**, declared beside the colours in
-`@theme` for the demo stage in `app/blogs/_details-you-can-measure/`. See that
-post's section. Nothing else casts a shadow.
+**There are two shadow tokens, declared beside the colours in `@theme`.**
+`--shadow-stage` is the demo stage in `app/blogs/_details-you-can-measure/`,
+see that post's section. `--shadow-frame` draws a container's edge as a
+shadow instead of a ring, a 1px spread plus two short casts. `CodeBlock` uses it
+for every code fence, and so do the figures in
+`why-nested-rounded-corners-show-an-extra-curve`. On a code block it also fixes
+a real bug: an inset ring paints under the element's own content, so clipped
+code showed through the bottom edge, and an outside shadow cannot be covered. Nothing else casts a
+shadow.
 
 **Shading a dark surface is light, not palette.** Nothing in the set is a lit
 edge or a sheen, and neither wants a token: they are the same material catching
@@ -763,6 +769,13 @@ files:
     span, a link or a footnote marker the way a paragraph can.
 - Content headings start at **h2**. The shell renders the h1, so an h1 in the
   body would be a second one.
+- **A code fence taller than about eleven lines starts as a teaser.**
+  `CodeBlock` clips it at 240px with a fade into its own `surface` and a "Show
+  more" pill, and the whole faded strip is the button. Only blocks at least
+  80px taller than that collapse, so nothing hides two lines behind a click.
+  The height is measured once before paint, since the `pre` scrolls sideways
+  rather than wrapping. It opens on a 200ms `max-height` transition behind
+  `motion-safe:`, and copy always copies the whole snippet.
 - Code fences render through `components/ui/code-block.tsx`. `sugar-high`
   emits `sh__*` classes coloured by the `--sh-*` properties in `globals.css`.
   These are the one place on the site with a full palette, since a token's colour
@@ -872,45 +885,14 @@ for one section instead of the whole post.
   the `aria-label` carries the copied state instead. A toast was tried and
   removed: three copies stack three toasts, and the tick is right where the
   reader is already looking.
-- **The swap to the tick is a real path morph, in `components/ui/copy-mark.tsx`,
-  and both copy controls on a post render it** so the two still behave
-  identically. It replaced a 150ms `AnimatePresence` crossfade, which at 12px
-  reads as the icon going briefly out of focus rather than as one shape becoming
-  another.
-  - **The glyphs are drawn there rather than imported, and that is what a morph
-    costs.** Motion interpolates the numbers inside a string when the parts
-    between them match, so two `d` values morph only if they carry the same
-    commands in the same order, and no two Phosphor icons do. A `path` helper
-    builds each glyph from subpaths of points, which guarantees the structure by
-    construction. The shared rule bans a text character standing in for an icon
-    and this is not one, it is the call `island-menu` makes for its own drawn
-    box: nothing off the shelf can express the in-between.
-  - **The tick is written once per pair rather than once**, since a partner has
-    to match its own glyph's structure. The copy mark's is five points in two
-    subpaths and the hash mark's is eight points in four, and both draw the same
-    three-point tick with the leftovers folded onto it. A line drawn twice costs
-    nothing, since the second copy lands on the first.
-  - **Which point goes where is solved rather than chosen, and it decides
-    whether the middle of the morph is legible.** A point may only land on a walk
-    along the tick, since consecutive points draw a segment and the only segments
-    that exist are its two arms. Of the walks available these are the ones with
-    the least travel: 32 units against 61 for the copy mark and 48 against 76 for
-    the hash, measured in the 24 unit box. The first mapping sent the square's
-    bottom-left corner clean across the icon and crossed its own strokes, and
-    every frame of the middle was a scribble. Now the square's right edge becomes
-    the long arm, its left edge the short one, and the top and bottom collapse,
-    so what the eye sees is a square being squeezed flat.
-  - **280ms on `island-menu`'s curve, and both numbers are about spending time in
-    the middle.** `torph`'s own `[0.32, 0.72, 0, 1]` was the first pick and leaves
-    at over twice its average speed: sampled per frame at 240ms, the fold was over
-    by 120 and the only readable frames were the first three. This curve leaves at
-    zero, which that lab warns about for a box answering input, and the warning
-    was measured on a 520ms move. At 280ms it is 19% through by 80ms, and the
-    press has already been answered by the control's own tone.
-  - **Reduced motion is read in the component**, since `MotionProvider`'s
-    `reducedMotion="user"` governs transforms and layout and `d` is neither.
-    Measured under the setting: two distinct `d` values across the change rather
-    than sixteen.
+- **The swap to the tick is a quick fade and a scale, in
+  `components/ui/copy-mark.tsx`, and both copy controls on a post render it**
+  so they behave identically. The glyph arriving fades in over 100ms and scales
+  up from 0.5 on a short spring with a little bounce. The one leaving fades and
+  shrinks in 80ms. Both are Phosphor icons stacked in one box. A path morph
+  between hand-drawn polylines came first, at 280ms, and the author found it
+  slow and soft for an answer to a press. Reduced motion is read in the
+  component and keeps the fade without the scale.
 - The anchor holds its box whether or not it is visible, so revealing it never
   shifts the leader rule beside it. It sits before that rule, since a control
   past the rule's end reads as belonging to the next thing down.
@@ -1165,6 +1147,84 @@ deliberately does not share its shape.
   it still grades neutral.** Confirming a task the reader finished and marking
   one right answer among four are different jobs, and the emphatic neutral only
   does the second. See Colour tokens.
+
+### `why-nested-rounded-corners-show-an-extra-curve`
+
+A scroll panel with a thick grey frame showed a faint curved outline at every
+corner. The before and after builds use the author's implementation values.
+Before: a fixed-height frame, 12px radius, 6px padding, `#F1F2F1`, `overflow:
+hidden`, a 1px outside box-shadow at `rgba(43,43,43,.045)`, and a direct square
+white scroller with 12px of padding. No overlay. After: a rounded white
+clipping parent, the 6px grey ring on an absolute `pointer-events: none`
+overlay with `border-radius: inherit` and an inset box-shadow, and a square
+transparent scroller at `margin: 6px` and `height: calc(100% - 12px)`.
+
+`original.tsx` holds `Original` (phases 01 to 03), `panels.tsx` holds `Frame`,
+`Zoom` and `Cases` (phases 04 and 05, before and after). `queue.tsx` is the
+deploy queue every panel shows, and `figure.tsx` is the shared layout:
+`Breakout`, `Phase` and `SIZE`. The zooms are clones of the rendered panels.
+
+- **Both figures are one system.** Same breakout width, same numbered
+  `Phase` headings continuing 01 to 05, same hairline separators, same 320px
+  panel, same deploy queue, same 6x crops. `Cases` passes `narrow` so each
+  320px stack centres in its wider column. The caption is its own full-width
+  row. Both `<figure>`s carry `m-0 w-full`: the browser's default figure margin
+  and the frame's centring had made the caption's hairline stop short of both
+  edges.
+
+- **Nothing draws the defect.** No SVG arc, pseudo-element, border or extra
+  shadow simulates it. The arrow is an annotation beside the outline and
+  covers none of it. The colours are literals in `panels.tsx`, since they are
+  the product's own and the post is about how they render.
+- **The arcs come from an external shadow meeting a square clip, verified.**
+  The before frame sits in a square `overflow: hidden` wrapper of exactly its
+  size, with no padding. The wrapper clips the external 1px ring's straight
+  runs, and the ring's curved corner pieces, which lie inside its square
+  corner, survive. Measured on the rendered page: with the ring, a curved strip
+  about 2 device px wide sits outside the band at the corner and nothing on the
+  straight edges. With only the box-shadow disabled, the strip is gone. Never
+  attribute the arcs to the inner radius, and never claim the inset-ring
+  refactor alone removes them.
+- **The broken ring is highlighted in `#fdba74`, labelled "Contrast enhanced to
+  reveal the artifact."** At the product's 4.5% the fragments composite to the
+  band's colour and cannot be seen. Only the ring's colour changes: geometry,
+  clip and the after build are the product's. `CONTRAST_LABEL` in `panels.tsx`
+  is the one string, and every figure showing the orange ring carries it.
+  Measured: 66 orange device px at the corner and 0 along the straight top edge,
+  and 0 at both with only the box-shadow disabled.
+- **The fragment's intensity does not match the screenshot, and that stays
+  open.** The author's screenshot shows the fragment at 225 on a `#F9F8F4`
+  page. The specified `rgba(43,43,43,.045)` ring composites to about 241 on
+  `#FAF9F6` and 246 on white, never darker than the band. Something about the
+  real ring's colour or stacking is not in the spec. Do not invent it.
+- **The anti-aliasing claim is gone.** It was never established. The post
+  explains the verified change only: the padded grey frame and white child
+  became a white clipping parent with a decorative inset ring, whose inner
+  edge is drawn at the radius minus its width, so the band curves with the
+  outline.
+- **`Original` is three phases and breaks out of the column.** 01 the deploy
+  queue at
+  actual size, 02 the top-right corner as it shipped, 03 the same corner with
+  only the ring recoloured, each a column with a numbered heading and hairline
+  separators between them, vertical side by side and horizontal stacked. Both
+  crops are 6x through `Zoom`'s `zoom` prop, since at 3x a wide crop was mostly
+  empty white. Three columns do not fit the 538px measure, so the figure uses
+  the submenu post's escape, `relative left-1/2 w-[min(100vw-2rem,54rem)]
+  -translate-x-1/2`, 54rem so it clears the rail's back link, and `Demo` drops its padding for the phases' own.
+- **The panel's content is a deploy queue**, Building, Queued and Shipped,
+  with commit messages, a branch and a short hash in mono, a build-log box and
+  status icons. It replaced the author's candidate list on request, and the
+  `Cases` rows are commit messages to match. Its controls are spans, and the
+  figure carries one label. The avatars' indigo is scoped to the file, and the
+  initials keep their casing. Messages are short enough not to truncate at the
+  panel's width.
+- **Never say the frame owns "the only curve".** The ring has a curved inner
+  edge. The wording is "the only rounded clipping boundary".
+- **Headless Chrome draws no scrollbar**, so check it in a real browser.
+- **The illustration panels carry their own darker scrollbar**, thin and
+  `text-muted` through a `scrollbar-color` override, so it reads against the
+  grey frame. The author asked for it there specifically. The page and the
+  code blocks keep the light site scrollbar from `globals.css`.
 
 ### `details-you-can-measure`
 
@@ -1490,12 +1550,10 @@ paragraph under it.
     "Stop looping". Radix closes a tooltip on click and needs a fresh
     `pointerenter`, so the changed copy is only seen after the pointer leaves and
     comes back, which is the same behaviour `heading-anchor` documents.
-- **Play and pause crossfade with a turn and a dip under them, and this is the
-  one control on the site where a morph was considered and refused.** A triangle
-  and two bars are not the same shape drawn twice: `CopyMark` can morph a square
-  into a tick because both are written as one polyline of the same length, and
-  there is no polyline that is honestly both a filled triangle and a pair of
-  filled bars. So this stays a crossfade, and it is the right one anyway, since a
+- **Play and pause crossfade with a turn and a dip under them, and a morph was
+  considered and refused.** A triangle and two bars are not the same shape drawn
+  twice, and there is no polyline that is honestly both a filled triangle and a
+  pair of filled bars. So this stays a crossfade, and it is the right one anyway, since a
   transport glyph is read at a glance rather than watched. `sync` rather than `CodeBlock`'s `mode="wait"`, with both glyphs
   absolute, so they overlap through the swap and the button is never briefly
   empty. This control can be pressed twice in a row, where a copy control's
