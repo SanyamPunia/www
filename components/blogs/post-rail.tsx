@@ -200,7 +200,12 @@ export function PostRail({ toc = true }: { toc?: boolean }): React.ReactNode {
       // rail's content was one pixel taller than the rail. `overflow-y-auto`
       // does not care that it is one pixel: it showed a 6px thumb down the
       // right-hand edge, beside a single link with nothing to scroll.
-      className="fixed top-20 hidden max-h-[calc(100dvh-8rem)] w-60 overflow-y-auto pb-1 rail:block"
+      //
+      // `pl-2` with a matching `-ml-2` keeps the content where it was but gives
+      // it room on the left. `overflow-y-auto` also clips the x axis, and the
+      // back arrow sits flush on the rail's left edge, so its hover nudge was
+      // cut off. `w-62` gives back the width the padding takes.
+      className="-ml-2 fixed top-20 hidden max-h-[calc(100dvh-8rem)] w-62 overflow-y-auto pb-1 pl-2 rail:block"
       style={{ left: `calc(50% - ${CONTENT_HALF_REM}rem - 16rem)` }}
       // the page's own entrance, not the `Reveal` one: this cannot join that
       // stagger, since its sections do not exist until the headings have
