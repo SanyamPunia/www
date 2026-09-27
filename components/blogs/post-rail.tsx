@@ -94,7 +94,12 @@ function readingLine(scrollable: number): number {
   return THRESHOLD + window.innerHeight - remaining;
 }
 
-export function PostRail(): React.ReactNode {
+/**
+ * `toc` off keeps the back link and drops the "On this page" list, for a post
+ * whose figures break out of the column and would sit under a list in the
+ * margin.
+ */
+export function PostRail({ toc = true }: { toc?: boolean }): React.ReactNode {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [active, setActive] = useState(0);
   const [bar, setBar] = useState<{ top: number; height: number } | null>(null);
@@ -211,7 +216,7 @@ export function PostRail(): React.ReactNode {
         {/* one entry is not a table of contents, it is a heading already on
             screen. The rail still renders, because the back link is not
             conditional on a post having sections. */}
-        {entries.length < 2 ? null : (
+        {!toc || entries.length < 2 ? null : (
           <nav aria-label="On this page" className="flex flex-col gap-1">
             <span className="mb-1 text-meta text-text-muted">On this page</span>
 

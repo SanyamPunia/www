@@ -20,11 +20,14 @@ import { blogPostSchema } from "@/lib/schema";
  */
 export function BlogPost({
   meta,
+  toc = true,
   children,
 }: {
   // the slug is required now: the schema needs it for `url`, and `MorePosts`
   // needs it to exclude the post you are already reading
   meta: BlogMeta;
+  /** false drops the rail's "On this page" list and keeps its back link */
+  toc?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -36,7 +39,7 @@ export function BlogPost({
             headings after mount, so it has no place in a sequence that has
             already finished by then. It is fixed, so it costs the column
             nothing. */}
-        <PostRail />
+        <PostRail toc={toc} />
 
         <Reveal className="flex flex-col gap-12">
           <RevealItem className="flex flex-col gap-8">
