@@ -1,0 +1,6 @@
+{
+  "title": "why nested rounded corners show an extra curve",
+  "description": "A rounded card with a thick rim got a tiny extra curve in every corner. Two rounded boxes drew two curves. The fix gives the curve to one element.",
+  "date": "2026-09-26",
+  "readTime": "1 min read"
+}

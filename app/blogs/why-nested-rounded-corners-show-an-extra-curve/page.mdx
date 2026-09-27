@@ -1,0 +1,102 @@
+import { Original } from "./original";
+import { Cases } from "./panels";
+
+I had a deploy queue in a scroll panel that was meant to read as one rounded
+card with a thick grey frame. Every corner had a faint curved line on it
+instead, like a small arc stuck to the frame.
+
+<Original />
+
+It's a few pixels. The panel still worked, and it looked like anti-aliasing. It
+sat right beside the scrollbar, so I blamed the scrollbar first. But the
+top-left corner had one too, and there's no scrollbar anywhere near it.
+
+## Why it happens
+
+The panel was a padded grey frame with a white scroller inside. The frame had a
+12px radius and a 1px outline, drawn as an external box-shadow. It also sat
+inside a square wrapper of exactly its size, with no padding and
+`overflow: hidden`.
+
+```css
+.clip {
+  width: 320px;
+  height: 240px;
+  overflow: hidden; /* square, no radius, no padding */
+}
+
+.frame {
+  width: 320px;
+  height: 240px;
+  padding: 6px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f1f2f1;
+  box-shadow: 0 0 0 1px rgba(43, 43, 43, 0.045);
+}
+
+.scroller {
+  height: 100%;
+  padding: 12px;
+  overflow-y: auto;
+  background: white;
+}
+```
+
+The browser paints an external box-shadow outside the element's box, so the
+wrapper decides how much of it you see. On the straight edges the outline sits
+just outside the wrapper, and the wrapper clips it. At the corners the frame's
+12px curve pulls in from the wrapper's square corner, so that part of the
+outline lands inside the clip and survives. Those curved leftovers are the
+arcs. Remove the box-shadow and they're gone.
+
+## One rounded clipping owner
+
+The fix replaced the padded grey frame and white scroller with a white clipping
+parent and an inset ring.
+
+```css
+.frame {
+  position: relative;
+  height: 32rem;
+  overflow: hidden;
+  border-radius: 12px; /* the only rounded clipping boundary */
+  background: white;
+  box-shadow: 0 0 0 1px rgba(43, 43, 43, 0.045);
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 6px #f1f2f1; /* the ring, not a second surface */
+}
+
+.scroller {
+  height: calc(100% - 12px);
+  margin: 6px;
+  overflow-y: auto;
+  border-radius: 0;
+  background: transparent;
+}
+```
+
+The frame owns the only rounded clipping boundary now. The ring is an inset
+shadow on an overlay, and it ignores the pointer, so scrolling still reaches
+the scroller underneath.
+
+The inset ring alone doesn't remove the arcs, though. They come from an external
+shadow meeting a square clip, so they only go when the clip or the shadow goes.
+The after panel below doesn't sit in a square clip.
+
+The scroller is inset 6px on every side and 12px shorter, so its scrollbar
+clears the ring at the top, the right and the bottom.
+
+<Cases />
+
+## Conclusion
+
+A square wrapper clipped the straight edges of a rounded frame's outer shadow
+and left its curved corners as stray arcs, so let the rounded element own its
+clip and draw the ring inside it.
