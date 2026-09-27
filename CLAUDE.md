@@ -1694,7 +1694,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag` and `region-comment` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment` and `forecast-list` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -8447,6 +8447,84 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
 - Verified in a browser at 1280 and 390px: a drag opens the composer, a stray
   press keeps typed text, Enter posts and focuses the pill, a pill reopens its
   comment, no sideways scroll, and no console errors.
+
+### `forecast-list`
+
+Five forecasts as rows of type. Point at a row and the other four dim, a card
+of that day's sky opens off the list's left edge, and the word takes the
+weather. `forecasts.ts` is the data and the card's hues, `word.ts` the weather
+on the word, `index.tsx` the card, the layout and the one frame loop.
+
+- **The card is one card.** It opens on the first row and closes when the
+  pointer leaves the list. In between it rides to the row on a critically
+  damped spring, the sky slides through it in the direction of travel, and
+  the icon tile shrinks out and grows back in place rather than sliding.
+- **A sliding sky is feathered, never hard edged.** Its layer is 180% of the
+  card, overhangs by 40% above and below, and a mask fades it over exactly
+  that overhang, so a settled sky is solid over the whole card and a moving
+  one leads with a soft ramp. The card's own ground eases to the new colour
+  on the slide's clock for the same reason. The skies are three
+  radial-gradient blobs drifting over a ground, never a blur filter.
+- **A canvas scene per weather was built for the card and taken back out.**
+  A sun over the sea, fog over a lighthouse, rain, settling snow and a storm
+  with bolts, with a row change drawn as a front sweeping across the card.
+  With the word carrying the weather as well, it was two illustrations of one
+  thing, and the gradient card with its icon reads better beside a word that
+  is doing the work.
+- **The letters are measured, not guessed.** `buildMask` draws the row's text
+  onto a canvas in the row's own computed font, letter spacing and casing,
+  and reads the pixels back into an ink test and a top edge per column. The
+  baseline is the range box's top plus the canvas's `fontBoundingBoxAscent`,
+  since a text range's box is its content area. The tints over the letters
+  are that mask coloured, so they land exactly on the DOM text.
+- **Each weather does something different to the word.** Snow settles on the
+  top edges, slumps once a column stands more than 1.2px above its neighbour
+  on the same stroke, and is knocked off in clumps on release. Rain lands on
+  the edges, 40% of hits stay on as beads that run down the stroke while there
+  is ink under them, and the letters darken as they get wet. Fog drifts white
+  banks through the word and blurs the row's own text. The storm is heavier
+  rain plus a flash tint on a `Lightning` clock of its own, and
+  the flash flickers the word like a real one: a strike, a dip, a weaker
+  second strike and a tail. The sun sweeps a warm band
+  through the letters and throws glints off their tops.
+- **The snow cap sits on the ink rather than over it.** It overlapped the
+  tops of the letters first, and on a white page that read as clipped text.
+  It carries its own slate edge because its upper side is against white.
+- **Flakes and drops start at most 30px above their own word**, so a low row's
+  weather does not fall through every row above it.
+- **Letting go shakes the word** with a 280ms WAAPI wobble when there is
+  something on it to shake off, and the weather is released rather than
+  cleared: it finishes falling, dripping and drying on its own.
+- **A relayout retires every mask** and whatever was riding on one, since a
+  mask is a picture of the text where it sat.
+- **The loop stops at rest**, when the last word is dry.
+  Measured: 0 frames in 1.5s at rest, and a 16.7ms median and 16.8ms 95th
+  percentile under a 4x CPU throttle while running down the list. Its cleanup
+  zeroes the frame handle as well as cancelling it, or dev's second mount
+  finds a handle for a frame that never runs and the loop never starts.
+- **The list is what is centred, and the card hangs off its left edge.**
+  Centring the list and an empty card slot together pushed the type right of
+  the middle at rest, which is the state a reader sees first.
+- **The card's top is measured and clamped to the stage**, 16px in, so the
+  first and last rows keep the card on screen.
+- **The dimmed rows are `stroke-strong`**, which is deliberately faint. They
+  carry no background step on hover or press, since a pill behind display
+  type turns the list into a menu, and the dimming of the other four is the
+  feedback. The rows are off the type scale, `clamp(1.125rem, 5.4cqw, 2rem)`,
+  the standing `flip-clock`'s numerals have.
+- **The line under the list reserves its height**, two lines from a 448px
+  container up and four below, and only fades. The sky already carries the
+  direction, and prose that slides as well reads as a second object moving.
+- **Hover is gated on `pointerType`**, `folder-stack`'s call. A tap picks a
+  row, a tap on bare stage clears it, and a touch `pointerleave` is ignored.
+  Focus picks a row too, and focus leaving the list or Escape clears it.
+- **Reduced motion puts nothing on the word.** The card still opens and
+  changes, `MotionProvider` stops the drift, and no frames are requested
+  while a row is picked.
+- **The skies and the word effects are scoped colour**, the exception the
+  lab's other hues take: the weather is the subject, and colour is what tells
+  five cards built from the same parts apart. Each `mark`, the icon on its
+  white tile, clears 4.5:1 on white: 5.02, 7.58, 6.70, 6.29 and 7.10.
 
 ## Motion
 
