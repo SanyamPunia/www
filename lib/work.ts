@@ -76,13 +76,6 @@ const companies: Company[] = [
 
 const projects: Project[] = [
   {
-    title: "Profanity API",
-    slug: "profanity-api",
-    image: "/projects/profanity.webp",
-    category: "api",
-    href: "https://github.com/SanyamPunia/profanity-api",
-  },
-  {
     title: "morphrig",
     slug: "morphrig",
     image: "/projects/morphrig.webp",
@@ -151,13 +144,6 @@ const projects: Project[] = [
     image: "/projects/clyp.webp",
     category: "web",
     href: "https://clyp.sanyam.sh",
-  },
-  {
-    title: "on-snip.org",
-    slug: "on-snip-org",
-    image: "/projects/onsnip.webp",
-    category: "web",
-    href: "https://github.com/SanyamPunia/on-snip",
   },
   {
     title: "flib.store",

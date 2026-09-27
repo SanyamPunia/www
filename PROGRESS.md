@@ -242,10 +242,6 @@ on `WorkRow` and render nowhere. They are kept so a detail view can be rebuilt
 by widening that type, not by re-porting content. The old modals and
 `image-with-skeleton.tsx` were never ported.
 
-Worth knowing: **`public/projects/onsnip.webp` is light ink on transparency**
-and reads as an empty circle, the same trap as `logo.webp` and the Enclave
-favicon. Every other logo is opaque and renders fine.
-
 ### Phase 5, `/blogs`, done
 
 Index plus all four posts. The system is documented in `CLAUDE.md`, the parts
