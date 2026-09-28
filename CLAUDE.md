@@ -1694,7 +1694,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment` and `forecast-list` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list` and `photo-stack` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1920,7 +1920,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-four clips, 2.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Forty-five clips, 2.9MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8525,6 +8525,91 @@ on the word, `index.tsx` the card, the layout and the one frame loop.
   lab's other hues take: the weather is the subject, and colour is what tells
   five cards built from the same parts apart. Each `mark`, the icon on its
   white tile, clears 4.5:1 on white: 5.02, 7.58, 6.70, 6.29 and 7.10.
+
+### `photo-stack`
+
+A pile of five photos, each tilted a different way. Drag the front one off
+either side and it tucks in at the back while the next comes forward. Press any
+photo, or the sliver of one leaking out from behind, and it opens as a
+carousel. `photos.ts` draws the five pictures, `stack.ts` is the geometry, pure
+and DOM-free, and `index.tsx` is the stage, the drag and the lightbox.
+
+- **Every card is always mounted and only ever moved.** The pile and the
+  carousel are two sets of poses for the same five buttons, so opening a photo
+  is that card travelling and growing from where it lay, never a copy or a
+  `layoutId` morph. Each card's x, y, rotation, width, height and opacity are
+  motion values written imperatively. A drag and a spring write the same
+  values, so nothing renders per frame.
+- **A card grows by its `width` and `height`, never by `scale`**, for
+  `document-pocket`'s reason: a scale would take the 12px corner and the
+  hairline with it. The pose is a centre offset, and `send` turns it into
+  `x = cx - width / 2`, so the centre and the box move on one spring.
+- **A thrown card stays in front until it is clear, and it never moves back
+  toward the pile to get there.** On release the order changes at once, so the
+  pile moves up behind it. A card whose centre is already `CLEAR`, 0.85 card
+  widths, from the pile's goes straight to the back from where it was let go. A
+  card not yet that far carries on outward to that point on a 200ms ease-out,
+  with `leaving` holding its `zIndex` above everything, and gives up that place
+  at 120ms, while it is still moving. `zIndex` is discrete, and out at the side
+  the only part of the card still over the pile is the part that goes behind the
+  new front card, which reads as the photo being tucked under. `stamp-collection`
+  documents the pop this avoids.
+  - **The first build sent every throw to one fixed point 0.95 widths out**, then
+    swapped after 200ms. A card dragged past that point was pulled back to it
+    before it went behind, which read as two moves in a row. Traced after the fix,
+    centre offset per frame: a card let go at -260px goes -220, -119, -54, -25 to
+    its back pose with no step outward, and a short fling from -70 goes -111,
+    -122, then -113, -68, -34 with no plateau between them.
+- **A throw is a distance or a fling.** 30% of the card's width, or 500px/s in
+  the direction of the drag. Anything less springs home. The card turns 0.05
+  degrees per pixel of drag, so it leans the way it is pulled.
+- **The cards behind lean out further while a pointer is over the pile**, by
+  `SPREAD`. At rest that is the only thing saying the front card moves. Mouse
+  and pen only, and the leave waits a frame so crossing between cards is no dip,
+  `folder-stack`'s calls.
+- **Closing puts the photo last looked at on top**, turning the pile round
+  cyclically rather than moving that one card, so the order the reader threw
+  them in survives.
+- **The carousel is linear, not a loop**, so a neighbour stays the same card
+  for as long as it is open. Past either end a swipe gives a third of what it
+  asked for. Two away and further are off stage and transparent, so a pile of
+  any length is a carousel of three.
+- **The drag is on nib's rules**, with a 6px slop, and a vertical start
+  abandons it, since that is the page scrolling. `touch-pan-y` on the cards is
+  the other half. A drag ends in a click on the card it started on, so
+  `draggedRef` stops every throw also opening the photo.
+- **The grabbing cursor is on the stage while a card is carried**, through
+  `data-carry` and its descendant pair, `notch-drop`'s call. `cursor-grab` on
+  the front card is one more place the shared `cursor-pointer` rule is off.
+- **The focus mark is an outline, not the site's ring.** A ring is a
+  box-shadow and would replace the card's own lift. The controls in the
+  lightbox keep the site's pattern.
+- **The lightbox is in the stage, not over the page**, `book-shelf`'s call. Its
+  ground is a real button filling the stage in `bg`, so a press off the photo
+  closes it, and it is out of the tab order since the close control is the
+  keyboard's way. Escape closes, the arrows walk it, and focus moves to the
+  close control only when it was opened from the keyboard. Closing from the
+  keyboard hands focus back to the card that was open.
+- **The photos are drawn, not fetched**, since `/privacy` promises no image
+  from another origin. Five SVG scenes as data URIs, each with one subject and a
+  dominant tone, so a sliver of a card says which picture it is. The coast over
+  a balustrade and the reading room are the two in the reference. **No SVG
+  filters**: an `<img>` holding an SVG is rasterised again at each new size, and
+  a card resizes on every frame of an open. The hues are one more
+  scoped set in the lab and make the same claim as the others. They are not
+  tokens and nothing else may reach for them.
+- **The stage is a fixed `h-130`.** The open photo takes the stage's height
+  less 112px for the close row and the caption, capped so a neighbour always
+  peeks. The pile is 0.6 of it. Measured: 243 by 304 open on the lab column and
+  240 by 300 at 390px, where the neighbours still show 36px either side.
+- **A resize is set, not animated**, `gooey-chips`'s rule for a corrected
+  measurement.
+- **Reduced motion keeps every state and drops the travel.** A throw lands at
+  the back in one step, and the pile and the lightbox change in one step.
+- Verified in a browser at 1100 and 390px: two throws, a press on a sliver
+  opens that photo, the arrows and a swipe walk the carousel, Escape puts it on
+  top of the pile, a tap on a phone opens it, no sideways scroll, and no console
+  errors.
 
 ## Motion
 
