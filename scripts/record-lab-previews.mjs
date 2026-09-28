@@ -1312,6 +1312,39 @@ const LABS = {
       await wait(900);
     },
   },
+  "photo-stack": {
+    // the stage is 538 by 416, and the crop is the card's own 8:5 taken over
+    // the open photo and its caption, with the pile sitting a little high in it
+    focus: [0, 60, 538, 336],
+    /*
+     * Two throws off the pile, one each way, then a press on the sliver of the
+     * card leaking out on the right, one swipe through the carousel, and Escape,
+     * so the clip ends on the pile with the photo last looked at on top.
+     */
+    async run({ page, m }) {
+      const [cx, cy] = [269, 216];
+      const fling = async (dir) => {
+        await m.move(cx, cy, 4);
+        await m.down();
+        for (let i = 1; i <= 10; i++) {
+          await m.move(cx + dir * i * 16, cy + i, 1);
+          await wait(16);
+        }
+        await m.up();
+      };
+      await wait(500);
+      await fling(-1);
+      await wait(900);
+      await fling(1);
+      await wait(900);
+      await m.click(cx + 84, cy + 20);
+      await wait(1200);
+      await fling(-1);
+      await wait(1100);
+      await page.keyboard.press("Escape");
+      await wait(1100);
+    },
+  },
 };
 
 function crop(rect, bounds) {
