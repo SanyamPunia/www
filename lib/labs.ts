@@ -671,6 +671,21 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Point at a day, then run down the list.",
   },
+  {
+    slug: "photo-stack",
+    title: "Photo Stack",
+    description: [
+      "a pile of photos, each tilted a different way. drag the front one off either side and it tucks in at the back while the next comes forward. press any photo, or the edge of one leaking out from behind, and it opens as a carousel.",
+      "key insight: every card is always mounted and only ever moved. the pile and the carousel are two sets of poses for the same five elements, so opening a photo is that card travelling and growing from where it lay, and closing puts the one you were looking at on top.",
+      "a thrown card stays in front until it is clear of the pile, so the only part of it that goes behind the new front card is the part still over it.",
+    ],
+    createdAt: "2026-09-28",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/photo-stack/index.tsx",
+    reference: "https://x.com/radiofun8/status/2103909911826702684",
+    flush: true,
+    hint: "Drag the top photo aside, or press one to open it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -764,6 +779,7 @@ export const IMPLEMENTED_LABS = [
   "gust-flag",
   "region-comment",
   "forecast-list",
+  "photo-stack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

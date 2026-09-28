@@ -182,6 +182,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "forecast-list": dynamic(() => import("@/components/labs/forecast-list"), {
     ssr: false,
   }),
+  "photo-stack": dynamic(() => import("@/components/labs/photo-stack"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
