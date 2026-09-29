@@ -1694,7 +1694,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list` and `photo-stack` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack` and `invite-flap` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1920,7 +1920,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-five clips, 2.9MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Forty-seven clips, 3.1MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8610,6 +8610,56 @@ and DOM-free, and `index.tsx` is the stage, the drag and the lightbox.
   opens that photo, the arrows and a swipe walk the carousel, Escape puts it on
   top of the pile, a tap on a phone opens it, no sideways scroll, and no console
   errors.
+
+### `invite-flap`
+
+An invite sealed under a flap. Press the pill and it flips up over its own top
+edge like a page of a desk calendar, and the code is under it. The flap lands
+above the code with its back showing, which labels what is below it. Press the
+flap and it falls back. `index.tsx` is the whole thing.
+
+- **The flap is one button with two faces, and the code is always mounted under
+  it.** The reveal is occlusion, `folder-stack`'s claim. The code is `inert`
+  while the flap covers it.
+- **The hinge is half a gap above the pill, not on its top edge.** A half turn
+  about that line lands the flap one gap clear of the code. The back face is
+  pre-turned 180 degrees and `backface-hidden`, `flip-clock`'s build, so it
+  reads upright once the flap has gone over.
+- **One spring carries the flip**, a damping ratio of 0.72, so it goes about
+  seven degrees past its stop and comes back. A press mid-flight reverses it
+  from the speed it already has.
+- **The pair recentres on a spring of its own.** The flap lands a pill and a gap
+  above the code, so the assembly comes down half of that. Reading the shift off
+  the flap's angle would slide the slot under the pointer during the peek.
+- **Hover peeks, and the peek needs a rise as well as a tip.** Tipping the flap
+  about its hinge brings its foot toward the eye, and the perspective grows it by
+  about as much as the turn lifts it, so a tip alone showed nothing. The peek is
+  9 degrees plus a rise of 12% of the pill, on a 200ms ease-out rather than the
+  flip's spring, `stamp-collection`'s lesson for short hover moves. It is heard
+  on the slot, which does not move while the flap is shut. Mouse and pen only.
+- **The dots are one SVG stroke round a stadium**, a zero-length dash with a round
+  cap, with the pitch set to the perimeter over a whole number of dots. A dotted
+  CSS border spaces its dots per side. The slot is measured once for it.
+- **The flap comes first in the tree with `z-10`.** In paint order alone it came
+  after the code, and Tab went from the flap straight out of the demo.
+- **The code carries its lift only once the flap is off it**, or the two shadows
+  stack under the shut flap. The flap's shadow sits on its faces, since the focus
+  ring on the button is a box-shadow too.
+- **One scoped green, `#22844a`**, the reference's green taken down until white
+  type clears 4.5:1: 4.70 under the copy label, 4.50 as a graphic on `surface`.
+  Not a token. The code keeps its casing, since it is data.
+- **Copy morphs its label through `torph`** and a polite live region announces
+  it. A clipboard that refuses still gets the confirmation, since the code is on
+  screen.
+- Escape closes, and hands focus from the copy control back to the flap.
+- **Reduced motion keeps both states and drops the travel.** No peek, and the
+  flip lands in one step. Verified: the flap's matrix is already the open one
+  60ms after Enter.
+- It is `flush`, `aspect-8/5` with a `min-h-72` floor, and every length is a
+  share of the pill, which is `min(78cqw, 22rem)` of the stage.
+- Verified in a browser at 1280 and 390px: hover peeks, a press and a tap open
+  it, Tab reaches the copy control, copy confirms, a press on the flap and Escape
+  close it, no sideways scroll, and no console errors.
 
 ## Motion
 
