@@ -1922,7 +1922,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-eight clips, 3.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Forty-nine clips, 3.8MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8828,8 +8828,12 @@ the stage, the gesture and the loop.
     white band round the print.
 - `aspect-8/5` with a `min-h-78` floor. The print is
   `clamp(9.5rem, 35cqw, 12rem)` wide.
-- It has no preview clip yet. `pnpm previews fingerprint-ink` needs a gesture
-  entry in `scripts/record-lab-previews.mjs` first.
+- **Its clip places every point off the canvas's measured box**, in the print's
+  own units, so a change to the print's size moves the gesture with it. It
+  glides across two patches, presses three, drags through the four left, holds
+  on the verified print and ends on Start over, so it loops. 8.2s and 55KB.
+  Every press jumps on and off in one step, since a pointer resting on Start
+  over opens its tooltip over the demo.
 - Verified in a browser at 1280 and 390px: a hover, a press, a drag across the
   print, Enter through the rest, the scan, the pill, a reset, a tap on a phone,
   no sideways scroll, and no console errors.
