@@ -140,6 +140,8 @@ text measures 4.59, which is the danger pill's own 4.61.
   one" and not "you did it". The two live on one page in
   `the-card-flinches-when-you-reach-its-edge`, where the hold meter goes green
   and the quiz below it grades neutral.
+- **`fingerprint-ink` is the second caller**, for the same job: the print goes
+  `success` once every portion is inked, and its pill is the 10% wash above.
 - **It is not `selection`.** That emerald is 1.7:1 on white, which is a
   highlight behind text and never a tone for text.
 - A lab still scopes its own green where the meaning is narrower than "done".
@@ -1694,7 +1696,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap` and `point-cloud` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud` and `fingerprint-ink` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -8733,6 +8735,104 @@ the pointer and the loop.
   so it loops.
 - Verified in a browser at 1280 and 390px: all four shapes and the morphs
   between them, no sideways scroll, and no console errors.
+
+### `fingerprint-ink`
+
+A blank fingerprint drawn as the faint impression of its 22 ridges. Press the
+print and ink spreads out from that point through the patch of ridges around
+it, or drag across the print to ink every patch the pointer crosses. When all
+seven patches are full, a light reads the print top to bottom, the print turns
+`success` behind it, and a pill says it is verified. `ridges.ts` is the drawing,
+`ink.ts` the sampling, the portions, the flood and the painter, and `index.tsx`
+the stage, the gesture and the loop.
+
+- **A press inks a portion, never a single ridge.** It inked one ridge a press
+  at first, and 22 presses, several of them on ridges a few pixels long, was a
+  chore rather than a print. The author asked for a press to cover a patch.
+- **The ridges are the reference's own glyph**, 22 filled outlines in a 74.54 by
+  74.87 box. Each is sampled every 0.5 units along its outline with
+  `getPointAtLength` on a hidden SVG, which is the only DOM work in `ink.ts`.
+- **A portion is the samples nearest one of seven seeds**, the core and six
+  round it. The seeds are placed by hand at uneven angles, so the boundaries
+  cut the ridges at odd places and read as patches of a print rather than
+  slices of a pie. A ridge that crosses a boundary is half inked until the
+  other portion is pressed, which is what makes the patches visible at all.
+- **A press anywhere within 39 units of the print's middle counts**, gaps
+  included. The press point picks the portion by the same nearest-seed test.
+- **A flood gives each of the portion's samples an arrival time**, its straight
+  distance from the press at 60 units a second, so the ink is a stain spreading
+  from the point of contact. Each arrived sample grows a disc of radius 2.2 over
+  140ms, clipped to its own ridge. The ridges are about 1.5 wide and a sample
+  sits on one edge, so the disc has to reach across, and the clip keeps it off
+  the next ridge. A ridge whose last disc has grown is drawn as a plain fill.
+- **A drag is tested every 1.5 units along the segment between two pointer
+  events**, so a fast drag cannot skip a portion. Each crossed portion floods
+  from the point it was crossed. A mouse or pen over the print lights the
+  portion a press would ink in `text-muted`.
+- **That light is a level per portion, eased, never an index.** It switched in
+  one frame at first, and moving across the print read as the patches blinking.
+  Each portion's light approaches 1 while the pointer is on it and 0 when it is
+  not, with a 100ms time constant in and 180ms out, so the patch under the
+  pointer answers at once and the one it left fades behind it. Measured across
+  one boundary: the new patch is most of the way up by 170ms, and the old one
+  takes about 400ms to go. The loop measures its first step from the frame it
+  starts on, or the light would jump by however long the print sat still.
+- **The light starts 150ms after the press that fills the last patch**, while
+  that patch is still flooding. It used to wait for the last disc to land and
+  then hold 180ms, which left most of a second of a finished print doing
+  nothing. The seal paints everything above the band green whether or not the
+  ink reached it, so a flood the band overtakes is read as it arrives.
+- **The light is also the colour change.** The band runs from above the print
+  to below it over 700ms, and everything above its centre is drawn in
+  `success`, so the edge between ink and green sits under the brightest part of
+  the band.
+- **One ring goes out from the print on verify, and the badge waits for it.**
+  `border-success` from 1 to 1.35 over 600ms, and the pill waits 300ms before
+  it rises. The ring passes straight through the pill's row on its way out,
+  and with both at once it drew over the pill. The ring's fade is front-loaded,
+  so it is under 2% opacity by 250ms: measured, the pill starts at about 460ms,
+  after the old status line's own exit, and is whole by about 600ms. Under reduced motion
+  there is no ring and the pill does not wait. The check in the pill is drawn on with `pathLength`, since it is
+  the answer to the whole gesture, which is why it is drawn rather than a
+  Phosphor glyph.
+- **This is the second caller of `--color-success`**, after the held meter in
+  `the-card-flinches-when-you-reach-its-edge`, for the same meaning: a task the
+  reader finished. The pill is `success` on a 10% wash of itself, the pair the
+  token table measures at 4.59. No hue is scoped.
+- **Everything is one canvas, and nothing renders per frame.** The arrival
+  times sit on the measured ridges and the scan and fade in a ref. The count and
+  the phase are the only state, and each changes once per portion or once per
+  phase. The loop stops at rest. Measured: 0 frames in the second after the
+  print verifies.
+- **The box is the gesture surface and a button over it is the keyboard's.** The
+  listeners are bound to the box node, and the button takes a click only when
+  `detail` is 0, `book-opening`'s call. Enter inks the next portion, core first,
+  from its seed. `touch-none` is on the box alone, so a thumb on the stage
+  around it still scrolls.
+- **Start over is an icon button with a tooltip in the stage's top right**, shown
+  once a portion is inked. It fades the ink out over 240ms and does not confirm,
+  since a demo print has nothing to lose, `notice-stack`'s call.
+- **Reduced motion keeps every state and drops the travel.** A press fills its
+  portion at once, the scan and the ring are skipped, and a reset is instant.
+- **The stage is `bg-fill`**, the grey most of the lab sits on, with its own
+  inset ring. It was white first, and the author asked for the lab's ground.
+  Four things follow from the grey:
+  - The impression is `text-muted` at 40% alpha rather than `stroke-strong`,
+    which sits too close to `fill` to read as a print.
+  - The Verified pill's 10% wash sits over a `bg` base inside the pill, so the
+    text keeps the 4.59:1 the token table measures on white.
+  - Start over is one step up from the site's order, `fill-hover` at rest,
+    `fill-active` on hover and `stroke-strong` pressed, since a `bg-fill`
+    button on a `fill` ground is invisible.
+  - Both focus rings paint their offset in `fill`, or a keyboard focus draws a
+    white band round the print.
+- `aspect-8/5` with a `min-h-78` floor. The print is
+  `clamp(9.5rem, 35cqw, 12rem)` wide.
+- It has no preview clip yet. `pnpm previews fingerprint-ink` needs a gesture
+  entry in `scripts/record-lab-previews.mjs` first.
+- Verified in a browser at 1280 and 390px: a hover, a press, a drag across the
+  print, Enter through the rest, the scan, the pill, a reset, a tap on a phone,
+  no sideways scroll, and no console errors.
 
 ## Motion
 
