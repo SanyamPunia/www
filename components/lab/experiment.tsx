@@ -191,6 +191,12 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "point-cloud": dynamic(() => import("@/components/labs/point-cloud"), {
     ssr: false,
   }),
+  "fingerprint-ink": dynamic(
+    () => import("@/components/labs/fingerprint-ink"),
+    {
+      ssr: false,
+    },
+  ),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {

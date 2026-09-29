@@ -714,6 +714,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Move over the dots to scatter them. Press to reshape.",
   },
+  {
+    slug: "fingerprint-ink",
+    title: "Fingerprint Ink",
+    description: [
+      "a blank fingerprint, drawn as the faint impression of its ridges. press the print and ink spreads out from that point through the patch of ridges around it, or drag across it, and once all seven patches are full a light reads the print and it verifies.",
+      "key insight: every ridge is sampled once along its own outline, and each sample belongs to the nearest of seven hand-placed seeds. a press floods one seed's samples, each arriving by its distance from the press and growing a disc clipped to its own ridge, so the ink stains a patch of several ridges outward from the point of contact and a ridge crossing two patches is half inked until the second is pressed.",
+      "the light that reads the print is also what turns it green: everything above the band has been read, so the colour change rides under the brightest part of it.",
+    ],
+    createdAt: "2026-10-01",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/fingerprint-ink/ink.ts",
+    flush: true,
+    hint: "Press the print to ink a patch of it, or drag across it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -810,6 +824,7 @@ export const IMPLEMENTED_LABS = [
   "photo-stack",
   "invite-flap",
   "point-cloud",
+  "fingerprint-ink",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
