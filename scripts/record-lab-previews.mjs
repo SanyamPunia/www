@@ -1345,6 +1345,31 @@ const LABS = {
       await wait(1100);
     },
   },
+  "invite-flap": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    /*
+     * Onto the pill first, so the peek lifts its foot off the dots, then the
+     * press that flips it open, the copy, and a press on the flap that puts it
+     * back. It ends where it starts, so the clip loops. The pointer leaves the
+     * slot after the close, or the clip's last frame is the peek.
+     */
+    async run({ page, m }) {
+      const [cx, cy] = [269, 168];
+      await wait(500);
+      await m.move(cx - 60, cy, 6);
+      await wait(700);
+      await m.down();
+      await m.up();
+      await wait(1300);
+      await m.press(page.getByRole("button", { name: "Copy the code" }));
+      await wait(1200);
+      await m.press(page.getByRole("button", { name: "Hide the invite code" }));
+      await wait(300);
+      await m.move(cx, 300, 6);
+      await wait(1100);
+    },
+  },
 };
 
 function crop(rect, bounds) {
