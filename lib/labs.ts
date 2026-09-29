@@ -700,6 +700,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the invite to flip it open, and press the flap to close it.",
   },
+  {
+    slug: "point-cloud",
+    title: "Point Cloud",
+    description: [
+      "a figure drawn in dots. a few thousand points take the shape of a sphere, turn slowly, lean toward the pointer and scatter away from it, and one button folds them into the next shape.",
+      "key insight: every shape is a cloud of the same number of points sorted by height, so dot i always goes to point i of the next shape. that one sort carries the top of a sphere to the top of a helix instead of throwing every dot across the room, and a staggered start with a swirl through the middle of each flight makes it read as the cloud rearranging itself rather than two pictures crossfading.",
+      "a frame is ten fills, not one per dot: the dots are bucketed by depth into ten opacity bands and each band is one path, so 3,500 of them cost about as much to paint as the floor grid under them.",
+    ],
+    createdAt: "2026-09-30",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/point-cloud/shapes.ts",
+    flush: true,
+    hint: "Move over the dots to scatter them. Press to reshape.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -795,6 +809,7 @@ export const IMPLEMENTED_LABS = [
   "forecast-list",
   "photo-stack",
   "invite-flap",
+  "point-cloud",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

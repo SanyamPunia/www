@@ -188,6 +188,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "invite-flap": dynamic(() => import("@/components/labs/invite-flap"), {
     ssr: false,
   }),
+  "point-cloud": dynamic(() => import("@/components/labs/point-cloud"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
