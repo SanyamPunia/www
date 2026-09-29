@@ -1399,6 +1399,56 @@ const LABS = {
       }
     },
   },
+  "fingerprint-ink": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    /*
+     * A glide across two patches so the hover crossfades, three presses, then
+     * one drag through the four patches left, which fills the print and runs
+     * the light, the ring and the badge. It ends on Start over so the clip
+     * loops. Points are in the print's own units and placed off the canvas's
+     * measured box, so a change to the print's size moves them with it. Every
+     * press jumps on and off in one step, since a pointer resting on Start over
+     * opens its tooltip over the demo.
+     */
+    async run({ page, m, box }) {
+      const c = await page.locator("[data-lab-demo] canvas").boundingBox();
+      const k = c.width / 74.5371;
+      const at = (u, v) => [c.x - box.x + u * k, c.y - box.y + v * k];
+      const tap = async (u, v) => {
+        await m.move(...at(u, v), 1);
+        await m.down();
+        await m.up();
+      };
+      await wait(400);
+      await m.move(...at(10, 30), 1);
+      await m.move(...at(58, 22), 16);
+      await wait(300);
+      await tap(58, 22);
+      await wait(750);
+      await m.move(...at(37, 40), 8);
+      await wait(250);
+      await tap(37, 40);
+      await wait(750);
+      await m.move(...at(16, 56), 8);
+      await wait(250);
+      await tap(16, 56);
+      await wait(800);
+      await m.move(...at(12, 28), 6);
+      await m.down();
+      await m.move(...at(35, 10), 10);
+      await m.move(...at(63, 50), 14);
+      await m.move(...at(42, 67), 10);
+      await m.up();
+      await m.move(269, 330, 6);
+      await wait(2400);
+      await m.move(515, 22, 1);
+      await m.down();
+      await m.up();
+      await m.move(269, 330, 1);
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
