@@ -1370,6 +1370,35 @@ const LABS = {
       await wait(1100);
     },
   },
+  "point-cloud": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    /*
+     * A sweep across the sphere so it leans and scatters, then four presses
+     * that walk it through the ring, the helix and the word and back to the
+     * sphere, so the clip loops. Each press jumps onto the button and off the
+     * stage in the same breath, or the pointer parked on it scatters the foot
+     * of every shape for the length of the clip.
+     */
+    async run({ m }) {
+      const button = [269, 290];
+      const press = async () => {
+        await m.move(...button, 1);
+        await m.down();
+        await m.up();
+        await m.move(269, 360, 1);
+      };
+      await wait(400);
+      await m.move(150, 120, 1);
+      await m.move(390, 160, 24);
+      await m.move(269, 360, 6);
+      await wait(300);
+      for (let i = 0; i < 4; i++) {
+        await press();
+        await wait(1750);
+      }
+    },
+  },
 };
 
 function crop(rect, bounds) {
