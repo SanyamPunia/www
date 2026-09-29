@@ -1920,7 +1920,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-seven clips, 3.1MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Forty-eight clips, 3.7MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8725,6 +8725,12 @@ the pointer and the loop.
   scatter, and a morph lands in one step.** No loop runs: 1 frame a second.
 - It is `flush` and `aspect-8/5`, the preview card's shape, with a `min-h-78`
   floor so a 390px phone gets a 250px stage rather than 220.
+- **Its clip is 572KB, the largest in the set by almost three times.**
+  Thousands of dots moving on every frame is the worst input there is for an
+  inter-frame codec, `foil-card`'s problem at a larger scale. It loads only on
+  a hover, so it costs nothing until someone points at the row. It runs a
+  sweep across the sphere and then four presses that end back on the sphere,
+  so it loops.
 - Verified in a browser at 1280 and 390px: all four shapes and the morphs
   between them, no sideways scroll, and no console errors.
 
