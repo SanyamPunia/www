@@ -1694,7 +1694,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack` and `invite-flap` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap` and `point-cloud` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -8660,6 +8660,73 @@ flap and it falls back. `index.tsx` is the whole thing.
 - Verified in a browser at 1280 and 390px: hover peeks, a press and a tap open
   it, Tab reaches the copy control, copy confirms, a press on the flap and Escape
   close it, no sideways scroll, and no console errors.
+
+### `point-cloud`
+
+A figure drawn in dots, after a particle kit brief. A few thousand dots on a
+canvas take a sphere, a ring, a helix and the word "hi", turn slowly, lean
+toward the pointer and scatter away from it. One button under the figure
+morphs them to the next shape. `shapes.ts` builds the clouds and paints a
+frame, pure apart from the canvas it is given, and `index.tsx` is the stage,
+the pointer and the loop.
+
+- **The figure and the button are the whole demo.** The first build followed
+  the brief's hero layout, with a kicker, a headline and a line of copy on the
+  left and the figure at 64% across. The author cut the copy and kept the
+  stage, so the figure is centred at 42% down with a radius of a quarter of the
+  short side, and the button sits under it at `bottom-8`. An
+  `sr-only` polite live region says which shape is showing.
+- **Three parts of the brief do not apply here, and the lab drops them.**
+  - It asks for a dark twin. The site has no dark mode, so there is one light
+    stage.
+  - It asks for a morph pinned to a 200vh scroll track. A lab is one frame in a
+    column, so the button runs the morph instead. It is a press and never an
+    autoplay, which is the brief's own rule.
+- **Every cloud is `n` points sorted by height, and dot i goes to point i of
+  the next shape.** That sort sends the top of a sphere to the top of a helix,
+  so the dots do not fly across the room. Each dot starts on its own beat
+  inside the first 0.35 of a 1.7s run, top first. At the middle of its flight
+  it swirls 0.32 of a turn about the vertical axis.
+- **A press mid-flight morphs from wherever the dots are**, since `from` is a
+  copy of the current positions. Nothing jumps back.
+- **The word does not spin.** A word turned edge on is unreadable, so each
+  point has a `spin` weight of 0 or 1. The weight blends the yaw into a small
+  sway through a morph. The yaw wraps only between morphs, because a point
+  halfway between the two would jump by a turn if the yaw wrapped mid-flight.
+- **The word is sampled from Inter's own glyphs on an offscreen canvas.** All
+  four clouds are built once after `document.fonts.ready`. Built on the press,
+  the sort was the one long frame in the demo: 50ms under a 4x CPU throttle.
+- **A frame is ten fills, not one per dot.** The dots are bucketed by depth
+  into ten opacity bands, and each band is one `Path2D`. The farthest band is
+  at 20% opacity.
+- **The scatter tests each dot's resting place, which is its last screen
+  position less its own push.** So a pushed dot cannot push itself further,
+  and the hole holds still under a still pointer. A spring slightly under
+  critical damping pulls each dot back in about half a second. The reach is
+  clamped to 70 to 110px.
+- **The helix stands at 0.82 of the radius.** At 1, the perspective magnified
+  its near end past the stage's top edge and down through the floor.
+- **The floor's cross lines stop nine steps from the front.** Past that, they
+  stacked into one grey band at the horizon.
+- **The count is picked on the first measurement**: 3,500 dots, or 1,800 on a
+  stage under 448px. Dragging a window across that width does not reshuffle
+  the dots.
+- **One scoped hue, `#3b4fd8`**, since the dots are the subject. 6.9:1 on white.
+  The stage's light is `bg`, `surface` and `fill`, and the grid is
+  `stroke-strong`. The canvas reads all four off the tokens at mount. The stage
+  draws its own inset hairline over the canvas, `notch-drop`'s call.
+- **The button's label morphs through `torph`**, so it carries an
+  `aria-label` for `torph`'s reason.
+- **The loop stops off screen**, through an `IntersectionObserver`. Measured: 60
+  frames a second on screen, 1 off screen (the same as a lab with no loop),
+  and a 16.7ms median and 16.8ms 95th percentile under a 4x throttle during a
+  morph with the pointer on the dots.
+- **Reduced motion drops the spin, the sway, the float, the lean and the
+  scatter, and a morph lands in one step.** No loop runs: 1 frame a second.
+- It is `flush` and `aspect-8/5`, the preview card's shape, with a `min-h-78`
+  floor so a 390px phone gets a 250px stage rather than 220.
+- Verified in a browser at 1280 and 390px: all four shapes and the morphs
+  between them, no sideways scroll, and no console errors.
 
 ## Motion
 
