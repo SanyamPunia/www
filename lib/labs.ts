@@ -686,6 +686,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Drag the top photo aside, or press one to open it.",
   },
+  {
+    slug: "invite-flap",
+    title: "Invite Flap",
+    description: [
+      "an invite sealed under a flap. press the pill and it flips up over its own top edge like a page of a desk calendar, and what was under it is the code.",
+      "key insight: the flap is one element with two faces, and it hinges on a line half a gap above the pill rather than on its edge. so half a turn lands it one gap clear of the code, its back is pre-turned by 180 degrees to read upright once it has gone over, and the code was mounted under it the whole time, so the reveal is occlusion and nothing fades in.",
+      "one spring carries the flap whatever it is doing, so a press mid-flight turns it round from the speed it already has, and it overshoots its stop by about seven degrees, which is a page landing rather than a box rotating to an angle.",
+    ],
+    createdAt: "2026-09-29",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/invite-flap/index.tsx",
+    flush: true,
+    hint: "Press the invite to flip it open, and press the flap to close it.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -780,6 +794,7 @@ export const IMPLEMENTED_LABS = [
   "region-comment",
   "forecast-list",
   "photo-stack",
+  "invite-flap",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
