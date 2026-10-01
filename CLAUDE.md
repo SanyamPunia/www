@@ -1924,7 +1924,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Forty-nine clips, 3.8MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
+- Fifty clips, 3.8MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
   second.
 
 ### `tab-overview`
@@ -8948,7 +8948,10 @@ interpolates them, all pure, and `index.tsx` is the button and the paint.
 - **Reduced motion swaps the icon in one step**, read with `useReducedMotion`
   since `MotionProvider` does not govern a value animation that writes path
   data by hand.
-- No preview clip is recorded yet.
+- **Its clip is five presses round the whole cycle**, so it ends on the cloud
+  it starts on and loops. Each press lands on the icon and leaves the tile in
+  the same breath, so the hover and press show for a moment and the morph
+  plays on a clear ground. 6.5s and 40KB.
 
 ## Motion
 
