@@ -1449,6 +1449,28 @@ const LABS = {
       await wait(900);
     },
   },
+  "weather-morph": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    /*
+     * Five presses walk the whole cycle, cloudy through night, sun, rain and
+     * snow and back to cloudy, so the clip loops. Each press lands on the icon
+     * and leaves the tile in the same breath, so the tile's hover and press
+     * show for a moment and the morph plays on a clear ground.
+     */
+    async run({ m }) {
+      const [cx, cy] = [269, 168];
+      await wait(500);
+      for (let i = 0; i < 5; i++) {
+        await m.move(cx, cy, 1);
+        await m.down();
+        await wait(70);
+        await m.up();
+        await m.move(cx, 320, 1);
+        await wait(1100);
+      }
+    },
+  },
 };
 
 function crop(rect, bounds) {
