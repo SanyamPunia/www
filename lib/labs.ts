@@ -697,6 +697,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-09-29",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/invite-flap/index.tsx",
+    reference: "https://x.com/nitishkmrk/status/2103061978680086905",
     flush: true,
     hint: "Press the invite to flip it open, and press the flap to close it.",
   },
