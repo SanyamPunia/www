@@ -728,6 +728,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the print to ink a patch of it, or drag across it.",
   },
+  {
+    slug: "weather-morph",
+    title: "Weather Morph",
+    description: [
+      "five flat weather icons, cloudy, a clear night, sunny, light rain and snow. press the icon and it morphs into the next one, outline into outline, with a slight dip in scale through the middle of the change.",
+      "key insight: every icon is one body and its small parts, every outline is resampled to the same 256 points, and every morph is the same three moves. the body morphs into the next body, the old small parts wind home into it, and the new ones come out of it, so the sun pulls its rays in, becomes the cloud, and the rain drips out.",
+      "the shape runs on a strong ease-out so it answers the press on the first frame, the small parts stagger round the icon, and a press mid-morph starts from the shapes as they are that frame, so it turns round without jumping back.",
+    ],
+    createdAt: "2026-10-02",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/weather-morph/morph.ts",
+    flush: true,
+    hint: "Press the icon to morph it into the next one.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -825,6 +839,7 @@ export const IMPLEMENTED_LABS = [
   "invite-flap",
   "point-cloud",
   "fingerprint-ink",
+  "weather-morph",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
