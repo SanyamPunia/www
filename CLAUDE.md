@@ -259,6 +259,8 @@ deliberately replaced.
   perspective, where 2% is 9px of edge and the tilt is resampling it on every
   frame anyway. It presses by scaling and is documented as doing so. Nothing
   smaller than that may, and no button, pill, row or inline target may.
+  `components/labs/weather-morph/` is the second, on the same test: its icon
+  tile is a 190px square, so its 3% press is 6px of edge.
 - **All lowercase**, via `text-transform` on `body` in `app/globals.css`, not by
   writing the copy in lowercase. The markup keeps real casing, so crawlers,
   screen readers and copied text still get "Oliv AI". Write new copy in
@@ -1696,7 +1698,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud` and `fingerprint-ink` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink` and `weather-morph` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -8837,6 +8839,116 @@ the stage, the gesture and the loop.
 - Verified in a browser at 1280 and 390px: a hover, a press, a drag across the
   print, Enter through the rest, the scan, the pill, a reset, a tap on a phone,
   no sideways scroll, and no console errors.
+
+### `weather-morph`
+
+Five weather icons, after a set of flat glyphs: cloudy, a clear night, sunny,
+light rain and snow. Press the icon and it morphs into the next. `shapes.ts` draws
+the outlines, `scenes.ts` assembles the icons, `morph.ts` pairs parts and
+interpolates them, all pure, and `index.tsx` is the button and the paint.
+
+- **One hue per state, and only on the shapes**: slate for cloud, indigo for
+  night, amber for sun, blue for rain, teal for snow, in `HUE` in
+`scenes.ts`. An accent is a
+  deeper shade of its own state's hue, never a second colour: the sun's rays
+  are a deeper amber and the middle drop a deeper blue. A pass with a sky per scene, gradients, a
+  glow, stars, a sunburst and rain streaks was built and taken out because it
+  read as a cartoon, and a pass in grey and black after it read as too plain.
+- **The hues are scoped**, `forecast-list`'s claim: the weather is the subject
+  and colour is part of what says which weather. They are not tokens and
+  nothing else may reach for them. Each is muted and clears 3:1 on white
+  except the amber, which no amber does.
+- **Every part is one closed outline resampled to 256 points by arc length**,
+  all wound clockwise, so any part interpolates into any other point for point.
+  The outlines are built from arcs, lines and cubics in a 120 unit box rather
+  than read off an SVG. The cloud is three circles on a flat foot, the moon is a
+  disc with a disc bitten out and both horns rounded by a circle tangent to the
+  two, and a drop is a round foot, two cubics and a small round tip.
+- **Every icon is one body and its small parts, and every morph is the same
+  three moves.** The body morphs into the next body. The old small parts go
+  home, shrinking into where the body ends up and painting under it. The new
+  small parts come out of the new body, 140ms later, growing from its centre.
+  So the sun winds its rays in, becomes the cloud, and the rain drips out of
+  it, which is the shape of the other three changes too.
+- **Parts were paired by distance and size across icons first, and it read
+  as uneven.** The sun's rays were dealt out to become the drops while others
+  shrank into the cloud, so that one change looked like the sun coming apart
+  where the rest looked like one thing turning into another.
+- **Rain is a small cloud over three drops, and it was three drops alone**,
+  which left the sun's disc nothing to become.
+- **Snow is the fifth state, and it is a single body with no cloud.** One
+  large flake, six arms with one pair of branches each, built as one outline
+  through `polygon` in `shapes.ts`. Rain into snow is the rain cloud sprouting
+  arms while the drops go home, and snow into cloudy folds them back in. A
+  thunderstorm with one bolt and a cloud with three small flakes were each
+  built here first and swapped out: both were a cloud again.
+- **The point count went from 128 to 256 for the flake.** Its outline is about
+  770 units of many short edges, and at 128 the branches were two samples wide
+  and smoothed into blobs. Measured after, under a 4x CPU throttle: still a
+  16.7ms median and a 16.8ms worst frame.
+- **The small parts going home aim at where the body ends up, not where it
+  starts.** Aimed at the sun's centre, which is lower than the cloud's, the
+  rays poked out under the cloud as specks for a few frames.
+- **The shape runs on a strong ease-out, `[0.22, 1, 0.36, 1]` over 500ms.**
+  It moves on the first frame after the press and is 40% of the way there by
+  50ms. It ran on a spring first, and a spring released from rest starts
+  slowly and gathers speed, so every press looked answered late however steady
+  the frame rate was: at `omega` 9 it was a quarter of the way there after
+  100ms. Small parts stagger 15ms apart and come out 40ms after the body
+  starts, clockwise from the top coming out and anticlockwise going home, and
+  the sun's rays turn 0.55 rad about the centre either way, so they bloom round
+  the disc and wind back into it. Fades run on linear time and finish before
+  the shape lands.
+- **The whole icon dips to 0.96 scale through the middle of the morph.** It
+  also blurred by up to 0.6px, and that was taken out: a filter re-rasterises
+  the whole drawing every frame, which was most of why the morph felt laggy.
+  Measured after, under a 4x CPU throttle: every morph at a 16.7ms median and
+  a 16.8ms worst frame.
+- **The icon sits on a tile that answers the pointer**: `bg-fill` on hover,
+  `bg-fill-hover` and a 0.97 scale on press, in 100ms and back out over 200ms.
+  This is the second lab allowed to scale on press, after `foil-card`, on the
+  same test, see Local overrides.
+- **The loop start of each matched target is rotated to fit its source**,
+  measured about each shape's centroid, so an outline never twists through
+  itself on the way.
+- **The path is quadratic curves through the samples' midpoints.** The cloud's
+  two notches come out softened by about one sample, which is wanted.
+- **A body's points travel round its centre, not straight across it.** Each
+  point keeps a distance and an angle about a centroid that itself travels in
+  a straight line, and both are interpolated, with the turn unwrapped along the
+  loop so neighbours cannot wrap opposite ways and tear the outline. Straight
+  lines cut through the middle, so every body morph used to crumple into a
+  smaller, lumpier shape halfway. Small parts keep straight lines, since a
+  scaled copy sliding home is exact that way.
+- **A body's outline is smoothed in proportion to how far through it is**, by
+  a moving average round the loop, up to 14 samples either side, on
+  `sin(pi * e)`. Without it the flake's branches and the cloud's notches showed
+  as bumps all along the mid-flight outline. Both ends are exact, so a flake
+  grows its branches back in as it lands.
+- **A press mid-morph carries each point's velocity into the next morph.** It
+  plans from the shapes as they are that frame, measures every point's speed
+  off two samples of the morph in flight, and adds `v * t * exp(-t / 0.08)` on
+  top of the new path. That leaves at exactly the caught velocity and has died
+  away by the landing, so the shape curves into the new target instead of
+  turning on the spot. A press from rest has nothing to carry and answers at
+  full speed. The scale continues from where it was.
+- **Colours mix with `color-mix` in oklab** on the shape's own curve, so the
+  amber disc cools into the slate cloud as it changes shape. A press mid-morph
+  mixes from a colour that is itself a mix, which `color-mix` nests.
+- **Nothing renders per frame.** A fixed pool of twelve paths is written to by
+  index. React state holds only the current icon, for the label.
+  Motion's `animate` drives one linear clock and stops when the last track
+  settles.
+- **There is no caption and no position dots.** Both were built and taken
+  out, since the icon says which state it is. The button's `aria-label` names
+  the current state and the next, and a polite live region announces each
+  change.
+- **No tooltip on the icon button**, the call `gust-flag` makes: a label over
+  the stage covers the morph, and the registry's `hint` names the gesture.
+- **Reduced motion swaps the icon in one step**, read with `useReducedMotion`
+  since `MotionProvider` does not govern a value animation that writes path
+  data by hand.
+- No preview clip is recorded yet.
 
 ## Motion
 
