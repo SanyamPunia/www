@@ -740,6 +740,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-10-02",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/weather-morph/morph.ts",
+    reference: "https://x.com/raul_dronca/status/2094013190673670458",
     flush: true,
     hint: "Press the icon to morph it into the next one.",
   },
