@@ -1471,6 +1471,31 @@ const LABS = {
       }
     },
   },
+  "bento-focus": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    /*
+     * Precision into the focus slot, then Grip, and while Grip is still in the
+     * air a press on Focus, which turns the grid round mid-flight and puts it
+     * back where it started, so the clip loops. Each press leaves the tile in
+     * the same breath, or the hover veil sits on it for the rest of the clip.
+     */
+    async run({ m }) {
+      const press = async (x, y) => {
+        await m.move(x, y, 4);
+        await m.down();
+        await m.up();
+        await m.move(269, 330, 1);
+      };
+      await wait(600);
+      await press(458, 100);
+      await wait(1100);
+      await press(410, 236);
+      await wait(180);
+      await press(310, 80);
+      await wait(1400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
