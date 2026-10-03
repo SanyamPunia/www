@@ -1618,6 +1618,34 @@ experiment is a directory under `components/labs/`.
   experiments are all browser-only, so the map lives in
   `components/lab/experiment.tsx` behind `"use client"`. The page keeps its
   metadata, static params and `notFound`.
+- **Every lab arrives through a placeholder, and that is two additions on each
+  `dynamic()` entry.** With `ssr: false` the frame used to be empty until the
+  chunk arrived, and then the lab appeared in one frame.
+  - `loading: Placeholder` is rendered by the server into the HTML, so the frame
+    has a body from the first paint: a `fill` block at the 8:5 stage most labs
+    are, with a slow `motion-safe:` pulse. A skeleton and not a word, per the
+    shared loading rule.
+  - `.then(ready)` wraps the lab so it tells the slot it has mounted. The slot
+    then fades the lab in over 400ms and eases the frame from the placeholder's
+    height to the lab's over 320ms, with the lab centred and clipped, and lets
+    go of both after. The heights run 189 to 600px at the column's width and
+    only a third are 336, so the ease is what keeps the rest from jumping.
+  - **Both are written per entry, since Next transforms each `dynamic()` call
+    where it stands** and cannot see through a helper that builds one.
+  - **The old height is pinned before the first paint.** Motion runs a height
+    on its own frame loop, which starts a frame late, and without the pin the
+    frame showed the lab's own height for one frame before easing.
+  - **A lab whose chunk is already loaded skips the ease.** Its `ready` runs in
+    a child layout effect, before the slot has measured a placeholder, so there
+    is nothing to ease from and it only fades.
+  - **The slot is two wrappers, and the inner one is `grid place-items-center`**,
+    which is what `Demo` gave a lab before, so no lab changes size. Measured on
+    all 51 labs at 1280px and 390px against the build before: no differences.
+  - The page passes `frame`, `padded`, `flush` or `bare`, which only decides the
+    placeholder's corner.
+  - **`data-lab-placeholder` is for the preview recorder**, which waits for it
+    to go before it measures the demo, since the placeholder alone clears the
+    80px it used to wait for.
 - **`IMPLEMENTED_LABS` in `lib/labs.ts` gates the routes** and the map is typed
   against it, so listing a slug without adding its component is a build error
   rather than an empty frame. An entry in the registry with no component 404s.
@@ -6143,8 +6171,9 @@ flights.
   `touch-none` on the chip alone so a thumb is only ever trapped on a 30px
   target.
 - **The chip keeps `cursor-pointer`, and the grab cursor waits for a drag that
-  really started.** This is the first of the two labs with a drag that do not
-  take the shared rule off, `arc-menu`'s plus being the other, and the reason
+  really started.** This is the first of the three labs with a drag that do not
+  take the shared rule off, `arc-menu`'s plus and `bento-focus`'s tiles being
+  the others, and the reason
   is that a chip is a toggle first: a grab
   cursor sitting on it before anything is held says the click it is about to
   get will not work, and a click is what most readers give it.
@@ -8960,10 +8989,10 @@ interpolates them, all pure, and `index.tsx` is the button and the paint.
 
 Five gradient tiles on a bento grid with one large focus slot. Press a small
 tile and it grows into the slot, the tile that had it shrinks back, and the
-rest re-settle into the small slots. `art.ts` writes the five pictures as CSS
-gradients,
-`layout.ts` is the geometry, pure and DOM-free, and `index.tsx` is the stage,
-the moves and the text.
+rest re-settle into the small slots. Or carry a tile there by hand. `art.ts`
+writes the five pictures as CSS gradients, `layout.ts` is the geometry and the
+order, pure and DOM-free, `bento-sound.ts` is the landing, and `index.tsx` is
+the stage, the moves, the drag and the text.
 
 - **It is on Motion, and the reference is GSAP Flip.** Flip measures every box
   before and after a class change and animates the difference. Here the slots
@@ -8985,6 +9014,16 @@ the moves and the text.
   at once, since it answers the press. A tile already in flight gets no delay,
   since a delay holds the value still and a tile would stop in mid-air before
   it turned.
+- **Which tile sits in which slot is an order, `order[slot] = tile`.** It was a
+  function of the focused index, the rest filling the small slots by index,
+  and that cannot say where a drag put a tile. Two rules write it:
+  - **`promote` is a press, or a small tile dragged into the focus slot.** The
+    tile that had the slot takes the first small slot, beside it, and the tiles
+    between move along one. So the grid reads as a list of what was looked at
+    last, and every tile still re-settles into a slot of a different shape.
+  - **`swapIn` is the focus tile dragged onto a small slot.** It lands where it
+    was put and the tile there takes the focus slot. Nothing else moves, since
+    the hand placed this tile and nothing else.
 - **The slots are mixed shapes on purpose.** The right block is a wide slot
   and a narrow one on top, and the narrow one first underneath, so a tile
   re-settling changes shape as well as place.
@@ -9015,42 +9054,128 @@ the moves and the text.
     value mid-animation cannot say which way it is going. A press compares the
     state it wants with the state it has and animates only what changed.
 - **The pictures are CSS gradients, not drawings.** The first build drew five
-  SVG posters of sports, and the author asked for something simpler. Each tile
-  is a flat ground, a mesh of four soft radial blobs, and one motif in a
-  gradient of its own kind: concentric rings, a low sun, a conic sheen, lane
-  bands and a crosshatch. So no two tiles are one picture in different colours.
-  - **Gradients repaint at a new size for almost nothing**, where an `<img>`
-    holding an SVG is rasterised again, and a tile resizes on every frame of a
-    move. They are in percentages and carry no subject, so no crop can cut
-    anything off.
-  - **The mesh drifts.** It sits on a layer a quarter larger than the tile on
-    every side, so its edge never shows, and `bento-drift` in `globals.css`
+  SVG posters of sports, and the author asked for something simpler. Each
+  picture is a flat ground, a mesh of four soft radial blobs, one motif in a
+  gradient of its own kind (concentric rings, a low sun, a conic sheen, lane
+  bands and a crosshatch), and a detail. So no two tiles are one picture in
+  different colours.
+  - **A tile is a window onto a picture laid out at the focus slot's size.**
+    The pictures were in percentages of the tile, so a tile that grew drew the
+    same picture again, bigger. Now a growing tile uncovers more of its picture,
+    which is the claim the title and copy already made.
+  - **`focal` is the point the window holds still relative to the tile**, so a
+    small tile always shows the subject. The picture's offset is
+    `focal * (tile - picture)` on each axis, a `useTransform` off the tile's
+    width and the picture's size, which lives in two stage-level motion values
+    so a resize reaches it.
+  - **The detail is what only the focus slot shows**: the face's rim and the
+    range line, the ball's flight and the rim, the baseline and a ball, the
+    wall at the end of the lanes, the holds. Every focal point is at half
+    height, so a small tile's window covers the middle 47% of the picture and
+    the top band is the focus slot's alone. The details sit there or at the
+    far side. The bottom band is the title's.
+  - **The arc is dashed through a mask, so it is a layer of its own.** A mask
+    on the detail cut the ball into stripes as well. The trace takes two mask
+    layers, dashes and a cut at the release line, with `mask-composite:
+    intersect` and the WebKit `source-in`.
+  - **The arc sits at 19% and not 24%.** A hovered wide tile grows by its
+    margin, which uncovered the rim at its top edge.
+  - **Sliding a window costs less than a repaint.** The picture is a layer of
+    fixed size that moves on a transform, so nothing repaints on any frame of
+    a move. Lengths that are not shares of the picture, a ball or a hold, are
+    `cqw`, so they scale with the stage.
+  - **The mesh drifts.** It sits on a layer a quarter larger than the picture
+    on every side, so its edge never shows, and `bento-drift` in `globals.css`
     moves and turns it over 15 to 23 seconds. Each tile names its own duration
     and a negative delay inline, which beat the shorthand in the class, so no
     two tiles move in step. It is a CSS animation, so it requests no frames,
     and `motion-safe:` takes it away under reduced motion.
-  - The grain is `document-pocket`'s tile at a fixed 160px, so a tile
+  - The grain stays on the tile, not the picture, at a fixed 160px, so a tile
     resizing never rasterises it again.
   - The hues are scoped to this experiment and are not tokens.
 - **The words over the pictures are `inverse-text` on a black scrim at 55%**,
   which is the scrim exception. Their sizes are shares of the stage, off the
   type scale on purpose, `foil-card`'s standing for type printed on a picture.
-- **Hover is a black veil at 10% and press at 20%**, instant in and 200ms
-  out, and the focused tile carries neither. Tailwind's `hover:` is already
-  inside `(hover: hover)`, so a tap leaves no veil behind.
+- **Carrying a tile previews the arrangement it is heading for.** The held
+  tile stays under the hand at the point it was grabbed and grows toward the
+  slot's size. The rest ease toward where they would go on a commit, on a 70ms
+  time constant, so a candidate that changes mid-drag is followed rather than
+  jumped to.
+  - **`p` is how far the held tile's centre is toward its destination**, and it
+    reads 1 at three quarters of the way, since nobody drops a tile on the
+    slot's exact centre.
+  - **The rest wait for `p` to pass 0.15, and the tile giving up the focus slot
+    waits for half.** On one curve the old focus tile left before anything
+    arrived and the slot was a hole for most of the drag. Now the held tile
+    slides in over it.
+  - **The focus text fades as the hand gets near**, gone by `p` 0.45. A drag
+    shrinks the focus tile before anything is committed, and its title and copy
+    were crammed into a tile they no longer fit. A release brings it back,
+    after its exit when it is leaving, so it never flashes up on the way out.
+  - **A release commits past half way, or on a throw toward the slot faster
+    than 700px/s once past 0.12.** Anything else goes home. Both are `go`, the
+    same function a press calls, with no stagger, since every tile is already
+    moving and a delay would hold it in mid-air. The spring starts from the
+    hand's velocity.
+  - **The drag is on nib's rules**: down on the tile, move, up, cancel, blur
+    and Escape on the window, and `buttons === 0` ends a drag whose lift was
+    never heard. A 6px slop, and a finger that sets off vertically is scrolling,
+    so the tiles are `touch-pan-y`. A drag ends in a click on the tile, so a
+    flag set when the drag starts stops it pressing as well. The flag is reset
+    on the next press rather than on the click, since a release off the tile
+    sends no click.
+- **The grabbing cursor appears only once a drag has started**, through
+  `data-carry` on the stage and its descendant pair, `gooey-chips`'s call. The
+  small tiles keep `cursor-pointer`, since a press is what most readers give
+  them and a grab cursor there would say a click does nothing. The focus tile
+  shows `cursor-grab` on hover, since a press on it does nothing and a drag is
+  the one thing it answers. The author asked for both.
+- **Hover grows a tile and its neighbours give way.** The tile grows by about
+  0.9% of the stage on each side and the tiles near it move back by up to half
+  of `PUSH`. It is hit tested against the resting slots, each grown by half a
+  gap, never against the boxes, so a tile growing into the gap cannot move the
+  edge that decides it. Mouse and pen only.
+  - **The veil is `data-hover`, written to the node, not `:hover`**, so it and
+    the growth agree about which tile is hovered. Black at 10%, press at 20%,
+    and the focus tile carries neither.
+  - **A tile that arrives under a still pointer is not hovered.** The hover
+    clears for a flight and waits for the pointer to move, `stamp-collection`'s
+    call.
+- **A carried or flying tile pushes the tiles near it aside**, by up to `PUSH`,
+  about 1.4% of the stage, falling off over two and a half gaps between the
+  two boxes' nearest edges. A flight scales it by the mover's speed, so it is
+  nothing at either end. A carried tile pushes at 60% even when the hand is
+  still, so the grid makes room for it.
+- **The offsets are four more motion values per tile**, added to the box by a
+  `useTransform`. One frame loop runs the drag and eases every offset, and
+  stops once nothing is held, flying or easing.
+- **The arrow keys walk the grid by position.** `slotToward` picks the nearest
+  centre in that direction, with distance off the axis costing double. Enter
+  and Space press, since the tiles are buttons.
+- **A tile landing in the focus slot thumps**, synthesised in `bento-sound.ts`
+  on `crack-sound.ts`'s shape: noise through a falling lowpass and a sine under
+  it. It is heard when the tile reaches the slot, from a change listener on its
+  box, so a short throw lands sooner than a press from across the grid. The
+  clock is unlocked on the press.
+  - **Starting the audio context costs one long frame on the first press**,
+    200ms under a 4x CPU throttle and nothing after it, which the other sound
+    labs pay too.
 - **A tile is a real `<button>` with `aria-pressed`**, named by its title, and
   the focused one is described by its copy. A polite live region says which
   tile is in focus. The focus ring paints its offset in `fill`, the stage's own
   ground.
 - **A resize is set, not animated**, `gooey-chips`'s rule for a corrected
-  measurement.
-- **Reduced motion lands every tile and every line of text in one step.**
+  measurement. It cancels a drag in progress.
+- **Reduced motion lands every tile and every line of text in one step**, and
+  drops the hover growth and the push. A drag still follows the hand, since it
+  is direct manipulation, and the rest of the grid follows it with no easing.
 - Measured: 0 frames requested at rest and 0 after a move has settled, and
-  under a 4x CPU throttle through a press and a mid-flight second press, 104
-  frames at a 16.7ms median and a 16.8ms worst.
-- **Its clip is three presses**: Precision into the slot, then Grip, then Focus
-  while Grip is still in the air, which turns the grid round and puts it back
-  where it started, so the clip loops. 3.5s and 84KB.
+  under a 4x CPU throttle through a drag into the focus slot and its landing,
+  89 frames at a 16.7ms median and a 16.8ms 95th percentile, once the audio
+  context has started.
+- **Its clip is a press, a drag and two presses**: Precision in, Focus carried
+  back into the slot by hand, then Arc and Focus while Arc is still in the air,
+  which leaves every tile where it started, so the clip loops. 5.7s and 131KB.
 
 ## Motion
 
