@@ -1536,10 +1536,17 @@ const VIEWPORT_BOUNDS = {
 
 async function record(page, slug, lab, tmp) {
   await page.goto(`${BASE}/lab/${slug}`, { waitUntil: "load" });
+  // the placeholder is taller than 80px too, so the lab has to have replaced it,
+  // and the frame has to have finished easing from its height to the lab's
   await page.waitForFunction(() => {
     const demo = document.querySelector("[data-lab-demo]");
-    return demo !== null && demo.getBoundingClientRect().height > 80;
+    return (
+      demo !== null &&
+      demo.querySelector("[data-lab-placeholder]") === null &&
+      demo.getBoundingClientRect().height > 80
+    );
   });
+  await page.waitForTimeout(400);
 
   // centre the demo in the viewport before anything is measured, so a tall one
   // is not half off screen and nothing scrolls mid-gesture

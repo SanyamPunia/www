@@ -92,10 +92,13 @@ export default async function LabDetailPage({
                 has to find the same box. */}
             <div data-lab-demo="">
               {lab.bare ? (
-                <Experiment slug={slug} />
+                <Experiment slug={slug} frame="bare" />
               ) : (
                 <Demo className={cn("my-0", lab.flush && "p-0")}>
-                  <Experiment slug={slug} />
+                  <Experiment
+                    slug={slug}
+                    frame={lab.flush ? "flush" : "padded"}
+                  />
                 </Demo>
               )}
             </div>
