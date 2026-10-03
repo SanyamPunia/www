@@ -1957,10 +1957,11 @@ checked in as assets.
   a demo that has to be opened first spends the clip's opening second in the
   wrong state, and if opening it also makes the demo taller then the crop that
   fits the open one runs past the shut one onto the page's own hint line.
-  There are two callers. `heart-flipbook`'s sheet is in a disclosure and the
+  There are three callers. `heart-flipbook`'s sheet is in a disclosure and the
   demo is 100px shorter with it shut, and `arc-menu` is fanned out so the
   clip's first frame is a dial rather than the empty stage its resting state
-  is, since that frame is also the card's poster. The demo is re-centred after
+  is, since that frame is also the card's poster. `sketch-book` only waits, so
+  its first inking has finished before that frame. The demo is re-centred after
   it, since it may have changed size.
 - **Three labs measure their crop instead of declaring one.**
   `file-tree-explorer` and `multi-step-form` both grow as they are used, so the
@@ -1991,7 +1992,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-one clips, 3.9MB with their stills, 3.4 to 9.1 seconds each, at 60
+- Fifty-two clips, 4.2MB with their stills, 3.4 to 9.4 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -9217,59 +9218,121 @@ the stage, the moves, the drag and the text.
 
 A book drawn in thin pen strokes, seen from straight above, so all there is of
 it is a cover. Hover the stage and the camera swings round and down to a true
-isometric view, and the rectangle turns out to be a cuboid. `book.ts` is the
-model, the camera and the pen, pure apart from the context it is handed, and
-`index.tsx` is the stage, the gesture and the redraw.
+isometric view, and the rectangle turns out to be a cuboid. Press it and the
+front board opens on its hinge and the first page writes itself. `book.ts` is
+the model, the camera and the pen, pure apart from the context it is handed,
+and `index.tsx` is the stage, the gestures and the redraw.
 
 - **The book is four boxes and the camera is two angles.** The bottom board,
   the page block inset 5 units on the three open sides, the spine flush with the
-  boards on the left, and the top board. The camera is a turn about the table's
-  normal and a tilt off straight down, under an orthographic projection, which
-  is what an isometric drawing is. The isometric pose is a turn of -45 degrees
-  and a tilt of `atan(sqrt 2)`. The turn is negative so the spine faces the
-  reader.
-- **One number carries the turn, `t`, 0 for the cover and 1 for the cuboid.**
-  At zero tilt every side face is edge on and fails the facing test, so the top
-  view needs no special case. A spring out at 0.7s with a little bounce, and
-  back at 0.55s with none, since an overshoot below zero tilts the camera under
-  the table.
+  boards on the left, and the front board. The camera is a turn about the
+  table's normal and a tilt off straight down, under an orthographic
+  projection, which is what an isometric drawing is. The isometric pose is a
+  turn of -45 degrees and a tilt of `atan(sqrt 2)`. The turn is negative so the
+  spine faces the reader. `pose` in `book.ts` is the one place every camera
+  move is added up.
+- **Four numbers carry it.** `turn` goes from the cover to the cuboid, `lid`
+  from shut to open, `write` from a blank first page to a written one, and
+  `ink` is seconds into the first inking. At zero tilt every side face is edge
+  on and fails the facing test, so the top view needs no special case.
 - **Painter's order, bottom board up, and each box draws its visible faces and
   then its visible edges once.** This works because the camera only ever looks
-  down. A box is convex, so an edge of any visible face is a visible edge.
-- **Every pen wobble is a share of its own line's length with a pixel cap.** The
+  down. A box is convex, so an edge of any visible face is a visible edge. Open,
+  the front board lies to the left of the spine, which is the side nearer the
+  reader, so it is still drawn last.
+
+#### The pen
+
+- **Every line is a filled ribbon whose width is the pen's pressure**, never a
+  canvas stroke, which only has one width. It lands heavy, which pools ink at
+  the start of a stroke and so at every corner, carries with a slow wave, and
+  lifts off thin. Every ribbon winds the same way, so a batch filled under
+  `nonzero` is their union and one `fill` inks a whole group.
+- **Every wobble is a share of its own line's length with a pixel cap.** The
   overshoot, the end shake and the bow all scale with the line, so a side
   shrinking to nothing as it turns edge on takes its scribble with it. Each
   edge is two passes, the double stroke of a pen going over a line twice.
-- **The drawing boils while the camera turns.** A new wobble seed about 12 times
-  a second, only while `t` is animating, which is what a drawing animated a
-  frame at a time looks like. The pointer lean does not boil, or every twitch of
-  the hand would.
+- **The drawing boils while the book moves.** A new wobble seed about 12 times
+  a second, only while `turn` or `lid` is animating. The pointer lean does not
+  boil, or every twitch of the hand would, and neither does the writing, since a
+  page being written does not redraw the rest of the book.
+
+#### The first inking
+
+- **The drawing inks itself in the first time it scrolls into view**, in the
+  order a sketch is built: the cover's outline, the paper filling in behind it,
+  the crease and frame, the label, the stamp, and the shadow last. `REVEAL` in
+  `book.ts` is that order in seconds, one beat per group of strokes, and a
+  stroke in progress is the ribbon cut short, so it keeps the pressure it will
+  have when it is finished. 2.5s in all.
+- **The sides are inked too, early**, for a hand that turns the book before the
+  drawing has finished.
+- Under reduced motion the drawing is simply there.
+
+#### Opening it
+
+- **The front board turns about the hinge at the spine until its outer edge
+  rests on the table.** That angle is past flat, by the `DROOP` that solves
+  `W sin a + C cos a` for the hinge's height, so the open board slopes down to
+  the table the way a hardcover does. Its normals turn with it, so the facing
+  test and the hatching need nothing new.
+- **It lands with one bounce**, keyframes rather than a spring, since a spring
+  would overshoot into the table rather than off it. Closing settles on the
+  pages the same way.
+- **The camera steps back and up as it opens.** The scale eases from the shut
+  book's fit to the open book's, and the view turns toward the front and toward
+  overhead, so the first page faces the reader. The book is recentred on its
+  own projection every frame, so this reads as the camera moving.
+- **The first page writes itself** once the board is out of the way, as one
+  hand at one speed: each stroke takes its share of the time by its length. The
+  words are trochoids with their loops at the top of each stroke, which is an
+  `e` or an `l`. At the baseline the loops read as a row of `m`s, which the
+  first build did. The page carries a title, six lines and a small sketch of a
+  cuboid, and the ruled lines are printed, so they are there before anything is
+  written. A shut book is written again the next time it opens.
+- **The inside of the board is a pastedown with a bookplate.**
+- **The shadow follows the board.** Every corner falls on the table along the
+  light and the shadow is their hull. Height is capped at 1.6 books, or the
+  board standing upright mid-turn throws a shadow five books long.
+
+#### The rest
+
 - **Everything is laid in world space**: the leaves on the page block, the
-  hatching on the dark sides, the hatched shadow on the table, the cover's frame,
-  label and stamp, and the dot grid on the table. So all of it foreshortens with
-  the book, and the grid going from square to isometric says what the camera did.
+  hatching on the dark sides, the hatched shadow, the cover's frame, label and
+  stamp, the writing and the dot grid on the table. So all of it foreshortens
+  with the book, and the grid going from square to isometric says what the
+  camera did.
 - **The light is above, behind and to the right**, so both sides that face the
   reader in the isometric pose are hatched and the cover stays clean.
-- **One scale fits both poses, and the book is recentred on its own projection
-  every frame**, so the turn reads as the camera going round the book rather
-  than the book sliding off.
 - **The whole stage is the hover target, not the book's outline.** The outline
   grows and moves as the camera turns, and a target that moves under a parked
   pointer is the loop `document-pocket` documents.
 - **While a hand is over the stage the camera leans toward it**, up to 0.2 rad
-  of turn and 0.12 of tilt on a spring, scaled by `t` so the top view never
+  of turn and 0.12 of tilt on a spring, scaled by `turn` so the top view never
   rotates in place.
-- **Mouse and pen hover, touch taps.** A tap toggles, a touch `pointerleave` is
-  ignored (`book-opening`'s trap), Enter and Space toggle from the keyboard, and
-  Escape lets go. A mouse click does nothing, since the hover already did it.
-- **It invents no colour.** The strokes are `text-primary`, `text-secondary` and
-  `text-muted`, the grid `stroke-strong` and the paper `bg`, read off the tokens
-  at mount since a canvas fill cannot take a `var()`. The stage is `surface`, a
-  step off white, so the white book reads as a sheet lying on it.
+- **A mouse hovers to turn and clicks to open and close.** Leaving shuts the
+  book and turns it back. Touch and the keyboard have no hover, so a tap, Enter
+  or Space steps through the three states in order, cover, cuboid, open, and
+  Escape goes back to the cover. A touch `pointerleave` is ignored
+  (`book-opening`'s trap), and the click a tap produces is ignored, since the
+  tap was already heard on its release. The button's `aria-label` names the
+  next step.
+- **It invents no colour.** The ink is `text-primary`, `text-secondary` and
+  `text-muted`, the grid and the ruled lines `stroke-strong` and the paper `bg`,
+  read off the tokens at mount since a canvas fill cannot take a `var()`. The
+  stage is `surface`, a step off white, so the white book reads as a sheet lying
+  on it.
 - **Nothing renders per frame.** The canvas redraws on a motion value's change,
   coalesced to one draw a frame. Measured: 0 frames requested at rest.
-- **Reduced motion turns in one step** with no lean and no boil.
-- It has no preview clip yet, so the index shows no hover preview for it.
+- **Reduced motion keeps every state and drops the travel**: the inking, the
+  turn, the opening and the writing all land in one step, with no lean and no
+  boil.
+- **Its clip has a `prep` that waits out the first inking**, so the first
+  frame, which is the card's poster, is the finished cover rather than half of
+  it. The pointer comes in from below, which turns the book, and drifts so the
+  camera leans. A press opens it and the page writes itself, a second press
+  shuts it, and the pointer leaves, which turns it back to the cover, so the
+  clip loops. 8.5s and 223KB.
 
 ## Motion
 
