@@ -1,0 +1,6 @@
+{
+  "title": "the cursor forgets you are dragging",
+  "description": "A chip you can click and drag shows the wrong cursor mid-drag. CSS reads the element under the pointer, not the gesture, so put the drag in state.",
+  "date": "2026-10-03",
+  "readTime": "1 min read"
+}

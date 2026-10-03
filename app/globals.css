@@ -223,6 +223,17 @@ textarea {
 }
 
 /*
+ * A drag in flight owns the cursor everywhere, for
+ * `app/blogs/the-cursor-forgets-you-are-dragging/`. The gesture writes the flag
+ * once it passes its slop and removes it on release. The `*` is load-bearing:
+ * cursor inherits, and a child that declares its own beats an inherited value.
+ */
+html[data-dragging="true"],
+html[data-dragging="true"] * {
+  cursor: grabbing;
+}
+
+/*
  * The signature writes itself, so the whole reveal lives here rather than in
  * components/home/signature.tsx, which now only injects the asset.
  *

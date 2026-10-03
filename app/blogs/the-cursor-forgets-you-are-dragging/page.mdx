@@ -1,0 +1,42 @@
+import { Broken, Fixed, Inherit } from "./demos";
+
+A chip you can click and drag needs two cursors. A pointing hand at rest, and a
+closed hand while you carry it. The usual `cursor-pointer
+active:cursor-grabbing` shows the wrong one for most of the drag. I shipped this
+in several of the labs here before I noticed. Drag a chip fast and watch the
+readout.
+
+<Broken />
+
+## css asks what is under the pointer
+
+The browser picks the cursor from the element under the pointer. The chip lags
+behind a fast hand and stops at the stage's edge, so the pointer is often over
+the stage or another chip. CSS has no idea a drag is happening.
+
+## the parent loses to its children
+
+Putting the grabbing cursor on the stage doesn't fix it. Hover the chips.
+
+<Inherit />
+
+An inherited cursor loses to a declared one. `cursor-pointer` declares one, and
+so does the browser's own stylesheet for `<button>`.
+
+## put the drag in state
+
+Set a flag when the drag starts, and aim the rule at every element:
+
+```ts
+// after 4px of movement, never on a click. Remove on release.
+document.documentElement.dataset.dragging = "true";
+```
+
+```css
+html[data-dragging="true"],
+html[data-dragging="true"] * {
+  cursor: grabbing;
+}
+```
+
+<Fixed />
