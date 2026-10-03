@@ -1509,6 +1509,35 @@ const LABS = {
       await wait(1400);
     },
   },
+  "sketch-book": {
+    // the stage is the card's own 8:5, so the clip is the whole stage
+    focus: [0, 0, 538, 336],
+    // the first inking runs 2.5s from the moment the stage is in view, so the
+    // clip waits it out and opens on the finished cover rather than half of it
+    async prep({ page }) {
+      await page.waitForTimeout(600);
+    },
+    /*
+     * The pointer comes in from below, which turns the cover into the cuboid,
+     * and drifts so the camera leans. A press opens the board and the page
+     * writes itself, a second press shuts it, and leaving the stage turns the
+     * book back to its cover, so the clip loops.
+     */
+    async run({ m }) {
+      await wait(500);
+      await m.move(300, 330, 1);
+      await m.move(290, 230, 8);
+      await wait(900);
+      await m.move(220, 150, 14);
+      await wait(500);
+      await m.click(240, 170);
+      await wait(3500);
+      await m.click(240, 170);
+      await wait(1000);
+      await m.move(300, 360, 8);
+      await wait(1300);
+    },
+  },
 };
 
 function crop(rect, bounds) {
