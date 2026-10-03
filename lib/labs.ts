@@ -755,6 +755,7 @@ export const labsRegistry: LabMetadata[] = [
     createdAt: "2026-10-03",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/bento-focus/index.tsx",
+    reference: "https://annnimate.com/animations/bento-focus",
     flush: true,
     hint: "Press a small tile to bring it into the focus slot.",
   },
