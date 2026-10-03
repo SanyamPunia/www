@@ -748,16 +748,16 @@ export const labsRegistry: LabMetadata[] = [
     slug: "bento-focus",
     title: "Bento Focus",
     description: [
-      "five gradient tiles on a bento grid with one large focus slot. press a small tile and it grows into the slot while the one that had it shrinks back, the rest re-settle into the mixed-shape slots on the right, and the farther a tile has to go the later it sets off.",
-      "key insight: every tile is always mounted and its box is four motion values on one spring, animated rather than scaled. so a press mid-flight starts every tile from the position and the speed it had reached and the grid changes course without stopping, and the corners stay round and the gradients repaint at the new size on every frame.",
-      "the focused tile's title and copy are laid out at the focus slot's width the whole time, so they never reflow while the box grows round them, and they rise into their masks as it lands.",
+      "five gradient tiles on a bento grid with one large focus slot. press a small tile and it grows into the slot, or carry it there by hand while the grid makes room, and the focus tile dragged onto a small slot swaps with the tile there.",
+      "key insight: every tile is a window onto a picture laid out at the focus slot's size, so a tile that grows shows more of its picture rather than the same picture bigger, and the target's rim, the ball's flight and the holds only appear in the focus slot. its box is four motion values on one spring, so a drag and a press write the same values and a release carries the hand's speed.",
+      "hover is tested against the resting slots, so a hovered tile can grow into the gap without moving the edge that decides it. the arrow keys walk the grid by position.",
     ],
     createdAt: "2026-10-03",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/bento-focus/index.tsx",
     reference: "https://annnimate.com/animations/bento-focus",
     flush: true,
-    hint: "Press a small tile to bring it into the focus slot.",
+    hint: "Press a tile, or drag it into the focus slot.",
   },
 ];
 

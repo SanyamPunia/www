@@ -77,13 +77,98 @@ export function bento(width: number, height: number): Bento {
 }
 
 /**
- * Which slot each tile takes: the focused tile has the focus slot and the rest
- * fill the small ones in their own order, so the arrangement is a function of
- * one index and a tile never has to remember where it was.
+ * Which tile sits in which slot is an order, `order[slot] = tile`, and the
+ * focus slot is `order[0]`. It is a list rather than a function of one index
+ * because a drag can put a tile in a slot the arithmetic would never pick.
  */
-export function assign(count: number, focus: number): number[] {
-  let next = 1;
-  return Array.from({ length: count }, (_, i) => (i === focus ? 0 : next++));
+export type Order = readonly number[];
+
+export const initialOrder = (count: number): Order =>
+  Array.from({ length: count }, (_, i) => i);
+
+/**
+ * A press, or a tile dragged into the focus slot. The tile that had the slot
+ * takes the first small slot, beside it, and the tiles between move along one
+ * to close the gap, so the grid reads as a list of what was looked at last and
+ * every tile re-settles into a slot of a different shape.
+ */
+export function promote(order: Order, tile: number): Order {
+  if (order[0] === tile) return order;
+  return [tile, order[0], ...order.slice(1).filter((t) => t !== tile)];
+}
+
+/**
+ * The focus tile dragged out onto a small slot. It lands where it was put and
+ * the tile that was there takes the focus slot. Nothing else moves, since the
+ * hand placed this tile and nothing else.
+ */
+export function swapIn(order: Order, slot: number): Order {
+  const next = [...order];
+  [next[0], next[slot]] = [next[slot], next[0]];
+  return next;
+}
+
+/** each tile's rect under an order */
+export function rects(grid: Bento, order: Order): Rect[] {
+  const out: Rect[] = [];
+  order.forEach((tile, slot) => {
+    out[tile] = grid.slots[slot];
+  });
+  return out;
+}
+
+export const centre = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+
+export function lerpRect(a: Rect, b: Rect, t: number): Rect {
+  const m = (p: number, q: number) => p + (q - p) * t;
+  return { x: m(a.x, b.x), y: m(a.y, b.y), w: m(a.w, b.w), h: m(a.h, b.h) };
+}
+
+/**
+ * The slot a pointer is over, against the resting slots and never the moving
+ * boxes, each grown by half a gap so the gaps belong to the nearer slot. A
+ * hovered tile grows, so testing the boxes would let the hover move the edge
+ * that decides it, which is the loop `document-pocket` documents.
+ */
+export function slotAt(grid: Bento, x: number, y: number): number {
+  const gap = grid.slots[1].x - (grid.slots[0].x + grid.slots[0].w);
+  const half = gap / 2;
+  return grid.slots.findIndex(
+    (r) =>
+      x >= r.x - half &&
+      x <= r.x + r.w + half &&
+      y >= r.y - half &&
+      y <= r.y + r.h + half,
+  );
+}
+
+/**
+ * The slot an arrow key moves to from `from`: the nearest centre in that
+ * direction, with distance off the axis costing double, so right from the focus
+ * slot picks the slot level with it before one diagonally away.
+ */
+export function slotToward(
+  grid: Bento,
+  from: number,
+  dx: number,
+  dy: number,
+): number {
+  const a = centre(grid.slots[from]);
+  let best = -1;
+  let score = Number.POSITIVE_INFINITY;
+  grid.slots.forEach((r, i) => {
+    if (i === from) return;
+    const c = centre(r);
+    const along = (c.x - a.x) * dx + (c.y - a.y) * dy;
+    if (along <= 1) return;
+    const across = Math.abs((c.x - a.x) * dy - (c.y - a.y) * dx);
+    const s = along + across * 2;
+    if (s < score) {
+      score = s;
+      best = i;
+    }
+  });
+  return best;
 }
 
 /** how far a tile's centre travels between two rects */
