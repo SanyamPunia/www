@@ -763,15 +763,15 @@ export const labsRegistry: LabMetadata[] = [
     slug: "sketch-book",
     title: "Sketch Book",
     description: [
-      "a book drawn in thin pen strokes, seen from straight above, so all there is of it is a cover. hover it and the camera swings round and down to an isometric view, and the rectangle turns out to be a cuboid with a spine, a page block and boards that overhang it.",
-      "key insight: the book is four boxes and the camera is two angles under an orthographic projection, so the top view and the cuboid are one drawing at two poses. at zero tilt every side face is edge on and culls itself, and every pen wobble is a share of its own line's length, so a side shrinking to nothing takes its scribble with it.",
-      "while the camera turns, the lines are redrawn with a fresh wobble about twelve times a second, which is what a drawing animated a frame at a time looks like.",
+      "a book drawn in thin pen strokes, seen from straight above, so all there is of it is a cover. hover it and the camera swings down to an isometric view and it turns out to be a cuboid, and press it and the cover opens and the first page writes itself.",
+      "key insight: the book is four boxes and the camera is two angles under an orthographic projection, so the cover and the cuboid are one drawing at two poses. every line is a filled ribbon whose width is the pen's pressure, landing heavy and lifting thin, and every wobble is a share of its own line's length, so a side turning edge on takes its scribble with it.",
+      "the drawing inks itself in the order a sketch is built when it first comes into view, and redraws its wobble about twelve times a second while the book moves.",
     ],
     createdAt: "2026-10-04",
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/sketch-book/book.ts",
     flush: true,
-    hint: "Hover the book to see its sides, or tap it on a phone.",
+    hint: "Hover the book to turn it, then press to open it.",
   },
 ];
 
