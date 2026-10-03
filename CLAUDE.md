@@ -1762,7 +1762,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph` and `bento-focus` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus` and `sketch-book` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -9212,6 +9212,64 @@ the stage, the moves, the drag and the text.
 - **Its clip is a press, a drag and two presses**: Precision in, Focus carried
   back into the slot by hand, then Arc and Focus while Arc is still in the air,
   which leaves every tile where it started, so the clip loops. 5.7s and 131KB.
+
+### `sketch-book`
+
+A book drawn in thin pen strokes, seen from straight above, so all there is of
+it is a cover. Hover the stage and the camera swings round and down to a true
+isometric view, and the rectangle turns out to be a cuboid. `book.ts` is the
+model, the camera and the pen, pure apart from the context it is handed, and
+`index.tsx` is the stage, the gesture and the redraw.
+
+- **The book is four boxes and the camera is two angles.** The bottom board,
+  the page block inset 5 units on the three open sides, the spine flush with the
+  boards on the left, and the top board. The camera is a turn about the table's
+  normal and a tilt off straight down, under an orthographic projection, which
+  is what an isometric drawing is. The isometric pose is a turn of -45 degrees
+  and a tilt of `atan(sqrt 2)`. The turn is negative so the spine faces the
+  reader.
+- **One number carries the turn, `t`, 0 for the cover and 1 for the cuboid.**
+  At zero tilt every side face is edge on and fails the facing test, so the top
+  view needs no special case. A spring out at 0.7s with a little bounce, and
+  back at 0.55s with none, since an overshoot below zero tilts the camera under
+  the table.
+- **Painter's order, bottom board up, and each box draws its visible faces and
+  then its visible edges once.** This works because the camera only ever looks
+  down. A box is convex, so an edge of any visible face is a visible edge.
+- **Every pen wobble is a share of its own line's length with a pixel cap.** The
+  overshoot, the end shake and the bow all scale with the line, so a side
+  shrinking to nothing as it turns edge on takes its scribble with it. Each
+  edge is two passes, the double stroke of a pen going over a line twice.
+- **The drawing boils while the camera turns.** A new wobble seed about 12 times
+  a second, only while `t` is animating, which is what a drawing animated a
+  frame at a time looks like. The pointer lean does not boil, or every twitch of
+  the hand would.
+- **Everything is laid in world space**: the leaves on the page block, the
+  hatching on the dark sides, the hatched shadow on the table, the cover's frame,
+  label and stamp, and the dot grid on the table. So all of it foreshortens with
+  the book, and the grid going from square to isometric says what the camera did.
+- **The light is above, behind and to the right**, so both sides that face the
+  reader in the isometric pose are hatched and the cover stays clean.
+- **One scale fits both poses, and the book is recentred on its own projection
+  every frame**, so the turn reads as the camera going round the book rather
+  than the book sliding off.
+- **The whole stage is the hover target, not the book's outline.** The outline
+  grows and moves as the camera turns, and a target that moves under a parked
+  pointer is the loop `document-pocket` documents.
+- **While a hand is over the stage the camera leans toward it**, up to 0.2 rad
+  of turn and 0.12 of tilt on a spring, scaled by `t` so the top view never
+  rotates in place.
+- **Mouse and pen hover, touch taps.** A tap toggles, a touch `pointerleave` is
+  ignored (`book-opening`'s trap), Enter and Space toggle from the keyboard, and
+  Escape lets go. A mouse click does nothing, since the hover already did it.
+- **It invents no colour.** The strokes are `text-primary`, `text-secondary` and
+  `text-muted`, the grid `stroke-strong` and the paper `bg`, read off the tokens
+  at mount since a canvas fill cannot take a `var()`. The stage is `surface`, a
+  step off white, so the white book reads as a sheet lying on it.
+- **Nothing renders per frame.** The canvas redraws on a motion value's change,
+  coalesced to one draw a frame. Measured: 0 frames requested at rest.
+- **Reduced motion turns in one step** with no lean and no boil.
+- It has no preview clip yet, so the index shows no hover preview for it.
 
 ## Motion
 
