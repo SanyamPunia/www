@@ -1475,10 +1475,12 @@ const LABS = {
     // the stage is the card's own 8:5, so the clip is the whole stage
     focus: [0, 0, 538, 336],
     /*
-     * Precision into the focus slot, then Grip, and while Grip is still in the
-     * air a press on Focus, which turns the grid round mid-flight and puts it
-     * back where it started, so the clip loops. Each press leaves the tile in
-     * the same breath, or the hover veil sits on it for the rest of the clip.
+     * Precision in by a press, then Focus carried back into the slot by hand,
+     * slowly enough that the grid is seen making room, then Arc pressed and
+     * Focus pressed while Arc is still in the air, which turns the grid round
+     * mid-flight and leaves every tile where it started, so the clip loops.
+     * Each press leaves the tile in the same breath, or the hover veil sits on
+     * it for the rest of the clip.
      */
     async run({ m }) {
       const press = async (x, y) => {
@@ -1489,10 +1491,21 @@ const LABS = {
       };
       await wait(600);
       await press(458, 100);
-      await wait(1100);
-      await press(410, 236);
+      await wait(1000);
+      await m.move(330, 100, 4);
+      await m.down();
+      for (let i = 1; i <= 24; i++) {
+        const k = i / 24;
+        await m.move(330 - 190 * k, 100 + 75 * k, 1);
+        await wait(16);
+      }
+      await wait(250);
+      await m.up();
+      await m.move(269, 330, 1);
+      await wait(1000);
+      await press(458, 100);
       await wait(180);
-      await press(310, 80);
+      await press(319, 99);
       await wait(1400);
     },
   },
