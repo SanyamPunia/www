@@ -1152,6 +1152,42 @@ deliberately does not share its shape.
   one right answer among four are different jobs, and the emphatic neutral only
   does the second. See Colour tokens.
 
+### `the-cursor-forgets-you-are-dragging`
+
+A short post on the grab cursor bug that ran through the drag labs. Chips you
+click and drag show the wrong cursor mid-drag, because CSS reads the element
+under the pointer, not the gesture. `demos.tsx` holds `Broken`, `Inherit` and
+`Fixed`.
+
+- **`Broken` and `Fixed` are one board with one variable**: two classes on the
+  chip, or a flag the gesture writes. Same chips, same follow spring, same clamp
+  to the stage.
+- **Every readout is `getComputedStyle(el).cursor` on `elementFromPoint`**, so
+  it reports what CSS asks for. The label is the raw value (`auto`, `default`),
+  never a name for the painted cursor, since `auto` over prose is an I-beam.
+- **The tally counts drag frames where that value is not `grabbing`.** Measured
+  on one fast sweep: 41 of 44 on `Broken`, 0 of 43 on `Fixed`.
+- **The fix writes `data-dragging` to `<html>`, not to the stage.** The pointer
+  leaves a clamped chip's stage easily, and a flag on the stage stops working
+  the moment it does. The rule that reads it is global in `globals.css`, since a
+  component class cannot target `<html>`. This differs from the labs, which put
+  `data-carry` on their stage because their drags stay inside it.
+- **`Inherit` is a stage frozen mid-drag** with `cursor-grabbing` on it and one
+  toggle for `[&_*]:cursor-grabbing`. Its two chips are the two ways a child
+  declares a cursor: a class, and the UA stylesheet's `default` on `<button>`.
+- **Every readout morphs through `torph`**, at 160ms for `the-card-flinches`'
+  reason: the cursor under a fast drag changes often, and a morph still running
+  as the next starts is a smear. The cursor is state set only when it changes,
+  so a drag renders once per change and never per frame. The tally changes
+  every frame, so it reads "counting frames" during a drag and morphs to the
+  count on release.
+- **No `Demo` frame.** Each demo is a full-width grey stage with its readout
+  under it, since a hairline box round a stage read as chrome around chrome.
+- **`select-none` is on each whole demo block**, not on the stages alone. A
+  drag that leaves a chip anchors a selection on the nearest text, which is the
+  readout. Measured on all three: a triple click on the readout, a drag across
+  the frame and a drag out into the prose select nothing.
+
 ### `why-nested-rounded-corners-show-an-extra-curve`
 
 A scroll panel with a thick grey frame showed a faint curved outline at every
