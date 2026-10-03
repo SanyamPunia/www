@@ -1927,8 +1927,8 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty clips, 3.8MB with their stills, 3.4 to 9.1 seconds each, at 60 frames a
-  second.
+- Fifty-one clips, 3.9MB with their stills, 3.4 to 9.1 seconds each, at 60
+  frames a second.
 
 ### `tab-overview`
 
@@ -9048,6 +9048,9 @@ the moves and the text.
 - Measured: 0 frames requested at rest and 0 after a move has settled, and
   under a 4x CPU throttle through a press and a mid-flight second press, 104
   frames at a 16.7ms median and a 16.8ms worst.
+- **Its clip is three presses**: Precision into the slot, then Grip, then Focus
+  while Grip is still in the air, which turns the grid round and puts it back
+  where it started, so the clip loops. 3.5s and 84KB.
 
 ## Motion
 
