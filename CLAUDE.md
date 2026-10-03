@@ -1698,7 +1698,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink` and `weather-morph` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph` and `bento-focus` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1755,6 +1755,9 @@ experiment is a directory under `components/labs/`.
   and its claim is the weakest in the lab and stated as such: a flag is made to
   be seen, and the same flag in near-black on white read as bland. See its own
   section.
+  `bento-focus`'s five gradients are the same claim as `photo-stack`'s: each
+  tile's colours are the picture, and colour is what tells five tiles built
+  from the same layers apart. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -8952,6 +8955,99 @@ interpolates them, all pure, and `index.tsx` is the button and the paint.
   it starts on and loops. Each press lands on the icon and leaves the tile in
   the same breath, so the hover and press show for a moment and the morph
   plays on a clear ground. 6.5s and 40KB.
+
+### `bento-focus`
+
+Five gradient tiles on a bento grid with one large focus slot. Press a small
+tile and it grows into the slot, the tile that had it shrinks back, and the
+rest re-settle into the small slots. `art.ts` writes the five pictures as CSS
+gradients,
+`layout.ts` is the geometry, pure and DOM-free, and `index.tsx` is the stage,
+the moves and the text.
+
+- **It is on Motion, and the reference is GSAP Flip.** Flip measures every box
+  before and after a class change and animates the difference. Here the slots
+  are computed in `layout.ts` and every tile is moved to its slot directly, so
+  nothing is measured off the DOM after the first layout.
+- **Every tile is always mounted and only ever moved.** Its box is four motion
+  values, `x`, `y`, `width` and `height`, animated rather than scaled, for
+  `document-pocket`'s reason: a scale takes the corner radius with it, and the
+  rings and bands inside would stretch. Nothing renders while the grid moves. `layout`
+  was not used, since its in-between frames are a scale the engine owns.
+- **One spring carries every tile, and that is what makes a second press work.**
+  A press mid-flight starts every tile from the position and the velocity it
+  had reached, so the grid changes course without stopping. The reference runs
+  a 0.7s in-out ease, and an ease restarted mid-flight starts again from rest.
+  The spring is `visualDuration` 0.42 with a bounce of 0.1. It was 0.6 first,
+  with every text timing half again as long, and read as slow.
+- **The farther a tile goes, the later it sets off**, up to `SPREAD`, 70ms,
+  in proportion to its own travel. Two tiles are exempt. The pressed tile goes
+  at once, since it answers the press. A tile already in flight gets no delay,
+  since a delay holds the value still and a tile would stop in mid-air before
+  it turned.
+- **The slots are mixed shapes on purpose.** The right block is a wide slot
+  and a narrow one on top, and the narrow one first underneath, so a tile
+  re-settling changes shape as well as place.
+  - **The room round the grid is wider than the gaps inside it**, 7% of the
+    stage against 2.4%, so the five tiles read as one object on the stage. The
+    first build ran 4.5% and 1.4% and the grid filled the frame.
+  - **A compact stage changes two shares.** Under 448px the focus slot takes
+    0.46 of the stage rather than 0.4, or its copy runs to six lines, and the
+    wide slot takes 1.4 units rather than two. At two the narrow slot is 50px
+    across and cuts "precision" off at its label's smallest size.
+    Measured at 1280: the focus slot 185 by 260, a wide slot 167 by 123 and a
+    narrow one 84 by 123.
+- **The tile coming in paints over everything and the one going out over the
+  rest**, through a `zIndex` motion value set on the press. The two tiles that
+  cross the grid are never under a third.
+- **The title and copy are laid out at the focus slot's width on every tile,
+  all the time.** The tile's own clip hides them while it is small, and they
+  never reflow while the box grows round them, which is `tide-card`'s claim
+  about laying the card out once.
+  - They rise into their masks at `LAND`, 0.2s in, on a strong ease-out over
+    550ms, the copy 60ms behind the title. The reference splits the copy into masked lines
+    with SplitText. Motion has nothing that does that, and the copy is one or two
+    lines, so it rises as one block.
+  - Text leaving goes up out of its mask on an in-out curve in 240ms, and text
+    arriving rises from below. So a label is never seen sinking back into the
+    place it rose from.
+  - **The logical state of each label and each detail lives in a ref**, since a
+    value mid-animation cannot say which way it is going. A press compares the
+    state it wants with the state it has and animates only what changed.
+- **The pictures are CSS gradients, not drawings.** The first build drew five
+  SVG posters of sports, and the author asked for something simpler. Each tile
+  is a flat ground, a mesh of four soft radial blobs, and one motif in a
+  gradient of its own kind: concentric rings, a low sun, a conic sheen, lane
+  bands and a crosshatch. So no two tiles are one picture in different colours.
+  - **Gradients repaint at a new size for almost nothing**, where an `<img>`
+    holding an SVG is rasterised again, and a tile resizes on every frame of a
+    move. They are in percentages and carry no subject, so no crop can cut
+    anything off.
+  - **The mesh drifts.** It sits on a layer a quarter larger than the tile on
+    every side, so its edge never shows, and `bento-drift` in `globals.css`
+    moves and turns it over 15 to 23 seconds. Each tile names its own duration
+    and a negative delay inline, which beat the shorthand in the class, so no
+    two tiles move in step. It is a CSS animation, so it requests no frames,
+    and `motion-safe:` takes it away under reduced motion.
+  - The grain is `document-pocket`'s tile at a fixed 160px, so a tile
+    resizing never rasterises it again.
+  - The hues are scoped to this experiment and are not tokens.
+- **The words over the pictures are `inverse-text` on a black scrim at 55%**,
+  which is the scrim exception. Their sizes are shares of the stage, off the
+  type scale on purpose, `foil-card`'s standing for type printed on a picture.
+- **Hover is a black veil at 10% and press at 20%**, instant in and 200ms
+  out, and the focused tile carries neither. Tailwind's `hover:` is already
+  inside `(hover: hover)`, so a tap leaves no veil behind.
+- **A tile is a real `<button>` with `aria-pressed`**, named by its title, and
+  the focused one is described by its copy. A polite live region says which
+  tile is in focus. The focus ring paints its offset in `fill`, the stage's own
+  ground.
+- **A resize is set, not animated**, `gooey-chips`'s rule for a corrected
+  measurement.
+- **Reduced motion lands every tile and every line of text in one step.**
+- Measured: 0 frames requested at rest and 0 after a move has settled, and
+  under a 4x CPU throttle through a press and a mid-flight second press, 104
+  frames at a 16.7ms median and a 16.8ms worst.
 
 ## Motion
 
