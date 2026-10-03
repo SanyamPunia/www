@@ -744,6 +744,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press the icon to morph it into the next one.",
   },
+  {
+    slug: "bento-focus",
+    title: "Bento Focus",
+    description: [
+      "five gradient tiles on a bento grid with one large focus slot. press a small tile and it grows into the slot while the one that had it shrinks back, the rest re-settle into the mixed-shape slots on the right, and the farther a tile has to go the later it sets off.",
+      "key insight: every tile is always mounted and its box is four motion values on one spring, animated rather than scaled. so a press mid-flight starts every tile from the position and the speed it had reached and the grid changes course without stopping, and the corners stay round and the gradients repaint at the new size on every frame.",
+      "the focused tile's title and copy are laid out at the focus slot's width the whole time, so they never reflow while the box grows round them, and they rise into their masks as it lands.",
+    ],
+    createdAt: "2026-10-03",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/bento-focus/index.tsx",
+    flush: true,
+    hint: "Press a small tile to bring it into the focus slot.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -842,6 +856,7 @@ export const IMPLEMENTED_LABS = [
   "point-cloud",
   "fingerprint-ink",
   "weather-morph",
+  "bento-focus",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

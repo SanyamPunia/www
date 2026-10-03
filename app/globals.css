@@ -673,6 +673,21 @@ textarea {
 }
 
 /*
+ * The slow drift of the gradient mesh under each tile in
+ * `components/labs/bento-focus/`. Each tile names its own duration and a
+ * negative delay inline, which beat the shorthand in the class, so no two
+ * tiles move in step. It is `motion-safe:` at the call site.
+ */
+@keyframes bento-drift {
+  from {
+    transform: translate(-5%, -4%) rotate(-4deg);
+  }
+  to {
+    transform: translate(5%, 4%) rotate(6deg) scale(1.08);
+  }
+}
+
+/*
  * Marching ants on the box a comment is being written for, for
  * `components/labs/region-comment/`. One whole dash plus its gap, so the loop has
  * no seam, and it is `motion-safe:` at the call site.

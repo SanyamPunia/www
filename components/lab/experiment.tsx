@@ -200,6 +200,9 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
   "weather-morph": dynamic(() => import("@/components/labs/weather-morph"), {
     ssr: false,
   }),
+  "bento-focus": dynamic(() => import("@/components/labs/bento-focus"), {
+    ssr: false,
+  }),
 };
 
 export function Experiment({ slug }: { slug: ImplementedLab }) {
