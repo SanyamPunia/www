@@ -759,6 +759,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Press a tile, or drag it into the focus slot.",
   },
+  {
+    slug: "sketch-book",
+    title: "Sketch Book",
+    description: [
+      "a book drawn in thin pen strokes, seen from straight above, so all there is of it is a cover. hover it and the camera swings round and down to an isometric view, and the rectangle turns out to be a cuboid with a spine, a page block and boards that overhang it.",
+      "key insight: the book is four boxes and the camera is two angles under an orthographic projection, so the top view and the cuboid are one drawing at two poses. at zero tilt every side face is edge on and culls itself, and every pen wobble is a share of its own line's length, so a side shrinking to nothing takes its scribble with it.",
+      "while the camera turns, the lines are redrawn with a fresh wobble about twelve times a second, which is what a drawing animated a frame at a time looks like.",
+    ],
+    createdAt: "2026-10-04",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/sketch-book/book.ts",
+    flush: true,
+    hint: "Hover the book to see its sides, or tap it on a phone.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -858,6 +872,7 @@ export const IMPLEMENTED_LABS = [
   "fingerprint-ink",
   "weather-morph",
   "bento-focus",
+  "sketch-book",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
