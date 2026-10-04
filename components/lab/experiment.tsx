@@ -439,6 +439,13 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
       loading: Placeholder,
     },
   ),
+  "ambient-card": dynamic(
+    () => import("@/components/labs/ambient-card").then(ready),
+    {
+      ssr: false,
+      loading: Placeholder,
+    },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

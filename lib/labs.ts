@@ -773,6 +773,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Hover the book to turn it, then press to open it.",
   },
+  {
+    slug: "ambient-card",
+    title: "Ambient Card",
+    description: [
+      "a picture that casts its shadow in its own colours. each side of the shadow is the colour most of that side of the picture is, so a picture that runs from cobalt to emerald throws blue off one corner and green off the other.",
+      "key insight: the edge is cut into thirty segments and each one takes a majority vote over a band of the picture just inside it, 64 coarse bins and the mean of the fullest, because the average of a band holding two colours is a third colour that is on neither. each colour is then pulled darker and more saturated, since a shadow on white has to be darker than the page to show at all.",
+      "the picture is a canvas sampled live, so dragging it round turns the shadow's colours with it, and a new picture's colours travel round the edge from the dot that was pressed.",
+    ],
+    createdAt: "2026-10-04",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/ambient-card/glow.ts",
+    flush: true,
+    hint: "Drag the picture to turn it, or pick another below.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -873,6 +887,7 @@ export const IMPLEMENTED_LABS = [
   "weather-morph",
   "bento-focus",
   "sketch-book",
+  "ambient-card",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
