@@ -1762,7 +1762,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus` and `sketch-book` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book` and `ambient-card` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1992,7 +1992,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-two clips, 4.2MB with their stills, 3.4 to 9.4 seconds each, at 60
+- Fifty-three clips, 4.3MB with their stills, 3.4 to 9.4 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -9333,6 +9333,154 @@ and `index.tsx` is the stage, the gestures and the redraw.
   camera leans. A press opens it and the page writes itself, a second press
   shuts it, and the pointer leaves, which turns it back to the cover, so the
   clip loops. 8.5s and 223KB.
+
+### `ambient-card`
+
+A picture on a grey stage that casts its shadow in its own colours. Each side
+of the shadow is the colour most of that side of the picture is. Drag the
+picture round to turn it and the shadow's colours turn with it. Pick another
+picture from the dots under it and the new colours travel round the edge from
+the dot that was pressed. `art.ts` is the four pictures and how one is drawn at an
+angle, `glow.ts` samples a picture and paints the shadow, pure apart from the
+context it is handed, and `index.tsx` is the stage, the loop and the
+controls.
+
+- **The perimeter is cut into 30 segments**: 8 along the top and the foot, 5
+  down each side, and one per corner. Each segment samples a band of the
+  picture just inside its own stretch of edge, 24% of the picture's height
+  deep.
+- **A segment's colour is a majority vote, not an average.** The band's pixels
+  go into 64 bins, four levels a channel, and the result is the mean of the
+  fullest bin. An average of a band that is half one colour and half another is
+  a colour that is not on the picture. Coarse bins keep a gradient in one or
+  two bins, so it is not split across a dozen that each lose.
+- **Each colour is pulled into a shadow tone before it is painted.** A shadow
+  on a light ground has to be darker than it, so a pale cyan painted as itself is
+  invisible. `tone` sets oklch lightness to 0.62 to 0.76, or 0.08 under the
+  colour's own when that is higher, and raises chroma. Yellow only has chroma
+  near the top of the range, and pulled into the band it came back olive. It
+  also steps chroma down until the colour is inside sRGB, since clamping each
+  channel shifts the hue. A colour with almost no chroma keeps almost none.
+- **Each segment is softened against its two neighbours** in oklab, so a
+  picture that changes colour between two segments changes the shadow over
+  three.
+- **The shadow is a drop shadow, not a cloud.** It is the picture's own rounded
+  rect, 3% of its height larger on every side and 6% lower, filled with the
+  segment colours and blurred as one piece by a CSS filter at 13% of the
+  height. So it follows the corners and falls off evenly from every edge.
+  - **The first build painted a radial blob outside each segment**, and it
+    spread as a vague fog that ignored the picture's shape, with a row of bumps
+    along each side. Do not go back to blobs.
+  - **The shape is filled as a fan of 160 thin wedges** from its middle, each
+    the colour of the outline point it ends on, mixed between the two nearest
+    segments. The ties are worked out once per size in `outline`. Each wedge
+    reaches one point past its neighbour, so the antialiased seams are covered,
+    and the wedges are opaque, with the shadow's alpha on the canvas's own
+    `opacity`, so overlaps do not double up.
+  - **The canvas margin is derived from those numbers**, the drop, the wave and
+    two and a half blur deviations. A margin picked by hand stopped short and
+    cut the shadow off in a hard line under the picture.
+- **The edge breathes.** Two sines run round the outline in opposite
+  directions, three waves and two, and push each outline point in and out along
+  its normal by up to 4.5% of the height. So each side swells and thins rather
+  than the whole shadow pulsing.
+- **The picture is a canvas, and it is sampled live.** A picture is data, two
+  colours and nine stops, drawn by `drawFace` at any angle with CSS's gradient
+  geometry. Whenever the angle or the picture changes, the loop draws the same
+  thing again at 214 by 135 into a `willReadFrequently` canvas, reads it back
+  and votes again. So the shadow cannot disagree with what is on screen,
+  because it is read off it. The loop eases each segment toward the new colours
+  in oklab on a 0.12s time constant, quick enough that a turning picture's
+  shadow keeps up with the hand.
+- **Dragging turns the picture like a dial.** Its angle follows the pointer's
+  bearing round the picture's middle, and letting go coasts on a 0.35s time
+  constant, off a velocity smoothed over the last few moves. A hand that stopped
+  for 60ms before letting go throws nothing. The holder is a `role="slider"`, so
+  the arrow keys turn it 15 degrees through the same coast. `touch-none` on the
+  holder traps a thumb that lands on the picture, which is the price of turning
+  it with a finger. `cursor-grab` at rest and `data-carry` on the stage for the
+  grabbing cursor, `notch-drop`'s pair, which is one more place the shared
+  `cursor-pointer` rule is off.
+- **A new picture's colours travel round the edge.** The sweep starts at the
+  bottom segment nearest the dot that was pressed, and each segment keeps its
+  old target until a delay of up to 0.6s, set by how far round the edge it is.
+  So the new colour runs both ways round the picture and meets on the far side.
+- **The picture crossfades stop by stop in oklab.** Fading one canvas drawing
+  over another blends in sRGB, which took a blue and green picture into an
+  orange and pink one through a muddy mauve. Every picture has the same nine
+  stop positions, so `blendFaces` draws one gradient whose stops each walk a
+  straight line through oklab.
+- **A switch between the majority and a plain average was built and taken
+  out.** On these pictures the two give nearly the same shadow: a smooth
+  two-colour gradient has one colour per band almost everywhere, so a band's
+  mean and its majority agree. A hard seam between two flat colours changed
+  only the few segments on the seam, under a blur that hides them. The
+  majority still earns its place, since it costs nothing and is right on any
+  picture whose bands mix colours, but the demo cannot show the difference.
+- **The pictures are two solid colours each**, one in the top left corner
+  and one in the bottom right, with stops at 0.15 and 0.85 so each corner
+  holds a flat patch for its segments to sample. There are four, and their
+  eight colours are eight hues with none repeated, so no two pictures share a
+  shadow colour.
+  - **Each pair sits 60 to 110 degrees apart on the wheel**, and the stops
+    between are computed in oklab. SVG blends in sRGB, which took cobalt to
+    gold through khaki, and complementary pairs go grey even in oklab. Walking
+    round the hue wheel instead brought in a third colour, emerald to pink
+    through olive.
+  - One picture throws two clearly different shadows, which is what shows the
+    shadow depends on the colour. A one-hue picture made the shadow one colour
+    and the point was lost.
+  - Drawn scenes came first and were taken out: they were the loudest thing on
+    the stage, and the subject is the shadow.
+- **The hues are scoped**, the claim `photo-stack` makes: each picture's
+  colours are the picture. None are tokens.
+- **There is no card chrome.** A chip, a card number and a sheen were built
+  first and taken out: they made the demo about a credit card, and the subject
+  is the shadow. The picture keeps a credit card's 1.585:1 and one inset
+  hairline in `text-primary` at 10%, which a pale edge needs on white.
+- **The picture is matte, and the grain is why.** A flat gradient on a screen
+  reads as glossy plastic. One `feTurbulence` tile at 45% under `overlay` reads
+  as an uncoated print, and `overlay` leaves the lightest and darkest ends
+  alone, so the grain sits in the colour rather than greying it. It is a layer
+  over the picture and not part of the art, so the sampler never sees it.
+- **Hover lifts the picture by 2.5% of its height**, and the shadow drops
+  further and blurs a little wider, as a shadow does when its object rises.
+  Mouse and pen only. A neutral contact shadow seats the picture on the page.
+- **The picture tips toward the pointer**, `foil-card`'s tilt: up to 8 degrees
+  on each axis under a 900px perspective, on that lab's own spring, stiffness
+  210 and damping 20, run by hand in the frame loop. The edge under the pointer
+  goes back, and the shadow slides away from the pointer by up to 4% of the
+  height, since the edge that comes forward is further off the page.
+  - **The pointer is heard on the holder, which never moves**, and the picture
+    is `pointer-events-none`. A hit test against the tilted box drops the hover
+    and levels the picture under a pointer that never left, the loop
+    `foil-card` documents. Measured: 0 `pointerleave` events across 30 jittered
+    moves parked 3px inside the right edge.
+  - Reduced motion keeps the tilt and drops the spring, so the picture lands on
+    its angle in one step.
+- **The pictures are picked from a row of 19px dots**, each the picture as a CSS
+  gradient, `faceCss`. They are real radios visually hidden inside their labels,
+  `pixel-reveal`'s build, with the selection a `stroke-strong` ring at a 2px
+  offset, never near-black, which outweighed the picture it picks, and the
+  focus mark an outline outside it, so the two compose.
+- **Nothing renders while the shadow moves.** The loop reads refs and writes
+  the two canvases, the shadow's opacity and blur, the picture's transform and
+  the slider's `aria-valuenow`. It stops when
+  the stage is off screen, through an `IntersectionObserver`.
+- **Reduced motion drops the wave, the lift, the coast and the sweep, and
+  colour changes land in one step.** A key press still turns the picture its
+  15 degrees, in one step. The loop paints the frame it was started for and stops.
+- It is `flush`, on `bg-fill`, the grey most of the lab sits on, with its own
+  inset ring. The dots' ring offset is `fill` too, or a white band shows round
+  the picked one. The stage height follows its
+  content, with no sideways scroll at 390px.
+- **Its clip turns the picture one full turn and presses three dots.** The
+  pointer comes in from below, so the picture tips, then drags round the
+  picture once and holds still for 140ms before letting go, so nothing coasts.
+  Three presses then sweep colours round from Sunset's, Ember's and Tide's
+  dots, which ends on Tide at the angle it started at, so the clip loops. The
+  crop is an 8:5 window from the top of the shadow to just under the dots.
+  8.0s and 99KB.
 
 ## Motion
 
