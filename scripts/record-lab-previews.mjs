@@ -1538,6 +1538,44 @@ const LABS = {
       await wait(1300);
     },
   },
+  "ambient-card": {
+    // the stage follows its content, so the crop is an 8:5 window from the top
+    // of the shadow to just under the dots
+    focus: [0, 30, 538, 336],
+    /*
+     * The pointer comes in from below and the picture tips toward it. It turns
+     * the picture one full turn, so the shadow's colours run round the edge,
+     * and holds still before letting go so nothing coasts. Then three presses
+     * on the dots sweep the colours round from each one and end on the first
+     * picture at the angle it started at, so the clip loops.
+     */
+    async run({ m }) {
+      const [cx, cy] = [269, 178];
+      await wait(500);
+      await m.move(cx, 300, 1);
+      await m.move(cx + 40, cy + 30, 8);
+      await wait(500);
+      await m.move(cx + 130, cy, 6);
+      await m.down();
+      for (let i = 1; i <= 48; i++) {
+        const a = (i / 48) * Math.PI * 2;
+        await m.move(cx + 130 * Math.cos(a), cy + 80 * Math.sin(a), 1);
+        await wait(22);
+      }
+      await wait(140);
+      await m.up();
+      await m.move(cx, 318, 6);
+      await wait(700);
+      for (const x of [283, 311, 225]) {
+        await m.move(x, 352, 1);
+        await m.down();
+        await wait(60);
+        await m.up();
+        await m.move(cx, 318, 1);
+        await wait(1300);
+      }
+    },
+  },
 };
 
 function crop(rect, bounds) {
