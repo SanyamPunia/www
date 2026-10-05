@@ -1762,7 +1762,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book` and `ambient-card` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card` and `highlight-wave` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1992,7 +1992,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-three clips, 4.3MB with their stills, 3.4 to 9.4 seconds each, at 60
+- Fifty-four clips, 4.4MB with their stills, 3.4 to 9.4 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -9481,6 +9481,109 @@ controls.
   dots, which ends on Tide at the angle it started at, so the clip loops. The
   crop is an 8:5 window from the top of the shadow to just under the dots.
   8.0s and 99KB.
+
+### `highlight-wave`
+
+A page of three notes. Select a run of text and a palette comes up over it.
+Pick a colour and a wave runs along the selection: each character swells, glows
+in that colour and settles into it, and the bar fills in behind it. Press a mark
+to open the palette on it again. `notes.ts` is the copy, the hues and the range
+arithmetic, `wave.ts` draws the bars and runs the wave, and `index.tsx` is the
+stage, the selection and the palette.
+
+- **A mark is an inline span, and its characters are inline blocks.** A
+  transform does nothing on a plain inline box, so the wave needs a box per
+  character. Each word is a `nowrap` span round its characters, so the line can
+  only break where the prose already could.
+- **Kerning and ligatures are off on the notes**, `[font-kerning:none]` and
+  `[font-variant-ligatures:none]`. An inline block ends a shaping run, so a run
+  split into characters lost its kerning and set narrower or wider than the
+  plain text it replaced. With kerning off everywhere, marking a run moves
+  nothing on the page.
+- **The bars are not a background on the mark.** They are spans in a layer under
+  each paragraph, drawn from the mark's `getClientRects`, one per line. So each
+  line rounds its own ends, the bar is the font's content area rather than the
+  line box, and the wave can sweep a bar in one line at a time. The layer sits
+  inside its paragraph, so the paragraph's dimming covers its bars too.
+  - **Chrome returns a rect per word as well as per line**, since each word is its
+    own span. Drawn as they came, two padded rects overlapped at every space and
+    painted a darker sliver there. `lines` merges them to one rect per line.
+  - The bars are written to the DOM, not held in state, and redrawn from the
+    marks on every change and every resize, in a layout effect before paint.
+- **Each character holds its old colour until the wave reaches it**, through
+  `fill: backwards` on its own delay. So a recolour runs the same wave from the
+  old colour to the new one, and a fresh mark runs it from the paragraph's own
+  tone. A bar sweeps its new wash in over the old one on a gradient twice its
+  width, starting when its line's first character has passed its peak and
+  running at the characters' speed. The gradient's midpoint moves linearly
+  across the bar, so it is the wave's front.
+- **A mark laid over older marks keeps their colours until the wave reaches
+  them.** The pick records each covered run with its old paint. Each character
+  reads its own paragraph offset off `data-at` and starts the wave from the ink
+  it had. Each old run gets a bar of its own under the new one, cut away from
+  the left at the speed of the front. The old colour is never removed and then
+  replaced: the new one takes its place as the wave passes.
+- **A character's colour is set on the character, never inherited from the
+  mark.** Chrome keeps the inherited colour an element had while it was
+  animating. A mark recoloured mid-wave left its characters in the old ink with
+  no animation running, under a bar in the new wash. A random test of 70 quick
+  selects, picks, erases and list presses found it on two seeds of five, and
+  finds nothing with the colour on the character.
+- **The swatches sit `gap-4` apart.** The selected ring is a 2px outline at a 2px
+  offset, so it reaches 4px past its circle. At `gap-2` two rings touched.
+- **The keyframes are WAAPI, not Motion.** A mark is up to about forty
+  characters, each on its own delay, and nothing renders while they run.
+  Reduced motion is read with `useReducedMotion` and skips the wave, since
+  `MotionProvider` does not govern a raw `element.animate`.
+- **Removing a mark is the same wave run back to the paragraph's tone** with the
+  bar swept clear, and the mark leaves state once it has finished. It does not
+  confirm, since a second pick puts it back.
+- **A selection is snapped to whole words and held to one paragraph.** A new mark
+  cuts any mark it overlaps, keeping the parts outside it. A selection that
+  matches an existing mark exactly opens that mark rather than laying a second
+  one over it.
+- **A selection is read when the hand lets go, and 180ms after any other change
+  to it.** The second covers the `SelectionPins` handles, a long press on a phone
+  and the keyboard. The palette's `pointerdown` is prevented, so the native
+  selection stays painted until a colour is picked, and a press on a handle does
+  not close the palette.
+- **The palette is above what it is about where it fits, and below where it
+  does not.** It is placed in a layout effect from its own measured size,
+  clamped inside the stage, with its arrow on the anchor's centre. It holds the
+  eight swatches, an eraser and a list of every mark. A row in the list moves the
+  palette to that mark and replays its wave.
+- **The stage is `surface` at 60%**, which lands near `#fcfcfc`, with its own
+  inset ring, since the fill covers the frame's. `fill`, the grey most of the
+  lab sits on, was tried first and read as too dark behind prose. A lighter
+  ground is also kinder to the washes, which are alpha and composite darker on
+  grey: the inks clear 5.4:1 on their own wash here. The palette stays `bg`, so
+  it reads as a sheet lifted off the stage.
+- **The other two notes dim to 35% while the palette is open**, so the note
+  being marked is the only one at full strength.
+- **Eight hues, scoped to this experiment and not tokens.** The hue is the whole
+  of what a mark says. Each has a swatch, an ink and a wash. The washes sit at
+  1.17 to 1.27:1 on white and every ink clears 5.48:1 on its own wash over white. The
+  swatch is also the glow colour, and the character shows it only for the glow's
+  peak.
+- **A mark is a `role="button"` span**, since a `<button>` cannot wrap across
+  lines inside a paragraph. Enter opens the palette and moves focus to its
+  current colour, and Escape hands focus back to the mark. Its focus mark is an
+  outline in its own ink: the site's ring paints a white offset band, which
+  would cover the bar's ends. There is no keyboard path to a new mark, since
+  static text cannot take a keyboard selection.
+- **The notes are off the type scale**, `clamp(1rem, 3.3cqw, 1.2rem)`, the
+  standing `foil-card` gives printed type on a drawn object. It is set on each
+  paragraph and not on the stage, since `cqw` on the container resolves against
+  the one above it.
+- **Its clip has one known blemish.** After the eraser, the run keeps a faint
+  pink cast in the last second. The page itself is clean grey (checked in a
+  screenshot), so this is the encoder keeping stale chroma on a block that has
+  stopped changing. The gesture drags across the middle note, picks cyan,
+  recolours to pink and erases, so the clip ends on the page it opened on. 7.7s
+  and 97KB.
+- Verified in a browser at 1280 and 390px: a drag, cyan, pink, Escape, a press
+  and a tap on a mark, the eraser, Enter and Escape from the keyboard, no
+  sideways scroll, and no console errors.
 
 ## Motion
 
