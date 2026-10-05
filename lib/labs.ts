@@ -787,6 +787,21 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Drag the picture to turn it, or pick another below.",
   },
+  {
+    slug: "highlight-wave",
+    title: "Highlight Wave",
+    description: [
+      "a page of notes you can mark up. select a run of text and a palette comes up over it, and picking a colour sends a wave along the selection: each character swells, glows in that colour and settles into it while the bar fills in behind.",
+      "key insight: the bars are drawn from the mark's own line fragments in a layer under the text rather than as a background on it, so each line rounds its own ends and the bar can sweep in a line at a time behind the characters. every character holds its old colour until the wave reaches it, so recolouring a mark runs the same wave from one colour to the next.",
+      "kerning is off on the notes, so a run split into characters for the wave sets at exactly the width it had as plain text and nothing reflows when it is marked.",
+    ],
+    createdAt: "2026-10-06",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/highlight-wave/wave.ts",
+    reference: "https://x.com/heydamir/status/2106779932659470606",
+    flush: true,
+    hint: "Select some text, then pick a colour.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -888,6 +903,7 @@ export const IMPLEMENTED_LABS = [
   "bento-focus",
   "sketch-book",
   "ambient-card",
+  "highlight-wave",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
