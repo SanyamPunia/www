@@ -1576,6 +1576,36 @@ const LABS = {
       }
     },
   },
+  "highlight-wave": {
+    // the stage is about the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A drag across the middle note brings the palette up, cyan sends the wave
+     * along it, pink sends it again from cyan, and the eraser runs it back to
+     * the page's own tone, so the clip ends on the page it opened on.
+     */
+    async run({ page, m }) {
+      const swatch = (name) =>
+        page.locator(`[data-lab-demo] button[aria-label="${name}"]`);
+      const away = async () => m.move(470, 312, 6);
+      await wait(500);
+      await m.move(224, 156, 6);
+      await wait(250);
+      await m.down();
+      await m.move(426, 156, 16);
+      await m.up();
+      await wait(700);
+      await m.press(swatch("cyan"));
+      await wait(1500);
+      await m.press(swatch("pink"));
+      await wait(1500);
+      await m.press(swatch("Remove highlight"));
+      await away();
+      // the eraser's wave plus the render that drops the mark, with room over
+      // the screencast's own lag
+      await wait(2200);
+    },
+  },
 };
 
 function crop(rect, bounds) {
