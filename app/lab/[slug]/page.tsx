@@ -42,12 +42,28 @@ export async function generateMetadata({
   const lab = getLabBySlug(slug);
   if (!lab) return {};
 
+  const description = metaDescription(lab.description[0]);
+
   return {
     title: lab.title,
-    description: metaDescription(lab.description[0]),
+    description,
     alternates: {
       canonical: `/lab/${slug}`,
       types: { "text/markdown": `/lab/${slug}.md` },
+    },
+    // Declaring `openGraph` replaces the root's object outright, so the card
+    // has to be named here along with the title it would otherwise lose.
+    openGraph: {
+      title: lab.title,
+      description,
+      images: [
+        {
+          url: `/og/lab/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: lab.title,
+        },
+      ],
     },
   };
 }
