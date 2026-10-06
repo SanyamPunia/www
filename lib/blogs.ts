@@ -49,25 +49,17 @@ export function getAllBlogs(): BlogMeta[] {
 /**
  * Every post's `metadata`, built from its `meta.json` and slug.
  *
- * Shared because of a trap, not just to save four copies. Next merges metadata
+ * Shared because of a trap, not just to save copies. Next merges metadata
  * shallowly, so a route declaring `openGraph` replaces the parent's object
  * outright, and that includes the `images` the root `opengraph-image` file
  * convention injects. All four posts declared `openGraph` for `type: "article"`
  * and silently shipped with no social image at all, while every other route
  * had one. Naming the image here is what stops the next post repeating it.
  *
- * `/opengraph-image.jpg` resolves against `metadataBase` and is the same file
- * the convention serves, just without the content hash.
- *
- * The alt is spelled out rather than passed as a bare URL string, which carries
- * none. Elsewhere `app/opengraph-image.alt.txt` supplies it, but a text file
- * cannot be imported, so this mirrors it. Keep the two in step.
+ * The image is the post's own card, rendered by `app/og/blogs/[slug]` with the
+ * title and description over the shared background. The alt is the title,
+ * since that is what the card says.
  */
-const OG_IMAGE = {
-  url: "/opengraph-image.jpg",
-  alt: "Sanyam Punia, a full-stack developer based in India",
-};
-
 export function blogMetadata(meta: BlogMeta): Metadata {
   return {
     title: meta.title,
@@ -80,7 +72,14 @@ export function blogMetadata(meta: BlogMeta): Metadata {
       title: meta.title,
       description: meta.description,
       type: "article",
-      images: [OG_IMAGE],
+      images: [
+        {
+          url: `/og/blogs/${meta.slug}`,
+          width: 1200,
+          height: 630,
+          alt: meta.title,
+        },
+      ],
     },
   };
 }
