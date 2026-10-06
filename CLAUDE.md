@@ -10404,13 +10404,16 @@ package, no provider component and no per-route call.
   `next.config.ts` and through `proxy.ts`. Not linked from anywhere a reader
   goes, and every response is `noindex`. `app/llms.txt/`, `app/llms-full.txt/`
   and `app/agents.md/` sit beside it. See Markdown variants above.
-- `app/og/` generated social cards. `app/og/blogs/[slug]/route.tsx` renders
-  each post's card through `next/og` over `_assets/background.png`, and
-  `blogMetadata` in `lib/blogs.ts` points the post's `og:image` at it. The
-  fonts in `_assets` are static Inter TTFs, since Satori cannot read the
-  variable woff2 `next/font` ships. Other routes still use the root
-  `opengraph-image.jpg`. It is not under `/api/` because `robots.ts`
-  disallows that prefix, and link-preview crawlers honour it.
+- `app/og/` generated social cards. `card.tsx` is the one card, the site URL
+  then a title, a description and a meta row over `_assets/background.png`.
+  `blogs/[slug]/route.tsx` and `lab/[slug]/route.tsx` feed it, and
+  `blogMetadata` in `lib/blogs.ts` and the lab page's `generateMetadata` point
+  `og:image` at them. The fonts in `_assets` are static Inter TTFs, since
+  Satori cannot read the variable woff2 `next/font` ships. Satori also lays out
+  a `Fragment`'s children wrongly in a flex row, so the meta row is a flat
+  list. Other routes still use the root `opengraph-image.jpg`. It is not under
+  `/api/` because `robots.ts` disallows that prefix, and link-preview crawlers
+  honour it.
 - `app/about/`, `app/contact/` and `app/privacy/` the three prose pages. Each is
   metadata and a schema type over `components/ui/static-page.tsx`, and the copy
   is `lib/pages.ts`. See About, contact and privacy above.
