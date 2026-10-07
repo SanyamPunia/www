@@ -1628,6 +1628,65 @@ const LABS = {
       await wait(1300);
     },
   },
+  "scratch-card": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The pointer comes onto the card, which leans toward it, then scratches
+     * along the three rows of symbols, back and forth, so every symbol comes
+     * up and the card finishes as the hand lets go. One flick brushes the
+     * shavings off the prize strip, and a new card is drawn, so the clip ends
+     * on a fresh card and loops. The panel is measured rather than written
+     * down, since its place comes off the card's width.
+     */
+    async run({ page, m }) {
+      const p = await page.evaluate(() => {
+        const demo = document
+          .querySelector("[data-lab-demo]")
+          .getBoundingClientRect();
+        const b = document
+          .querySelector("[data-lab-demo] .aspect-16\\/13")
+          .getBoundingClientRect();
+        return {
+          x: b.x - demo.x,
+          y: b.y - demo.y,
+          w: b.width,
+          h: b.height,
+        };
+      });
+      const at = (u, v) => [p.x + u * p.w, p.y + v * p.h];
+      await wait(500);
+      await m.move(...at(0.85, 0.15), 10);
+      await m.move(...at(0.2, 0.7), 14);
+      await wait(200);
+      await m.move(...at(0.06, 0.13), 8);
+      await m.down();
+      const rows = [0.13, 0.385, 0.64];
+      for (let r = 0; r < rows.length; r++) {
+        const right = r % 2 === 0;
+        await m.move(...at(right ? 0.94 : 0.06, rows[r]), 24);
+        if (r < rows.length - 1) {
+          await m.move(...at(right ? 0.94 : 0.06, rows[r + 1]), 5);
+        }
+      }
+      await m.up();
+      await wait(1300);
+      // a flick across the strip, which brushes the shavings off the prize
+      await m.move(...at(0.05, 0.92), 4);
+      await m.down();
+      await m.move(...at(0.95, 0.84), 5);
+      await m.up();
+      await m.move(470, 320, 6);
+      await wait(1500);
+      // jump on and off, so the button's tooltip never opens over the card
+      await m.move(515, 22, 1);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await m.move(470, 320, 1);
+      await wait(1400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
