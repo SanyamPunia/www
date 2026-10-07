@@ -9673,8 +9673,7 @@ kind wins a prize and a code. The card leans toward a hovering pointer and lies
 flat under a press. Drag across the silver and the coating comes away under
 the coin, the shavings skid off beside it, and the scratch follows the coin's
 speed. Find the match, let go, and the rest of the coating comes away and the
-prize strip comes up. The shavings stay on the card until a flick brushes them
-off.
+prize strip comes up, and the shavings are blown off the card.
 
 `foil.ts` is the coating, the brush and the coverage grid, pure apart from the
 canvases it draws on. `dust.ts` is the shavings. `scratch-sound.ts` is the
@@ -9766,11 +9765,12 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
 - **One crumb per 2.6 cells of coating taken.** At 1.1 the larger panel buried
   the symbols, and the finish threw a flake from 22% of the cells it cleared,
   which covered the card. It is 7% now, and the flakes land and stay.
-- **They stay until a hand brushes them off.** After the prize is up, a press
-  and drag on the card is a brush: it pushes every crumb within 30px of the
-  stroke with the hand's speed, so a slow hand nudges them and a flick throws
-  them off. A drag past 6px swallows the click it ends in, so brushing over the
-  code does not copy it.
+- **They are blown off the card once the prize is up**, outward from where the
+  coin stopped, as the last of the coating finishes going. Each crumb waits for
+  the front to reach it and fades as it goes, so the prize ends on a clean
+  card. They used to stay until a press and drag brushed them off, and that
+  was taken out: a reader who has just won wants to read the prize, not clean
+  the card first, and the litter was what they noticed.
 - **A crumb that comes to rest off the card fades.** It has fallen onto the
   table, and a demo surrounded by litter is not what the site looks like.
 - **A frame is a handful of fills however many crumbs there are**, batched by
@@ -9783,8 +9783,7 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
   follow the coin's speed and how much coating was under it, and the band falls
   as the coating wears thin. A stereo panner puts the scratch where the coin
   is, left to right. The level jitters on every move, and now and then a grain
-  lets go as a tick. A coin held still falls silent after 70ms, and brushing
-  is the same voice with no coating under it. `crack-sound.ts` sets the shape:
+  lets go as a tick. A coin held still falls silent after 70ms. `crack-sound.ts` sets the shape:
   one context, one noise buffer, nothing fetched, unlocked on the press.
 - **A phone with a motor ticks under a finger on foil**, at most every 50ms and
   harder where there is more coating, pulses on a find and a pair, and a short
@@ -9812,8 +9811,8 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
   its wrapper clips, so it emerges from that edge. A click swaps it to the tick
   through `CopyMark`, and the tick stays out until it has gone back. Focus
   brings it out too, and a device with no hover shows it all the time.
-- **`touch-none` is on the panel alone**, so a finger scratches and brushes the
-  card and a thumb anywhere else on the stage still scrolls the page.
+- **`touch-none` is on the panel alone**, so a finger scratches the card and a
+  thumb anywhere else on the stage still scrolls the page.
 - **Reduced motion keeps every state and drops the travel**: no lean, no
   shavings, no flakes, no sweep and no glint, and the finish clears in one
   step. Sound and haptics stay, since neither is motion. Verified: Enter puts
@@ -9821,8 +9820,8 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
 - Measured: 0 frames requested in 1.5s at rest, and again after a scratch has
   settled. Verified at 1280 and 390px with no sideways scroll.
 - Its clip leans the card, scratches along the three rows so the match comes
-  up mid-stroke, lets go, flicks the shavings off the strip and draws a new
-  card, so it loops. The panel is measured in the gesture. 7.5s and 148KB.
+  up mid-stroke, lets go, which blows the shavings off, and draws a new card,
+  so it loops. The panel is measured in the gesture. 6.9s and 142KB.
 
 ## Motion
 
