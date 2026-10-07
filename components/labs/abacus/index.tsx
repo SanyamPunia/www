@@ -2,6 +2,7 @@
 
 import { SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { TextMorph } from "torph/react";
 import { type Knob, Lane, Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 import { FIGURE, mount } from "./figure";
@@ -63,8 +64,16 @@ export default function Abacus() {
   return (
     <div className="flex w-full select-none flex-col gap-4 rounded-lg bg-surface p-6 ring-1 ring-stroke ring-inset">
       <div className="relative">
-        <span className="pointer-events-none absolute top-0 right-0 font-mono text-meta text-text-muted tabular-nums">
-          {readout}
+        {/*
+          The read-out morphs, `rest` to `count 7` and between counts, at 160ms
+          rather than the site's 200: a sweep along the rod changes the count
+          about as often as a hand drops in `the-card-flinches`, and a morph
+          still running when the next starts reads as a smear.
+        */}
+        <span className="pointer-events-none absolute top-0 right-0 whitespace-nowrap font-mono text-meta text-text-muted tabular-nums">
+          <TextMorph duration={160} ease="cubic-bezier(0.32, 0.72, 0, 1)">
+            {readout}
+          </TextMorph>
         </span>
         {/*
           The kernel's palette is five strokes, read from `--hairline-*` when
