@@ -1634,9 +1634,8 @@ const LABS = {
     /*
      * The pointer comes onto the card, which leans toward it, then scratches
      * along the three rows of symbols, back and forth, so every symbol comes
-     * up and the card finishes as the hand lets go. One flick brushes the
-     * shavings off the prize strip, and a new card is drawn, so the clip ends
-     * on a fresh card and loops. The panel is measured rather than written
+     * up and the card finishes as the hand lets go, which blows the shavings
+     * off. A new card is drawn, so the clip ends on a fresh card and loops. The panel is measured rather than written
      * down, since its place comes off the card's width.
      */
     async run({ page, m }) {
@@ -1670,14 +1669,8 @@ const LABS = {
         }
       }
       await m.up();
-      await wait(1300);
-      // a flick across the strip, which brushes the shavings off the prize
-      await m.move(...at(0.05, 0.92), 4);
-      await m.down();
-      await m.move(...at(0.95, 0.84), 5);
-      await m.up();
       await m.move(470, 320, 6);
-      await wait(1500);
+      await wait(2600);
       // jump on and off, so the button's tooltip never opens over the card
       await m.move(515, 22, 1);
       await m.down();
