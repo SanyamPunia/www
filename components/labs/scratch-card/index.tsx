@@ -5,7 +5,16 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { createDust, flake, paintDust, push, shave, step, sweep } from "./dust";
+import {
+  createDust,
+  flake,
+  gust,
+  paintDust,
+  push,
+  shave,
+  step,
+  sweep,
+} from "./dust";
 import { type Card, makeCard } from "./prizes";
 import { type DustApi, type Outcome, Ticket } from "./ticket";
 
@@ -14,8 +23,8 @@ import { type DustApi, type Outcome, Ticket } from "./ticket";
  * a kind wins. Drag across the silver and the coating comes away under the
  * coin, with the shavings skidding off beside it and the scratch following the
  * coin's speed. Find the match, let go, and the rest of the coating comes away
- * and the prize strip comes up with a code to copy. The shavings stay on the
- * card until a flick brushes them off.
+ * and the prize strip comes up with a code to copy, and the shavings are blown
+ * off the card.
  */
 
 const now = () => performance.now() / 1000;
@@ -96,6 +105,10 @@ export default function ScratchCard() {
       },
       bounds: (b) => {
         d().bounds = b;
+      },
+      gust: (x, y) => {
+        gust(d(), x, y, now());
+        kick();
       },
     };
   }, [kick]);

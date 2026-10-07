@@ -3,10 +3,10 @@
  *
  * The card is seen from above, so a crumb does not fall down the screen: it is
  * flicked off the coin's leading edge, hops, skids to a stop and lies where it
- * stopped, the way the shavings off a real card pile up on it. A coin or a
- * finger dragged through them pushes them on, and a quick flick across the card
- * brushes them off. A crumb that comes to rest off the card has fallen on the
- * table, and it fades rather than piling up round the demo.
+ * stopped, the way the shavings off a real card pile up on it. A coin dragged
+ * through them pushes them on. When the prize comes up they are blown off the
+ * card, and a crumb that comes to rest off the card has fallen on the table,
+ * so it fades rather than piling up round the demo.
  *
  * Everything is in stage pixels. Pure apart from the context it paints on.
  */
@@ -27,6 +27,10 @@ interface Crumb {
   /** when it starts to fade, in seconds, or Infinity while it stays */
   fadeAt: number;
   fadeFor: number;
+  /** a gust waits until its front reaches this crumb */
+  gustAt: number;
+  gx: number;
+  gy: number;
 }
 
 /** the card, which a crumb lies on, and off which it falls to the table */
@@ -100,6 +104,9 @@ function crumb(
     tone: Math.random() < 0.55 ? 0 : Math.random() < 0.7 ? 1 : 2,
     fadeAt: STAYS,
     fadeFor: 0.6,
+    gustAt: STAYS,
+    gx: 0,
+    gy: 0,
   };
 }
 
@@ -138,8 +145,8 @@ export function shave(
 
 /**
  * A flake of the last coating coming away, bigger than a shaving and thrown
- * outward from where the coin stopped. It lands on the card and stays there
- * with the rest, until a hand brushes it off.
+ * outward from where the coin stopped. It lands on the card with the rest,
+ * and the gust that follows takes it.
  */
 export function flake(
   dust: Dust,
@@ -168,9 +175,8 @@ export function flake(
 }
 
 /**
- * A coin or a finger dragged through crumbs pushes them on: anything within
- * `reach` of the stroke from `(x0, y0)` to `(x1, y1)` takes some of its speed.
- * A slow hand nudges them and a flick throws them off the card.
+ * A coin dragged through crumbs pushes them on: anything within `reach` of the
+ * stroke from `(x0, y0)` to `(x1, y1)` takes some of its speed.
  */
 export function push(
   dust: Dust,
@@ -210,6 +216,25 @@ export function push(
   return moved;
 }
 
+/**
+ * Blow everything off the card, outward from one point. Each crumb waits for
+ * the front to reach it, so the card clears from where the coin stopped, and
+ * fades as it goes, so nothing is left lying on the table either.
+ */
+export function gust(dust: Dust, cx: number, cy: number, now: number) {
+  for (const c of dust.crumbs) {
+    const dx = c.x - cx;
+    const dy = c.y - cy;
+    const d = Math.hypot(dx, dy) || 1;
+    c.gustAt = now + d / 1100;
+    const v = 320 + Math.random() * 360;
+    c.gx = (dx / d) * v;
+    c.gy = (dy / d) * v;
+    c.fadeAt = Math.min(c.fadeAt, c.gustAt + 0.08);
+    c.fadeFor = 0.45;
+  }
+}
+
 /** put the card away, and its crumbs with it */
 export function sweep(dust: Dust, now: number) {
   for (const c of dust.crumbs) {
@@ -228,6 +253,13 @@ export function step(dust: Dust, dt: number, now: number): boolean {
   let busy = false;
   const keep: Crumb[] = [];
   for (const c of dust.crumbs) {
+    if (now >= c.gustAt) {
+      c.vx += c.gx;
+      c.vy += c.gy;
+      c.vz = Math.max(c.vz, 80 + Math.random() * 140);
+      c.vr += (Math.random() - 0.5) * 20;
+      c.gustAt = STAYS;
+    }
     if (c.z > 0 || c.vz > 0) {
       c.vz -= GRAVITY * dt;
       c.z += c.vz * dt;
@@ -258,7 +290,7 @@ export function step(dust: Dust, dt: number, now: number): boolean {
       }
     } else busy = true;
 
-    if (c.fadeAt !== STAYS) {
+    if (c.fadeAt !== STAYS || c.gustAt !== STAYS) {
       if (now >= c.fadeAt + c.fadeFor) continue;
       busy = true;
     }

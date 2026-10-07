@@ -821,7 +821,7 @@ export const labsRegistry: LabMetadata[] = [
     slug: "scratch-card",
     title: "Scratch Card",
     description: [
-      "a scratch card: nine symbols under a silver coating, and three of a kind wins a code. the card leans toward the pointer, lies flat under a press, and sheds shavings that stay on it until a flick brushes them off.",
+      "a scratch card: nine symbols under a silver coating, and three of a kind wins a code. the card leans toward the pointer, lies flat under a press, and sheds shavings that blow off it when the prize comes up.",
       "key insight: the brush is the edge of a tilted coin, an ellipse with two nicks in it, so it clears a wider band across than along and leaves streaks a second pass takes. the scratch is one looping noise whose level, pitch and pan follow the coin's speed, place and the coating under it.",
       "a pen's pressure and a finger's contact patch scale the coin's edge, and a phone ticks under a finger on foil.",
     ],

@@ -63,6 +63,7 @@ export interface DustApi {
     speed: number,
   ) => void;
   bounds: (b: Bounds) => void;
+  gust: (x: number, y: number) => void;
 }
 
 export type Outcome = "win" | "lose";
@@ -91,14 +92,10 @@ const AUTO_SPEED = 4600;
 const PER_CRUMB = 2.6;
 /** the coin's minor half-width in foil pixels, for how far it pushes crumbs */
 const COIN_REACH = 30;
-/** css pixels a brushing hand sweeps crumbs within */
-const BRUSH_REACH = 30;
 /** where the light rests on a flat card */
 const REST = { x: 0.32, y: 0.38 };
 /** degrees the card leans toward the pointer at the edge of its box */
 const TILT = 7;
-/** css pixels a press may wander before it is a brush rather than a click */
-const SLOP = 6;
 
 const now = () => performance.now() / 1000;
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
@@ -243,14 +240,6 @@ export function Ticket({
     up: false,
     done: false,
     viaKey: false,
-    brush: null as {
-      x: number;
-      y: number;
-      t: number;
-      moved: boolean;
-      id: number;
-    } | null,
-    swallowClick: false,
     dirty: true,
     lastT: 0,
     raf: 0,
@@ -484,8 +473,15 @@ export function Ticket({
         }
       }
       if (p >= UP_AT) settle();
-      if (p >= 1) s.wave = null;
-      else busy = true;
+      if (p >= 1) {
+        // the prize is up, so everything the scratch left on the card is
+        // blown off it, outward from where the coin stopped
+        if (map) {
+          const from = map.at(s.wave.x, s.wave.y);
+          dust.gust(from.x, from.y);
+        }
+        s.wave = null;
+      } else busy = true;
     }
 
     // the light: the opening glint, then the coin under a press, then the tilt
@@ -577,7 +573,7 @@ export function Ticket({
       alive = false;
       cancelAnimationFrame(s.raf);
       s.raf = 0;
-      if (s.pressing || s.auto || s.brush) stopScratch();
+      if (s.pressing || s.auto) stopScratch();
     };
   }, [kick]);
 
@@ -593,8 +589,7 @@ export function Ticket({
   /*
    * The gesture is bound to the slot, which never tilts, so the card leaning
    * toward the pointer cannot move the surface the pointer is tested against.
-   * Before the prize is up a press scratches. After it, a press and drag is a
-   * hand brushing the crumbs off.
+   * Once the prize is up the card takes no more presses.
    */
   useEffect(() => {
     const node = slot.current;
@@ -638,16 +633,7 @@ export function Ticket({
       s.touch = e.pointerType === "touch";
       const map = toStage();
       if (map) dust.bounds(map.card);
-      if (s.done) {
-        s.brush = {
-          x: e.clientX,
-          y: e.clientY,
-          t: e.timeStamp,
-          moved: false,
-          id: e.pointerId,
-        };
-        return;
-      }
+      if (s.done) return;
       const at = inPanel(e);
       if (!at || s.auto || !s.foil) return;
       if (at.u < 0 || at.u > 1 || at.v < 0 || at.v > 1) return;
@@ -665,38 +651,6 @@ export function Ticket({
       kick();
     };
     const move = (e: PointerEvent) => {
-      if (s.brush && s.brush.id === e.pointerId) {
-        const b = s.brush;
-        const d = Math.hypot(e.clientX - b.x, e.clientY - b.y);
-        if (!b.moved && d < SLOP) return;
-        if (!b.moved) {
-          b.moved = true;
-          node.setPointerCapture(e.pointerId);
-          armScratch();
-          startScratch();
-          press(true, e);
-        }
-        const dt = Math.max(0.004, (e.timeStamp - b.t) / 1000);
-        const st = stage.current?.getBoundingClientRect();
-        if (st) {
-          dust.push(
-            b.x - st.left,
-            b.y - st.top,
-            e.clientX - st.left,
-            e.clientY - st.top,
-            BRUSH_REACH,
-            d / dt,
-          );
-        }
-        const p = panelBox();
-        moveScratch(
-          d / dt / Math.max(1, p?.w ?? 1),
-          0,
-          p ? clamp((e.clientX - p.left) / p.w, 0, 1) : 0.5,
-        );
-        s.brush = { ...b, x: e.clientX, y: e.clientY, t: e.timeStamp };
-        return;
-      }
       if (s.pressing) {
         const at = inPanel(e);
         if (!at) return;
@@ -724,17 +678,7 @@ export function Ticket({
       lean(e);
       kick();
     };
-    const up = (e: PointerEvent) => {
-      if (s.brush && s.brush.id === e.pointerId) {
-        if (s.brush.moved) {
-          // the click a drag ends in is not a copy
-          s.swallowClick = true;
-          stopScratch();
-          press(false);
-        }
-        s.brush = null;
-        return;
-      }
+    const up = () => {
       if (!s.pressing) return;
       s.pressing = false;
       s.speed = 0;
@@ -755,20 +699,12 @@ export function Ticket({
       lifted.set(0.55);
       kick();
     };
-    const click = (e: Event) => {
-      if (!s.swallowClick) return;
-      s.swallowClick = false;
-      e.stopPropagation();
-      e.preventDefault();
-    };
-
     node.addEventListener("pointerdown", down);
     node.addEventListener("pointermove", move);
     node.addEventListener("pointerup", up);
     node.addEventListener("pointercancel", up);
     node.addEventListener("lostpointercapture", up);
     node.addEventListener("pointerleave", leave);
-    node.addEventListener("click", click, true);
     return () => {
       node.removeEventListener("pointerdown", down);
       node.removeEventListener("pointermove", move);
@@ -776,20 +712,8 @@ export function Ticket({
       node.removeEventListener("pointercancel", up);
       node.removeEventListener("lostpointercapture", up);
       node.removeEventListener("pointerleave", leave);
-      node.removeEventListener("click", click, true);
     };
-  }, [
-    dust,
-    finish,
-    kick,
-    lifted,
-    panelBox,
-    stage,
-    stroke,
-    tiltX,
-    tiltY,
-    toStage,
-  ]);
+  }, [dust, finish, kick, lifted, panelBox, stroke, tiltX, tiltY, toStage]);
 
   // a keyboard press scratches the card for you, along the same coin and with
   // the same sound. `detail` of 0 is what says no pointer was involved.
@@ -846,8 +770,8 @@ export function Ticket({
         }}
         className="relative bg-bg p-1.5"
       >
-        {/* touch-none on the panel alone, so a finger scratches and brushes the
-            card and a thumb anywhere else on the stage still scrolls */}
+        {/* touch-none on the panel alone, so a finger scratches the card and a
+            thumb anywhere else on the stage still scrolls */}
         <div
           ref={panel}
           className="@container relative aspect-16/13 w-full touch-none"
