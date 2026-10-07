@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "hairline-create": {
+      "source": "lucasmarkes/hairline",
+      "sourceType": "github",
+      "skillPath": "skills/hairline-create/SKILL.md",
+      "computedHash": "3fbb60d314c7851e41caf8433ecab366d58b6b907afc68848f2264ed9dea5c8c"
+    }
+  }
+}
