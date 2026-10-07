@@ -453,6 +453,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
       loading: Placeholder,
     },
   ),
+  abacus: dynamic(() => import("@/components/labs/abacus").then(ready), {
+    ssr: false,
+    loading: Placeholder,
+  }),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

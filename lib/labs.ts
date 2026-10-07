@@ -802,6 +802,21 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Select some text, then pick a colour.",
   },
+  {
+    slug: "abacus",
+    title: "Abacus",
+    description: [
+      "an abacus drawn in single strokes: where the pointer sits along the rod splits the ten beads, the ones to its left packed against the left post and counted, the rest against the right.",
+      "key insight: one pointer position always gives one arrangement, since the split is read against the rod, which never moves, and never against a bead. the beads cannot pass each other, so the bead at the front of each moving group leaves first.",
+      "built on the `hairline` engine by [lucas markes](https://hairline.lucasmarkes.com/).",
+    ],
+    createdAt: "2026-10-07",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/abacus/figure.ts",
+    reference: "https://hairline.lucasmarkes.com/",
+    flush: true,
+    hint: "Move along the rod to count the beads.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -904,6 +919,7 @@ export const IMPLEMENTED_LABS = [
   "sketch-book",
   "ambient-card",
   "highlight-wave",
+  "abacus",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
