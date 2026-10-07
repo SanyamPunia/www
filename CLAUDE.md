@@ -1762,7 +1762,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card` and `highlight-wave` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave` and `abacus` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1992,7 +1992,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-four clips, 4.4MB with their stills, 3.4 to 9.4 seconds each, at 60
+- Fifty-five clips, 4.4MB with their stills, 3.4 to 9.4 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -9584,6 +9584,83 @@ stage, the selection and the palette.
 - Verified in a browser at 1280 and 390px: a drag, cyan, pink, Escape, a press
   and a tap on a mark, the eraser, Enter and Escape from the keyboard, no
   sideways scroll, and no console errors.
+
+### `abacus`
+
+An abacus drawn in single strokes: ten beads on one rod in a frame. Where the
+pointer sits along the rod is the split. The beads to its left pack against the
+left post and are counted, the rest pack against the right. `figure.ts` is the
+figure, `kernel.js` the engine, `index.tsx` the read-out and the slider.
+
+- **It replaced an orrery, and the reason is the rule this lab keeps: one
+  pointer position gives one arrangement.** The orrery ran time to bring a
+  planet under the pointer, so what a hover did depended on where the planets
+  already were, and Jupiter's twelve-year orbit turned a small move into years.
+  Turning it into a dial fixed the jumps and left it hard to read. The split
+  here is a pure function of the pointer's x along the rod.
+- **It is a Hairline figure, built with the `hairline-create` skill**, from
+  `github.com/lucasmarkes/hairline`, installed under `.agents/skills/` with a
+  symlink in `.claude/skills/`. The skill's ten rules are the design
+  constraints: one stroke palette, rounded solids, no words in the drawing, a
+  hit test that never reads the pose on screen, and at most 200 lines.
+- **`kernel.js` is the skill's engine, vendored byte for byte apart from its
+  last line**, `export { HL }`, which makes it a module. The npm package
+  `@lucasmarkes/hairline` exports only its 27 finished figures, not the engine,
+  so there was nothing to install. Do not edit the kernel: the skill's validator
+  checks its hash, and a figure that needs a changed kernel is a wrong figure.
+  `kernel.d.ts` types only what this lab calls.
+- **`figure.ts` keeps the skill's compact style, so Biome's formatter is off for
+  it** (an override in `biome.json`, and lint still runs). Biome ignores
+  `kernel.js`, `.agents/` and `.claude/` entirely. The skill caps a figure at 200
+  lines in its own dense style, and Biome's 80-column wrap spreads the same code
+  over far more. Keeping the skill's style is what lets its check loop run on
+  the real file after every edit.
+- **To check an edit, convert and run the skill's look.** Strip the types with
+  `node:module`'s `stripTypeScriptTypes`, drop the import, turn `export const
+  FIGURE` into the closing `hairline({ ..., mount })` call, then run
+  `.agents/skills/hairline-create/look.mjs` on the result with
+  `--answer=110,0,30 --edge=2,0,30 --edge=148,0,30`, three points on the rod.
+- **The pointer is read against the rod, which never moves** (rule 01). Its
+  screen position is projected onto the rod's line, and the count is that
+  fraction of the rod times ten, rounded. No bead is ever hit tested.
+- **Beads cannot pass each other, and the first build let them.** The stagger
+  ran outward from the gap, which is the trailing end of a moving group, so the
+  rear bead set off first and drew straight through the ones waiting in front
+  of it. Now the bead at the front of each moving group leaves first, and a
+  contact pass each frame keeps every bead a bead's width from its neighbours,
+  so no pair of timings can overlap.
+- **A bead is a bicone round the rod**, the hull of three rings, with the face
+  toward the eye as its one crease. The kernel's solids stand on the ground, so
+  a solid turned on its side is built from rings by hand.
+- **Rest is three beads left, six right, and one mid-push with the bright
+  stroke** (rule 05). Counting moves the bright stroke to the last bead counted.
+  The read-out is `count 7`, and `rest` at rest.
+- **The slider is the stagger, 0 to 80ms, behind a `tune` pill**, the
+  disclosure `rain-splatter` and `heart-flipbook` use: one grid row from `0fr`
+  to `1fr`, `inert` while shut so the range leaves the tab order, and the pill
+  above what it opens so neither it nor the figure moves when it does. The
+  panel's `-mt-4` cancels the column's gap, so a shut panel adds nothing.
+- **The stage is `bg-surface` and the solids stay white.** `--hairline-plate`
+  is `bg`, so the beads, rod and frame are opaque white objects on the lightest
+  grey the site has. `fill` was tried first and read too heavy. It is `flush`
+  and draws its own inset ring, since its fill covers the frame's.
+- **The kernel's five strokes map to the site's tokens** through
+  `--hairline-*` on the host: plate `bg`, bright `text-primary`, edge
+  `text-muted`, mid `stroke-strong`, dim `stroke`. That keeps it on the light
+  theme whatever the OS says.
+- **The host carries `aspect-5/4` itself**, which restates the box the kernel's
+  stylesheet gives it. The kernel injects that sheet in the mount effect, and the
+  lab slot measures a lab in its layout effect, which runs first. Without the
+  class the host measured 0px, the frame eased to a sliver with the figure
+  clipped in it, and then jumped to full height. Measured after, on a cold load:
+  336px to 473px in one ease, with no dip.
+- There is no keyboard path. The figure is `role="img"` and the kernel takes
+  input only through its own pointer helper. The skill's rules forbid a figure
+  adding listeners of its own.
+- The kernel's loop sleeps when nothing moves and when the figure is off screen,
+  and reduced motion lands every tween in one step.
+- Its clip runs the pointer along the rod from post to post, back to the middle,
+  and off the figure, which restores rest, so it loops.
 
 ## Motion
 
