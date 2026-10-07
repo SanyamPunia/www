@@ -817,6 +817,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Move along the rod to count the beads.",
   },
+  {
+    slug: "scratch-card",
+    title: "Scratch Card",
+    description: [
+      "a scratch card: nine symbols under a silver coating, and three of a kind wins a code. the card leans toward the pointer, lies flat under a press, and sheds shavings that stay on it until a flick brushes them off.",
+      "key insight: the brush is the edge of a tilted coin, an ellipse with two nicks in it, so it clears a wider band across than along and leaves streaks a second pass takes. the scratch is one looping noise whose level, pitch and pan follow the coin's speed, place and the coating under it.",
+      "a pen's pressure and a finger's contact patch scale the coin's edge, and a phone ticks under a finger on foil.",
+    ],
+    createdAt: "2026-10-08",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scratch-card/foil.ts",
+    flush: true,
+    hint: "Scratch the silver. Three of a kind wins. Sound on.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -920,6 +934,7 @@ export const IMPLEMENTED_LABS = [
   "ambient-card",
   "highlight-wave",
   "abacus",
+  "scratch-card",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
