@@ -9634,7 +9634,11 @@ figure, `kernel.js` the engine, `index.tsx` the read-out and the slider.
   a solid turned on its side is built from rings by hand.
 - **Rest is three beads left, six right, and one mid-push with the bright
   stroke** (rule 05). Counting moves the bright stroke to the last bead counted.
-  The read-out is `count 7`, and `rest` at rest.
+  The read-out is `count 7`, and `rest` at rest. It morphs through `torph` at
+  160ms, `the-card-flinches`' number for a label that changes as fast as a
+  sweep along the rod changes the count. The span is right-aligned, so the
+  morph grows leftward from the frame's corner. Measured: 29px to 51px, settled
+  by 150ms, its right edge fixed.
 - **The slider is the stagger, 0 to 80ms, behind a `tune` pill**, the
   disclosure `rain-splatter` and `heart-flipbook` use: one grid row from `0fr`
   to `1fr`, `inert` while shut so the range leaves the tab order, and the pill
