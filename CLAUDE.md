@@ -10503,6 +10503,11 @@ package, no provider component and no per-route call.
   guidance, `lerp.ts` the interpolation
   three labs drive their own frame loops with, `lab-previews.ts` which
   experiments have a recorded preview, `utils.ts`.
+- `.agents/skills/` agent skills installed with `npx skills add`, pinned in
+  `skills-lock.json` and linked into `.claude/skills/`. Only `hairline-create`
+  so far, the skill the `abacus` lab was built with. Not part of the app and
+  never imported by it, and Biome ignores both directories. Do not edit an
+  installed skill's files: reinstall it instead.
 - `proxy.ts` at the root, the only file there that runs per request. It exists
   for one thing, content negotiation for the markdown variants.
 - `types/` ambient declarations only. Currently just the React canary
