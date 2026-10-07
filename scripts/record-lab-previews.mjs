@@ -1606,6 +1606,28 @@ const LABS = {
       await wait(2200);
     },
   },
+  abacus: {
+    // an 8:5 window over the figure, above the stagger slider
+    focus: [0, 58, 538, 336],
+    /*
+     * The pointer runs along the rod from the left post to the right one, so
+     * the count climbs from 0 to 10 with the beads following in a train, comes
+     * back to the middle, and leaves, which puts the rest pose back, so the
+     * clip ends on the frame it opened on. The points are the rod projected
+     * through the figure's own camera.
+     */
+    async run({ m }) {
+      await wait(600);
+      await m.move(115, 118, 6);
+      await wait(500);
+      await m.move(423, 272, 60);
+      await wait(700);
+      await m.move(269, 195, 16);
+      await wait(800);
+      await m.move(530, 40, 8);
+      await wait(1300);
+    },
+  },
 };
 
 function crop(rect, bounds) {
