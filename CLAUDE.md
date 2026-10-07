@@ -1762,7 +1762,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave` and `abacus` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus` and `scratch-card` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1992,7 +1992,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-five clips, 4.4MB with their stills, 3.4 to 9.4 seconds each, at 60
+- Fifty-six clips, 4.6MB with their stills, 3.4 to 9.4 seconds each, at 60
   frames a second.
 
 ### `tab-overview`
@@ -9665,6 +9665,164 @@ figure, `kernel.js` the engine, `index.tsx` the read-out and the slider.
   and reduced motion lands every tween in one step.
 - Its clip runs the pointer along the rod from post to post, back to the middle,
   and off the figure, which restores rest, so it loops.
+
+### `scratch-card`
+
+A scratch card on a table: nine symbols under a silver coating, and three of a
+kind wins a prize and a code. The card leans toward a hovering pointer and lies
+flat under a press. Drag across the silver and the coating comes away under
+the coin, the shavings skid off beside it, and the scratch follows the coin's
+speed. Find the match, let go, and the rest of the coating comes away and the
+prize strip comes up. The shavings stay on the card until a flick brushes them
+off.
+
+`foil.ts` is the coating, the brush and the coverage grid, pure apart from the
+canvases it draws on. `dust.ts` is the shavings. `scratch-sound.ts` is the
+sound, `prizes.ts` the cards and the prizes, `marks.tsx` the six symbols and
+their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
+
+#### The game
+
+- **A card's answer is fixed before anyone scratches it**, the way a printed
+  ticket is. A winning card carries one symbol three times and three others
+  twice. A losing card carries four pairs and a single, so it still teases two
+  of a kind. One card in four loses. Each symbol is a prize of its own, so
+  what you match is what you win, and a new card never repeats the last prize.
+- **The single code was replaced because it had no suspense.** It showed the
+  prize before anything was scratched, so there was nothing to find out.
+- **A cell counts as found when half the coating over the symbol's own
+  footprint is gone**, a 76 pixel square at the cell's middle. A box most of
+  the cell's size needed two passes per row, and the recorded clip showed a
+  card with three stars plainly visible that never finished.
+- **Every find is a note**, a step higher on a pentatonic run for each symbol
+  found so far, so the card climbs as it is played. A find that makes a pair
+  adds the fifth above it.
+- **The third of the winning symbol is announced at once, under the foil.**
+  The chime plays and the three get a ring in their own ink while the hand is
+  still down. The card finishes on the release, not mid-stroke.
+- **Letting go finishes the card** once the match is found, or all nine are,
+  or under 30% of the coating is left. A losing card ends on two falling notes
+  and "No match this time".
+- **The symbols are Phosphor's filled glyphs**, which is one more place an icon
+  weight is passed. They are the ticket's printed artwork rather than UI
+  icons, and a printed lottery symbol is a solid shape. Their six inks are
+  scoped in `marks.tsx`, are not tokens, and clear 3:1 on `surface`. Colour is
+  what tells six symbols apart at a glance, which is the whole game.
+
+#### The card is an object
+
+- **It leans toward a hovering pointer, up to 7 degrees**, with the edge under
+  the pointer going back. Two springs carry the lean, and the transform, the
+  light on the foil and the light on the paper all read them, so the three
+  agree.
+- **The gesture is bound to the slot, which never tilts.** The panel's box is
+  the slot's rect plus the panel's layout offset, never the tilted rect, which
+  is the box round a projection. That is `foil-card`'s rule: the surface the
+  pointer is tested against must not move because the pointer moved.
+- **A press lays the card flat**, so the mapping from the pointer to the foil
+  is exact while it matters. The lift drops too: one motion value drives a
+  three-layer shadow from lifted on hover to pressed into the table, and a
+  multiply shade round the finger is the card stock giving under it.
+- **The paper is matte and the foil is metal.** The foil throws back a sharp
+  band of light that moves with the lean. The paper catches the same light as
+  a wide, faint soft-light bloom. Scratched areas therefore stay flat as the
+  card tilts while the coating flashes.
+- **The code is printed raised.** Its highlight and shadow come off the lean
+  through `--tx` and `--ty` on the face, and the glint crosses it from the side
+  the light is on.
+
+#### The scratch
+
+- **The coating is a fixed 800 by 650 buffer, whatever the panel paints at.**
+  The panel is `aspect-16/13` at every width, so a resize never wipes a scratch
+  or has to rescale one. The top 500 pixels are the game and the 150 under them
+  the prize strip.
+- **A frame is three draws**: the printed texture, the band of light, and the
+  mask with `destination-in`. The texture is built once: a silver gradient,
+  per pixel grain and metal flake, and a debossed pattern, cell lines, a
+  question mark per cell and a zigzag on the strip, which is the gesture drawn.
+- **The coating's thickness is two `drop-shadow`s on the display canvas**: a
+  shadow inside every hole along the edge above it, and a lit lip along the
+  edge below it.
+- **The brush is the coin's edge, not a disc.** An ellipse fixed to the coin's
+  angle, so it clears a wider band moving across it than along it, which is
+  why people scratch in zigzags. Four sprites carry four ragged edges. Two
+  nicks cut out of each stroke's brush leave thin streaks a pass in another
+  direction takes. A fast stroke presses lighter, 0.95 down to 0.57 alpha, so
+  a slow stroke clears clean and a fast one is streaky.
+- **The coin's bite follows the input.** A pen's pressure scales the edge
+  from 0.65 to 1.4, and a finger's contact patch scales it by its own width,
+  clamped to 0.85 to 1.4. A mouse reports neither and gets the coin as drawn.
+- **Coverage is a coarse grid, 80 by 65, and nothing reads the canvas.** The
+  finds, the finish and the shavings all read the grid.
+- **The finish is a ragged hole growing out of where the coin stopped**, over
+  420ms. The strip's prize comes up 55% of the way through.
+
+#### The shavings
+
+- **The card is seen from above**, so a crumb hops, skids to a stop and lies
+  where it stopped, on the card or off it. They live on the table's canvas,
+  since a crumb outlives the card it came off.
+- **One crumb per 2.6 cells of coating taken.** At 1.1 the larger panel buried
+  the symbols, and the finish threw a flake from 22% of the cells it cleared,
+  which covered the card. It is 7% now, and the flakes land and stay.
+- **They stay until a hand brushes them off.** After the prize is up, a press
+  and drag on the card is a brush: it pushes every crumb within 30px of the
+  stroke with the hand's speed, so a slow hand nudges them and a flick throws
+  them off. A drag past 6px swallows the click it ends in, so brushing over the
+  code does not copy it.
+- **A crumb that comes to rest off the card fades.** It has fallen onto the
+  table, and a demo surrounded by litter is not what the site looks like.
+- **A frame is a handful of fills however many crumbs there are**, batched by
+  three tones and four steps of fade, with one shadow pass. The cap is 1400.
+
+#### The sound and the hand
+
+- **The scratch is one looping noise held open for the press.** A high-pass
+  takes out the table and a band-pass picks the grit. The level and the band
+  follow the coin's speed and how much coating was under it, and the band falls
+  as the coating wears thin. A stereo panner puts the scratch where the coin
+  is, left to right. The level jitters on every move, and now and then a grain
+  lets go as a tick. A coin held still falls silent after 70ms, and brushing
+  is the same voice with no coating under it. `crack-sound.ts` sets the shape:
+  one context, one noise buffer, nothing fetched, unlocked on the press.
+- **A phone with a motor ticks under a finger on foil**, at most every 50ms and
+  harder where there is more coating, pulses on a find and a pair, and a short
+  pattern on the win. `navigator.vibrate` is a no-op everywhere else.
+
+#### The rest
+
+- **The card carries no text of its own.** A title, a serial and fine print
+  came off as clutter. The card is a white rim round the panel, its corner the
+  panel's plus the rim so the two curves stay concentric.
+- **The cursor is the plain pointer.** A coin drawn as an SVG cursor came off:
+  the pointer already says the panel answers a press, and the coin was a second
+  object over the scratch it was making. The foil's silver is scoped here, the
+  claim `stamp-collection` makes: the material is the object.
+- **The prize layer is `inert` and `aria-hidden` until it is up**, so a screen
+  reader cannot read the symbols through the coating. A polite status says the
+  outcome, the prize and the code.
+- **A transparent button over the panel is the keyboard's path.** Enter
+  scratches the card along nine passes with the same coin, dust and sound, then
+  finishes it. Focus then goes to the code on a win, or to New card on a loss,
+  since a losing card has nothing left to land on. It is `aria-disabled` while
+  it runs, since disabling a focused button drops focus.
+- **The copy mark hides until the code is pointed at, then slides out of the
+  code's right edge.** It hangs outside the pill so the code stays centred, and
+  its wrapper clips, so it emerges from that edge. A click swaps it to the tick
+  through `CopyMark`, and the tick stays out until it has gone back. Focus
+  brings it out too, and a device with no hover shows it all the time.
+- **`touch-none` is on the panel alone**, so a finger scratches and brushes the
+  card and a thumb anywhere else on the stage still scrolls the page.
+- **Reduced motion keeps every state and drops the travel**: no lean, no
+  shavings, no flakes, no sweep and no glint, and the finish clears in one
+  step. Sound and haptics stay, since neither is motion. Verified: Enter puts
+  the prize up within 120ms.
+- Measured: 0 frames requested in 1.5s at rest, and again after a scratch has
+  settled. Verified at 1280 and 390px with no sideways scroll.
+- Its clip leans the card, scratches along the three rows so the match comes
+  up mid-stroke, lets go, flicks the shavings off the strip and draws a new
+  card, so it loops. The panel is measured in the gesture. 7.5s and 148KB.
 
 ## Motion
 
