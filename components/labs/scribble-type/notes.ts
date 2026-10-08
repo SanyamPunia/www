@@ -20,6 +20,16 @@ export const INK = {
 
 export type Ink = keyof typeof INK;
 
+/**
+ * The hand's own ink, a fountain pen's blue-black. It goes down a wetter, brighter
+ * blue and dries to one of three darker shades, so the letters do not all carry
+ * exactly the same density.
+ */
+export const HAND = {
+  wet: "#2f49c2",
+  dry: ["#222a4c", "#262f56", "#1d2546"],
+} as const;
+
 export interface Mark {
   shape: Shape;
   ink: Ink;

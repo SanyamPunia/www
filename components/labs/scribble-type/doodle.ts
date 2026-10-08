@@ -1,7 +1,7 @@
 /*
  * The pen marks: pure geometry, no DOM. A mark is handed the line rects of the
  * words it is about, in the drawing's own pixels, and returns the strokes that
- * draw it as SVG path data.
+ * draw it as polylines for the ink renderer.
  *
  * The loop, the underline and the roughening are a port of the reference's
  * scribble highlighter. What a hand adds is two things a ruler does not: the
@@ -23,8 +23,10 @@ export interface Rect {
   h: number;
 }
 
+export type Point = [number, number];
+
 export interface Stroke {
-  d: string;
+  points: Point[];
   width: number;
   opacity: number;
   /** how far into the mark's own time this stroke starts, 0 to 1 */
@@ -33,15 +35,14 @@ export interface Stroke {
   span: number;
 }
 
-type Point = [number, number];
-type Rng = () => number;
+export type Rng = () => number;
 
 /** wobble and roughness, 0 to 1, shared by every mark */
 const WOBBLE = 0.5;
 const ROUGH = 0.6;
 
 /** a seeded generator, so the same words draw the same mark on every visit */
-function rng(seed: string): Rng {
+export function rng(seed: string): Rng {
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i);
@@ -159,20 +160,6 @@ function roughen(pts: readonly Point[], r: Rng, amp: number, shift: number) {
   });
 }
 
-/** Catmull-Rom through every point, written as cubic Béziers */
-function path(pts: readonly Point[]): string {
-  const f = (v: number) => v.toFixed(2);
-  let d = `M${f(pts[0][0])},${f(pts[0][1])}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[Math.max(0, i - 1)];
-    const b = pts[i];
-    const c = pts[i + 1];
-    const e = pts[Math.min(pts.length - 1, i + 2)];
-    d += `C${f(b[0] + (c[0] - a[0]) / 6)},${f(b[1] + (c[1] - a[1]) / 6)},${f(c[0] - (e[0] - b[0]) / 6)},${f(c[1] - (e[1] - b[1]) / 6)},${f(c[0])},${f(c[1])}`;
-  }
-  return d;
-}
-
 /** the bare spines of a mark, before the pen goes over them */
 function spines(shape: Shape, rects: readonly Rect[], r: Rng): Point[][] {
   if (shape === "circle") return [loop(rects, r)];
@@ -266,7 +253,7 @@ export function strokes(
     const span = lengths[i] / total;
     if (shape === "highlight") {
       out.push({
-        d: path(roughen(pts, r, rough * 0.5, 0)),
+        points: roughen(pts, r, rough * 0.5, 0),
         width: size * 0.72,
         opacity: 1,
         at,
@@ -274,14 +261,14 @@ export function strokes(
       });
     } else {
       out.push({
-        d: path(roughen(pts, r, rough, 0)),
+        points: roughen(pts, r, rough, 0),
         width,
         opacity: 1,
         at,
         span,
       });
       out.push({
-        d: path(roughen(pts, r, rough * 1.3, 0.035 * size * ROUGH)),
+        points: roughen(pts, r, rough * 1.3, 0.035 * size * ROUGH),
         width: width * 0.55,
         opacity: 0.75,
         at: at + 0.06,

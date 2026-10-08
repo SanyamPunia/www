@@ -835,14 +835,15 @@ export const labsRegistry: LabMetadata[] = [
     slug: "scribble-type",
     title: "Scribble Type",
     description: [
-      "a note that types itself out a letter at a time in a hand, and a pen that goes back over it: once the typing passes a marked run, the pen circles, underlines, strikes or highlights it before the typing carries on.",
-      "key insight: every character is laid out from the first frame and only its opacity changes, so nothing reflows while the note is written and every mark is measured off the finished text before the first letter appears. a loop turns 1.1 times and grows as it goes, so it ends outside where it started, and every mark is drawn twice, the second pass thinner and a beat behind.",
+      "a note written out by hand, a stroke at a time, and a pen that goes back over it: once the hand finishes a marked run, the pen circles, underlines, strikes or highlights it before the hand writes on.",
+      "key insight: the hand is a single-line font, so every letter is the path a nib takes and the ink is drawn rather than revealed. the pen slows into turns, the ink is heavier where the nib lands and lighter where it lifts, and every stroke goes down wet blue and dries to blue-black.",
+      "the hand is [EMS Neato](https://gitlab.com/oskay/svg-fonts), a single-stroke Bad Script under the OFL, and with the sound on the nib scratches as it writes.",
     ],
     createdAt: "2026-10-09",
     source:
-      "https://github.com/SanyamPunia/www/blob/main/components/labs/scribble-type/doodle.ts",
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scribble-type/layout.ts",
     flush: true,
-    hint: "Press the arrow for the next note.",
+    hint: "Turn the sound on, then watch the pen.",
   },
 ];
 
