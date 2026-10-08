@@ -831,6 +831,19 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Scratch the silver. Three of a kind wins. Sound on.",
   },
+  {
+    slug: "scribble-type",
+    title: "Scribble Type",
+    description: [
+      "a note that types itself out a letter at a time in a hand, and a pen that goes back over it: once the typing passes a marked run, the pen circles, underlines, strikes or highlights it before the typing carries on.",
+      "key insight: every character is laid out from the first frame and only its opacity changes, so nothing reflows while the note is written and every mark is measured off the finished text before the first letter appears. a loop turns 1.1 times and grows as it goes, so it ends outside where it started, and every mark is drawn twice, the second pass thinner and a beat behind.",
+    ],
+    createdAt: "2026-10-09",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scribble-type/doodle.ts",
+    flush: true,
+    hint: "Press the arrow for the next note.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -935,6 +948,7 @@ export const IMPLEMENTED_LABS = [
   "highlight-wave",
   "abacus",
   "scratch-card",
+  "scribble-type",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
