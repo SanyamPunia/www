@@ -5,6 +5,8 @@
  * are `cqw` against the card, so this is the whole of what has to be a number.
  */
 
+import { bezier } from "@/lib/bezier";
+
 export interface Box {
   w: number;
   h: number;
@@ -153,7 +155,7 @@ export function lift(height: number): string {
  */
 export const EASE = [0.32, 0.72, 0, 1] as const;
 
-/**
+/*
  * **The content's clock is linear and every curve on it is a function applied
  * to that one number.** The box is animated the ordinary way, with an ease
  * handed to Motion, because the box is one property moving. The rows are three
@@ -164,31 +166,8 @@ export const EASE = [0.32, 0.72, 0, 1] as const;
  *
  * A linear clock with the shaping per band is exact instead. It is also what
  * lets one entrance carry two curves, which it has to, because a row is doing
- * two different things at once.
+ * two different things at once. `bezier` in `lib/bezier.ts` is that shaping.
  */
-export function bezier(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-): (x: number) => number {
-  const on = (t: number, a: number, b: number) =>
-    3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t * t * b + t ** 3;
-  return (x) => {
-    if (x <= 0) return 0;
-    if (x >= 1) return 1;
-    let lo = 0;
-    let hi = 1;
-    let t = x;
-    // 24 bisections, which lands the parameter inside a ten-millionth
-    for (let i = 0; i < 24; i++) {
-      t = (lo + hi) / 2;
-      if (on(t, x1, x2) < x) lo = t;
-      else hi = t;
-    }
-    return on(t, y1, y2);
-  };
-}
 
 /**
  * The focus curve, which is an `ease`.
