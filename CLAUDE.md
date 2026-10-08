@@ -333,16 +333,18 @@ the paragraph above it.
 `text-meta` serves the footer, tooltips, section labels and row metadata.
 
 **One font is not on this scale, and that is the point.** `Caveat` in
-`app/fonts.ts` is a handwriting face with exactly two callers, both of them
-annotations rather than prose: the hint in `components/labs/document-pocket/`, and
-`components/ui/new-badge.tsx`. Neither is sized by a token. The hint takes its
+`app/fonts.ts` is a handwriting face with three callers, none of them UI copy:
+the hint in `components/labs/document-pocket/`, `components/ui/new-badge.tsx`,
+and the note `components/labs/scribble-type/` writes out. The third is the subject
+of its demo rather than an annotation on one, and it reuses this face rather than
+adding a second hand, so the lab costs no new font. None is sized by a token. The hint takes its
 size from the demo's own width, since it is part of that drawing, and the badge is
 20px, which is 1.39x `text-body`, because Caveat's x-height is far enough below
 Inter's that matching the row by token renders visibly smaller than it. Do not promote this face to the scale, do not use it for UI, and do not add a
 third off-scale face without the same kind of reason.
 
 Next scopes a font to the components that use it, so it is fetched only on the
-pages that render one of those two, and `next/font` self-hosts it, so no page
+pages that render one of those three, and `next/font` self-hosts it, so no page
 makes a third-party request for it.
 
 **`NewBadge` marks the newest entry and nothing else, because there is no clock
@@ -1762,7 +1764,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus` and `scratch-card` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card` and `scribble-type` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -9822,6 +9824,75 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
 - Its clip leans the card, scratches along the three rows so the match comes
   up mid-stroke, lets go, which blows the shavings off, and draws a new card,
   so it loops. The panel is measured in the gesture. 6.9s and 142KB.
+
+### `scribble-type`
+
+A note that types itself out a letter at a time in Caveat, and a pen that goes
+back over it. When the typing passes the end of a marked run, the pen circles,
+underlines, double-underlines, strikes, zigzags or highlights it, and the typing
+waits for 70% of that stroke before it carries on. `notes.ts` is the copy and the
+inks, `doodle.ts` the pen geometry, pure and DOM-free, and `index.tsx` the page,
+the typing and the marks.
+
+- **Every character is laid out from the first frame and only its opacity
+  changes.** So nothing reflows as the note is written, the caret's place is a
+  rect read, and every mark is measured off the finished text before the first
+  letter appears.
+- **The characters are plain inline spans, never inline blocks.** An inline span
+  does not end a shaping run, so the note kerns as one piece of text. That is
+  why this lab needs no `[font-kerning:none]`, which `highlight-wave` does: its
+  characters are inline blocks because its wave transforms them.
+- **A run's rects are merged to one per line.** Chrome returns a rect for every
+  character span inside the run as well as one per line, so the first build drew
+  each underline as ten short underlines in a row. `lines` in `index.tsx` groups
+  them by top and unions them.
+- **The pen geometry is a port of the reference's scribble highlighter**: a loop
+  that turns 1.1 times and grows as it goes, so it ends outside where it
+  started; underlines that bow and lift at their end; and a roughening pass that
+  pushes every point out along its normal. Every pen mark is drawn twice, the
+  second pass thinner, at 75% and 60ms behind. The marker is drawn once.
+- **The loop is narrower than the reference's.** The reference widens it until
+  it clears the text's corners, which on a slanted hand throws it a third of an
+  em into the next word. Here it clears the run's ends at mid-height, and a
+  circled run carries `px-[0.1em]` so the loop passes between words rather than
+  through them. A circled run is `whitespace-nowrap`, since a loop goes round one
+  line.
+- **The highlight is inset by its own cap.** A round cap 0.72em wide reaches
+  past the run, and the first build painted the last letter of the word before
+  it.
+- **The marker sits in an SVG under the text and the pens in one over it**, so
+  the ink is on top of the marker and the pens are on top of the ink. The under
+  layer is `mix-blend-multiply`, so the ruled lines show through the marker.
+- **The page is ruled, and the rules are lined up under the text's baselines.**
+  A zero-size inline block at the start of the note reads the first baseline,
+  and the stage's background gradient takes the line height as its size and that
+  baseline, plus a tenth of an em, as its offset.
+- **The geometry is measured on a new note, a resize and the font arriving.**
+  `document.fonts` reports the hand after the first layout, and every mark was
+  measured in the fallback face until it does. A mark the pen has started is
+  left drawn by a relayout, and one still drawing lands at once.
+- **Each mark is drawn by animating its dash offset with WAAPI**, on the
+  reference's own curve, `cubic-bezier(0.3, 0.9, 0.1, 1)`. The dash is the path's
+  length and the gap is its length plus twice the stroke width, so the round cap
+  is not left as a dot at the start.
+- **Nothing renders while the note is written.** One timer chain sets a
+  character's opacity and moves the caret, and each mark is one WAAPI animation
+  per stroke. The only state is the note, a replay counter and the measured
+  marks.
+- **The caret blinks while the pen is idle, through WAAPI**, and holds solid
+  while it types. It blinks before the first letter and after the last.
+- **It writes itself once when it scrolls into view**, which is the signature
+  player's call: a blank ruled page says nothing about what the demo does. The
+  two controls rewrite the same note or go to the next one, after a 180ms fade.
+- **The four inks are scoped to this experiment and are not tokens.** The pen
+  colour is what separates the annotation from the writing. The three pens clear
+  3:1 on white as a graphic should, and the marker is light because the text on
+  it is `text-primary`.
+- **The visible note is `aria-hidden` and an `sr-only` copy carries the text**,
+  so a screen reader is handed the note as one string rather than as 80 spans.
+- **Reduced motion writes the whole note at once with every mark drawn**, and
+  the caret does not blink.
+- No preview clip has been recorded yet.
 
 ## Motion
 
