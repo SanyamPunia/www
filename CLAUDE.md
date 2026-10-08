@@ -1992,8 +1992,9 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-six clips, 4.6MB with their stills, 3.4 to 9.4 seconds each, at 60
-  frames a second.
+- Fifty-seven clips, 4.7MB with their stills, 3.4 to 13.0 seconds each, at 60
+  frames a second. `scribble-type` is the long one, since a note takes 11s to
+  write and the clip is one whole note.
 
 ### `tab-overview`
 
@@ -9938,7 +9939,12 @@ the stage, the clock and the controls.
   drawn**, and no sound plays.
 - The frame loop stops once the last stroke has dried. Measured: 0 frames
   requested in 1.5s after a note has finished.
-- No preview clip has been recorded yet.
+- **Its clip has a `prep` that waits out the first note**, so the first frame,
+  which is the card's poster, is the finished page with its marks. One press
+  on rewrite clears the page and the hand writes the same note again, so the
+  clip ends on the frame it opened on and loops. The press jumps on and off,
+  so the tooltip never opens. 13.0s and 115KB, the longest clip in the set,
+  since the subject is a whole note being written.
 
 ## Motion
 
