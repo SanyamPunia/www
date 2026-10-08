@@ -333,18 +333,16 @@ the paragraph above it.
 `text-meta` serves the footer, tooltips, section labels and row metadata.
 
 **One font is not on this scale, and that is the point.** `Caveat` in
-`app/fonts.ts` is a handwriting face with three callers, none of them UI copy:
-the hint in `components/labs/document-pocket/`, `components/ui/new-badge.tsx`,
-and the note `components/labs/scribble-type/` writes out. The third is the subject
-of its demo rather than an annotation on one, and it reuses this face rather than
-adding a second hand, so the lab costs no new font. None is sized by a token. The hint takes its
+`app/fonts.ts` is a handwriting face with exactly two callers, both of them
+annotations rather than prose: the hint in `components/labs/document-pocket/`, and
+`components/ui/new-badge.tsx`. Neither is sized by a token. The hint takes its
 size from the demo's own width, since it is part of that drawing, and the badge is
 20px, which is 1.39x `text-body`, because Caveat's x-height is far enough below
 Inter's that matching the row by token renders visibly smaller than it. Do not promote this face to the scale, do not use it for UI, and do not add a
 third off-scale face without the same kind of reason.
 
 Next scopes a font to the components that use it, so it is fetched only on the
-pages that render one of those three, and `next/font` self-hosts it, so no page
+pages that render one of those two, and `next/font` self-hosts it, so no page
 makes a third-party request for it.
 
 **`NewBadge` marks the newest entry and nothing else, because there is no clock
@@ -9827,71 +9825,119 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
 
 ### `scribble-type`
 
-A note that types itself out a letter at a time in Caveat, and a pen that goes
-back over it. When the typing passes the end of a marked run, the pen circles,
-underlines, double-underlines, strikes, zigzags or highlights it, and the typing
-waits for 70% of that stroke before it carries on. `notes.ts` is the copy and the
-inks, `doodle.ts` the pen geometry, pure and DOM-free, and `index.tsx` the page,
-the typing and the marks.
+A note written out by hand, a stroke at a time, and a pen that goes back over
+it. When the hand finishes a marked run, the pen circles, underlines,
+double-underlines, strikes, zigzags or highlights it, and the hand waits for 70%
+of that stroke before it writes on. The ink goes down a wet blue and dries to
+blue-black, and with the sound on the nib scratches as it moves.
 
-- **Every character is laid out from the first frame and only its opacity
-  changes.** So nothing reflows as the note is written, the caret's place is a
-  rect read, and every mark is measured off the finished text before the first
-  letter appears.
-- **The characters are plain inline spans, never inline blocks.** An inline span
-  does not end a shaping run, so the note kerns as one piece of text. That is
-  why this lab needs no `[font-kerning:none]`, which `highlight-wave` does: its
-  characters are inline blocks because its wave transforms them.
-- **A run's rects are merged to one per line.** Chrome returns a rect for every
-  character span inside the run as well as one per line, so the first build drew
-  each underline as ten short underlines in a row. `lines` in `index.tsx` groups
-  them by top and unions them.
-- **The pen geometry is a port of the reference's scribble highlighter**: a loop
-  that turns 1.1 times and grows as it goes, so it ends outside where it
-  started; underlines that bow and lift at their end; and a roughening pass that
-  pushes every point out along its normal. Every pen mark is drawn twice, the
-  second pass thinner, at 75% and 60ms behind. The marker is drawn once.
-- **The loop is narrower than the reference's.** The reference widens it until
-  it clears the text's corners, which on a slanted hand throws it a third of an
-  em into the next word. Here it clears the run's ends at mid-height, and a
-  circled run carries `px-[0.1em]` so the loop passes between words rather than
-  through them. A circled run is `whitespace-nowrap`, since a loop goes round one
-  line.
-- **The highlight is inset by its own cap.** A round cap 0.72em wide reaches
-  past the run, and the first build painted the last letter of the word before
-  it.
-- **The marker sits in an SVG under the text and the pens in one over it**, so
-  the ink is on top of the marker and the pens are on top of the ink. The under
-  layer is `mix-blend-multiply`, so the ruled lines show through the marker.
-- **The page is ruled, and the rules are lined up under the text's baselines.**
-  A zero-size inline block at the start of the note reads the first baseline,
-  and the stage's background gradient takes the line height as its size and that
-  baseline, plus a tenth of an em, as its offset.
-- **The geometry is measured on a new note, a resize and the font arriving.**
-  `document.fonts` reports the hand after the first layout, and every mark was
-  measured in the fallback face until it does. A mark the pen has started is
-  left drawn by a relayout, and one still drawing lands at once.
-- **Each mark is drawn by animating its dash offset with WAAPI**, on the
-  reference's own curve, `cubic-bezier(0.3, 0.9, 0.1, 1)`. The dash is the path's
-  length and the gap is its length plus twice the stroke width, so the round cap
-  is not left as a dot at the start.
-- **Nothing renders while the note is written.** One timer chain sets a
-  character's opacity and moves the caret, and each mark is one WAAPI animation
-  per stroke. The only state is the note, a replay counter and the measured
-  marks.
-- **The caret blinks while the pen is idle, through WAAPI**, and holds solid
-  while it types. It blinks before the first letter and after the last.
-- **It writes itself once when it scrolls into view**, which is the signature
-  player's call: a blank ruled page says nothing about what the demo does. The
-  two controls rewrite the same note or go to the next one, after a 180ms fade.
-- **The four inks are scoped to this experiment and are not tokens.** The pen
-  colour is what separates the annotation from the writing. The three pens clear
-  3:1 on white as a graphic should, and the marker is light because the text on
-  it is `text-primary`.
-- **The visible note is `aria-hidden` and an `sr-only` copy carries the text**,
-  so a screen reader is handed the note as one string rather than as 80 spans.
-- **Reduced motion writes the whole note at once with every mark drawn**, and
-  the caret does not blink.
+`hand.ts` is the font data, `notes.ts` the copy and the inks, `doodle.ts` the
+mark geometry, `layout.ts` the layout and the timeline, all four pure. `ink.ts`
+draws the timeline onto a canvas, `pen-sound.ts` is the sound, and `index.tsx` is
+the stage, the clock and the controls.
+
+- **The hand is a single-line font, EMS Neato, so every letter is the path a
+  nib takes.** A normal font is an outline, and revealing one letter by letter
+  can only type it. EMS Neato is Sheldon B. Michaels's single-stroke derivative
+  of Google's Bad Script, under the SIL Open Font License, from the EMS fonts in
+  `gitlab.com/oskay/svg-fonts`. `hand.ts` is the 35 glyphs the notes use, copied
+  with the coordinates rounded and the credit in its header. It replaced Caveat,
+  which the first build typed out a character at a time.
+  - **EMS Felix came first and read as calligraphy.** It is a derivative of
+    Felipa, a broad-nib italic, so its turns are sharp points. Neato's are
+    round, and it was picked over Casual Hand, Delight, Pancakes and Pepita on
+    one sentence at the lab's size. Delight is rounder still and reads as a
+    rounded font rather than as a hand.
+  - **Every stroke is smoothed before it is drawn**, two passes of Chaikin's
+    corner cutting with the ends held, since the font's paths are straight
+    segments and their joints read as points at this size.
+  - **`X_HEIGHT` in `hand.ts` is measured off the glyphs**, 480 units, since
+    the font's own header says 300. Neato's ascenders reach 0.95em and its
+    descenders 0.43em, so the leading is 1.42em.
+  - **The text is lowercased in the layout**, since the stylesheet's
+    `text-transform` does not reach a canvas. `crack-button` makes the same call
+    for its SVG label.
+- **No two letters are the same.** Each glyph gets a seeded nudge, a lean of up
+  to 1.7 degrees and a size of 0.96 to 1.04, and each line drifts slightly off
+  its ruled line. The seed is the note, so a note is written the same way on
+  every visit.
+- **The layout does its own wrapping, so nothing is measured off the DOM.** A
+  mark's line rects come straight from where its letters were placed. A circled
+  run is one unit for the wrap, since a loop goes round one line, and it keeps
+  0.26em clear each side so the loop passes between words. A loop's rect runs
+  from the ascenders to the descenders, 1.12em tall, where a line's rect only
+  has to place the x-height.
+- **The pen slows into a turn and the ink follows it, gently.** A point's time
+  along a stroke is its distance plus a cost for how sharply the path bends
+  there. The ink is a gel pen's: 0.058em wide, 12% heavier where the nib lands,
+  down to 82% over the last 0.16em before a lift, and up to 8% heavier in a
+  turn. Each letter takes its own pressure, 0.92 to 1.08. The first build
+  tapered to half at every lift, which on top of Felix's corners made every
+  stroke end in a point. The pen covers 28em a second on a straight line.
+- **The pauses are a hand's**: 25ms between strokes of one letter, 25 to 50
+  between letters, 80 to 130 between words, 200 after a comma, 380 after a full
+  stop and 160 to start a new line.
+- **Ink is laid down a segment at a time onto a canvas that is never cleared
+  while a note is written.** Each segment is a short round-capped stroke with
+  its own width, and the ink is opaque, so the overlap at a joint does not
+  double up. A frame draws only what the pen covered since the last one.
+- **Wet ink dries.** Every stroke goes down in a brighter blue and is drawn again
+  in one of three blue-black shades 650 to 1000ms after it ends. The trail of
+  blue behind the pen is what says the writing is happening now.
+- **The marker is its own canvas under the ink**, with `mix-blend-multiply` so
+  the ruled lines show through it, and it carries two streaks a shade off its
+  colour inside the band. A pen mark is drawn twice, the second pass lighter
+  and 6% of the mark's time behind, and tapers at both ends.
+- **The mark geometry is a port of the reference's scribble highlighter**: a
+  loop that turns 1.1 times and grows, so it ends outside where it started;
+  lines that bow and lift at their end; and a roughening pass along each
+  point's normal. The loop is narrower than the reference's, which widens until
+  it clears the text's corners and on a slanted hand reaches into the next
+  word. The highlight is inset by its own round cap.
+- **A resize keeps the clock.** The note is laid out again at the new width and
+  everything written by now is put straight back down, so the hand carries on
+  where it was.
+- **The sound is synthesised**, on `scratch-sound.ts`'s shape: one looping noise
+  source whose level follows the pen's speed and falls to nothing on every
+  lift, with a jitter that is the paper's tooth, and a click when a nib lands.
+  The fountain pen is high and thin, the felt pen lower, and the marker low and
+  broad. **It is off until the speaker is pressed**, since the note writes
+  itself on scroll and an audio context cannot start without a press.
+- **The cubic-bezier helper moved from `tide-card` to `lib/bezier.ts`** when this
+  became its second caller.
+- **The ruled lines are a fixed grid and the note snaps onto it.** The grid's
+  spacing and phase come from the stage alone, from its first paint, and each
+  note is centred and then moved to the nearest baseline on it. They used to be
+  placed off each note's own first baseline, so every note with a different
+  line count moved the rules, and they only appeared once the demo scrolled
+  into view. Measured after: the same background position before the demo is
+  seen and on all three notes, at 1280px and at 390px.
+- **The sheet is a warm off-white, `#fcfbf7`, with a texture that can only
+  darken it.** Two noise tiles, a large soft mottle under the ink and a fine
+  tooth over it, each mapped to a colour at an alpha that is zero below the
+  noise's middle. The tooth is at 12% and the mottle at 6% in a near-neutral
+  grey: at 25% and then 12% in brown it read as stains rather than paper. A plain noise at low opacity greys the whole
+  page, which the first grain did at 25% and then at 10% multiply. Soft-light
+  was tried and on a white sheet does nothing at all, since soft-light over
+  white is white. The sheet's colour is scoped here and is not a token.
+- **It writes itself once when it scrolls into view**, the signature player's
+  call. The controls toggle the sound, rewrite the same note, or go to the
+  next one. **The next note slides the old page 2px left as it fades, in
+  140ms**, which is forward in reading order: the button points right, so the
+  page moves left, as a carousel does. A drift to the right came first and read
+  as going back, and 8px and 4px read as too far. A rewrite fades in 120ms
+  and does not move, since it is the same page. Both run on the strongest
+  ease-out in the lab, so the old note is mostly gone within a frame or two of
+  the press.
+  The new note starts on a blank page, so nothing has to slide back in.
+- **The four inks, the hand's blue-black and the paper are scoped to this
+  experiment and are not tokens.** The three pens clear 3:1 on white as a graphic should, and
+  the marker is light because the ink on it is dark.
+- The canvases are `aria-hidden` and an `sr-only` copy carries the note's text.
+- **Reduced motion writes the whole note at once in dry ink with every mark
+  drawn**, and no sound plays.
+- The frame loop stops once the last stroke has dried. Measured: 0 frames
+  requested in 1.5s after a note has finished.
 - No preview clip has been recorded yet.
 
 ## Motion
@@ -10732,7 +10778,7 @@ package, no provider component and no per-route call.
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
   `markdown.ts` the markdown variant of every page, `profile.ts` the two blocks
   of copy in the whole site that no page renders, the profile and the agent
-  guidance, `lerp.ts` the interpolation
+  guidance, `bezier.ts` a CSS cubic-bezier as a function for a clock run by hand, `lerp.ts` the interpolation
   three labs drive their own frame loops with, `lab-previews.ts` which
   experiments have a recorded preview, `utils.ts`.
 - `.agents/skills/` agent skills installed with `npx skills add`, pinned in
