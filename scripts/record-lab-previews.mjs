@@ -1680,6 +1680,29 @@ const LABS = {
       await wait(1400);
     },
   },
+  "scribble-type": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    // the note writes itself once it is in view and dries about 12s later, so
+    // the clip opens on the finished page, which is also the card's poster
+    async prep({ page }) {
+      await page.waitForTimeout(10500);
+    },
+    /*
+     * One press on rewrite clears the page and the hand writes the same note
+     * again, marks and all, so the clip ends on the page it opened on and
+     * loops. The press jumps on and off, so the button's tooltip never opens.
+     */
+    async run({ m }) {
+      await wait(500);
+      await m.move(488, 315, 1);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await m.move(300, 400, 1);
+      await wait(12400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
