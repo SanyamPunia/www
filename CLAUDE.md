@@ -1791,7 +1791,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card` and `scribble-type` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type` and `smooth-caret` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2021,7 +2021,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-seven clips, 4.7MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Fifty-eight clips, 4.8MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
@@ -9974,6 +9974,115 @@ the stage, the clock and the controls.
   clip ends on the frame it opened on and loops. The press jumps on and off,
   so the tooltip never opens. 13.0s and 115KB, the longest clip in the set,
   since the subject is a whole note being written.
+
+### `smooth-caret`
+
+A note in a text field whose caret glides to where it is going instead of
+jumping there. Click, type or use the arrow keys and the caret travels. The
+field is the only thing on the stage, centred in it. `caret.ts` finds the caret
+and `index.tsx` is the field and the glide.
+
+- **A textarea has no `Range` into its own text, so the caret is measured off a
+  mirror.** The mirror is a hidden div laid out like the field: the same width,
+  padding, font, line height and wrapping, copied off the computed style. It
+  holds the text before the caret and then a span holding the rest, and the
+  span's first line box is the caret. The span holds the rest of the text and
+  not one marker, so the word the caret is in wraps as it does in the field. At
+  the end of the text it holds a zero-width space, which cannot push a full line
+  onto the next one.
+- **The native caret is `caret-transparent`, not removed.** The browser still
+  owns the selection, the typing and the keys. Only the paint is replaced.
+- **A soft wrap is one index and two places, so the caret carries an
+  affinity.** The end of one line and the start of the next are the same
+  offset, and the textarea API does not say which one the caret is on. The rule
+  is Chrome's, measured against it:
+  - A press goes to the line under the pointer.
+  - Cmd+Right, End and Ctrl+E go to the end of the line the caret was on.
+  - Any other navigation key goes to the start of the next line.
+  - An edit keeps the affinity it had. A space typed at the end of a line stays
+    on that line, and the first build moved it to the next.
+  - An end caret at a hanging space stops at the text box's right edge, as the
+    native one does.
+  - Measured against the native caret in 24 cases at 1280px and 15 at 390px (a
+    press past each line's end, Cmd+Right, Cmd+Left, and a space, a word and a
+    letter typed at a line end): every one within 1px.
+- **One critically damped spring for x, y and height**, with a visual duration
+  of 130ms. It is a spring so that a key pressed mid-glide turns the caret from
+  where it is at the speed it has, so a run of keystrokes is one movement. It
+  was 80ms first, and that read as a jump.
+- **Typed text is revealed by the caret, so the caret never sits on top of
+  it.** A typed letter appears in the field at once and the caret glides after
+  it, so a plain glide paints the caret over the letter just typed. A cover in
+  the field's own `bg` runs from the caret to the end of the new text, and it
+  shrinks as the caret arrives, so each letter appears as the caret passes it.
+  It only exists for an insertion on one line, and any other move clears it.
+- **Deleted text is erased by the caret, so it never vanishes before the caret
+  moves.** A deletion takes its text out of the field at once, so a caret
+  gliding back crossed space that was already empty. A copy of the deleted
+  text stays where it was, in the field's own font, clipped at the caret, so the
+  caret wipes it away as it goes. The removed text is worked out from the text
+  and caret before the edit, for any backward deletion from a collapsed caret:
+  a letter, a word with Option or a line with Cmd. A deletion that lands where
+  the last copy starts joins it, so held backspace erases one run.
+- **The placeholder waits for the erasing to finish.** Cmd+Backspace on the
+  only line empties the field, and the browser paints the placeholder at once,
+  under the copy the caret is still erasing. While the copy has width, the field
+  carries `data-erasing` and its placeholder is transparent with no transition,
+  so it goes in the same frame. It fades back in over 200ms once the caret has
+  arrived.
+- **A deletion glides only where nothing follows it on the line.** Deleting in
+  the middle of a line pulls the rest of the line under the caret, and so does
+  a deletion that lets the next line's first word reflow up. There the caret
+  jumps and no copy is kept.
+- **A word that wraps while it is typed jumps.** The text moves to the next
+  line in one frame, so the caret goes with it. Enter still glides, since its
+  line break is the move that was asked for.
+- **A streak was built and taken out.** The caret had a head and a tail on two
+  springs, so a long move stretched it into a fading bar. At caret height it
+  was a pill as tall as the text, painted over the words it crossed.
+- **The caret jumps, never glides, when it comes back.** A focus, the end of a
+  selection, a scroll of the field and a resize all place it, since there is
+  nothing to travel from. It is hidden while a range is selected, as the native
+  one is.
+- **A click that focuses the field waits for the clicked position.** The field
+  fires `focus` while it still holds its old caret and reports the clicked one
+  after. Placed on the focus, the caret appeared at the old spot and glided
+  across the field to the click. So a press on an unfocused field skips the
+  focus and places the caret at the first position reported after it, or on
+  the release if the click lands where the caret already was. Keyboard focus
+  still places it on the focus. Measured: one position on the first frame for
+  a click on load and for a click after a blur, and a glide for a click while
+  the field is focused.
+- **It blinks as the native caret does**, solid for 500ms after every move and
+  then a one-second blink. The blink is `caret-blink` in `globals.css` on an
+  inner element, since a blink is an animation on opacity and would override the
+  class that shows and hides the caret. It is not `motion-safe:`, because it
+  stands in for the native caret and that one blinks under reduced motion too.
+- **A toggle to the browser's own caret was built and taken out.** The demo is
+  the smooth caret, and a second control on the stage was a comparison nobody
+  needed to make.
+- **The note is off the type scale**, `clamp(1.0625rem, 4cqw, 1.375rem)`, in
+  a five-row field that takes the stage's width less its padding. The caret
+  is the subject, and at body size a move of one character is too small to
+  follow. The placeholder carries the same size, per the shared rule.
+- Spell check is off, since red underlines are not part of the demo.
+- **The field's focus ring is `stroke-strong`, lighter than the site's
+  pattern**, at the author's request. The pattern's `text-primary/15` read as a
+  dark frame round a field that stays focused for the whole demo. It keeps the
+  pattern's width and offset, and the offset paints in `fill`, the stage's own
+  ground.
+- **Reduced motion places the caret in one step.** It is read with
+  `useReducedMotion`, since `MotionProvider` does not govern `animate()` on a
+  motion value. Verified on a page loaded with the setting: Cmd+Right moves the
+  caret in one frame.
+- It is `flush` on `bg-fill` with its own inset ring, `sm:aspect-8/5`, and
+  content height below `sm`. Verified at 1280 and 390px with a press, the keys,
+  typing, a scrolled field and a phone tap: no sideways scroll and no console
+  errors.
+- Its clip clicks into the second line, walks the caret to the line's end,
+  down a line, back three words and to the end of the note, types "Like this."
+  and deletes it, then blurs the field, so the clip ends on the note it opened
+  on and loops. 8.7s and 43KB.
 
 ## Motion
 
