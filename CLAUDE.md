@@ -1188,6 +1188,35 @@ under the pointer, not the gesture. `demos.tsx` holds `Broken`, `Inherit` and
   readout. Measured on all three: a triple click on the readout, a drag across
   the frame and a drag out into the prose select nothing.
 
+### `selecting-past-a-line-adds-a-space`
+
+A short post on the box Chrome adds to a selection that leaves a line. A
+selection from a big number into the label under it takes the line break, and
+Chrome paints that break one space wide in the font of the text that ends the
+line. `demos.tsx` holds `Anatomy` and `Compare`.
+
+- **Every number in it is measured, in four engines.** Chrome and Chromium
+  paint the box. Firefox and Playwright's WebKit select the same break and
+  paint nothing. The real Safari app was not tested.
+- **The box is one space of the line's own font.** With the static Inter TTF
+  it was 16.2px at 64px. With the site's variable Inter it is 13.7px, so the
+  prose quotes 13px. `word-spacing` does not change it. A `<br>` uses its own
+  font, which is why a number in a 16px parent shrinks the box to about 5px.
+- **`Anatomy` draws the box rather than selecting**, so it reads the same in
+  every browser. The digits' box and "Ove" come from ranges on the real text,
+  and the break's width from `measureText(" ")` in the number's computed font.
+  The stage is `select-none`, since it is a drawing.
+- **`Compare` is two real cards**, the browser's highlight and one painted from
+  `getClientRects()` per text node. The painted card hides the native wash with
+  `selection:bg-transparent!`. The `!` is needed because the site's
+  `::selection` in `globals.css` is unlayered and beats a utility.
+- **The copied text is lowercase on this site.** Chrome applies
+  `text-transform` to `getSelection().toString()`, so the prose and the readout
+  say `"88\nove"`.
+- Not covered, on purpose: the highlight is the font's content area (77px at
+  64px) against 48px of ink, in every engine. That is a separate post if it is
+  ever one.
+
 ### `why-nested-rounded-corners-show-an-extra-curve`
 
 A scroll panel with a thick grey frame showed a faint curved outline at every
