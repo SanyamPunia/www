@@ -1,0 +1,56 @@
+import { Anatomy, Compare } from "./demos";
+
+A useless thing that bugged me. Select a big number and the highlight sits on
+the digits. Keep dragging into the label below and the highlight on the number
+grows on the right. I wanted to know what that was and how to get rid of it.
+
+<Anatomy />
+
+## it's the line break
+
+A selection that crosses into the next line takes the line break with it. You
+can see it in the copied text, `"88\nove"`. Chrome draws that `\n` as a box one
+space wide in the number's font, about 13px at 64px. Firefox and WebKit select
+it too but draw nothing.
+
+## css can't fix it
+
+`::selection` only styles colour and decoration, not the box.
+`user-select: none` removes it, but then nobody can copy the number.
+
+## paint the highlight yourself
+
+Hide the browser's highlight and draw boxes from `getClientRects()` instead.
+They cover the characters only, and the line break has no box.
+
+```css
+.card ::selection {
+  background: transparent;
+}
+```
+
+```ts
+function selectedRects(root: HTMLElement) {
+  const sel = getSelection();
+  if (!sel?.rangeCount || sel.isCollapsed) return [];
+  const live = sel.getRangeAt(0);
+  const rects: DOMRect[] = [];
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+    if (!live.intersectsNode(t)) continue;
+    const part = document.createRange();
+    part.selectNodeContents(t);
+    if (t === live.startContainer) part.setStart(t, live.startOffset);
+    if (t === live.endContainer) part.setEnd(t, live.endOffset);
+    rects.push(...part.getClientRects());
+  }
+  return rects;
+}
+```
+
+Redraw them on `selectionchange`. Drag from 88 into Overall on both cards. On
+Chrome, only the left one grows.
+
+<Compare />
+
+Not sure this helps anyone, but now I know what that box is.

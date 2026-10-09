@@ -1,0 +1,6 @@
+{
+  "title": "selecting past a line adds a space",
+  "description": "Drag a selection from a big number into the line below and Chrome paints an extra box after the number. It is the line break, drawn one space wide.",
+  "date": "2026-10-09",
+  "readTime": "1 min read"
+}
