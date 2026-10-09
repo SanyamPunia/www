@@ -845,6 +845,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Turn the sound on, then watch the pen.",
   },
+  {
+    slug: "smooth-caret",
+    title: "Smooth Caret",
+    description: [
+      "a text field whose caret glides to where it is going instead of jumping: click, type or use the arrow keys and it travels there, stretching into a short streak on a long move.",
+      "key insight: a textarea has no `Range` into its own text, so the caret is measured off a hidden mirror of the field, laid out with the same width, padding, font and wrapping, with the text after the caret in a span whose first line box is the caret. the native caret is painted transparent and a drawn one follows.",
+      "the head and the tail of the caret are two springs, so a long move leaves a streak behind it, and a move to a new line travels as one piece rather than smearing across two.",
+    ],
+    createdAt: "2026-10-10",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/smooth-caret/caret.ts",
+    flush: true,
+    hint: "Click into the note, then type or use the arrow keys.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -950,6 +964,7 @@ export const IMPLEMENTED_LABS = [
   "abacus",
   "scratch-card",
   "scribble-type",
+  "smooth-caret",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

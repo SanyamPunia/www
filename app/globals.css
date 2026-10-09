@@ -708,3 +708,23 @@ html[data-dragging="true"] * {
     stroke-dashoffset: -11;
   }
 }
+
+/*
+ * The drawn caret's blink, for `components/labs/smooth-caret/`. One second a
+ * cycle, which is the rate the native caret blinks at, with a short fade at
+ * each edge rather than a hard step. It is not `motion-safe:`, since it stands
+ * in for the native caret and that one blinks under reduced motion as well.
+ */
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
