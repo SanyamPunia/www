@@ -1703,6 +1703,39 @@ const LABS = {
       await wait(12400);
     },
   },
+  "smooth-caret": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A click puts the caret in the second line, and then the keys walk it: to
+     * the line's end, down a line, back by words, and to the end of the note,
+     * where it types a few words and takes them back out. A click on the bare
+     * stage blurs the field, so the clip ends on the unfocused note it opened
+     * on and loops.
+     */
+    async run({ page, m }) {
+      const key = async (k, ms = 550) => {
+        await page.keyboard.press(k);
+        await wait(ms);
+      };
+      await wait(500);
+      await m.click(240, 152);
+      await m.move(300, 300, 4);
+      await wait(700);
+      await key("Meta+ArrowRight", 700);
+      await key("ArrowDown");
+      await key("Alt+ArrowLeft", 380);
+      await key("Alt+ArrowLeft", 380);
+      await key("Alt+ArrowLeft", 600);
+      await key("Meta+ArrowDown", 600);
+      await page.keyboard.type(" Like this.", { delay: 90 });
+      await wait(700);
+      for (let i = 0; i < 11; i++) await key("Backspace", 55);
+      await wait(600);
+      await m.click(269, 300);
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
