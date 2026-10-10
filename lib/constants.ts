@@ -6,6 +6,15 @@
 export const CONTENT_WIDTH = "max-w-[33.6rem]";
 
 /**
+ * The lab index, which is a grid of clips rather than a column of prose.
+ *
+ * Three columns at this width are about 324px each, and the preview clips are
+ * 640px wide, so a card shows its clip at 2x on a retina screen. A wider grid
+ * upscales the clips and they go soft.
+ */
+export const WIDE_WIDTH = "max-w-[64rem]";
+
+/**
  * Half of `CONTENT_WIDTH`, as a number, for anything positioned in the margin
  * beside the column rather than inside it. Currently just `TocRail`.
  *

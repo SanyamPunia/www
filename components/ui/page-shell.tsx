@@ -1,5 +1,5 @@
 import type React from "react";
-import { CONTENT_WIDTH } from "@/lib/constants";
+import { CONTENT_WIDTH, WIDE_WIDTH } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type Align = "center" | "top";
@@ -11,12 +11,15 @@ interface PageShellProps {
    * content outgrows a short viewport. "top" is for the longer index pages.
    */
   align?: Align;
+  /** "wide" is the lab index grid, every other page is the prose column */
+  width?: "content" | "wide";
   className?: string;
 }
 
 export function PageShell({
   children,
   align = "center",
+  width = "content",
   className,
 }: PageShellProps) {
   return (
@@ -26,7 +29,15 @@ export function PageShell({
         align === "center" ? "items-center" : "items-start",
       )}
     >
-      <div className={cn("w-full", CONTENT_WIDTH, className)}>{children}</div>
+      <div
+        className={cn(
+          "w-full",
+          width === "wide" ? WIDE_WIDTH : CONTENT_WIDTH,
+          className,
+        )}
+      >
+        {children}
+      </div>
     </main>
   );
 }
