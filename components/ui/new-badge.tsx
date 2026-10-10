@@ -50,32 +50,52 @@ const CIRCLE = [
  * The cost is that it says "new" even when the newest post is old. That is
  * visible to whoever writes the posts, which is the right person to notice it.
  */
-export function NewBadge() {
+export function NewBadge({
+  placement = "margin",
+}: {
+  /**
+   * "margin" hangs it off the left of a row, "inline" sits it in the flow
+   * after a title. The lab grid uses inline, since its first card is on the
+   * grid's left edge and there is no margin there to hang it in.
+   */
+  placement?: "margin" | "inline";
+}) {
   return (
     <span
       className={cn(
         caveat.className,
-        /*
-         * Absolute, so a truncating title never has to share its width and the
-         * row does not shift when the badge appears on one entry and not the
-         * rest. `left-0` is the pill's own left edge, which already sits 12.8px
-         * out from the column, and the translate hangs the badge off that.
-         *
-         * **The margin is measured from the circle, not from the word.** The
-         * translate only moves the span by its own width, and the circle hangs
-         * 6.4px past that on every side, so a margin sized to the word alone put
-         * the circle's right edge 3.4px inside the row's hover pill and the two
-         * touched. 16px leaves a 7.8px gap, close to the row's own `gap-3`.
-         */
-        "-translate-x-full absolute top-1/2 left-0 -ml-5 -translate-y-1/2",
-        /*
-         * Hidden below `md`, the same trade the post rail makes at `lg`. The
-         * circle is what forced this: the word alone reached 44px past the column
-         * against 51px of margin at `sm`, and with the circle and the margin it
-         * clears the row needs 62px. At `md` there is 115px of margin, so nothing
-         * here is living on an edge.
-         */
-        "hidden md:block",
+        placement === "margin"
+          ? [
+              /*
+               * Absolute, so a truncating title never has to share its width
+               * and the row does not shift when the badge appears on one entry
+               * and not the rest. `left-0` is the pill's own left edge, which
+               * already sits 12.8px out from the column, and the translate
+               * hangs the badge off that.
+               *
+               * **The margin is measured from the circle, not from the word.**
+               * The translate only moves the span by its own width, and the
+               * circle hangs 6.4px past that on every side, so a margin sized
+               * to the word alone put the circle's right edge 3.4px inside the
+               * row's hover pill and the two touched. 16px leaves a 7.8px gap,
+               * close to the row's own `gap-3`.
+               */
+              "-translate-x-full absolute top-1/2 left-0 -ml-5 -translate-y-1/2",
+              /*
+               * Hidden below `md`, the same trade the post rail makes at `lg`.
+               * The circle is what forced this: the word alone reached 44px
+               * past the column against 51px of margin at `sm`, and with the
+               * circle and the margin it clears the row needs 62px. At `md`
+               * there is 115px of margin, so nothing here is living on an edge.
+               */
+              "hidden md:block",
+            ]
+          : /*
+             * `ml-4` is 12.8px, and the circle hangs 6.4px past the word, so
+             * the circle clears the title by 6.4px. `shrink-0` keeps a long
+             * title from squeezing it, since the title truncates instead.
+             */
+            "relative ml-4 inline-block shrink-0",
         /*
          * 20px, which is 1.39x `text-body`. Caveat's x-height is far enough below
          * Inter's that matching the row's type by token renders visibly smaller
