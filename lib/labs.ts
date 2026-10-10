@@ -889,6 +889,15 @@ export function metaDescription(text: string, limit = 155): string {
 }
 
 /** "2025-08-23" to "Aug 23, 2025". The stylesheet lowercases it on screen. */
+/**
+ * The view transition name shared by a lab's card on the index and its demo
+ * frame on its own page. One function, so the two ends cannot drift apart and
+ * break the pair without an error.
+ */
+export function labMorphName(slug: string): string {
+  return `lab-${slug}`;
+}
+
 export function formatLabDate(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
     month: "short",

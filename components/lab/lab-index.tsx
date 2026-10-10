@@ -1,59 +1,29 @@
 import Link from "next/link";
-import { NewBadge } from "@/components/ui/new-badge";
 import { formatLabDate, type LabMetadata } from "@/lib/labs";
 
 /**
- * The experiment list, newest first.
+ * A list of experiments as rows, newest first.
  *
- * Rows, not preview cards. The old index showed a screenshot per entry, but
- * every one of those was a still of the dark build, so they were both wrong on
- * a white page and wrong about what the components now look like. The detail
- * page renders the live thing, which is a better preview than any image.
- *
- * The moving preview came back as something beside the row rather than inside
- * it: `data-lab-slug` is what `LabPreview` hit tests against, and
- * `data-active` is what it marks the row it is reading with. Both are inert
- * anywhere the list renders without that wrapper, which is `MoreLabs`.
+ * The lab index itself is `LabGrid` now. This is the short list `MoreLabs`
+ * renders at the foot of every lab page, where three rows of text sit under
+ * the prose better than three playing clips would.
  */
-export function LabIndex({
-  labs,
-  markNewest = false,
-}: {
-  labs: LabMetadata[];
-  /** the list is everything there is, so row 0 is genuinely the newest */
-  markNewest?: boolean;
-}) {
+export function LabIndex({ labs }: { labs: LabMetadata[] }) {
   return (
     <ul className="-mx-4 flex flex-col gap-1">
-      {labs.map((lab, index) => (
+      {labs.map((lab) => (
         <li key={lab.slug}>
           <Link
             href={`/lab/${lab.slug}`}
-            data-lab-slug={lab.slug}
-            className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill data-[active=true]:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
+            className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
           >
-            {/*
-              First child, so the badge joins the link's accessible name and a
-              screen reader hears "new" before the title rather than after the
-              date.
-
-              `markNewest` is what says row 0 is the newest thing there is, and
-              it is the caller's claim rather than this component's assumption.
-              Only a list of everything can make it. `MorePosts` and `MoreLabs`
-              render through here too, and they pass a list with the current
-              page filtered out and the rest cut to three, so row 0 there is the
-              newest of what is left. Reading the newest post put the badge on
-              the runner-up.
-            */}
-            {markNewest && index === 0 && <NewBadge />}
-
             <span className="min-w-0 shrink truncate text-body leading-tight text-text-primary">
               {lab.title}
             </span>
 
             <span
               aria-hidden="true"
-              className="h-px min-w-4 flex-1 bg-stroke-soft transition-colors duration-200 group-hover:bg-stroke group-data-[active=true]:bg-stroke"
+              className="h-px min-w-4 flex-1 bg-stroke-soft transition-colors duration-200 group-hover:bg-stroke"
             />
 
             <time

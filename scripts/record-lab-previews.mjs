@@ -1,5 +1,5 @@
 /**
- * Records the hover preview the lab index plays, one clip per experiment.
+ * Records the preview clip each lab index card plays, one per experiment.
  *
  * The index needs a moving picture of each interaction, and every experiment
  * answers to a gesture rather than sitting still, so there is nothing to
@@ -48,9 +48,9 @@ const FPS = 60;
 const ab = async (...args) => (await run("agent-browser", args)).stdout.trim();
 
 /**
- * 8:5, twice the card's own 307x192 so it stays sharp on a 2x display. The
- * card's aspect lives in `lab-preview.tsx` and this is the same ratio: a clip
- * that does not match it is letterboxed by the card rather than distorted.
+ * 8:5, about twice the grid card's own 324x202 so it stays sharp on a 2x
+ * display. The card's `aspect-8/5` lives in `lab-grid.tsx` and this is the
+ * same ratio: a clip that does not match it is cropped by the card.
  */
 const CARD = { w: 640, h: 400 };
 const ASPECT = CARD.w / CARD.h;
@@ -63,8 +63,8 @@ const ASPECT = CARD.w / CARD.h;
  * work: Chrome's screencast returns frames at the viewport's CSS size whatever
  * the device scale factor, measured 1280x1000 with the page at a factor of 2,
  * and Playwright's recorder before it only ever scaled a page down. So the
- * crop is upscaled to the card at encode time. The card is 307px wide, so a
- * 537px crop is already 1.75x what it paints.
+ * crop is upscaled to the card at encode time. The card is about 324px wide,
+ * so a 537px crop is already 1.66x what it paints.
  */
 const VIEWPORT = { width: 1280, height: 800 };
 

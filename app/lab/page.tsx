@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { LabIndex } from "@/components/lab/lab-index";
-import { LabPreview } from "@/components/lab/lab-preview";
+import { LabGrid } from "@/components/lab/lab-grid";
 import { BackLink } from "@/components/ui/back-link";
 import { JsonLd } from "@/components/ui/json-ld";
 import { PageShell } from "@/components/ui/page-shell";
@@ -29,7 +28,7 @@ export default function LabPage() {
 
   return (
     <PageTransition>
-      <PageShell align="top">
+      <PageShell align="top" width="wide">
         {/* the list mirrors `labs` above, so the markup cannot claim an
             experiment the page does not render */}
         <JsonLd
@@ -53,13 +52,8 @@ export default function LabPage() {
             </div>
           </RevealItem>
 
-          {/* `LabPreview` passes the list straight through, the same way
-              `Reveal` does, so `LabIndex` stays a server component and no row
-              data crosses to the browser beyond the slug it hit tests with. */}
           <RevealItem>
-            <LabPreview previews={labPreviewSlugs()}>
-              <LabIndex labs={labs} markNewest />
-            </LabPreview>
+            <LabGrid labs={labs} previews={labPreviewSlugs()} />
           </RevealItem>
         </Reveal>
       </PageShell>
