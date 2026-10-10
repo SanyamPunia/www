@@ -58,7 +58,7 @@ See Agent readiness below for what it covers.
 | Annotation font | `Caveat` variable, same loader, **one lab only**, see below |
 | Class helper | `cn()` from `lib/utils.ts` |
 | Formatter and linter | Biome, not ESLint or Prettier |
-| Page width | `CONTENT_WIDTH` in `lib/constants.ts`, consumed by `PageShell` |
+| Page width | `CONTENT_WIDTH` in `lib/constants.ts`, consumed by `PageShell`. `WIDE_WIDTH` beside it for the lab grid only |
 
 ## Color tokens
 
@@ -351,25 +351,26 @@ current date would be answered once at build time and then keep claiming the sam
 thing until the next deploy, which is the trap `sitemap.ts` avoids by omitting
 `lastModified`. The newest entry is the newest whenever the page is served.
 
-**Which row is newest is the caller's claim, through `markNewest`, and not
-something `BlogIndex` or `LabIndex` may assume.** Only a list of everything can
-make it. `MorePosts` and `MoreLabs` render through those same two components and
-pass a list with the current page filtered out and the rest cut to three, so
-row 0 there is the newest of what is left. While the badge keyed off row 0 alone,
-reading the newest post put it on the runner-up, which is the one thing the
-badge must never do. So the two indexes pass `markNewest` and the two "more"
-sections do not.
+**Which row is newest is the caller's claim, and not something a list may
+assume.** Only a list of everything can make it. `BlogIndex` takes `markNewest`
+for that reason: `MorePosts` renders through it with the current post filtered
+out and the rest cut to three, so row 0 there is the newest of what is left, and
+keying the badge off row 0 alone put it on the runner-up. `LabGrid` always
+renders the whole registry, so its card 0 is the newest and it needs no flag.
+`MoreLabs` renders through `LabIndex`, which carries no badge at all.
 
-It hangs in the margin absolutely, so a truncating row title never shares its width,
-and it is hidden below `md`. The hand-drawn circle round it is what set that
-breakpoint: the word alone reached 44px past the column against 51px of margin at
-`sm`, and with the circle plus the margin that clears the row it needs 62px. The
-circle is one stroke that overshoots its own start, since a closed ellipse reads
-as a border rather than as a pen mark, and **every offset around it is measured
-from the circle rather than from the word**, since the circle hangs 6.4px past the
-span on all four sides. Sizing the gap to the word alone is what put the circle
-inside the row's hover pill. It is the
-row's first child, so a screen reader hears "new" before the title.
+It has two placements. **`margin`, the default, hangs it absolutely** beside a
+row, so a truncating row title never shares its width, and it is hidden below
+`md`. The hand-drawn circle round it is what set that breakpoint: the word alone
+reached 44px past the column against 51px of margin at `sm`, and with the circle
+plus the margin that clears the row it needs 62px. **`inline` sits it in the
+flow after a title**, for the lab grid, whose first card has no margin beside
+it. The circle is one stroke that overshoots its own start, since a closed
+ellipse reads as a border rather than as a pen mark, and **every offset around
+it is measured from the circle rather than from the word**, since the circle
+hangs 6.4px past the span on all four sides. Sizing the gap to the word alone is
+what put the circle inside the row's hover pill. In a row it is the first child,
+so a screen reader hears "new" before the title.
 
 **`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
 post open with a real `<h1>` at `text-lead`, followed by a `text-body`
@@ -514,6 +515,10 @@ Every page renders inside `PageShell` (`components/ui/page-shell.tsx`), which
 owns the `min-h-svh` centering and the column width. `align="center"` for the
 home page, `align="top"` for the longer index pages. Never set a per-page
 `max-w-*`, change `CONTENT_WIDTH` instead.
+
+`width="wide"` swaps the column for `WIDE_WIDTH`, and `/lab` is the one caller.
+It is a grid of clips rather than prose, so the 72 character measure that sets
+`CONTENT_WIDTH` says nothing about it. See The index grid under Lab.
 
 ## Work page
 
@@ -1863,87 +1868,88 @@ experiment is a directory under `components/labs/`.
   to the list above, and do not take it as licence to compute a palette
   somewhere that a token would do. See its own section.
 
-### The hover preview
+### The index grid
 
-Hovering a row on the lab index plays a clip of that experiment beside the
-pointer. Scrolling with the pointer held still swaps the clip for whichever row
-moved under it, running the same way the page did.
-`components/lab/lab-preview.tsx` is the card and the hit testing,
-`lib/lab-previews.ts` says which experiments have a clip,
-`scripts/record-lab-previews.mjs` records them, and each is an mp4 and a webp
-still in `public/assets/labs`.
+The lab index is a grid of cards, and each card plays a clip of its experiment.
+`components/lab/lab-grid.tsx` is the grid and the caption,
+`components/lab/lab-clip.tsx` plays one clip, `lib/lab-previews.ts` says which
+experiments have a clip, `scripts/record-lab-previews.mjs` records them, and
+each is an mp4 and a webp still in `public/assets/labs`.
 
-A row's title says what an experiment is called and nothing about what it does,
-and every one of them answers to a gesture, so there is no still that shows one
-working.
+It replaced a list of rows with a clip that followed the pointer. A row's title
+says what an experiment is called and nothing about what it does, and on a
+phone that list never showed a clip at all.
 
-- **One `pointermove` on the list, hit tested against measured bands, never a
-  `pointerenter` per row.** A scroll moves the list under a pointer that has not
-  moved, so no pointer event fires at all, and per-row events cannot express
-  "the row under the cursor changed because the page did". One test answers both,
-  off the last pointer position the list saw.
-- **The bands are page coordinates and the pointer is viewport coordinates**,
-  since a scroll changes one and not the other. The rows are a static list, so
-  they are measured on the first move and again on a resize, the same
-  measure-once call `event-stacking` makes for its grid.
-- **Each gap goes to whichever row it is nearer.** Rows sit at `gap-1`, which is
-  3.2px on this scale. Left as a real gap the card blinks shut and open again on
-  the way past, and a scroll can stop in one and close the card under a pointer
-  that never moved.
-- **The row's own mark comes from that same test, written to the node as a data
-  attribute.** A browser is not required to re-run `:hover` until the pointer
-  moves again, so on a scroll the marked row and the clip could disagree about
-  which experiment is being read, which is the one thing this cannot do.
-  `hover:bg-fill` stays alongside `data-[active=true]:bg-fill`, since `MoreLabs`
-  renders the same list with no wrapper around it. Writing to the node rather
-  than to state is the bar `book-opening` and the signature player set: a pointer
-  crossing twenty rows renders nothing.
-- **The sides come from a row's own box, not the container's.** A row is the
-  whole `-mx-4` pill, so it reaches 12.8px past the column the wrapper sits in,
-  and testing the wrapper left the outer edge of every row dead.
-- **The card is portalled into `body`, and it is `pointer-events-none`.**
-  `RevealItem` animates a transform, and an element with one is the containing
-  block for a fixed descendant, so a card left inside the list could never leave
-  it, which is why `portrait.tsx` portals too. Transparent to the pointer because
-  it lies over the rows it is reading: taking the pointer would drop the hover
-  that put it there.
-- **The clip is fetched on the first hover that needs it.** Nothing is
-  preloaded, so the index costs its own markup and no video at all until someone
-  points at a row. The still is the clip's `poster`, so the card paints the right
-  picture for the frame or two before the video can.
-- **A fresh card is put where the pointer already is, and only a move springs.**
-  Otherwise it flies in from the row last read, or from the corner on the first
-  open.
-- **Near an edge the card flips to the other side of the pointer rather than
-  being clamped**, so it never sits under the cursor. Measured on a 1040px
-  viewport: a pointer on a row's right edge puts the card's right edge 18px to
-  its left.
-- **No `initial={false}` on the `AnimatePresence` that swaps the clips.** That is
-  the obvious way to stop the first clip sliding in and it stops every later one
-  as well: Motion says it by putting `initial: false` on a context every motion
-  component below reads, so a keyed child mounts at `animate` rather than at
-  `initial`. `tab-overview` documents the same trap at length. So the first clip
-  arrives the way the rest do, under the card's own fade.
-- **The swap spring is critically damped.** What the card does is replace one
-  clip with the next, and an overshoot on a full-height slide reads as the strip
-  being thrown.
-- **Not `ring-inset` on the card.** The clip is `size-full` and paints over an
-  inset ring, which leaves the card with no edge at all, the trap `now-playing`
-  documents for the album cover. It needs one, since half the clips are a white
-  demo on a white ground.
-- **Hover is gated on `pointerType`**, mouse and pen only, the call
-  `folder-stack` documents: a touch has no hover to take back, so a tap would
-  leave a card on screen with nothing to close it. **On a phone the index is the
-  list it always was.**
-- **Reduced motion gets the still and no travel.** A clip looping until the
-  pointer leaves is the motion that setting is about, and nobody asked for it:
-  the reader pointed at a row, they did not press play. The card still appears,
-  and it appears where the pointer is rather than travelling there.
+- **A plain CSS grid, not a masonry.** Every clip is 640 by 400, so every card
+  is the same `aspect-8/5` and the rows line up with no measuring. One column on
+  a phone, two from `sm`, three from `lg`.
+- **The grid is `WIDE_WIDTH`, 64rem, and not the prose column.** Three columns
+  there are about 324px each, which shows a 640px clip at 2x on a retina screen.
+  A wider grid upscales the clips and they go soft. `PageShell` takes
+  `width="wide"` for it, so the width still comes from `lib/constants.ts`. The
+  header sits on the grid's left edge.
+- **The caption is under the card, not over the clip.** Title on the left in
+  `text-body`, date on the right in `text-meta`. The clips mix white stages and
+  `inverse-*` stages, so a caption laid over them would need its tone flipped
+  per lab. Under the card it is ordinary text on the page.
+- **A clip plays while its card is within 200px of the viewport and pauses
+  when it leaves.** One `IntersectionObserver` per card. The video is
+  `preload="none"`, so a clip is only fetched when `play()` asks for it, and the
+  200px margin starts it before its card scrolls in. In view rather than on
+  hover, because a phone has no hover and a grid of stills hides that every lab
+  is an interaction.
+- **Until a clip has a frame, its card is a pulsing `fill` block**, the same
+  placeholder a lab page shows while its demo loads, so the grid and the page a
+  card opens into wait the same way. `data-ready` is written to the node on
+  `loadeddata`, so nothing renders when a clip arrives, and the clip fades in
+  over the block in 200ms. Measured with every clip request held back 4s: all
+  cards grey, then 12 ready, which is the 9 on screen and the 3 inside the
+  margin.
+- **Reduced motion never plays a clip.** The card is marked ready at once and
+  shows the still the video carries as its `poster`. It is read with
+  `matchMedia` in the effect, since `MotionProvider` never reaches a
+  `<video>`.
+- **A card opens into its lab.** The card's clip box and the lab page's demo
+  frame share a `ViewTransition` name, `labMorphName(slug)` in `lib/labs.ts`, so
+  a click morphs the box into the frame and the back link morphs it home. Both
+  ends carry `share="lab-morph"` and `default="none"`: without `default="none"`
+  every named card runs its own crossfade on every unrelated transition, and
+  with it the explicit `share` is what keeps the pair morphing. The timing is
+  `::view-transition-group(.lab-morph)` in `globals.css`, 380ms on the drawer
+  curve.
+  - **The demo block on the lab page is a plain `div`, not a `RevealItem`**, and
+    it is the one block there that does not fade in. The browser captures the
+    morph's target on the first commit, when a reveal still holds it at opacity
+    0, so the card morphed into nothing and the page went white for the length
+    of the transition. Measured: the reveal had the demo at 0 until 380ms and at
+    0.55 when the transition ended.
+  - **What a card morphs into is usually the lab's grey placeholder**, since
+    the demo chunk is still loading when the page commits. So the clip
+    crossfades into the same grey block the grid uses, and the demo fades in
+    from there.
+- **The card's edge is a layer over the clip, not an inset ring on the box.**
+  The clip is `size-full` and paints over an inset ring, which leaves the card
+  with no edge at all, the trap `now-playing` documents for the album cover.
+  Half the clips are a white stage on a white page, so the edge is the only
+  thing saying where a card stops.
+- **Hover is a surface behind the clip and the caption, the way a row's is**,
+  kept to the two lightest steps: `surface` on hover and `fill` on press. A grid
+  of moving clips flashes under the pointer at anything heavier. `-m-2 p-2`
+  grows the surface past the clip without moving it, and its corner is the
+  clip's 0.4rem plus that 0.4rem of padding, so the corners are concentric. The
+  clip's edge steps to `stroke-strong` and the date to `text-secondary` with
+  it. Nothing scales, per Local overrides.
+- **The newest card carries `NewBadge` inline after its title**, through
+  `placement="inline"`. The first card is on the grid's left edge, so there is
+  no margin to hang the badge in. It is first in the markup and painted last
+  with `order-last`, so a screen reader hears "new" before the title.
 - **Which experiments have a clip is read off `public/assets/labs`, not declared
   in `labsRegistry`.** The recorder is what writes them, so the directory is the
-  only thing that knows. A lab with no clip renders no preview, which is the
-  trade a post with no `meta.json` makes. `/lab` is prerendered, so the directory
-  is read once at build time.
+  only thing that knows. A lab with no clip renders its card as a plain `fill`
+  box. `/lab` is prerendered, so the directory is read once at build time.
+- **`LabIndex` is the row list `MoreLabs` renders** at the foot of every lab
+  page, where three rows of text sit under the prose better than three playing
+  clips.
 
 ### Recording the previews
 
@@ -1975,7 +1981,7 @@ checked in as assets.
   the device scale factor, measured 1280x1000 with the page at a factor of 2,
   and Playwright's recorder before it only ever scaled a page down. So the 537px
   column is captured at 537px and upscaled to 640x400 at encode time, which is
-  still 1.75x what the 307px card paints.
+  still 1.66x what the 324px grid card paints.
 - **A `focus` rect per lab, in the demo's own coordinates**, corrected to the
   card's 8:5 inside the demo box and padded in white where the demo is the wrong
   shape for it. Cropping past the demo's edge pulls in the heading and the
@@ -10935,7 +10941,7 @@ package, no provider component and no per-route call.
 - `types/` ambient declarations only. Currently just the React canary
   reference. Anything untyped from npm gets its `.d.ts` here.
 - `components/lab/` the lab index and detail chrome: the dynamic import map, the
-  hover preview, the index list, and `controls.tsx`, the parameter lane and the
+  index grid and its clip, the row list `MoreLabs` uses, and `controls.tsx`, the parameter lane and the
   pill that three experiments now share. Lab chrome rather than site primitives,
   which is why it is not in `components/ui/`.
 - `scripts/` tooling that is not part of the app and never imported by it. Plain
