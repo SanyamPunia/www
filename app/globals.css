@@ -545,6 +545,17 @@ html[data-dragging="true"] * {
 }
 
 /*
+ * A lab card opening into its own page, see The index grid in CLAUDE.md. The
+ * card and the demo frame share a name, so this is the box travelling from
+ * one to the other. A little longer than the page crossfade so the eye can
+ * follow it, on the drawer curve, which leaves fast and settles soft.
+ */
+::view-transition-group(.lab-morph) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/*
  * MotionConfig cannot reach view-transition pseudo-elements, so they opt out
  * here. Scoped to those pseudo-elements, so this is not the blanket reset the
  * shared rules ban.

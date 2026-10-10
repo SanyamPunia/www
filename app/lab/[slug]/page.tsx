@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { Demo } from "@/components/blogs/demo";
 import { Experiment } from "@/components/lab/experiment";
 import { MoreLabs } from "@/components/lab/more-labs";
@@ -21,6 +22,7 @@ import {
   formatLabDate,
   getLabBySlug,
   isImplemented,
+  labMorphName,
   labsRegistry,
   metaDescription,
 } from "@/lib/labs";
@@ -100,24 +102,38 @@ export default async function LabDetailPage({
           {/* the source links belong to the demo, not the write-up. `my-0` on
               the frame because its own margin is for the MDX case, and here it
               would stack on the flex gap and push the link away from the thing
-              it labels. */}
-          <RevealItem className="flex flex-col gap-2">
+              it labels.
+
+              A plain `div` and not a `RevealItem`, which is the one block on
+              the page that does not fade in. The card on `/lab` morphs into
+              this frame, and the browser captures the frame on the first commit,
+              when a reveal still holds it at opacity 0, so the card morphed
+              into nothing and the page went white. */}
+          <div className="flex flex-col gap-2">
             {/* `data-lab-demo` is the box `scripts/record-lab-previews.mjs`
                 crops its recording to. A wrapper rather than an attribute on
                 `Demo`, since a `bare` entry has no frame and the recorder still
                 has to find the same box. */}
-            <div data-lab-demo="">
-              {lab.bare ? (
-                <Experiment slug={slug} frame="bare" />
-              ) : (
-                <Demo className={cn("my-0", lab.flush && "p-0")}>
-                  <Experiment
-                    slug={slug}
-                    frame={lab.flush ? "flush" : "padded"}
-                  />
-                </Demo>
-              )}
-            </div>
+            {/* the card on `/lab` carries the same name, so opening a lab
+                morphs its card into this frame. See The index grid. */}
+            <ViewTransition
+              name={labMorphName(slug)}
+              share="lab-morph"
+              default="none"
+            >
+              <div data-lab-demo="">
+                {lab.bare ? (
+                  <Experiment slug={slug} frame="bare" />
+                ) : (
+                  <Demo className={cn("my-0", lab.flush && "p-0")}>
+                    <Experiment
+                      slug={slug}
+                      frame={lab.flush ? "flush" : "padded"}
+                    />
+                  </Demo>
+                )}
+              </div>
+            </ViewTransition>
 
             {/* the hint says what to do with the demo and the links say where
                 it came from, so the two share one row from opposite ends.
@@ -161,7 +177,7 @@ export default async function LabDetailPage({
                 )}
               </div>
             )}
-          </RevealItem>
+          </div>
 
           <RevealItem className="flex flex-col gap-4">
             {lab.description.map((line) => (
