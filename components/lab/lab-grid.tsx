@@ -71,17 +71,29 @@ export function LabGrid({
               </div>
             </ViewTransition>
 
-            <div className="flex items-baseline justify-between gap-3">
+            <div className="relative flex items-baseline justify-between gap-3">
               {/*
-                The badge is first in the markup, so a screen reader hears
-                "new" before the title, and `order-last` paints it after. Its
-                20px Caveat line is taller than the caption's, so `h-0` takes
-                it out of the row's height, or the newest caption sits lower
-                than the two beside it.
+                From `xl` up the badge hangs in the margin left of the title,
+                the way it does on the blog index. The grid is 64rem wide, so
+                only there is the margin beside the first card wide enough for
+                it: 128px at 1280. Its anchor is the hover surface's left edge,
+                6.4px out from the card, so it keeps the blog row's spacing.
+              */}
+              {index === 0 && (
+                <span className="-left-2 absolute inset-y-0 hidden xl:block">
+                  <NewBadge />
+                </span>
+              )}
+              {/*
+                Below `xl` it sits inline after the title instead. It is first
+                in the markup, so a screen reader hears "new" before the title,
+                and `order-last` paints it after. Its 20px Caveat line is taller
+                than the caption's, so `h-0` takes it out of the row's height,
+                or the newest caption sits lower than the two beside it.
               */}
               <span className="flex min-w-0 items-baseline">
                 {index === 0 && (
-                  <span className="order-last flex h-0 shrink-0 self-center items-center">
+                  <span className="order-last flex h-0 shrink-0 items-center self-center xl:hidden">
                     <NewBadge placement="inline" />
                   </span>
                 )}

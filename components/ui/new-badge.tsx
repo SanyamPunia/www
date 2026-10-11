@@ -55,8 +55,9 @@ export function NewBadge({
 }: {
   /**
    * "margin" hangs it off the left of a row, "inline" sits it in the flow
-   * after a title. The lab grid uses inline, since its first card is on the
-   * grid's left edge and there is no margin there to hang it in.
+   * after a title. The lab grid uses margin from `xl` up and inline below it,
+   * since its first card is on the grid's left edge and the margin there is
+   * only wide enough for the badge at `xl`.
    */
   placement?: "margin" | "inline";
 }) {
