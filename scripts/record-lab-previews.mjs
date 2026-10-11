@@ -1736,6 +1736,41 @@ const LABS = {
       await wait(900);
     },
   },
+  "voice-orb": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The pointer comes in from the right, which drags the fluid toward it,
+     * and a quick pass over the orb stirs its surface. A tap pokes it. Then a
+     * hold that moves listens and talks louder, and the release sends it, so
+     * it thinks and answers. The pointer leaves and the clip ends on the idle
+     * orb it opened on, so it loops.
+     */
+    async run({ m }) {
+      await wait(600);
+      await m.move(470, 150, 10);
+      await wait(500);
+      await m.move(330, 120, 4);
+      await m.move(200, 170, 4);
+      await wait(400);
+      await m.move(290, 130, 3);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await wait(700);
+      await m.move(269, 141, 3);
+      await m.down();
+      await wait(500);
+      for (let i = 0; i < 14; i++) {
+        await m.move(269 + Math.sin(i * 1.3) * 40, 141 + Math.cos(i) * 26, 2);
+        await wait(45);
+      }
+      await wait(300);
+      await m.up();
+      await m.move(500, 300, 8);
+      await wait(6400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
