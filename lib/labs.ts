@@ -859,6 +859,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Click into the note, then type or use the arrow keys.",
   },
+  {
+    slug: "voice-orb",
+    title: "Voice Orb",
+    description: [
+      "a voice assistant's orb, drawn by one fragment shader: hold it to talk and it listens, let go and it thinks, then it answers. a tap pokes it, and a tap while it answers cuts it off.",
+      "key insight: the inside is a sphere of domain-warped noise, sampled at `(q, sqrt(1 - |q|^2))` for each point `q` on the disc, so the flow bunches toward the rim the way a texture on a ball does. the rim wobbles by how loud the orb is, and every phase is a palette rather than a branch in the shader.",
+      "the reply is a list of syllables grouped into words and sentences, and the orb swells with each one, so it reads as talking rather than pulsing. moving while you hold is talking louder.",
+    ],
+    createdAt: "2026-10-11",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/voice-orb/shader.ts",
+    flush: true,
+    hint: "Hold to talk, move to speak up, let go for a reply.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -974,6 +988,7 @@ export const IMPLEMENTED_LABS = [
   "scratch-card",
   "scribble-type",
   "smooth-caret",
+  "voice-orb",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
