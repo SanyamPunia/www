@@ -364,8 +364,8 @@ row, so a truncating row title never shares its width, and it is hidden below
 `md`. The hand-drawn circle round it is what set that breakpoint: the word alone
 reached 44px past the column against 51px of margin at `sm`, and with the circle
 plus the margin that clears the row it needs 62px. **`inline` sits it in the
-flow after a title**, for the lab grid, whose first card has no margin beside
-it. The circle is one stroke that overshoots its own start, since a closed
+flow after a title**, for the lab grid below `xl`, where its first card has no
+margin beside it wide enough. From `xl` up the grid uses `margin` too. The circle is one stroke that overshoots its own start, since a closed
 ellipse reads as a border rather than as a pen mark, and **every offset around
 it is measured from the circle rather than from the word**, since the circle
 hangs 6.4px past the span on all four sides. Sizing the gap to the word alone is
@@ -1796,7 +1796,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type` and `smooth-caret` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret` and `voice-orb` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1856,6 +1856,9 @@ experiment is a directory under `components/labs/`.
   `bento-focus`'s five gradients are the same claim as `photo-stack`'s: each
   tile's colours are the picture, and colour is what tells five tiles built
   from the same layers apart. See its own section.
+  `voice-orb` scopes one palette per phase of a conversation, since the orb's
+  colour is what says whether it is listening, thinking or answering. See its
+  own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -1939,10 +1942,14 @@ phone that list never showed a clip at all.
   clip's 0.4rem plus that 0.4rem of padding, so the corners are concentric. The
   clip's edge steps to `stroke-strong` and the date to `text-secondary` with
   it. Nothing scales, per Local overrides.
-- **The newest card carries `NewBadge` inline after its title**, through
-  `placement="inline"`. The first card is on the grid's left edge, so there is
-  no margin to hang the badge in. It is first in the markup and painted last
-  with `order-last`, so a screen reader hears "new" before the title.
+- **The newest card's badge hangs in the margin left of its title from `xl`
+  up, and sits inline after it below.** The grid is 64rem wide and its first
+  card is on the grid's left edge, so the margin beside it is only wide enough
+  for the badge at `xl`, 128px at 1280. The margin badge is anchored to the
+  hover surface's left edge, 6.4px out from the card, so it keeps the blog
+  row's spacing. Below `xl` it goes through `placement="inline"`, first in the
+  markup and painted last with `order-last`. Either way a screen reader hears
+  "new" before the title, and only one of the two is ever displayed.
 - **Which experiments have a clip is read off `public/assets/labs`, not declared
   in `labsRegistry`.** The recorder is what writes them, so the directory is the
   only thing that knows. A lab with no clip renders its card as a plain `fill`
@@ -2027,7 +2034,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-eight clips, 4.8MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Fifty-nine clips, 5.0MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
@@ -10089,6 +10096,106 @@ and `index.tsx` is the field and the glide.
   down a line, back three words and to the end of the note, types "Like this."
   and deletes it, then blurs the field, so the clip ends on the note it opened
   on and loops. 8.7s and 43KB.
+
+### `voice-orb`
+
+A voice assistant's orb. Hold it to talk and it listens, let go and it thinks,
+then it answers. A tap pokes it, a press while it thinks or answers
+cuts it off, and a pointer near it drags the fluid inside toward itself.
+`shader.ts` is the drawing and the GL setup, `voice.ts` is the reply as a list
+of syllables, `orb-sound.ts` is the earcons, and `index.tsx` is the state
+machine and the frame loop.
+
+- **It is the first lab on WebGL.** One fragment shader over a full-stage
+  canvas draws the orb, its halo and the listening ring. Nothing outside the
+  shader knows what the orb looks like. The component hands it about twenty
+  numbers a frame, from one triangle that covers the viewport.
+- **The inside is a sphere, not a disc.** A point `q` on the disc is sampled at
+  `(q, sqrt(1 - |q|^2))` on the front of a unit sphere, so the fluid bunches
+  toward the rim the way a texture on a ball does. That is most of what makes
+  a flat circle read as round.
+- **The fluid is domain-warped fbm**: two fbm fields displace the input to a
+  third. This is the technique behind most of paper.design's flowing
+  gradients.
+  - **Three octaves at a scale of 0.85, and the first build had four at
+    1.35.** That read as a marble or a planet, since the fourth octave is fine
+    speckle. The voice-assistant look is large soft cloud shapes, which is
+    fewer octaves at a lower frequency with wide colour ramps.
+- **The rim wobbles by how loud the orb is.** Its radius is two octaves of noise
+  round the circle, scaled by the speech and listening levels, so idle barely
+  moves the edge and an answer deforms it.
+- **The halo is dithered as well as the body.** A faint colour at low alpha has
+  only a few 8-bit steps to spend, and without dither the glow drew concentric
+  rings on the white stage.
+- **Each phase is a palette, never a branch in the shader.** Blue at rest,
+  indigo while listening, violet while thinking, cyan while answering. The
+  component eases a weight per phase and mixes the three tones and the halo
+  before it hands them over. The hues are scoped here and are not tokens.
+- **Thinking whirls the inside like water round a drain.** The flow is turned by
+  a uniform rotation plus a twist that is tightest at the middle. The twist is
+  eased toward a fixed amount rather than accumulated, since an accumulated
+  twist winds the noise into a spiral that never unwinds.
+- **The reply is a list of syllables, and the orb's swell reads it.**
+  `utterance` builds words of one to three syllables into sentences of four to
+  seven words, and the swell is `envelope` of that list on the frame clock. A
+  loud syllable also sends a ring out of the middle. The generator is seeded,
+  so a reply is reproducible from its seed.
+- **The answer is silent.** A synthesised murmur was built for it, a sawtooth
+  through two formant filters per syllable, and taken out at the author's
+  request: gibberish speech read as a browser trick. The earcons stay, all soft
+  sines: two notes up when it starts listening, the same two down when it
+  stops, and one falling note for a poke.
+- **Moving while holding is talking louder.** There is no microphone, which
+  `/privacy` would have to name. The hand's speed during a hold is the
+  listening level, it decays on its own, and a still hold breathes at a low
+  level instead of sitting still. The reply's length comes from how long and
+  how loudly the reader talked, clamped to 1.4 to 5.5 seconds.
+- **A press pokes at once and becomes a hold after 220ms.** The poke is a
+  ripple from the point pressed. A release before the hold is a tap, which
+  kicks a spring on the orb's scale and plays the falling note. Any press
+  first interrupts a thought or an answer, so a long press during an answer
+  talks over it.
+- **Ripples are six slots of `x, y, age, strength`** in one uniform array. Each
+  is a ring of light leaving its point and a bump where it meets the rim. A
+  quick mouse pass over the idle orb stirs one, rate limited to every 140ms.
+- **The button is the orb's resting circle and never moves.** The orb scales
+  and wobbles in the shader, and the hit area stays the untransformed circle,
+  which is `foil-card`'s rule. The pointer is captured on the press, so a hand
+  that leaves the orb is still holding it.
+- **Hover is the stage's, mouse and pen only**, so the orb notices a pointer
+  before it arrives: full within one and a half radii of the middle, gone by
+  three.
+- **The keyboard holds the same way.** Space or Enter down starts a press and up
+  ends it, with both defaults prevented so no synthesised click lands on the
+  hold. Escape cancels a hold and interrupts an answer. A click with a `detail`
+  of 0 is an assistive technology's, which cannot hold, and gets a poke.
+- **The label under the orb is the phase and what a reader can do next**, both
+  morphed through `torph`. The button's `aria-label` follows the phase and a
+  polite live region announces it.
+- **Sound is on by default** with a toggle in the corner. Every sound answers a
+  press, so nothing plays until the reader asks, and the clock is unlocked on
+  the press, `poke-sound.ts`'s two-step.
+- **A context that will not compile falls back to a CSS radial gradient** in the
+  phase's own tones. A lost context stops the loop and a restored one compiles
+  again. Verified with WebGL switched off in Chrome: the gradient stands in,
+  takes each phase's colour, and a hold still runs through to an answer.
+- **The loop runs while the stage is on screen**, since the orb breathes at
+  rest, and stops off it through an `IntersectionObserver`. Measured: a 16.7ms
+  median and 16.8ms worst frame under a 4x CPU throttle at 1280px, and 0 frames
+  requested in 1.5s with the stage scrolled off.
+- **Reduced motion keeps every phase and drops the travel.** No loop runs. Each
+  phase change draws one still frame in its palette, with no wobble and no
+  ripples. Measured: 0 frames requested at rest.
+- It is `flush` on `bg-fill`, the grey most of the lab sits on, with its own
+  inset ring, `aspect-8/5` with a `min-h-78` floor. It was white first, and the
+  author asked for the lab's ground. The orb's focus ring paints its offset in
+  `fill`, or a keyboard focus draws a white band round the orb. The sound
+  toggle is a plain button one step up from `Pill`'s tones, `fingerprint-ink`'s
+  call, since a `bg-fill` pill on a `fill` stage is invisible. Verified at 1280 and 390px, and with Space held from the keyboard: no
+  sideways scroll and no console errors.
+- Its clip comes in from the right, stirs the surface, pokes, holds while
+  moving, and lets go, so it thinks and answers. It waits for the answer to end,
+  so the clip closes on the idle orb and loops. 11.0s and 192KB.
 
 ## Motion
 
