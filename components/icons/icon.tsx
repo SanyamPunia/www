@@ -49,10 +49,16 @@ export function Svg({
   );
 }
 
-export function Solid({ d }: { d: string }) {
-  return <path d={d} fill="currentColor" fillRule="evenodd" strokeWidth={2} />;
-}
+/**
+ * A solid part's paint, spread onto a plain `<path>`. These are props rather
+ * than components because Satori, which draws the social cards, serialises an
+ * `<svg>`'s children as plain elements and never calls a component inside one.
+ */
+export const SOLID = {
+  fill: "currentColor",
+  fillRule: "evenodd",
+  strokeWidth: 2,
+} as const;
 
-export function Line({ d }: { d: string }) {
-  return <path d={d} strokeWidth={2.25} />;
-}
+/** a line part's paint, spread onto a plain `<path>` for the same reason */
+export const LINE = { strokeWidth: 2.25 } as const;
