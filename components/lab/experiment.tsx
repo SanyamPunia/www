@@ -492,6 +492,13 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
       loading: Placeholder,
     },
   ),
+  "dot-island": dynamic(
+    () => import("@/components/labs/dot-island").then(ready),
+    {
+      ssr: false,
+      loading: Placeholder,
+    },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

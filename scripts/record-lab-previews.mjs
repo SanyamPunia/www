@@ -1771,6 +1771,52 @@ const LABS = {
       await wait(6400);
     },
   },
+  "dot-island": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A press opens the island, and the pointer runs down the menu and back,
+     * so each row's icon plays as the pointer crosses it. Record sends the
+     * record icon into the red dot and the timer runs to three. A press stops
+     * it, delete carries the bin into the pill, and the island folds back to
+     * the loader it opened on, so the clip loops. The rows are found by their
+     * names, since their place is worked out from the stage.
+     */
+    async run({ page }) {
+      const at = async (name) => {
+        const b = await page
+          .locator(`[data-lab-demo] button[aria-label="${name}"]`)
+          .boundingBox();
+        return [b.x + b.width / 2, b.y + b.height / 2];
+      };
+      const press = async (name) => {
+        const [x, y] = await at(name);
+        await page.mouse.move(x, y, { steps: 6 });
+        await page.mouse.down();
+        await wait(50);
+        await page.mouse.up();
+      };
+      await wait(700);
+      await press("Open the recorder");
+      await wait(900);
+      let [x, y] = await at("Screenshot");
+      await page.mouse.move(x - 40, y, { steps: 8 });
+      await wait(900);
+      [x, y] = await at("Record");
+      await page.mouse.move(x - 40, y, { steps: 8 });
+      await wait(800);
+      await press("Record");
+      await wait(3300);
+      await press("Stop recording");
+      await wait(900);
+      [x, y] = await at("Delete recording");
+      await page.mouse.move(x - 40, y, { steps: 8 });
+      await wait(700);
+      await press("Delete recording");
+      await page.mouse.move(x - 40, y + 120, { steps: 6 });
+      await wait(2600);
+    },
+  },
   "scrub-number": {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],

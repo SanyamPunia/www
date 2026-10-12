@@ -971,6 +971,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag an icon or number. Shift ×10, Alt ×0.1, drag down to slow.",
   },
+  {
+    slug: "dot-island",
+    title: "Dot Island",
+    description: [
+      "a screen recorder in a dynamic island, drawn on a dot-matrix panel: press it for a menu, record, stop, then save, restart or delete. every word, icon and digit is lit cells on one grid.",
+      "key insight: a change of state is the lit dots travelling to their places in the next one, paired left to right by rank so no two cross, and ticking as they land. the grid belongs to the stage, so the pill is a window that grows on a spring and a dot at rest is always on a cell.",
+      "hover a row and its icon plays as a flipbook. dots shared by name travel to each other, so the record icon becomes the red dot and the bin carries into the pill.",
+    ],
+    createdAt: "2026-10-13",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/dot-island/dots.ts",
+    flush: true,
+    hint: "Press the island, then record or take a screenshot.",
+  },
 ];
 
 /**
@@ -1100,6 +1115,7 @@ export const IMPLEMENTED_LABS = [
   "smooth-caret",
   "voice-orb",
   "scrub-number",
+  "dot-island",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
