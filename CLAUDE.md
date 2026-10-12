@@ -48,7 +48,7 @@ See Agent readiness below for what it covers.
 | Parameter | This project |
 |---|---|
 | Package manager | `pnpm` |
-| Icon library | `@phosphor-icons/react` v2, see Icons below |
+| Icon library | The site's own set in `components/icons/`, see Icons below. No icon package is installed |
 | Motion library | `motion` (imported from `motion/react`), **not** `framer-motion`. `gsap` is installed for exactly one lab, `custom-cursor`, see its section. Nothing else imports it, and a component never mixes the two. |
 | Color system | A fixed **light** theme. Semantic tokens only, see below. |
 | Type scale | Named tokens `text-lead` / `text-body` / `text-action` / `text-meta` |
@@ -386,10 +386,62 @@ paragraph genuinely is the content, not a description of content.
 
 ## Icons
 
-Phosphor supplies every UI icon. Social brand marks come from
-[svgl.app](https://svgl.app) and live in `components/icons/`, one file per mark,
-with the source route named in a comment. svgl has no Medium, so that single
-mark stays on Phosphor's `MediumLogoIcon`.
+**Every UI icon is the site's own, drawn in `components/icons/glyphs/`.** It
+replaced Phosphor, so no icon package is installed. The set is rounded and
+filled, after a reference the author shared, and `/icons` shows all of it. See
+The icon sheet below. Social brand marks live beside the set in
+`components/icons/`, one file per mark. GitHub, X and LinkedIn come from
+[svgl.app](https://svgl.app), with the source route named in a comment. Gmail,
+Pageo and Medium are the site's own copies, since svgl has none of them.
+
+**The construction rules are in `components/icons/icon.tsx`, and every icon
+follows them.** They are the industry's own: Lucide, Heroicons and Material all
+draw on a 24 unit grid with 2 units of padding.
+
+- **The grid is 24 units with 2 of padding.** No ink reaches past 2 or 22.
+  Keyline shapes: a circle is 20 across, a square 18, a portrait 16 by 20 and a
+  landscape 20 by 16. Small marks, such as a check, an X or a caret, sit inside
+  those.
+- **A solid part is filled and stroked at 2 in the same colour**, with round
+  joins. The stroke adds 1 on every side and turns each corner into an arc, so
+  the geometry is drawn 1 inside its keyline. This one rule gives the set its
+  soft look.
+- **A line part is a stroke alone at 2.25**, with round caps and joins. It is for
+  a glyph that a fill would turn into a blob: arrows, carets, a check, a link.
+- **A knockout is a hole cut with `evenodd`**, drawn 1 larger than what shows,
+  since the solid's stroke closes it by 1 on every side. A stroke-shaped hole of
+  visible width 2.25 therefore has a half width of 2.125. Two holes must not
+  overlap, or `evenodd` fills the overlap again.
+- **The ink box is centred on 12, 12.** Each icon was measured, not judged by
+  eye. The exceptions are optical: the play triangle sits 0.6 to the right of
+  centre.
+- **The path data is literal**, the way Lucide and Heroicons ship it. The
+  drawings were built with geometry helpers in a scratch script that is not in
+  the repo. To change an icon, edit its path data, then check its ink box
+  against the keylines at 40px and at 12.8px.
+
+How to use the set:
+
+- **Import from `@/components/icons`.** Each export is `<Name>Icon`, a plain
+  function with no context and no hook, so server and client components share
+  one import path. `lib/icons.ts` lists every name in sheet order.
+- **One weight.** There is no `weight` prop. Three icons exist in two forms,
+  because outline against filled carries a state: `Heart` and
+  `HeartOutlineIcon` for `halftone-ripple`'s like, `Flame` and
+  `FlameOutlineIcon` for `ember-burst`'s wick, and `Circle`, which is a ring
+  for an unselected radio.
+- **Adding an icon** means:
+  1. Draw it in the right glyph file.
+  2. Add its name to `lib/icons.ts`.
+  3. Measure its ink box.
+
+  `components/icons/catalog.ts` checks that every glyph export has a name in
+  `lib/icons.ts`, and that every name has a glyph. A mismatch fails the build.
+- Sizing is `size-*`, never a `width` or `height` prop, so the Tailwind scale
+  stays the one source of truth. With no class, an icon is `1em`. Inline-in-text
+  icons use `size-[0.9em]` so they track the copy they sit in.
+- Icons are `aria-hidden` by default. A call site that wants an icon announced
+  passes `aria-hidden={false}` along with `role="img"` and an `aria-label`.
 
 **Brand marks keep their real brand hex.** This is the one sanctioned exception
 to the semantic-tokens-only rule: a brand colour is not a theme colour, it
@@ -398,8 +450,8 @@ in the mark's own component and nowhere else. Do not add these to `@theme`, and
 do not reach for them in any other context.
 
 Because the fill is fixed, a mark does not answer to `currentColor`, so the
-footer's hover on a social link is the background step alone. `MediumLogoIcon`
-is the exception and still tints, since Phosphor draws in `currentColor`.
+footer's hover on a social link is the background step alone. `Medium` is the
+exception and still tints, since it fills in `currentColor`.
 
 Marks set `aria-hidden="true"` and `focusable="false"` before the prop spread,
 since the anchor wrapping them carries the label and Biome's
@@ -411,22 +463,35 @@ hands as SVG. It is a lab asset, not a UI icon, and the shared "icons, never
 emojis" rule still stands everywhere else. See the Lab section for why a text
 glyph could not serve.
 
-- **Import the `*Icon`-suffixed exports only.** `CheckIcon`, not `Check`. The
-  bare names are deprecated in 2.1 and will be removed.
-- **Server components import from `@phosphor-icons/react/dist/ssr`.** The main
-  barrel pulls in `createContext` and throws in RSC. Only a `"use client"` file
-  may import from `@phosphor-icons/react` directly.
-- Sizing is `size-*`, never the `size` prop, so the Tailwind scale stays the one
-  source of truth. Inline-in-text icons use `size-[0.9em]` so they track the
-  copy they sit in.
-- Weight stays at the `regular` default. Do not pass `weight` per call site.
-  Three exceptions, and each is a state rather than a style: the signature
-  player's transport, where the glyphs are player symbols rather than UI icons
-  and take `fill`, `halftone-ripple`'s heart, where a filled heart is what a
-  like button's on state has always looked like, and `ember-burst`'s flame,
-  which is filled when the wick is lit and an outline when it is out. The last
-  two fade the filled glyph in over the outline rather than swapping the
-  weight, so the edge stays under it through the change.
+### The icon sheet
+
+`/icons` is the whole set as one grid, under one small left-aligned line that
+says what it is and what a press does. Point at an icon for its name, and press
+it to copy its SVG.
+`components/icon-sheet/` is the grid, and `app/icons/page.tsx` is the route.
+
+- **The page shows the icons and nothing else, at the author's request.** A
+  first build carried a lead line, search, a copy-format switch, a sprite
+  download, group labels and notes on the drawing rules, and all of it came
+  out. The one line on top came back on request. It is `text-meta` muted and
+  names the copy format from the same `FORMAT` constant the copy uses, so the
+  two cannot disagree. The title is `sr-only`, the way the home page keeps its
+  `h1`.
+- **A press copies the SVG and the tile swaps to a tick for 1.2s.** A polite
+  live region says what was copied.
+- **The copy is read off the DOM, never restated.** `serialize.ts` reads the
+  rendered `<svg>`, drops the page's own attributes and sets the size to 24,
+  so what a reader takes is exactly what the grid paints.
+- **The arrow keys walk the grid**, left and right in order and up and down by
+  one row's worth of tiles. Home and End go to either end.
+- **A tile paints its icon at exactly 24px**, the grid's own size, so every
+  unit of the drawing lands on a whole pixel. Tiles sit on `surface`, so the
+  page reads as a sheet of cells. Hover steps to `fill` and press to
+  `fill-hover`.
+- **`ICONS_DESCRIPTION` in `lib/icons.ts` is the page's one line**, carried by
+  the metadata and `/icons.md` only. The markdown lists the names by group.
+  `iconSetSchema` in `lib/schema.ts` is a `CollectionPage` whose items carry
+  a name and no `url`, since an icon has no page of its own.
 
 ## Inline links
 
@@ -898,7 +963,7 @@ for one section instead of the whole post.
   `components/ui/copy-mark.tsx`, and both copy controls on a post render it**
   so they behave identically. The glyph arriving fades in over 100ms and scales
   up from 0.5 on a short spring with a little bounce. The one leaving fades and
-  shrinks in 80ms. Both are Phosphor icons stacked in one box. A path morph
+  shrinks in 80ms. Both are icons from the set, stacked in one box. A path morph
   between hand-drawn polylines came first, at 280ms, and the author found it
   slow and soft for an answer to a press. Reduced motion is read in the
   component and keeps the fade without the scale.
@@ -1667,11 +1732,8 @@ paragraph under it.
     `text-bg` glyph, which is what says where to press first. It cannot be another
     fill step, because the pill it sits on is already one. Its hover and press are
     alpha steps on the same token, since none of the fill tokens is a shade of it.
-  - **The glyphs pass `weight="fill"`**, the one place in this codebase that sets
-    an icon weight. These are player symbols rather than UI icons: a filled
-    triangle and a filled square are what a transport looks like everywhere, and
-    at `size-3.5` the outlines read as sketches of the controls. `ArrowsClockwise`
-    barely changes, since an arrow is a stroke whatever the weight.
+  - **The glyphs are the set's own solid play, pause and stop**, which is what a
+    transport looks like everywhere.
 - **Playback is not gated on reduced motion, deliberately.** That setting is about
   motion a reader did not ask for, and this is a play button. The demo has
   nothing left to show if pressing it does nothing. **The autoplay is gated**, and it is
@@ -4106,11 +4168,9 @@ button, the canvas and the frame loop.
   - **`INK` is exported for one reader**, the contrast demo in
     `app/blogs/_details-you-can-measure/`, which converts it and reports its
     ratio. Nothing else may paint with it.
-  - **The heart fills while it is on, as a second glyph fading in over the
-    outline** rather than a weight swap on one, so the fill arrives on the same
-    200ms as the hue and the outline stays under it as the edge. This is the
-    second place the codebase passes an icon `weight`, after the signature
-    player's transport, and the Icons section names both.
+  - **The heart fills while it is on**, as `HeartIcon` fading in over
+    `HeartOutlineIcon` rather than one glyph swapping, so the fill arrives on
+    the same 200ms as the hue and the outline stays under it as the edge.
 - **The dots are at 0.82, not solid.** Full ink under the digits made the count
   hard to read for the frame or two the crest sat on it, and a print on grey
   paper sits a little into the paper anyway.
@@ -8907,8 +8967,8 @@ the stage, the gesture and the loop.
   so it is under 2% opacity by 250ms: measured, the pill starts at about 460ms,
   after the old status line's own exit, and is whole by about 600ms. Under reduced motion
   there is no ring and the pill does not wait. The check in the pill is drawn on with `pathLength`, since it is
-  the answer to the whole gesture, which is why it is drawn rather than a
-  Phosphor glyph.
+  the answer to the whole gesture, which is why it is drawn rather than taken
+  from the icon set.
 - **This is the second caller of `--color-success`**, after the held meter in
   `the-card-flinches-when-you-reach-its-edge`, for the same meaning: a task the
   reader finished. The pill is `success` on a 10% wash of itself, the pair the
@@ -9745,9 +9805,9 @@ their inks, and `ticket.tsx` and `index.tsx` are the card and the table.
 - **Letting go finishes the card** once the match is found, or all nine are,
   or under 30% of the coating is left. A losing card ends on two falling notes
   and "No match this time".
-- **The symbols are Phosphor's filled glyphs**, which is one more place an icon
-  weight is passed. They are the ticket's printed artwork rather than UI
-  icons, and a printed lottery symbol is a solid shape. Their six inks are
+- **The symbols are the icon set's solid glyphs.** They are the ticket's
+  printed artwork rather than UI icons, and a printed lottery symbol is a solid
+  shape. Their six inks are
   scoped in `marks.tsx`, are not tokens, and clear 3:1 on `surface`. Colour is
   what tells six symbols apart at a glance, which is the whole game.
 
@@ -11187,7 +11247,11 @@ package, no provider component and no per-route call.
 ## Directories
 
 - `app/` routes. `components/ui/` shared primitives, `components/home/` and
-  `components/work/` are per-surface, `components/icons/` holds brand marks.
+  `components/work/` are per-surface. `components/icons/` is the icon set and
+  the brand marks: `icon.tsx` is the frame and its rules, `glyphs/` the
+  drawings by group, `index.ts` the one import path and `catalog.ts` the
+  whole set for `/icons`. `components/icon-sheet/` is that page's sheet. See
+  Icons above.
   `components/home/avatar.tsx` is the first block on the home page: the photo,
   with the now-playing cover stacked behind it. `portrait.tsx` beside it is the
   stack and everything it does, `use-falling.ts` is one falling body and
@@ -11212,12 +11276,14 @@ package, no provider component and no per-route call.
   list. Other routes still use the root `opengraph-image.jpg`. It is not under
   `/api/` because `robots.ts` disallows that prefix, and link-preview crawlers
   honour it.
+- `app/icons/` the icon sheet, see The icon sheet under Icons.
 - `app/about/`, `app/contact/` and `app/privacy/` the three prose pages. Each is
   metadata and a schema type over `components/ui/static-page.tsx`, and the copy
   is `lib/pages.ts`. See About, contact and privacy above.
 - `lib/` no React. `constants.ts` layout tokens, `site.ts` copy and URLs,
   `pages.ts` the three prose pages and `siteRoutes`, `work.ts` work data,
-  `favicons.ts` the host-to-mark registry,
+  `favicons.ts` the host-to-mark registry, `icons.ts` the icon set's names
+  and the `/icons` description,
   `spotify.ts` the now-playing provider, `schema.ts` the JSON-LD builders,
   `markdown.ts` the markdown variant of every page, `profile.ts` the two blocks
   of copy in the whole site that no page renders, the profile and the agent
