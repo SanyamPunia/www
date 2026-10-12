@@ -234,6 +234,16 @@ html[data-dragging="true"] * {
 }
 
 /*
+ * A number being scrubbed, for `components/labs/scrub-number/`. The hand
+ * leaves the label in its first few pixels, so the resize cursor has to belong
+ * to the page rather than to the label for as long as the scrub runs.
+ */
+html[data-scrub="true"],
+html[data-scrub="true"] * {
+  cursor: ew-resize;
+}
+
+/*
  * The signature writes itself, so the whole reveal lives here rather than in
  * components/home/signature.tsx, which now only injects the asset.
  *

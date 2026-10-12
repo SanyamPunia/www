@@ -873,6 +873,20 @@ export const labsRegistry: LabMetadata[] = [
     flush: true,
     hint: "Hold to talk, move to speak up, let go for a reply.",
   },
+  {
+    slug: "scrub-number",
+    title: "Scrub Number",
+    description: [
+      "two words and the four numbers that set them, each one scrubbable: press its icon or the number and drag, and let go mid-drag to throw it.",
+      "key insight: the scrub integrates each pointer event at the speed in force for it, rather than mapping total distance to a value, so shift, alt or a hand drifting down changes what comes next and never what came before. the throw runs through the same integrator, so a coasting value still catches on bold, on solid, and on inter's own tracking for its size.",
+      "x-ray reads out the hand, the gain, the raw value and a detent's hold as you drag. select both words and a scrub moves each by the same amount. typing takes sums, `size/40` included.",
+    ],
+    createdAt: "2026-10-12",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scrub-number/scrub.ts",
+    flush: true,
+    hint: "Drag an icon or number. Shift ×10, Alt ×0.1, drag down to slow.",
+  },
 ];
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
@@ -989,6 +1003,7 @@ export const IMPLEMENTED_LABS = [
   "scribble-type",
   "smooth-caret",
   "voice-orb",
+  "scrub-number",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
