@@ -1892,7 +1892,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb` and `scrub-number` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number` and `dot-island` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1955,6 +1955,8 @@ experiment is a directory under `components/labs/`.
   `voice-orb` scopes one palette per phase of a conversation, since the orb's
   colour is what says whether it is listening, thinking or answering. See its
   own section.
+  `dot-island` scopes one red for its record dot, which is the same narrow
+  claim as `halftone-ripple`'s: a state and not a subject. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2130,7 +2132,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty clips, 5.0MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Sixty-one clips, 5.2MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
@@ -10476,6 +10478,135 @@ is something whose every value is visible while it moves.
 - Its clip picks "this" and scrubs it lighter through semibold and medium,
   picks both so weight reads mixed, throws size up to its limit, and undoes
   both, so it ends as it began and loops. 9.0s and 51KB.
+
+### `dot-island`
+
+**A draft, `live: false`.** It shows locally, and not on sanyam.sh, until it
+is published.
+
+A screen recorder in a Dynamic Island, drawn on a dot-matrix panel. Press the
+island for a menu, record, press again to stop, then save, restart or delete.
+A screenshot runs a shutter and saves. Every word, icon and digit on it is lit
+cells on one grid. `font.ts` is the glyphs, `scenes.ts` what each phase shows,
+`dots.ts` the morph and the painter, all pure apart from the contexts `paint`
+is handed. `dot-sound.ts` is the ticks and `index.tsx` the stage, the buttons
+and the frame loop.
+
+- **A change of state is the lit dots travelling to their places in the next
+  one.** Each phase is a list of named items, and an item is a set of lit
+  cells. The morph pairs the dots on the panel with the cells asked for, and
+  each dot moves on a straight line with a slight bow and an ease-out. In
+  flight a dot can be anywhere. At rest it is always on a cell.
+- **The pairing has three rules.** A dot already on a cell it is wanted on
+  stays, so a timer turning `5` into `6` moves only the cells that differ. The
+  rest pair by rank, left to right, so no two dots cross on the horizontal and
+  a word turning into another word reads as its columns reshuffling. Uneven
+  counts split and merge: a spare cell grows out of a dot that is also going
+  somewhere else, and a spare dot flies to a cell already taken and shrinks
+  into it. No dot appears or disappears in place.
+- **Items with the same name travel to each other.** The record icon in the
+  menu and the red dot in the recording pill are both `rec`, the viewfinder in
+  the menu and in the shutter are both `cam`, and the bin and its word keep
+  their names into `deleted`. What is left over on both sides pairs as one
+  pool. A row with nothing to become merges into the cells that stay.
+  - **That last case was a bug.** A leaving row with no new item to pair with
+    had nowhere to go, so its dots were given a zero-length move and vanished
+    in one frame, and the stopped menu dropped two rows before the morph
+    started.
+- **The move sweeps left to right**, a delay of up to 180ms by the target's
+  column plus a hashed jitter, so it reads as one wipe and the ticks rattle up
+  the scale. A trip takes `220 + 60 * sqrt(distance)` ms, capped at 520, so a
+  dot crossing the panel is not four times slower than one moving a letter
+  over.
+- **Inside one phase, a change reaches the panel two ways.** `cut` swaps an
+  item's cells in one frame, which is an LED flipbook: the loader, a hovered
+  icon. `slide` sends them, which is a timer digit turning over, quietly. A
+  flipbook frame waits while its own dots are still in flight. A change of
+  tone fades in 160ms where the dot stands.
+- **The grid belongs to the stage, not to the pill.** Column 0 sits under the
+  stage's middle and row 0 on the pill's top edge, which never moves. The pill
+  is a window onto the grid that grows on a spring with a damping ratio of
+  0.75, so a cell never moves and a pill passing its size and settling back
+  reads as soft. Every pill is an odd number of cells wide, so it centres on a
+  column.
+  - **A shrinking pill holds its old size for 0.6 of the slowest dot's trip.**
+    A fixed 110ms was too short for the stopped menu: the pill closed over its
+    bottom row while that row's dots were still on their way up, and the clip
+    cut them off.
+- **The tallest pill is centred, and every other pill hangs from its top.**
+  The stopped menu sits in the middle of the stage, and the island grows
+  downward from that edge the way the hardware does.
+- **The pitch is a share of the stage's width, rounded to whole device
+  pixels**, between 3px and 5px a cell, so the squares sit on the pixel grid.
+  4.8px on the lab column and 3px on a 390px phone, where the stopped menu is
+  159 by 111px.
+- **The type is lowercase, seven rows tall.** The x-height is five rows and the
+  ascenders two, so the panel speaks the site's own lowercase. No word on it
+  has a descender, which is what lets seven rows carry it. Digits are all four
+  wide, so the timer never shifts.
+- **Each icon has a resting frame and a flipbook it plays while its row is
+  hovered**: the record dot pulses, the viewfinder closes and flashes, restart
+  runs its gap round the ring, save drops its arrow into the tray and the bin
+  lifts its lid. A hovered row lifts the other rows to `dim` and lights its own
+  region of unlit cells a step.
+- **A hover that leaves mid-loop plays the loop out, never cuts to rest.** It
+  cut at first, so a pointer passing over a row snapped its icon back in the
+  middle of a move. Every loop now starts on its first moving frame and ends on
+  the resting frame, and `CYCLE` in `font.ts` is each loop's length. Leaving
+  a row sets the end of its play to the end of the loop it is in, so it lands
+  on rest with no jump. A pointer that comes back before that carries on from
+  where the play is. Crossing straight to another row finishes the first one
+  there, since the next row's enter cancels the deferred leave that would have.
+  Verified at a fifth of real speed: the viewfinder leaves on its flash frame,
+  closes and opens once more, and rests.
+- **One canvas paints the slab, its unlit cells and the lit dots, and a second
+  paints the lit dots again for the page to blur.** The bloom is that second
+  canvas under a CSS `blur` with `mix-blend-screen`, so the blur runs on the
+  GPU and costs no filter call per dot. Both are clipped to the pill. The
+  unlit cells are one path per brightness, so a frame is a handful of fills
+  for the grid and one square per lit dot.
+- **The buttons are DOM over the canvas**, laid out from the scene the phase
+  is heading to rather than the pill on screen, so they never move while it
+  springs. A compact pill is one button and a menu is a `fieldset` of rows,
+  each with an `aria-label`, since the visible text is on the canvas. The
+  compact button is the same element across the compact phases, so focus
+  stays on it from the shutter through `saved` and back to rest.
+- **A keyboard action hands focus to whatever the new phase is pressed by**:
+  Enter on the pill focuses the first row, a row focuses the pill. A mouse
+  action moves nothing, for `notice-stack`'s reason. The arrows walk the rows,
+  and Escape closes a menu from anywhere on the page: the first menu to rest,
+  the stopped one back to recording. A press on the bare stage does the same.
+- **A frame's timestamp can be earlier than the clock a handler read inside
+  it**, so every age the scene reads is floored at zero. Before that, a hover
+  that began in the same frame asked the flipbook for frame -1, which is
+  `undefined`, and threw.
+- **Delete does not confirm.** It deletes a demo recording, which is the
+  shared rule's own exception for a cheap action, `notice-stack`'s call.
+- **One hue, the record dot's red, `#ff453a`**, 5.6:1 on `inverse-bg`. It means
+  recording and nothing else: the same dot in the menu is white. It blinks on
+  a one second beat as a tone, lit for two thirds of it. Scoped here and not a
+  token. Everything else is the `inverse-*` set, and the slab is the narrow use
+  `notch-drop` makes: one object on a light stage.
+- **The sound is synthesised**, on `crack-sound.ts`'s shape. A dot landing is
+  a tick pitched by its column, limited to one per 12ms, a press is a lower
+  click and the shutter is two bursts. The timer's digits land quietly. It is
+  on by default with a mute control in the corner, since every sound answers a
+  press, and the clock is unlocked on the stage's `pointerdown`.
+- **The loop runs while anything moves, and the loader and the blink never
+  stop moving.** Measured: 60 frames a second at rest in `idle`, 0 with a menu
+  open and the pointer away, 0 off screen through an `IntersectionObserver`,
+  and 0 under reduced motion.
+- **Reduced motion keeps every phase and drops the travel.** A morph lands in
+  one step, the pill takes its size at once, every flipbook holds its resting
+  frame and the dot does not blink. The timer still counts, since a clock that
+  does not change is not a clock, and a 250ms interval wakes the panel for it.
+- It is `flush` on `bg-fill` with its own inset ring, `aspect-8/5` with a
+  `min-h-78` floor. Verified at 1280 and 390px, by mouse, by touch and by
+  keyboard, with no sideways scroll and no console errors.
+- Its clip opens the island, runs the pointer over both rows so each icon
+  plays, records to three seconds, stops, hovers delete so the lid lifts, and
+  deletes, so the island folds back to the loader it opened on and loops.
+  12.0s and 172KB.
 
 ## Motion
 
