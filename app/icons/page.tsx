@@ -13,6 +13,13 @@ export const metadata: Metadata = {
     canonical: "/icons",
     types: { "text/markdown": "/icons.md" },
   },
+  // Declaring `openGraph` replaces the root's object outright, so the card
+  // has to be named here along with the title it would otherwise lose.
+  openGraph: {
+    title: "Icons",
+    description: ICONS_DESCRIPTION,
+    images: [{ url: "/og/icons", width: 1200, height: 630, alt: "Icons" }],
+  },
 };
 
 /** the icons and nothing else, so the page keeps its title for a screen reader only */

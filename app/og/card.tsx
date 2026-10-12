@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import type React from "react";
 
 // Satori reads static TTF or OTF only, so these are vendored rather than taken
 // from `next/font`, which ships variable woff2.
@@ -11,17 +12,21 @@ export interface Card {
   description: string;
   /** Quiet facts under the description, joined by a dot. */
   meta: readonly string[];
+  /** Optional artwork between the URL and the title, for a card that has
+   *  something to show rather than only something to say. */
+  art?: React.ReactNode;
 }
 
 /**
  * The one social card every generated route renders: the site's URL, then the
  * title, description and meta over the shared background. Routes differ only
- * in where the three come from.
+ * in where the three come from, plus `art` where a card has a picture.
  */
 export async function renderCard({
   title,
   description,
   meta,
+  art,
 }: Card): Promise<ImageResponse> {
   const [background, regular, medium] = await Promise.all([
     readFile(path.join(ASSETS, "background.png")),
@@ -58,6 +63,7 @@ export async function renderCard({
       <div style={{ display: "flex", fontSize: 24, color: "#9b9b9b" }}>
         sanyam.sh
       </div>
+      {art}
       <div
         style={{
           display: "flex",
