@@ -1771,6 +1771,64 @@ const LABS = {
       await wait(6400);
     },
   },
+  "scrub-number": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * "this" is picked on its own and scrubbed lighter, holding at semibold
+     * and medium on the way down. Both words are then picked, so weight reads
+     * mixed, and size is thrown: a quick flick and a release, after which it
+     * coasts up on its own. Three undos put everything back, and both words
+     * end selected as they began, so the clip loops. Every press lands at
+     * once, since a pointer resting on an icon for 500ms opens its tooltip.
+     */
+    async run({ page }) {
+      const at = async (selector) => {
+        const b = await page.locator(selector).boundingBox();
+        return [b.x + b.width / 2, b.y + b.height / 2];
+      };
+      const tap = async (selector, modifiers = []) => {
+        const [x, y] = await at(selector);
+        for (const k of modifiers) await page.keyboard.down(k);
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await wait(50);
+        await page.mouse.up();
+        for (const k of modifiers) await page.keyboard.up(k);
+      };
+      await wait(600);
+      await tap('[data-lab-demo] button:has-text("this")');
+      await wait(400);
+      let [x, y] = await at('[data-lab-demo] [data-key="weight"] label');
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let i = 1; i <= 120; i++) {
+        await page.mouse.move(x - i, y);
+        await wait(12);
+      }
+      await wait(250);
+      await page.mouse.up();
+      await page.mouse.move(x - 120, y - 140);
+      await wait(500);
+      await tap('[data-lab-demo] button:has-text("Scrub")', ["Shift"]);
+      await wait(600);
+      [x, y] = await at('[data-lab-demo] [data-key="size"] label');
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let i = 1; i <= 8; i++) {
+        await page.mouse.move(x + i * 9, y);
+        await wait(16);
+      }
+      await page.mouse.up();
+      await page.mouse.move(x + 72, y - 140);
+      await wait(1400);
+      for (let i = 0; i < 2; i++) {
+        await page.keyboard.press("Meta+z");
+        await wait(700);
+      }
+      await wait(700);
+    },
+  },
 };
 
 function crop(rect, bounds) {
