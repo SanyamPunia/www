@@ -38,6 +38,7 @@ const PAGES = [
   "/work",
   "/blogs",
   "/lab",
+  "/icons",
   "/about",
   "/contact",
   "/privacy",

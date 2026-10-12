@@ -46,6 +46,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    // no lastModified for the same reason: the set changes when an icon is
+    // drawn, and nothing records when that was
+    { url: `${SITE_URL}/icons`, changeFrequency: "monthly", priority: 0.6 },
     /*
      * about, contact and privacy. Same standing as the home page: no
      * `lastModified`, because their copy lives in `lib/pages.ts` and nothing in

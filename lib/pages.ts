@@ -358,6 +358,11 @@ export const siteRoutes: SiteRoute[] = [
   },
   { href: "/blogs", title: "Blogs", note: "the writing index" },
   { href: "/lab", title: "Lab", note: "the UI experiment index" },
+  {
+    href: "/icons",
+    title: "Icons",
+    note: "the site's own icon set, to copy as SVG",
+  },
   ...staticPages.map((page) => ({
     href: `/${page.slug}`,
     title: page.title,

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getAllBlogs } from "./blogs";
 import { SITE_URL } from "./constants";
+import { ICON_GROUPS, ICONS_DESCRIPTION } from "./icons";
 import { isImplemented, labsRegistry } from "./labs";
 import {
   type ProseSegment,
@@ -49,6 +50,7 @@ export function markdownRoutes(): MarkdownRoute[] {
     ["work"],
     ["blogs"],
     ...getAllBlogs().map((blog) => ["blogs", blog.slug]),
+    ["icons"],
     ["lab"],
     // gated the same way `sitemap.ts` gates them: a registry entry with no
     // component 404s, and advertising a 404 as markdown is no better
@@ -69,6 +71,7 @@ export function markdownFor(route: MarkdownRoute): string | null {
     if (first === "work") return work();
     if (first === "blogs") return blogIndex();
     if (first === "lab") return labIndex();
+    if (first === "icons") return icons();
 
     const page = staticPageFor(first);
     if (page) return staticPage(page);
@@ -334,6 +337,29 @@ function work(): string {
         section.rows
           .map((row) => `- [${row.name}](${row.href}), ${row.meta}`)
           .join("\n"),
+      ].join("\n"),
+    ),
+  );
+}
+
+/**
+ * The icon set, off `lib/icons.ts`, which the page renders from too. The page
+ * shows the icons alone, so this is their names by group.
+ */
+function icons(): string {
+  return doc(
+    frontmatter({
+      title: "Icons",
+      description: ICONS_DESCRIPTION,
+      url: url("/icons"),
+    }),
+    "# Icons",
+    ICONS_DESCRIPTION,
+    ...ICON_GROUPS.map((group) =>
+      [
+        `## ${group.label}`,
+        "",
+        group.names.map((name) => `- ${name}`).join("\n"),
       ].join("\n"),
     ),
   );

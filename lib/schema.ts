@@ -1,5 +1,6 @@
 import type { BlogMeta } from "./blogs";
 import { SITE_URL } from "./constants";
+import { ICON_GROUPS, ICONS_DESCRIPTION } from "./icons";
 import type { LabMetadata } from "./labs";
 import type { StaticPage } from "./pages";
 import { DESCRIPTION, links, socials } from "./site";
@@ -212,6 +213,32 @@ export function collectionSchema({
         position: index + 1,
         url: `${SITE_URL}${path}/${item.slug}`,
         name: item.title,
+      })),
+    },
+  };
+}
+
+/**
+ * The icon set. A `CollectionPage` like the two indexes, but its items have no
+ * pages of their own, so each one carries a name and no `url`.
+ */
+export function iconSetSchema(): Json {
+  const names = ICON_GROUPS.flatMap((group) => group.names);
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    url: `${SITE_URL}/icons`,
+    name: "Icons",
+    description: ICONS_DESCRIPTION,
+    isPartOf: { "@id": SITE_ID },
+    inLanguage: "en-US",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: names.length,
+      itemListElement: names.map((name, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name,
       })),
     },
   };
