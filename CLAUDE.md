@@ -106,8 +106,10 @@ selected text would have to go light.
 accepts `color`, `background-color`, `text-decoration`, `text-shadow` and the
 text-fill properties, and nothing else: no `content`, no pseudo-elements of its
 own. `components/ui/selection-pins.tsx` measures the live `Range` instead and
-draws two hairlines, mounted once in the root layout since selecting text is a
-whole-document behaviour. Their height comes from the line rect they terminate,
+draws two hairlines. **They draw on the home page only**, at the author's
+request, and every other route keeps the browser's plain selection. The
+component is still mounted in the root layout, since it has to clear the carets
+on a navigation away from `/`, and the route test is at its render. Their height comes from the line rect they terminate,
 so they match whatever type they sit in, and each carries a `size-1.25` knob
 centred on both tips. `size-1` would be 3.2px on this scale, and a fractional box
 cannot resolve a clean circle, so one of the two renders squared off.
@@ -479,6 +481,15 @@ it to copy its SVG.
   `h1`.
 - **A press copies the SVG and the tile swaps to a tick for 1.2s.** A polite
   live region says what was copied.
+- **It opens on the site's stagger**, `Reveal` with the line and the grid as
+  its two items, inside `IconSheet` since that is where both are rendered.
+- **The post `skip-the-icon-library` is the one link to it a reader can
+  follow from the front.** `PageNav` lists it too, at the foot of the three
+  prose pages, which nothing on the home page links to.
+- **The whole column is `select-none`.** Every press on the page is aimed at
+  a tile, and a quick run of them anchored a selection on the line above the
+  grid. Measured: six fast clicks on a tile, a triple click on the line and a
+  drag across the page select nothing.
 - **The copy is read off the DOM, never restated.** `serialize.ts` reads the
   rendered `<svg>`, drops the page's own attributes and sets the size to 24,
   so what a reader takes is exactly what the grid paints.
@@ -11268,12 +11279,17 @@ package, no provider component and no per-route call.
   and `app/agents.md/` sit beside it. See Markdown variants above.
 - `app/og/` generated social cards. `card.tsx` is the one card, the site URL
   then a title, a description and a meta row over `_assets/background.png`.
-  `blogs/[slug]/route.tsx` and `lab/[slug]/route.tsx` feed it, and
-  `blogMetadata` in `lib/blogs.ts` and the lab page's `generateMetadata` point
-  `og:image` at them. The fonts in `_assets` are static Inter TTFs, since
+  `blogs/[slug]/route.tsx`, `lab/[slug]/route.tsx` and `icons/route.tsx` feed
+  it, and `blogMetadata` in `lib/blogs.ts`, the lab page's `generateMetadata`
+  and `app/icons/page.tsx` point `og:image` at them. `art` is an optional
+  picture between the URL and the title, which only the icons card uses: a
+  row of 14 icons at 48px. The fonts in `_assets` are static Inter TTFs, since
   Satori cannot read the variable woff2 `next/font` ships. Satori also lays out
   a `Fragment`'s children wrongly in a flex row, so the meta row is a flat
-  list. Other routes still use the root `opengraph-image.jpg`. It is not under
+  list. Satori also never calls a component inside an `<svg>`, so an icon's
+  paths are plain elements with `SOLID` or `LINE` spread on, see
+  `components/icons/icon.tsx`. Other routes still use the root
+  `opengraph-image.jpg`. It is not under
   `/api/` because `robots.ts` disallows that prefix, and link-preview crawlers
   honour it.
 - `app/icons/` the icon sheet, see The icon sheet under Icons.
