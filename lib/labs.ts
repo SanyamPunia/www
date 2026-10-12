@@ -21,6 +21,16 @@ export interface LabMetadata {
   description: string[];
   /** ISO `YYYY-MM-DD`, formatted for display by `formatLabDate` */
   createdAt: string;
+  /**
+   * Whether the lab is out on sanyam.sh. False keeps it a draft: it renders
+   * locally so it can be finished in advance, and the production deployment
+   * leaves it out of everything, the index, its route, the sitemap, the
+   * markdown and the cards. Flipping it to true and deploying is what
+   * publishes it.
+   *
+   * Required, so a new entry cannot ship without saying which it is.
+   */
+  live: boolean;
   source?: string;
   reference?: string;
   /**
@@ -56,7 +66,21 @@ export interface LabMetadata {
   hint?: string;
 }
 
-export const labsRegistry: LabMetadata[] = [
+/**
+ * Drafts are hidden on sanyam.sh and nowhere else. Vercel sets `VERCEL_ENV` to
+ * `production` for the production deployment only, so `next dev`, a local
+ * build and a preview deploy all show drafts.
+ *
+ * `NEXT_PUBLIC_VERCEL_ENV` is the same value, which Vercel also sets for a
+ * Next build and the bundler inlines into client code, where `VERCEL_ENV` is
+ * not available. Reading both keeps the server and a client caller of
+ * `getLabBySlug` agreeing.
+ */
+const HIDE_DRAFTS =
+  process.env.VERCEL_ENV === "production" ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
+
+const ALL_LABS: LabMetadata[] = [
   {
     slug: "cursor-origin-button",
     title: "Cursor Origin Button",
@@ -65,6 +89,7 @@ export const labsRegistry: LabMetadata[] = [
       "grabbed mouse origin coords on the fly using `ref`, added a buffer to the origin instead of locking to the exact mouse-enter point, used a `::before` pseudo for the animated background scaling from cursor-origin using CSS variables, and set `transform-origin` dynamically to follow mouse position",
     ],
     createdAt: "2025-08-23",
+    live: true,
     source: "https://x.com/sanyampunia/status/1959210575361142944",
   },
   {
@@ -75,6 +100,7 @@ export const labsRegistry: LabMetadata[] = [
       'key insight: `useEffect` with `setInterval` + `setTimeout` creates smooth state transitions without jank. the magic is in the exit/enter animations with `mode="wait"` - prevents layout shift while cycling through phrases.',
     ],
     createdAt: "2025-09-27",
+    live: true,
     source: "https://x.com/sanyampunia/status/1971659845028733322",
   },
   {
@@ -86,6 +112,7 @@ export const labsRegistry: LabMetadata[] = [
       "use `contentEditable` instead of inputs to maintain pixel perfect UI, `settleBordersAfter()` delays switching inner corners from rounded to sharp, so borders don't snap immediately after saving.",
     ],
     createdAt: "2025-09-04",
+    live: true,
     source: "https://x.com/sanyampunia/status/1963333460065391066",
   },
   {
@@ -97,6 +124,7 @@ export const labsRegistry: LabMetadata[] = [
       "combines `drag`, `whileDrag`, `onDragStart/End` with spring physics for natural feel. the `setTimeout` ensures placeholder visibility matches spring animation duration.",
     ],
     createdAt: "2025-08-11",
+    live: true,
     source: "https://x.com/sanyampunia/status/1954901980180254787",
   },
   {
@@ -108,6 +136,7 @@ export const labsRegistry: LabMetadata[] = [
       "progressive width morphs using cubic-bezier easing `[0.2, 0, 0.38, 0.9]`. each state transition maintains pixel-perfect layout by pre-calculating target widths rather than relying on content reflow.",
     ],
     createdAt: "2025-10-10",
+    live: true,
     source: "https://x.com/sanyampunia/status/1976531889226695106",
   },
   {
@@ -118,6 +147,7 @@ export const labsRegistry: LabMetadata[] = [
       "focuses on readability and polish: depth-aware indentation, animated chevrons, and smooth height transitions for nested folders.",
     ],
     createdAt: "2025-11-07",
+    live: true,
     source: "https://x.com/sanyampunia/status/1987472200174346528",
   },
   {
@@ -129,6 +159,7 @@ export const labsRegistry: LabMetadata[] = [
       "extended sonner with shared vs unique toast ids, single-instance updates, bottom-right toaster, no icons, and promise-driven state transitions.",
     ],
     createdAt: "2025-12-07",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/sonner-extended-toast/index.tsx",
   },
@@ -141,6 +172,7 @@ export const labsRegistry: LabMetadata[] = [
       "variants handle y-axis movement based on direction - numbers slide up when incrementing and down when decrementing. `tabular-nums` ensures consistent width for smooth transitions.",
     ],
     createdAt: "2025-12-22",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/number-counter/index.tsx",
   },
@@ -152,6 +184,7 @@ export const labsRegistry: LabMetadata[] = [
       'key insight: observe the active step content with `ResizeObserver`, store its `offsetHeight`, and animate a wrapper `motion.div` height with a spring. `AnimatePresence` (mode="wait") keeps enter/exit clean while the height animates to the next step.',
     ],
     createdAt: "2025-12-27",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/multi-step-form/index.tsx",
   },
@@ -164,6 +197,7 @@ export const labsRegistry: LabMetadata[] = [
       "click icons to toggle selection (highlighted state), click preview to cycle through selected sequence. dot indicators show total count and current position. minimal select all/none controls. each icon button scales to 0.98 on tap for tactile feedback.",
     ],
     createdAt: "2026-01-15",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-icons/morphing-icon-demo.tsx",
     reference: "https://benji.org/morphing-icons-with-claude",
@@ -177,6 +211,7 @@ export const labsRegistry: LabMetadata[] = [
       "the path is drawn clockwise from center-top, through all four rounded corners using arc commands (`A`). CSS keyframes animate `stroke-dashoffset` from 0 to -14 (dash + gap sum) creating the marching effect. `group-hover` triggers opacity fade-in for smooth appearance.",
     ],
     createdAt: "2026-02-21",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/animated-dashed-border/index.tsx",
   },
@@ -189,6 +224,7 @@ export const labsRegistry: LabMetadata[] = [
       'everything runs on one spring so the card, the strip and the window resize together. `layout="position"` on the content plus `overflow-hidden` on the card is what stops the label riding the scale, and locking only the label is worse than locking neither.',
     ],
     createdAt: "2026-08-19",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/tab-overview/index.tsx",
     reference: "https://x.com/mitchellh/status/2087537750182666290",
@@ -203,6 +239,7 @@ export const labsRegistry: LabMetadata[] = [
       "the anchor is fixed at impact, so holding the press and moving the hand pays the strand out against one point. re-deriving the nearest edge every frame slides the splat around the button, and a splat that slides is not stuck to anything.",
     ],
     createdAt: "2026-08-20",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/tether-button/index.tsx",
     reference: "https://x.com/ozzyxs1a/status/2086332798709715445",
@@ -217,6 +254,7 @@ export const labsRegistry: LabMetadata[] = [
       "a card is staged by animating `width`, never `scale`: 113px to 322px would paint its 1px hairline at 3px. contents are `cqw` against the card, but `cqw` on the card itself resolves against the stage, which inflated every card past twice its size before it was found.",
     ],
     createdAt: "2026-08-20",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/document-pocket/index.tsx",
     reference: "https://x.com/raul_dronca/status/1992227756407685269",
@@ -231,6 +269,7 @@ export const labsRegistry: LabMetadata[] = [
       "`dragConstraints` is a plain object of numbers and never the grid's ref. ref constraints put a `ResizeObserver` on the draggable and rewrite `x`/`y` on every resize, which strands a card that changed height mid-drop a cell away from where it was dropped.",
     ],
     createdAt: "2026-08-23",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/event-stacking/index.tsx",
     reference: "https://x.com/artntek/status/2090533166696014035",
@@ -246,6 +285,7 @@ export const labsRegistry: LabMetadata[] = [
       "the paper is an SVG rather than a div with a CSS mask, so its `drop-shadow` follows the scallops instead of the bounding box. the holes sit centred on the edge line so half of each one bites in, which is the shape a torn perforation has.",
     ],
     createdAt: "2026-08-24",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/stamp-collection/index.tsx",
     reference: "https://x.com/AdityaSur11/status/2091805210280919082",
@@ -261,6 +301,7 @@ export const labsRegistry: LabMetadata[] = [
       "the lerp is of the fore-edge and not of the angle. even angles are not even paper: a sheet's free end sits at `cos(angle)` of the way out, so half the fan was slivers and half was wide open pages. spacing the edges and taking the angle back out with `acos` shows the same strip of every sheet.",
     ],
     createdAt: "2026-08-27",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/book-opening/index.tsx",
     hint: "Hover the book, or pick cursor and move left across the stage.",
@@ -275,6 +316,7 @@ export const labsRegistry: LabMetadata[] = [
       "the lift is a whole number of rows, and three of them. at any other value the lifted card's paper edge lands part way through a tab behind it and slices it, which reads as a rendering fault rather than as one card in front of another.",
     ],
     createdAt: "2026-08-28",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/folder-stack/index.tsx",
     reference: "https://x.com/edo_lunardi/status/2085743043982897338",
@@ -290,6 +332,7 @@ export const labsRegistry: LabMetadata[] = [
       "`oklab` and not the default `srgb`, which is already dark for most of its travel and lurches at the end. text cannot interpolate at all, since its tone has to cross the ground it sits on, so the ink steps over 0.04 of travel at the point where both sides are least unequal.",
     ],
     createdAt: "2026-08-29",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/window-shade/index.tsx",
     reference: "https://x.com/mjbarton_/status/2093354383379399012",
@@ -305,6 +348,7 @@ export const labsRegistry: LabMetadata[] = [
       "the fade is spent in whole steps, since a canvas holds 8 bits a channel and an erase under 1/255 rounds to nothing and silently stops fading. `destination-out` rather than a wash of the ground colour, so the layer stays transparent.",
     ],
     createdAt: "2026-08-29",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/rain-splatter/index.tsx",
     reference: "https://x.com/okazz_/status/2092923357931176017",
@@ -320,6 +364,7 @@ export const labsRegistry: LabMetadata[] = [
       "the peel runs from an edge picked once and then held. deriving it from the pull every frame is the obvious build and it makes the lifted corner hop from one side of the sticker to another every time the hand changes direction.",
     ],
     createdAt: "2026-09-02",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/sticker-peel/index.tsx",
     hint: "Press a sticker and pull to peel it off, then drop it anywhere.",
@@ -334,6 +379,7 @@ export const labsRegistry: LabMetadata[] = [
       "a dot has six sizes rather than sliding, and its radius goes with the square root of the field, since the eye reads a halftone's ink area and area goes with the square of the radius. the ink is the state: a press that turns the button off sends the same ripple in `text-muted`.",
     ],
     createdAt: "2026-09-03",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/halftone-ripple/index.tsx",
   },
@@ -346,6 +392,7 @@ export const labsRegistry: LabMetadata[] = [
       "the label is not under the filter, since the threshold destroys any edge worth keeping, so the face is a second layer animated to the same box. the opening spring overshoots on purpose: a box resizing on an ease is a box resizing.",
     ],
     createdAt: "2026-09-04",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/notch-drop/index.tsx",
     hint: "Drag a card up to the notch, or focus one and press Enter.",
@@ -360,6 +407,7 @@ export const labsRegistry: LabMetadata[] = [
       "the width is measured against the stage, and the stage needs `min-w-0` to be measurable at all: as a flex item at `min-width: auto` its used width is its own child's, so the ruler was elastic and the thing it measured was stretching it.",
     ],
     createdAt: "2026-09-06",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/island-menu/index.tsx",
     reference: "https://annnimate.com/",
@@ -374,6 +422,7 @@ export const labsRegistry: LabMetadata[] = [
       "the one lab on `gsap`. one `quickTo` per axis keeps a single tween and retargets it on every move, and the hand is read once a frame at the front of the ticker, so a burst of events at 120Hz costs one layout read rather than one each.",
     ],
     createdAt: "2026-09-07",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/custom-cursor/index.tsx",
     flush: true,
@@ -388,6 +437,7 @@ export const labsRegistry: LabMetadata[] = [
       "the wedge under the hand previews its format on the file itself, drawn once and reused through `<use>` under an SVG filter. jpg blocks up, gif dithers to six levels, avif softens a touch and pdf sets it small on a white page, so the wheel demos what the names mean.",
     ],
     createdAt: "2026-09-08",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/radial-menu/index.tsx",
     flush: true,
@@ -402,6 +452,7 @@ export const labsRegistry: LabMetadata[] = [
       "a half is a full glyph box clipped to half a card, so both halves of both numbers meet at the hinge to the pixel whatever the glyph is. the cards carry a hue because black hid every bit of the depth pass: a sheen and a shadow on near-black are the same near-black.",
     ],
     createdAt: "2026-09-08",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/flip-clock/index.tsx",
     flush: true,
@@ -416,6 +467,7 @@ export const labsRegistry: LabMetadata[] = [
       "two numbers drive everything and nothing renders. `--t` and `--rot` are written to the scene once a frame and every strip's transform, its shade and the shadow's width are `calc()` off them.",
     ],
     createdAt: "2026-09-09",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/wrapped-pattern/index.tsx",
     reference: "https://x.com/joshpuckett/status/2095686863634006120",
@@ -431,6 +483,7 @@ export const labsRegistry: LabMetadata[] = [
       "the scrim is a plane in the same 3D scene at `translateZ(100px)`, since a `preserve-3d` context paints by depth and ignores `z-index`. no `backdrop-filter` on it: chrome cuts the backdrop where the book sits and leaves two seams the height of the stage.",
     ],
     createdAt: "2026-09-11",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/book-shelf/index.tsx",
     flush: true,
@@ -445,6 +498,7 @@ export const labsRegistry: LabMetadata[] = [
       "gravity accelerates and a tumble does not, so the vertical travel eases in and the rotation, the drift and the depth all run linear. on one curve the spin appears to wind up as the card falls and the throw reads as a fling rather than a drop.",
     ],
     createdAt: "2026-09-12",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/shelf-drop/index.tsx",
     reference: "https://x.com/Jaytel/status/2098595800427487324",
@@ -460,6 +514,7 @@ export const labsRegistry: LabMetadata[] = [
       "the break is a partition of the face rather than a pile of shapes: each shard is the wedge between two walks out of the last impact, so an edge is one walk shared by the two shards either side and no gap can open between them. the clip goes inside the thing that moves, or the pill becomes a window the pieces slide out of and vanish at.",
     ],
     createdAt: "2026-09-13",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/crack-button/index.tsx",
     flush: true,
@@ -474,6 +529,7 @@ export const labsRegistry: LabMetadata[] = [
       "two springs, because two things happen on one press. `rotate` takes the quieter one and `scale` the livelier, and since only the arriving stem ever animates its scale, the bounce lands on that stem alone with no branch on which one is new.",
     ],
     createdAt: "2026-09-13",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/stem-picker/index.tsx",
     reference: "https://x.com/archivess_19/status/2099135335171264618",
@@ -489,6 +545,7 @@ export const labsRegistry: LabMetadata[] = [
       "there are no levels either, which is the change that mattered most. it is a quadtree: every tile splits on its own schedule and inherits it from its parent, so detail spreads out of the places it already reached and the canvas holds four or five tile sizes at once.",
     ],
     createdAt: "2026-09-15",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/pixel-reveal/index.tsx",
     reference: "https://x.com/SwamiMalode/status/2092578177092931724",
@@ -504,6 +561,7 @@ export const labsRegistry: LabMetadata[] = [
       "dragging draws because the sparks leave carrying the wick's own velocity, at 62% of it, and nothing about the launch changes. the six things separating a spark from a particle are all knobs: run `spray`, `drag`, `lift`, `pops` and `trail` to their floors and what comes back is the wheel of equals the first build was.",
     ],
     createdAt: "2026-09-16",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/ember-burst/index.tsx",
     flush: true,
@@ -518,6 +576,7 @@ export const labsRegistry: LabMetadata[] = [
       "`sRGB` on the filter is load-bearing, since the default `linearRGB` lands the same alpha crush somewhere else and the neck comes out thin and grey. the blur has to be back at its floor before the filter comes off, or its removal is a frame of animation nobody wrote.",
     ],
     createdAt: "2026-09-17",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/gooey-chips/index.tsx",
     reference: "https://annnimate.com/animations/gooey-filter-chips",
@@ -532,6 +591,7 @@ export const labsRegistry: LabMetadata[] = [
       "the peek is one number because the cards scale about `50% 0`. scaling from the top never moves the edge the peek is measured from, where scaling about the centre drags it down by a height nothing here knows and every peek would carry a correction.",
     ],
     createdAt: "2026-09-18",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/notice-stack/index.tsx",
     reference: "https://rauno.me/notes/5",
@@ -547,6 +607,7 @@ export const labsRegistry: LabMetadata[] = [
       "the content arrives by coming into focus rather than by fading, since a blur is distance where an opacity is existence. three curves carry it: the box leaves at 2.25 times its own average speed, a row's slide is the sharpest ease-out in the piece, and a rack of focus is plain `ease`.",
     ],
     createdAt: "2026-09-19",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/tide-card/index.tsx",
     reference: "https://x.com/wherescz/status/2100473433897222224",
@@ -562,6 +623,7 @@ export const labsRegistry: LabMetadata[] = [
       "one number folds the net into the cube. `--fold` drives the five hinges, the angle it is seen from and the light on each face, and the faces hang off each other the way the paper does, so a hinge is one rotation about an edge two faces already share.",
     ],
     createdAt: "2026-09-20",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/cube-orbit/index.tsx",
     reference: "https://x.com/TheMathFlow/status/2101154346583154801",
@@ -577,6 +639,7 @@ export const labsRegistry: LabMetadata[] = [
       "a press stretches the foil, and a stretched grating has a wider pitch, so the wave leaving the finger is a redshift rather than a ring of brightness. the card is weighted too: it turns about the ink-weighted centroid of its own print, measured off the rendered card, so a finger on the empty end has much the longer lever.",
     ],
     createdAt: "2026-09-20",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/foil-card/foil.ts",
     reference: "https://jackandjill.ai",
@@ -592,6 +655,7 @@ export const labsRegistry: LabMetadata[] = [
       "the ring is one stroked circle and never a disc with a smaller disc masked out of it. `r` grows while `lineWidth` shrinks, so the inner edge and the outer one travel at different rates from one shape, which is the seed dot, the disc, the hole punching through and the annulus thinning away in that order. the `run` knob is what breaks the flipbook, since the same 29 frames over 2.4s are 86ms apart.",
     ],
     createdAt: "2026-09-21",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/heart-flipbook/burst.ts",
     flush: true,
@@ -606,6 +670,7 @@ export const labsRegistry: LabMetadata[] = [
       "the strand is a chain rather than a rail. each ball follows the one ahead through its own exponential instead of sitting a fixed arc behind the leader, so it pays out under a fast hand and gathers when the hand stops. a hover peeks a sliver of the leader past the button's rim, and a crank turns a degree of strand per degree of hand.",
     ],
     createdAt: "2026-09-23",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/arc-menu/track.ts",
     flush: true,
@@ -620,6 +685,7 @@ export const labsRegistry: LabMetadata[] = [
       "the slats are taller than their pitch, so a shut blind overlaps itself and no light gets through until each slat is past 27 degrees. that dead band at the start of a pull is what a real blind does too.",
     ],
     createdAt: "2026-09-23",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/venetian-blind/index.tsx",
     reference: "https://x.com/samdape/status/2102774261912068585",
@@ -635,6 +701,7 @@ export const labsRegistry: LabMetadata[] = [
       "a raised flag never stops fluttering, and the halftone stays after the fill as the light on the folds: where the wave tilts the cloth away, the screen punches through. move the pointer past it and the pointer is wind.",
     ],
     createdAt: "2026-09-25",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/gust-flag/flag.ts",
     reference: "https://x.com/kippe07/status/2103036199774585026",
@@ -650,6 +717,7 @@ export const labsRegistry: LabMetadata[] = [
       "a composer holding unsaved words does not close on a stray press: the press goes back to the field. press a pill to edit it, and a saved comment takes two presses to delete.",
     ],
     createdAt: "2026-09-26",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/region-comment/index.tsx",
     reference: "https://x.com/nonzeroexitcode/status/2103203539174436892",
@@ -665,6 +733,7 @@ export const labsRegistry: LabMetadata[] = [
       "the card beside the list is one card. it rides from row to row while its sky slides through it in the direction of travel behind a feathered edge, and its icon shrinks out and grows back in place.",
     ],
     createdAt: "2026-09-27",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/forecast-list/index.tsx",
     reference: "https://useplanes.com/components/shader-index",
@@ -680,6 +749,7 @@ export const labsRegistry: LabMetadata[] = [
       "a thrown card stays in front until it is clear of the pile, so the only part of it that goes behind the new front card is the part still over it.",
     ],
     createdAt: "2026-09-28",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/photo-stack/index.tsx",
     reference: "https://x.com/radiofun8/status/2103909911826702684",
@@ -695,6 +765,7 @@ export const labsRegistry: LabMetadata[] = [
       "one spring carries the flap whatever it is doing, so a press mid-flight turns it round from the speed it already has, and it overshoots its stop by about seven degrees, which is a page landing rather than a box rotating to an angle.",
     ],
     createdAt: "2026-09-29",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/invite-flap/index.tsx",
     reference: "https://x.com/nitishkmrk/status/2103061978680086905",
@@ -710,6 +781,7 @@ export const labsRegistry: LabMetadata[] = [
       "a frame is ten fills, not one per dot: the dots are bucketed by depth into ten opacity bands and each band is one path, so 3,500 of them cost about as much to paint as the floor grid under them.",
     ],
     createdAt: "2026-09-30",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/point-cloud/shapes.ts",
     flush: true,
@@ -724,6 +796,7 @@ export const labsRegistry: LabMetadata[] = [
       "the light that reads the print is also what turns it green: everything above the band has been read, so the colour change rides under the brightest part of it.",
     ],
     createdAt: "2026-10-01",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/fingerprint-ink/ink.ts",
     flush: true,
@@ -738,6 +811,7 @@ export const labsRegistry: LabMetadata[] = [
       "the shape runs on a strong ease-out so it answers the press on the first frame, the small parts stagger round the icon, and a press mid-morph starts from the shapes as they are that frame, so it turns round without jumping back.",
     ],
     createdAt: "2026-10-02",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/weather-morph/morph.ts",
     reference: "https://x.com/raul_dronca/status/2094013190673670458",
@@ -753,6 +827,7 @@ export const labsRegistry: LabMetadata[] = [
       "hover is tested against the resting slots, so a hovered tile can grow into the gap without moving the edge that decides it. the arrow keys walk the grid by position.",
     ],
     createdAt: "2026-10-03",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/bento-focus/index.tsx",
     reference: "https://annnimate.com/animations/bento-focus",
@@ -768,6 +843,7 @@ export const labsRegistry: LabMetadata[] = [
       "the drawing inks itself in the order a sketch is built when it first comes into view, and redraws its wobble about twelve times a second while the book moves.",
     ],
     createdAt: "2026-10-04",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/sketch-book/book.ts",
     flush: true,
@@ -782,6 +858,7 @@ export const labsRegistry: LabMetadata[] = [
       "the picture is a canvas sampled live, so dragging it round turns the shadow's colours with it, and a new picture's colours travel round the edge from the dot that was pressed.",
     ],
     createdAt: "2026-10-04",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/ambient-card/glow.ts",
     flush: true,
@@ -796,6 +873,7 @@ export const labsRegistry: LabMetadata[] = [
       "kerning is off on the notes, so a run split into characters for the wave sets at exactly the width it had as plain text and nothing reflows when it is marked.",
     ],
     createdAt: "2026-10-06",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/highlight-wave/wave.ts",
     reference: "https://x.com/heydamir/status/2106779932659470606",
@@ -811,6 +889,7 @@ export const labsRegistry: LabMetadata[] = [
       "built on the `hairline` engine by [lucas markes](https://hairline.lucasmarkes.com/).",
     ],
     createdAt: "2026-10-07",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/abacus/figure.ts",
     reference: "https://hairline.lucasmarkes.com/",
@@ -826,6 +905,7 @@ export const labsRegistry: LabMetadata[] = [
       "a pen's pressure and a finger's contact patch scale the coin's edge, and a phone ticks under a finger on foil.",
     ],
     createdAt: "2026-10-08",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/scratch-card/foil.ts",
     flush: true,
@@ -840,6 +920,7 @@ export const labsRegistry: LabMetadata[] = [
       "the hand is [EMS Neato](https://gitlab.com/oskay/svg-fonts), a single-stroke Bad Script under the OFL, and with the sound on the nib scratches as it writes.",
     ],
     createdAt: "2026-10-09",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/scribble-type/layout.ts",
     flush: true,
@@ -854,6 +935,7 @@ export const labsRegistry: LabMetadata[] = [
       "the head and the tail of the caret are two springs, so a long move leaves a streak behind it, and a move to a new line travels as one piece rather than smearing across two.",
     ],
     createdAt: "2026-10-10",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/smooth-caret/caret.ts",
     flush: true,
@@ -868,6 +950,7 @@ export const labsRegistry: LabMetadata[] = [
       "the reply is a list of syllables grouped into words and sentences, and the orb swells with each one, so it reads as talking rather than pulsing. moving while you hold is talking louder.",
     ],
     createdAt: "2026-10-11",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/voice-orb/shader.ts",
     flush: true,
@@ -882,12 +965,25 @@ export const labsRegistry: LabMetadata[] = [
       "x-ray reads out the hand, the gain, the raw value and a detent's hold as you drag. select both words and a scrub moves each by the same amount. typing takes sums, `size/40` included.",
     ],
     createdAt: "2026-10-12",
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/scrub-number/scrub.ts",
     flush: true,
     hint: "Drag an icon or number. Shift ×10, Alt ×0.1, drag down to slow.",
   },
 ];
+
+/**
+ * Every lab the site may show. The gate is applied here, once, rather than at
+ * each caller: the index, the routes and their static params, the sitemap, the
+ * markdown variants, the cards and `MoreLabs` all read this list, so a draft
+ * is gone from all of them in a production build and none of them has to
+ * remember to filter. A draft's route then 404s, since `getLabBySlug` reads
+ * the same list.
+ */
+export const labsRegistry: LabMetadata[] = ALL_LABS.filter(
+  (lab) => lab.live || !HIDE_DRAFTS,
+);
 
 export function getLabBySlug(slug: string): LabMetadata | undefined {
   return labsRegistry.find((lab) => lab.slug === slug);

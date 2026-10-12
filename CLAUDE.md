@@ -1789,6 +1789,29 @@ experiment is a directory under `components/labs/`.
   - **`data-lab-placeholder` is for the preview recorder**, which waits for it
     to go before it measures the demo, since the placeholder alone clears the
     80px it used to wait for.
+- **`live` on a registry entry decides whether sanyam.sh shows it.** It is
+  required, so a new entry has to say. `false` is a draft: it shows locally, so
+  a lab can be finished in advance, and the production deployment leaves it out
+  of everything. To publish one, set it to `true` and deploy.
+  - **Only Vercel's production deployment hides drafts.** The test is
+    `VERCEL_ENV === "production"`, which Vercel sets for that deployment alone,
+    so `next dev`, a local `next build` and preview deploys all show them.
+    `NEXT_PUBLIC_VERCEL_ENV` is read beside it, since Vercel sets that one for
+    a Next build too and the bundler inlines it into client code, where
+    `VERCEL_ENV` is undefined. `NODE_ENV` was the first test and was wrong for
+    this: it hid drafts from a local production build as well.
+  - **The gate is applied once, where the list is built.** `labsRegistry` is
+    the full list with drafts filtered out on production, and the index, the
+    routes and their static params, the sitemap, the markdown variants, the
+    cards and `MoreLabs` all read that list. None of them filters for itself,
+    so a new caller cannot forget to. A draft's route 404s in production
+    because `getLabBySlug` reads the same list.
+  - **A draft's clip is still in `public/assets/labs`**, since the recorder
+    writes it there and nothing links to it. Anyone with the exact URL can
+    fetch it.
+  - Verified with two local builds: with `NEXT_PUBLIC_VERCEL_ENV=production`
+    a draft has no route, sitemap entry, `llms.txt` line, markdown file or
+    card, and without it the draft is built like any other lab.
 - **`IMPLEMENTED_LABS` in `lib/labs.ts` gates the routes** and the map is typed
   against it, so listing a slug without adding its component is a build error
   rather than an empty frame. An entry in the registry with no component 404s.
