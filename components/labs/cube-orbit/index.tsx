@@ -1,10 +1,6 @@
 "use client";
 
 import {
-  ArrowCounterClockwiseIcon,
-  ArrowsLeftRightIcon,
-} from "@phosphor-icons/react";
-import {
   animate,
   useInView,
   useMotionValue,
@@ -13,6 +9,10 @@ import {
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowsLeftRightIcon,
+} from "@/components/icons";
 import { FOCUS, Pill } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

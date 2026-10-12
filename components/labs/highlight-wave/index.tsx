@@ -1,6 +1,5 @@
 "use client";
 
-import { EraserIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   type CSSProperties,
@@ -11,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { EraserIcon } from "@/components/icons";
 import { FOCUS } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

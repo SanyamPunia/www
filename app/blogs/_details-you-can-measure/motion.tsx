@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { ArrowsClockwiseIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Cycle, Frame, Morph, Pill, Readout } from "./frame";
 

@@ -8,7 +8,7 @@ import {
   DotsThreeIcon,
   GitBranchIcon,
   TerminalIcon,
-} from "@phosphor-icons/react";
+} from "@/components/icons";
 
 /**
  * The deploy queue both figures put inside the panel: builds running, queued

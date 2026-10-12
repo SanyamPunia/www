@@ -1,8 +1,8 @@
 "use client";
 
-import { CheckIcon, TrashIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { CheckIcon, TrashIcon } from "@/components/icons";
 import { FOCUS } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

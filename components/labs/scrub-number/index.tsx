@@ -1,11 +1,6 @@
 "use client";
 
 import {
-  ArrowsHorizontalIcon,
-  SpeakerHighIcon,
-  SpeakerSlashIcon,
-} from "@phosphor-icons/react";
-import {
   type AnimationPlaybackControls,
   animate,
   type MotionValue,
@@ -16,6 +11,11 @@ import {
 } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import {
+  ArrowsHorizontalIcon,
+  SpeakerHighIcon,
+  SpeakerSlashIcon,
+} from "@/components/icons";
 import { FOCUS } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

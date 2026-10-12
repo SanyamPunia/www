@@ -1,15 +1,13 @@
-// the main barrel pulls in `createContext` and throws in RSC, but a type-only
-// import is erased before that can happen, and the ssr entry has no `Icon` type
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
-import {
-  ArrowSquareOutIcon,
-  ArrowUpRightIcon,
-  CodeIcon,
-} from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import { Demo } from "@/components/blogs/demo";
+import {
+  ArrowSquareOutIcon,
+  ArrowUpRightIcon,
+  CodeIcon,
+  type IconComponent,
+} from "@/components/icons";
 import { Experiment } from "@/components/lab/experiment";
 import { MoreLabs } from "@/components/lab/more-labs";
 import { BackLink } from "@/components/ui/back-link";
@@ -211,7 +209,7 @@ function LabLink({
   href: string;
   label: string;
   /** Painted below `sm` in place of the word. */
-  icon: PhosphorIcon;
+  icon: IconComponent;
 }) {
   return (
     <a

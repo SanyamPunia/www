@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   CherriesIcon,
   CloverIcon,
@@ -5,8 +6,7 @@ import {
   DiamondIcon,
   HeartIcon,
   StarIcon,
-} from "@phosphor-icons/react";
-import type { ComponentType } from "react";
+} from "@/components/icons";
 import type { Mark } from "./prizes";
 
 /**

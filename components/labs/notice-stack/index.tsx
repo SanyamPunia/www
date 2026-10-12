@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowCounterClockwiseIcon, XIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowCounterClockwiseIcon, XIcon } from "@/components/icons";
 import { FOCUS } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

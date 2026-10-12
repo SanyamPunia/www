@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
  * modified click still falls through to the real `href`, which is the half of
  * being an anchor that matters.
  *
- * Phosphor's hash, never a literal `#` character. The two make the same shape
+ * The set's hash icon, never a literal `#` character. The two make the same shape
  * and only one of them is an icon: a text character inherits the prose font
  * and cannot be sized off the icon scale. See `CopyMark` for the swap.
  *

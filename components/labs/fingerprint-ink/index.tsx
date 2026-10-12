@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   type MouseEvent,
@@ -10,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ArrowCounterClockwiseIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {

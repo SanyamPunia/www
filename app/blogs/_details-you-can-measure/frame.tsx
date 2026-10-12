@@ -1,12 +1,12 @@
 "use client";
 
+import type { ComponentProps, ReactNode } from "react";
+import { TextMorph } from "torph/react";
 import {
   ArrowsLeftRightIcon,
   CursorClickIcon,
   MinusIcon,
-} from "@phosphor-icons/react";
-import type { ComponentProps, ReactNode } from "react";
-import { TextMorph } from "torph/react";
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /**

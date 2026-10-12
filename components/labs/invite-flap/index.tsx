@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowDownIcon } from "@phosphor-icons/react";
 import {
   animate,
   motion,
@@ -10,6 +9,7 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { ArrowDownIcon } from "@/components/icons";
 import { FOCUS } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 

@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  ArrowsClockwiseIcon,
-  PaletteIcon,
-  PauseIcon,
-  PlayIcon,
-  StopIcon,
-} from "@phosphor-icons/react";
-import {
   AnimatePresence,
   type AnimationPlaybackControls,
   animate,
@@ -18,6 +11,13 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Demo } from "@/components/blogs/demo";
+import {
+  ArrowsClockwiseIcon,
+  PaletteIcon,
+  PauseIcon,
+  PlayIcon,
+  StopIcon,
+} from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
@@ -110,14 +110,6 @@ const trackSpan = (span: number) =>
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
 
-/*
- * The transport's glyphs are the one place this project passes an icon weight.
- *
- * `fill` rather than the `regular` default, because these are player symbols
- * rather than UI icons: a filled triangle and a filled square are what a
- * transport looks like everywhere, and at `size-3.5` on a pill the outline
- * versions read as sketches of the controls.
- */
 const CONTROL_BASE =
   "relative flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -652,17 +644,9 @@ export default function SignaturePlayer() {
                       className="absolute inline-flex"
                     >
                       {playing ? (
-                        <PauseIcon
-                          aria-hidden="true"
-                          weight="fill"
-                          className="size-3.5"
-                        />
+                        <PauseIcon aria-hidden="true" className="size-3.5" />
                       ) : (
-                        <PlayIcon
-                          aria-hidden="true"
-                          weight="fill"
-                          className="size-3.5"
-                        />
+                        <PlayIcon aria-hidden="true" className="size-3.5" />
                       )}
                     </motion.span>
                   </AnimatePresence>
@@ -677,11 +661,7 @@ export default function SignaturePlayer() {
                   aria-label="Stop"
                   className={cn(CONTROL, QUIET, FOCUS)}
                 >
-                  <StopIcon
-                    aria-hidden="true"
-                    weight="fill"
-                    className="size-3.5"
-                  />
+                  <StopIcon aria-hidden="true" className="size-3.5" />
                 </button>
               </Tooltip>
 
@@ -698,7 +678,6 @@ export default function SignaturePlayer() {
                 >
                   <ArrowsClockwiseIcon
                     aria-hidden="true"
-                    weight="fill"
                     className="size-3.5"
                   />
                 </button>
@@ -712,11 +691,7 @@ export default function SignaturePlayer() {
                   aria-label="Colour each stroke"
                   className={cn(CONTROL, QUIET, FOCUS)}
                 >
-                  <PaletteIcon
-                    aria-hidden="true"
-                    weight="fill"
-                    className="size-3.5"
-                  />
+                  <PaletteIcon aria-hidden="true" className="size-3.5" />
                 </button>
               </Tooltip>
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { GearIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Demo } from "@/components/blogs/demo";
+import { GearIcon, SignOutIcon, UserIcon } from "@/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,

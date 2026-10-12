@@ -1,7 +1,7 @@
 "use client";
 
-import { CursorIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { CursorIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Caption, Frame, Pill, Readout } from "./frame";
 
@@ -185,10 +185,7 @@ export function HoverDemo() {
         )}
         style={{ position: "absolute" }}
       >
-        <CursorIcon
-          weight="fill"
-          className="size-4 -translate-x-1 -translate-y-1"
-        />
+        <CursorIcon className="size-4 -translate-x-1 -translate-y-1" />
       </div>
     </Frame>
   );

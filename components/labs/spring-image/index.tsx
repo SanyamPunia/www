@@ -1,6 +1,5 @@
 "use client";
 
-import { SealCheckIcon } from "@phosphor-icons/react";
 import {
   motion,
   useAnimationControls,
@@ -9,6 +8,7 @@ import {
 } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { SealCheckIcon } from "@/components/icons";
 
 const SpringImage = () => {
   const [isDragging, setIsDragging] = useState(false);

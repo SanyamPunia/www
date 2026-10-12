@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import {
   AnimatePresence,
   animate,
@@ -9,6 +8,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { useCallback, useRef, useState } from "react";
+import { ArrowCounterClockwiseIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import {
   crackAt,

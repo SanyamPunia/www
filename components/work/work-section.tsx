@@ -1,5 +1,5 @@
-import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
+import { ArrowUpRightIcon } from "@/components/icons";
 import type { WorkRow } from "@/lib/work";
 
 interface WorkSectionProps {

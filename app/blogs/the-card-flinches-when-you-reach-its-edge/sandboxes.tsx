@@ -1,14 +1,6 @@
 "use client";
 
 import {
-  ArrowRightIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  CircleIcon,
-  CursorIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
-import {
   motion,
   useMotionValue,
   useReducedMotion,
@@ -16,6 +8,14 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import {
+  ArrowRightIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  CircleIcon,
+  CursorIcon,
+  XCircleIcon,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -217,7 +217,6 @@ export default function Sandboxes() {
                   />
                   <Mark
                     aria-hidden="true"
-                    weight={wrong || right || on ? "fill" : "regular"}
                     className={cn(
                       "size-4 shrink-0",
                       wrong
@@ -454,7 +453,6 @@ function Sandbox({
             {done ? (
               <CheckIcon
                 aria-hidden="true"
-                weight="bold"
                 className="size-3 shrink-0 text-success"
               />
             ) : (
@@ -553,11 +551,7 @@ function Sandbox({
             )}
           >
             {done ? (
-              <CheckIcon
-                aria-hidden="true"
-                weight="bold"
-                className="size-3 shrink-0"
-              />
+              <CheckIcon aria-hidden="true" className="size-3 shrink-0" />
             ) : null}
             {/*
               `whitespace-nowrap` and never `truncate`: torph lays its own
@@ -625,7 +619,6 @@ export function Replay() {
               because the card came and went underneath. */}
           <CursorIcon
             aria-hidden="true"
-            weight="fill"
             className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-0 size-4 text-text-primary"
           />
         </div>
@@ -719,7 +712,6 @@ function Plan({ fixed, label }: { fixed: boolean; label: string }) {
         {/* parked at the same place in both, which is the whole comparison */}
         <CursorIcon
           aria-hidden="true"
-          weight="fill"
           className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-4 text-text-primary"
           style={{ left: AIM }}
         />

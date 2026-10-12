@@ -1,7 +1,7 @@
 "use client";
 
-import { HeartIcon } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { HeartIcon } from "@/components/icons";
 import { INK } from "@/components/labs/halftone-ripple";
 import { cn } from "@/lib/utils";
 import { Cycle, Frame, hexToRgb, Pill, Readout, token } from "./frame";
@@ -294,7 +294,6 @@ export function ContrastDemo() {
         >
           <HeartIcon
             aria-hidden="true"
-            weight="fill"
             className="size-6"
             style={{ color: css }}
           />

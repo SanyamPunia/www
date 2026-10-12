@@ -1,15 +1,15 @@
 "use client";
 
+import { useReducedMotion } from "motion/react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { TextMorph } from "torph/react";
 import {
   ArrowCounterClockwiseIcon,
   EraserIcon,
   PauseIcon,
   PlayIcon,
   SlidersHorizontalIcon,
-} from "@phosphor-icons/react";
-import { useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { TextMorph } from "torph/react";
+} from "@/components/icons";
 import { Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 import { Panel } from "./controls";
@@ -404,25 +404,13 @@ export default function RainSplatter() {
             onClick={() => setRunning((on) => !on)}
           >
             {/*
-             * `fill` rather than the `regular` default, and `size-3.5` rather
-             * than `size-3`. These are transport symbols rather than UI icons:
-             * an outlined pause at 9.6px is two hairlines beside 12px type and
-             * reads as a smudge. The signature player's transport takes the
-             * same exception for the same reason, and it is the only place
-             * this project passes an icon weight.
+             * `size-3.5` rather than `size-3`: at 9.6px a pause is two
+             * slivers beside 12px type and reads as a smudge.
              */}
             {running ? (
-              <PauseIcon
-                aria-hidden="true"
-                weight="fill"
-                className="size-3.5 shrink-0"
-              />
+              <PauseIcon aria-hidden="true" className="size-3.5 shrink-0" />
             ) : (
-              <PlayIcon
-                aria-hidden="true"
-                weight="fill"
-                className="size-3.5 shrink-0"
-              />
+              <PlayIcon aria-hidden="true" className="size-3.5 shrink-0" />
             )}
             {/* mono, because the label is the state rather than a verb */}
             <TextMorph

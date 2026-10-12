@@ -1,16 +1,6 @@
 "use client";
 
 import {
-  ArrowCounterClockwiseIcon,
-  ArrowUpIcon,
-  CheckIcon,
-  FileIcon,
-  ImageIcon,
-  LinkIcon,
-  NoteIcon,
-  PlusIcon,
-} from "@phosphor-icons/react";
-import {
   AnimatePresence,
   motion,
   useMotionValue,
@@ -19,6 +9,16 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  FileIcon,
+  ImageIcon,
+  LinkIcon,
+  NoteIcon,
+  PlusIcon,
+} from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ITEMS, type Item, TONE } from "./items";
@@ -539,11 +539,7 @@ export default function NotchDrop() {
               transition={quick}
               className="flex size-6 items-center justify-center rounded-full bg-inverse-fill ring-1 ring-inverse-stroke"
             >
-              <ArrowUpIcon
-                aria-hidden="true"
-                className="size-3.5"
-                weight="bold"
-              />
+              <ArrowUpIcon aria-hidden="true" className="size-3.5" />
             </motion.span>
           ) : phase === "over" ? (
             <motion.span
@@ -555,11 +551,7 @@ export default function NotchDrop() {
               className="flex size-6 items-center justify-center rounded-full text-inverse-bg"
               style={{ backgroundColor: GO }}
             >
-              <ArrowUpIcon
-                aria-hidden="true"
-                className="size-3.5"
-                weight="bold"
-              />
+              <ArrowUpIcon aria-hidden="true" className="size-3.5" />
             </motion.span>
           ) : phase === "captured" ? (
             <motion.span
@@ -571,11 +563,7 @@ export default function NotchDrop() {
               className="flex size-6 items-center justify-center rounded-full text-inverse-bg"
               style={{ backgroundColor: GO }}
             >
-              <CheckIcon
-                aria-hidden="true"
-                className="size-3.5"
-                weight="bold"
-              />
+              <CheckIcon aria-hidden="true" className="size-3.5" />
             </motion.span>
           ) : null}
         </AnimatePresence>
@@ -705,11 +693,7 @@ export default function NotchDrop() {
                 className="absolute -right-3 -bottom-3 flex size-7 items-center justify-center rounded-full text-inverse-bg ring-2 ring-bg"
                 style={{ backgroundColor: GO }}
               >
-                <PlusIcon
-                  aria-hidden="true"
-                  className="size-3.5"
-                  weight="bold"
-                />
+                <PlusIcon aria-hidden="true" className="size-3.5" />
               </motion.span>
             ) : null}
           </AnimatePresence>

@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowUUpLeftIcon } from "@phosphor-icons/react";
 import type React from "react";
+import { ArrowUUpLeftIcon } from "@/components/icons";
 import { isPlainClick, markArrival, scrollToHeading } from "@/lib/scroll";
 
 /**

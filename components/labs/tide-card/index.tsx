@@ -1,6 +1,5 @@
 "use client";
 
-import { XIcon } from "@phosphor-icons/react";
 import {
   animate,
   type MotionValue,
@@ -19,6 +18,7 @@ import {
   useState,
 } from "react";
 import { TextMorph } from "torph/react";
+import { XIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {

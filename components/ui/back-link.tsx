@@ -1,5 +1,5 @@
-import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { ArrowLeftIcon } from "@/components/icons";
 
 /**
  * The one back affordance. Chrome, so it sits at `text-meta` and muted.

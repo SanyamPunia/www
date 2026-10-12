@@ -1,22 +1,23 @@
-import { FileTextIcon, MediumLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { Signature } from "@/components/home/signature";
+import { FileTextIcon } from "@/components/icons";
 import { GitHub } from "@/components/icons/github";
 import { Gmail } from "@/components/icons/gmail";
 import { LinkedIn } from "@/components/icons/linkedin";
+import { Medium } from "@/components/icons/medium";
 import { Pageo } from "@/components/icons/pageo";
 import { X } from "@/components/icons/x";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { EMAIL, socials } from "@/lib/site";
 
 // Same set and order the old site carried. GitHub, X and LinkedIn are svgl.app
-// marks, Gmail and Pageo are the site's own copies since svgl has neither, and
-// Medium falls back to Phosphor for the same reason.
+// marks, and Gmail, Pageo and Medium are the site's own copies since svgl has
+// none of them.
 const accounts = [
   { href: socials.pageo, label: "Pageo", icon: Pageo },
   { href: socials.github, label: "GitHub", icon: GitHub },
   { href: socials.linkedin, label: "LinkedIn", icon: LinkedIn },
   { href: socials.x, label: "X", icon: X },
-  { href: socials.medium, label: "Medium", icon: MediumLogoIcon },
+  { href: socials.medium, label: "Medium", icon: Medium },
   { href: `mailto:${EMAIL}`, label: "Email", icon: Gmail },
   // /cv is a redirect to the pdf, so it sits with the icons rather than the
   // page nav, and it anchors the row on the right

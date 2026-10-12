@@ -1,13 +1,13 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import {
   CornersInIcon,
   FileIcon,
   FolderIcon,
   FolderOpenIcon,
-} from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+} from "@/components/icons";
 import "./styles.css";
 
 type TreeNode = {

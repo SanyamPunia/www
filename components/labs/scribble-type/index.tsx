@@ -1,13 +1,13 @@
 "use client";
 
+import { useInView, useReducedMotion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ArrowCounterClockwiseIcon,
   ArrowRightIcon,
   SpeakerHighIcon,
   SpeakerSlashIcon,
-} from "@phosphor-icons/react";
-import { useInView, useReducedMotion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+} from "@/components/icons";
 import { Pill } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { dry, fresh, inkTo, type Progress } from "./ink";

@@ -1,8 +1,8 @@
 "use client";
 
-import { SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { SlidersHorizontalIcon } from "@/components/icons";
 import { type Knob, Lane, Pill } from "@/components/lab/controls";
 import { cn } from "@/lib/utils";
 import { FIGURE, mount } from "./figure";

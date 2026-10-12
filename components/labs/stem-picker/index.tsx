@@ -1,6 +1,5 @@
 "use client";
 
-import { MinusIcon, PlusIcon, ShuffleIcon } from "@phosphor-icons/react";
 import {
   AnimatePresence,
   animate,
@@ -13,6 +12,7 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { MinusIcon, PlusIcon, ShuffleIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Stem, VIEW_H, VIEW_W } from "./stem";

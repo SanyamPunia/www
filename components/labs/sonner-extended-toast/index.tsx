@@ -1,15 +1,15 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { type Action, type ExternalToast, toast as sonnerToast } from "sonner";
 import {
   ArrowUpRightIcon,
   CheckCircleIcon,
   InfoIcon,
   WarningIcon,
   XCircleIcon,
-} from "@phosphor-icons/react";
-import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
-import { type Action, type ExternalToast, toast as sonnerToast } from "sonner";
+} from "@/components/icons";
 
 type PromiseState = "loading" | "pending" | "success" | "error";
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowsLeftRightIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { ArrowsLeftRightIcon } from "@/components/icons";
 import { approach, clamp01, lerp } from "@/lib/lerp";
 import { cn } from "@/lib/utils";
 import {

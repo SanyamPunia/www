@@ -827,10 +827,7 @@ export function Ticket({
                           className="absolute size-[150%] rounded-full"
                         />
                       ) : null}
-                      <Icon
-                        weight="fill"
-                        className="relative size-[clamp(1.1rem,8.5cqw,2rem)]"
-                      />
+                      <Icon className="relative size-[clamp(1.1rem,8.5cqw,2rem)]" />
                       <span className="sr-only">{mark}</span>
                     </motion.span>
                   </li>

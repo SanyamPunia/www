@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "motion/react";
+import { useId, useRef, useState } from "react";
 import {
   ArrowRightIcon,
   CaretRightIcon,
@@ -7,9 +9,7 @@ import {
   CheckIcon,
   CircleIcon,
   XCircleIcon,
-} from "@phosphor-icons/react";
-import { motion } from "motion/react";
-import { useId, useRef, useState } from "react";
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
   BLOCK_H,
@@ -197,7 +197,6 @@ export default function Sandboxes() {
                   />
                   <Mark
                     aria-hidden="true"
-                    weight={wrong || right || on ? "fill" : "regular"}
                     className={cn(
                       "size-4 shrink-0",
                       wrong

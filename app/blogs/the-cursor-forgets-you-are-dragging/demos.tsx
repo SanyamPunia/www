@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  ArrowsLeftRightIcon,
-  CursorIcon,
-  HandGrabbingIcon,
-  HandIcon,
-  HandPointingIcon,
-} from "@phosphor-icons/react";
-import {
   type MotionValue,
   motion,
   motionValue,
@@ -16,6 +9,13 @@ import {
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import {
+  ArrowsLeftRightIcon,
+  CursorIcon,
+  HandGrabbingIcon,
+  HandIcon,
+  HandPointingIcon,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /**

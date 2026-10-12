@@ -1,15 +1,15 @@
 "use client";
 
+import { animate, motion, useMotionValue } from "motion/react";
+import { type ComponentType, useEffect, useId, useRef, useState } from "react";
 import {
   ArrowsOutLineHorizontalIcon,
   ArrowsOutLineVerticalIcon,
-  LinkSimpleBreakIcon,
-  LinkSimpleIcon,
+  LinkBreakIcon,
+  LinkIcon,
   TextAaIcon,
   TextBIcon,
-} from "@phosphor-icons/react";
-import { animate, motion, useMotionValue } from "motion/react";
-import { type ComponentType, useEffect, useId, useRef, useState } from "react";
+} from "@/components/icons";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { fitCanvas, type Ink, paintRuler, readInk } from "./ruler";
@@ -929,9 +929,9 @@ export function Field({
             )}
           >
             {auto === "off" ? (
-              <LinkSimpleBreakIcon aria-hidden="true" className="size-3.5" />
+              <LinkBreakIcon aria-hidden="true" className="size-3.5" />
             ) : (
-              <LinkSimpleIcon aria-hidden="true" className="size-3.5" />
+              <LinkIcon aria-hidden="true" className="size-3.5" />
             )}
           </button>
         </Tooltip>

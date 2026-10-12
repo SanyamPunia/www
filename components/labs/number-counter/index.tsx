@@ -1,8 +1,8 @@
 "use client";
 
-import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import { useRef, useState } from "react";
+import { MinusIcon, PlusIcon } from "@/components/icons";
 
 const variants: Variants = {
   enter: (direction: number) => ({

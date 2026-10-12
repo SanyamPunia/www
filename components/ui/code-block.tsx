@@ -1,8 +1,8 @@
 "use client";
 
-import { CaretDownIcon } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { highlight } from "sugar-high";
+import { CaretDownIcon } from "@/components/icons";
 import { CopyMark } from "@/components/ui/copy-mark";
 import { cn } from "@/lib/utils";
 

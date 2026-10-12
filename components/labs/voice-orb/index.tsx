@@ -1,10 +1,10 @@
 "use client";
 
-import { SpeakerHighIcon, SpeakerSlashIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { SpeakerHighIcon, SpeakerSlashIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { approach, clamp01 } from "@/lib/lerp";
 import { cn } from "@/lib/utils";

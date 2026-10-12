@@ -1,6 +1,5 @@
 "use client";
 
-import { FlameIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
 import {
   animate,
   motion,
@@ -10,6 +9,11 @@ import {
 } from "motion/react";
 import type React from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  FlameIcon,
+  FlameOutlineIcon,
+  SlidersHorizontalIcon,
+} from "@/components/icons";
 import { type Knob, Panel, Pill } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { approach } from "@/lib/lerp";
@@ -916,7 +920,7 @@ export default function EmberBurst() {
                         ...(lit ? { color: LIT } : null),
                       }}
                     >
-                      <FlameIcon
+                      <FlameOutlineIcon
                         aria-hidden="true"
                         className={cn(
                           "size-full shrink-0 transition-colors duration-200",
@@ -925,7 +929,6 @@ export default function EmberBurst() {
                       />
                       <FlameIcon
                         aria-hidden="true"
-                        weight="fill"
                         className={cn(
                           "absolute inset-0 size-full transition-opacity duration-200",
                           lit ? "opacity-100" : "opacity-0",

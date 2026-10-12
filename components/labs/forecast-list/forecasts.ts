@@ -2,10 +2,10 @@ import {
   CloudFogIcon,
   CloudLightningIcon,
   CloudRainIcon,
-  type Icon,
+  type IconComponent,
   SnowflakeIcon,
   SunIcon,
-} from "@phosphor-icons/react";
+} from "@/components/icons";
 
 export type Kind = "sun" | "fog" | "rain" | "snow" | "storm";
 
@@ -23,7 +23,7 @@ export interface Forecast {
   kind: Kind;
   name: string;
   line: string;
-  icon: Icon;
+  icon: IconComponent;
   ground: string;
   blobs: readonly [string, string, string];
   mark: string;

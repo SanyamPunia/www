@@ -1,9 +1,9 @@
 "use client";
 
-import { HeartIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { HeartIcon, HeartOutlineIcon } from "@/components/icons";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { paint, type Ripple } from "./ripple";
@@ -197,19 +197,19 @@ export default function HalftoneRipple() {
             />
 
             {/* The heart fills while the button is on. Two glyphs rather than a
-                weight swap, so the fill fades in over the outline on the same
-                200ms as the hue, and the outline stays under it as the edge.
-                This is the second place the codebase passes an icon weight,
-                after the signature player's transport. */}
+                swap, so the solid heart fades in over the outline on the same
+                200ms as the hue, and the outline stays under it as the edge. */}
             <span
               ref={heart}
               className="relative flex transition-colors duration-200"
               style={on ? { color: INK } : undefined}
             >
-              <HeartIcon aria-hidden="true" className="size-5 shrink-0" />
+              <HeartOutlineIcon
+                aria-hidden="true"
+                className="size-5 shrink-0"
+              />
               <HeartIcon
                 aria-hidden="true"
-                weight="fill"
                 className={cn(
                   "absolute inset-0 size-5 transition-opacity duration-200",
                   on ? "opacity-100" : "opacity-0",

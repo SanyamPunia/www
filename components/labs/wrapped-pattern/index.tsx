@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowsLeftRightIcon } from "@phosphor-icons/react";
 import {
   animate,
   useMotionValue,
@@ -14,6 +13,7 @@ import type {
 } from "react";
 import { useEffect, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { ArrowsLeftRightIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { H, PATTERN_URL, W } from "./pattern";
 

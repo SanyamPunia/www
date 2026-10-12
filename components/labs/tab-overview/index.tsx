@@ -1,8 +1,8 @@
 "use client";
 
-import { SquaresFourIcon, TerminalWindowIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, PresenceContext } from "motion/react";
 import { useRef, useState } from "react";
+import { SquaresFourIcon, TerminalWindowIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import "./styles.css";
 

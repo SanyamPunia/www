@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  DownloadSimpleIcon,
-  SlidersHorizontalIcon,
-} from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { TextMorph } from "torph/react";
+import { DownloadSimpleIcon, SlidersHorizontalIcon } from "@/components/icons";
 import { Panel, Pill } from "@/components/lab/controls";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

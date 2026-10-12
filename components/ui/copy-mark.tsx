@@ -1,8 +1,8 @@
 "use client";
 
-import { CheckIcon, CopyIcon, HashIcon } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import type React from "react";
+import { CheckIcon, CopyIcon, HashIcon } from "@/components/icons";
 
 /**
  * The mark on a copy control: its idle glyph, swapping to a tick when copied.
