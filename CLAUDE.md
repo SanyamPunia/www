@@ -1796,7 +1796,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret` and `voice-orb` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb` and `scrub-number` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2034,7 +2034,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Fifty-nine clips, 5.0MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Sixty clips, 5.0MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
@@ -10196,6 +10196,192 @@ machine and the frame loop.
 - Its clip comes in from the right, stirs the surface, pokes, holds while
   moving, and lets go, so it thinks and answers. It waits for the answer to end,
   so the clip closes on the idle orb and loops. 11.0s and 192KB.
+
+### `scrub-number`
+
+Two words, "Scrub" and "this", and the four numbers that set them: weight,
+size, tracking and line height. Every number scrubs: press its icon or the
+number itself and drag. `scrub.ts` is the model, pure and DOM-free, `ruler.ts`
+paints the ruler under a field in use, `scrub-sound.ts` is the ticks,
+`field.tsx` is the gesture and the typing, and `index.tsx` is the words, the
+selection, x-ray, the cursor badge and undo.
+
+It was built first as a box with width, height, radius and rotation fields, and
+read as a settings panel. The mechanics did not change. The subject did: type
+is something whose every value is visible while it moves.
+
+#### The integrator
+
+- **Each pointer event is added at the gain in force for it, never total
+  distance times a gain.** The obvious build rescales every pixel already
+  dragged when Shift goes down or the hand drifts below the field, so the value
+  jumps. Integration means a change of speed only changes what comes next.
+- **`raw` is a float and the value is `raw` on a grid.** The remainder is kept,
+  so a slow hand still moves a field whose gain is under one unit a px. Each
+  field has its own grid and gain: weight 1 at 2 a px, size 1 at 0.25, tracking
+  0.1% at 0.05, line height 0.01 at 0.005.
+- **Shift is ten times the speed on a grid ten times coarser. Alt is a tenth on
+  a grid a tenth as fine.** So Shift reaches a round number and Alt leaves one.
+  A gear change with no movement changes nothing, since the value is only
+  snapped on a move.
+- **The hand drifting below the field slows the scrub.** The first 24px are
+  free, then the speed falls by a step for every 48px, to a twelfth: 0.67 at
+  48px, 0.5 at 72, 0.33 at 120. Apple's video scrubber does this in bands, and
+  this is the same curve without the jumps. The ruler spreads out as it slows,
+  since it runs in value space.
+- **The slop is discarded, not applied.** 3px for a mouse, 4 for a pen, 8 for
+  a finger.
+- **Detents hold 10px of hand travel in either direction, at base speed
+  only.** Weight sticks at its nine named weights, size at 16, 24, 32, 48 and
+  64, tracking at 0 and at Inter's own value for the current size, and line
+  height at 1 ("solid") and at 1.6, this site's body leading. At Shift's speed
+  the weight detents are 5px apart against a 10px hold, so a fast scrub became a
+  row of stops, and Alt is how a reader asks for 599.5 beside 600. Either gear
+  lets go of a detent it is holding. Measured in the model: weight scrubbed up a
+  px at a time from 600 reads 698, 700 for ten events, then 702.
+- **A reversal off a limit moves the value at once.** The travel spent pushing
+  past the limit only draws the rubber band (the number gives by up to 5px) and
+  is dropped the moment the hand turns.
+
+#### The throw
+
+- **Let go while moving and the value coasts.** The release speed is read over
+  the last 80ms, and a hand that stopped for 50ms before letting go throws
+  nothing. Under 160px/s is a placement. The speed falls by `e` every 0.32s
+  and the coast stops under 24px/s.
+- **The coast runs through the same `advance` the hand does.** So a detent it
+  reaches slowly enough catches it, a limit stops it, and the ruler, the
+  sound and x-ray carry on as if the hand were still there. A press anywhere on
+  the field catches a coasting value where it is. Escape during a coast puts it
+  back to where the scrub began.
+- **The "this was a scrub" flag is set on the release, not when the scrub
+  ends.** A thrown value is still coasting when the release's click arrives,
+  and that click focused the number box. The recorded clip showed it as a focus
+  ring left on the size field.
+
+#### Pointer lock
+
+- **The pointer is locked only when the hand comes within 32px of the window's
+  edge.** A lock frees the hand from the screen edge, and Chrome announces
+  every lock with a banner across the top of the page. Locking at the start of
+  every scrub showed that banner for scrubs that never needed it.
+- **A lock asked for mid-drag succeeds because the pointerdown's activation is
+  still live.** A scrub held longer, or a browser that refuses, stops at the
+  screen edge like any slider. Chrome returns a promise from
+  `requestPointerLock` and Safari returns nothing.
+- **Under the lock a drawn cursor wraps round the window**, as a 3D app's does.
+  It and the badge beside the hand are portaled into `body`, since the lab slot
+  animates a transform and a fixed child would resolve against it.
+- **Movement comes from `movementX` and `movementY` under the lock and from
+  client coordinates without it.** A first event that reports more than 250px
+  is dropped, since some platforms report the pointer being re-centred.
+- **Escape cancels and restores the snapshot taken when the scrub began.**
+  Under a lock the browser takes Escape to release it, so a lock that goes away
+  while a scrub runs is treated as that Escape. Measured: a size scrub pushed
+  into the window's edge locks, draws the cursor, and Escape returns 72 to 56.
+
+#### The field
+
+- **The icon and the number are both scrub handles.** That is Blender's call:
+  drag either to scrub, click without moving to type. Once the box is focused it
+  is a text box and a press places the caret. Both show `cursor-ew-resize`,
+  which is one more place the shared `cursor-pointer` rule is off. While a
+  scrub runs, `data-scrub` on `<html>` holds that cursor everywhere through a
+  global rule in `globals.css`, since the hand leaves the field at once.
+- **The gesture is bound imperatively, once.** A finger held to scrub needs a
+  `touchmove` listener that is not passive, which React cannot add.
+- **On touch, a finger resting 350ms owns the gesture**, with a buzz, and can
+  then drag down for precision while the page stays still. A finger that sets
+  off sideways scrubs at once, and one that sets off vertically scrolls.
+  Measured on a 390px phone: a long press and a drag down and right scrubs size
+  from 56 to 63 and the page scrolls 0px.
+- **The ruler runs in value space.** A tick is a fixed amount of value on a 1,
+  2 or 5 step, about 6px of hand apart, with a long tick on round values. It
+  races under Shift, crawls and spreads under Alt or a drop, and stops while a
+  detent holds. Dots are detents, a ring marks where the scrub began (what
+  Escape returns to), and at a limit the ticks end and the needle goes past.
+- **The badge takes the unit's place**: the held detent by name, or the speed
+  as one multiplier, `×10`, `×0.1` or `×0.49` with a drop. The same text rides
+  beside the hand in the cursor badge.
+- **Held arrow keys speed up.** One step for the first 6 repeats, then 2, 5 and
+  10 steps, landing on that grid. Page keys step by ten steps, and Home and End
+  go to the limits. A held burst is one undo step.
+- **The box takes sums**: `120/3`, `2*(40+8)`, `3x4`, and other fields by name,
+  `size/40` or `w+100` (each field's key, its one-letter alias, and `tracking`
+  and `leading`). A leading `+`, `*` or `/` applies to the current value. A
+  leading `-` is a negative number. The field's own unit is ignored at the end,
+  and `auto` in the tracking box turns auto tracking back on. It is a recursive
+  descent rather than `eval`. Anything else shakes the field, tints it
+  `danger` for 700ms and restores it.
+- **A double click on an icon resets that field** for the selected words. On
+  tracking it turns auto back on.
+- **Nothing renders while a scrub runs.** The numbers are written to the boxes,
+  the words read motion values, and the ruler is one canvas painted on the next
+  frame. Measured: 0 frames requested in 1.5s at rest.
+
+#### Words, mixed values and auto tracking
+
+- **Click a word to select it, Shift-click to add or remove it, and click the
+  bare stage to select both.** Both start selected.
+- **A field whose selected words disagree is empty with a `mixed`
+  placeholder**, the way a design tool shows it. A scrub on it runs in deltas,
+  shows `+58` while it runs, and moves each word by the same amount, each clamped
+  to its own range. Typing a sum applies it to each word separately, so `*2`
+  doubles both. Detents are off for a mixed scrub, since there is no one value
+  to catch.
+- **Tracking can follow size, by Inter's dynamic metrics**: `a + b * e^(c *
+  size)` em, with a = -0.0223, b = 0.185 and c = -0.1745 from
+  rsms.me/inter/dynmetrics. Small type opens up and large type closes in. The
+  link button in the tracking field turns it on and off. Scrubbing or typing a
+  tracking turns it off, and landing a scrub on the "auto" detent turns it back
+  on.
+- **The words are buttons set as written.** `button { text-transform: inherit
+  }` in `globals.css` is unlayered and beats any utility, so `none` is inline.
+
+#### X-ray and sound
+
+- **X-ray reads out the scrub in flight**: hand travel, distance below the
+  field, the speed multiplier, the gain per px, the raw float, the snapped value,
+  the detent's hold (or the travel past a limit), and the throw's speed. It sits
+  under the words in two pairs a row, and draws each word's line box dashed,
+  which is what line height sets. On the ruler it adds the raw value's mark and
+  the detent's hold as a filling bar.
+- **Sound, on by default and muted from the corner.** A step is a tick pitched
+  by where the value sits in its range. Ticks are limited to one per 14ms, which
+  turns a fast scrub into a rattle. A detent is a lower, heavier click and a
+  limit a soft knock. Synthesised on `crack-sound.ts`'s shape, unlocked on the
+  press.
+- **The corner toggles are not `Pill`.** `Pill`'s quiet fill is `fill`, which is
+  this stage's ground, so the toggles sit one step up the fill scale,
+  `fingerprint-ink`'s call. X-ray takes the filled dark pill while on. The sound
+  toggle is named by what a press does and never fills, since a dark muted
+  speaker reads as on.
+
+#### Undo
+
+- **Cmd+Z and Shift+Cmd+Z (or Ctrl+Y) undo and redo**, one step per scrub,
+  typed value, reset, auto toggle and burst of arrow keys. Steps with the same
+  tag inside 900ms join. 64 are kept. It answers while the pointer is over the
+  demo or focus is inside it, and leaves a box being typed in to the browser's
+  own text undo. It restores values and auto tracking, not the selection.
+- **The shortcut is taken even when there is nothing to undo, and that was a
+  bug.** With an empty stack the key fell through to Chrome's own undo, which
+  rewrote the last box typed in and marked it as being edited. Every later
+  write to that box was then skipped, so a redo moved the words and left the
+  number behind.
+
+#### The rest
+
+- **It invents no colour.** The words are `text-primary` on `fill`, and the
+  ruler, the guides and x-ray are the site's greys.
+- **Reduced motion drops the glides, the rubber band and the throw.** A scrub
+  is direct manipulation and is unchanged.
+- It is `flush`, `sm:aspect-8/5`, with the panel beside the words from `sm`
+  and under them in two columns below. Verified at 1280 and 390px with no
+  sideways scroll and no console errors.
+- Its clip picks "this" and scrubs it lighter through semibold and medium,
+  picks both so weight reads mixed, throws size up to its limit, and undoes
+  both, so it ends as it began and loops. 9.0s and 51KB.
 
 ## Motion
 
