@@ -401,7 +401,9 @@ export function SelectionPins() {
     anchorRef.current = null;
   }, []);
 
-  if (!ends) return null;
+  // The carets are the home page's detail. Every other route keeps the
+  // browser's own selection and nothing drawn over it.
+  if (!ends || pathname !== "/") return null;
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-50">

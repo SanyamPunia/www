@@ -61,8 +61,8 @@ export default function RootLayout({
         <MotionProvider>{children}</MotionProvider>
         {/* mounted once, so a feature only ever calls toast() */}
         <Toaster />
-        {/* here rather than per page: selecting text is a whole-document
-            behaviour, and one listener covers every route */}
+        {/* here rather than in the home page, since the listener has to
+            clear the carets on a navigation away. It draws on "/" only */}
         <SelectionPins />
         {/*
          * Analytics. The tracker hooks `history.pushState` and `popstate`
