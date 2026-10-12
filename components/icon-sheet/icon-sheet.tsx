@@ -4,6 +4,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { CheckIcon } from "@/components/icons";
 import { CATALOG } from "@/components/icons/catalog";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { iconMarkup } from "./serialize";
@@ -78,54 +79,68 @@ export function IconSheet() {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <p className="mb-4 text-meta text-text-muted">
-        Every icon used on this site. Click any to copy its {FORMAT}.
-      </p>
+      {/* the stagger every other page opens on, one item for the line and
+          one for the grid */}
+      <Reveal className="flex flex-col gap-4">
+        <RevealItem>
+          <p className="text-meta text-text-muted">
+            Every icon used on this site. Click any to copy its {FORMAT}.
+          </p>
+        </RevealItem>
 
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: the arrow keys
+        <RevealItem>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: the arrow keys
           are heard here once for every tile inside, each a real button */}
-      <div
-        ref={sheet}
-        onKeyDown={walk}
-        className="grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-1.5"
-      >
-        {ICONS.map(({ name, Icon }) => {
-          const ticked = done === name;
-          return (
-            <Tooltip
-              key={name}
-              label={
-                <span className="font-mono [text-transform:none]">{name}</span>
-              }
-            >
-              <button
-                type="button"
-                data-tile={name}
-                aria-label={`${name}, copy as ${FORMAT}`}
-                onClick={(event) => take(name, event.currentTarget)}
-                className="grid aspect-square cursor-pointer place-items-center rounded-lg bg-surface text-text-primary transition-all duration-150 hover:bg-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 active:bg-fill-hover"
-              >
-                {/* 24px exactly, the grid's own size, so every unit of the
+          <div
+            ref={sheet}
+            onKeyDown={walk}
+            className="grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-1.5"
+          >
+            {ICONS.map(({ name, Icon }) => {
+              const ticked = done === name;
+              return (
+                <Tooltip
+                  key={name}
+                  label={
+                    <span className="font-mono [text-transform:none]">
+                      {name}
+                    </span>
+                  }
+                >
+                  <button
+                    type="button"
+                    data-tile={name}
+                    aria-label={`${name}, copy as ${FORMAT}`}
+                    onClick={(event) => take(name, event.currentTarget)}
+                    className="grid aspect-square cursor-pointer place-items-center rounded-lg bg-surface text-text-primary transition-all duration-150 hover:bg-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 active:bg-fill-hover"
+                  >
+                    {/* 24px exactly, the grid's own size, so every unit of the
                     drawing lands on a whole pixel */}
-                <span className="relative grid size-[1.5rem] place-items-center">
-                  <Icon
-                    className={cn(
-                      "size-full transition-[opacity,scale] duration-150 motion-reduce:transition-none",
-                      ticked ? "scale-50 opacity-0" : "scale-100 opacity-100",
-                    )}
-                  />
-                  <CheckIcon
-                    className={cn(
-                      "absolute inset-0 size-full transition-[opacity,scale] duration-150 motion-reduce:transition-none",
-                      ticked ? "scale-100 opacity-100" : "scale-50 opacity-0",
-                    )}
-                  />
-                </span>
-              </button>
-            </Tooltip>
-          );
-        })}
-      </div>
+                    <span className="relative grid size-[1.5rem] place-items-center">
+                      <Icon
+                        className={cn(
+                          "size-full transition-[opacity,scale] duration-150 motion-reduce:transition-none",
+                          ticked
+                            ? "scale-50 opacity-0"
+                            : "scale-100 opacity-100",
+                        )}
+                      />
+                      <CheckIcon
+                        className={cn(
+                          "absolute inset-0 size-full transition-[opacity,scale] duration-150 motion-reduce:transition-none",
+                          ticked
+                            ? "scale-100 opacity-100"
+                            : "scale-50 opacity-0",
+                        )}
+                      />
+                    </span>
+                  </button>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </RevealItem>
+      </Reveal>
 
       <p aria-live="polite" className="sr-only">
         {said}
