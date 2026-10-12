@@ -68,6 +68,36 @@ const ASPECT = CARD.w / CARD.h;
  */
 const VIEWPORT = { width: 1280, height: 800 };
 
+/**
+ * A small subject is recorded pinch-zoomed, so its crop has real pixels rather
+ * than enlarged ones.
+ *
+ * The screencast hands over one frame pixel per CSS pixel and nothing raises
+ * that: measured, a page at device scale 2 and a screencast asked for 2560 wide
+ * both return 1280. So a lab whose crop is a 130px box round a counter came out
+ * enlarged five times and visibly soft.
+ *
+ * `zoom` on a lab's entry pinches the page in by that factor round the crop's
+ * centre, the way a trackpad does. A pinch magnifies what is painted and
+ * changes nothing the page can measure: layout, `getBoundingClientRect` and
+ * `innerWidth` read as they do unzoomed, so a lab that measures itself, `torph`
+ * or a Motion `layout` animation, is drawn exactly as it is on the site.
+ *
+ * CSS `zoom` on `<html>` was the first build, and it broke every lab that
+ * measures: `getBoundingClientRect` returns zoomed pixels and a style written
+ * back from it is zoomed again, so `halftone-ripple`'s count was laid out three
+ * times too wide and its digits flew apart. Do not go back to it.
+ *
+ * Under a pinch, Playwright's element boxes and mouse events are both in the
+ * zoomed view's own CSS pixels, so gestures written against `box` and against
+ * locators run unchanged. A crop measured off `getBoundingClientRect` is in the
+ * page's pixels and is shifted by the view's offset. The pinch resets on
+ * navigation, so a lab with no `zoom` is recorded as it always was.
+ *
+ * **3 is the most there is.** Chrome holds a desktop page's scale at 3 whether
+ * it is pinched to 4 or set to 4 through `Emulation.setPageScaleFactor`.
+ */
+
 /** Long enough for the page's own reveal stagger to finish before a gesture. */
 const SETTLE = 2200;
 
@@ -88,6 +118,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 const LABS = {
   "cursor-origin-button": {
+    zoom: 3,
     focus: [199, 79, 139, 87],
     // the hover origin is the point the pointer entered at, so the button is
     // entered twice from opposite sides
@@ -108,6 +139,7 @@ const LABS = {
   },
 
   "phrase-transition": {
+    zoom: 2,
     focus: [128, 15, 280, 175],
     // it cycles on its own, so the clip is a dwell
     async run() {
@@ -116,6 +148,8 @@ const LABS = {
   },
 
   "split-to-edit": {
+    // at 3 its spread is wider than the zoomed view, so it is clamped and cut
+    zoom: 2,
     // the three segments spread wider than the pill they came from, so the crop
     // is measured while they are apart
     async run({ page, m }) {
@@ -126,10 +160,13 @@ const LABS = {
       await wait(400);
       await m.press(pencil());
       await wait(2200);
-      const rect = await m.ink();
+      // `ink` reads the segments' text and icons, not the pills behind them,
+      // so both end pills were cut off at the edges. A margin of a fifth of
+      // the spread either side takes them in.
+      const [x, y, w, h] = await m.ink();
       await m.press(pencil());
       await wait(1800);
-      return rect;
+      return [x - w * 0.2, y, w * 1.4, h];
     },
   },
 
@@ -167,6 +204,7 @@ const LABS = {
   },
 
   "discount-code-input": {
+    zoom: 3,
     focus: [149, 68, 240, 150],
     async run({ page, m }) {
       await wait(500);
@@ -199,6 +237,9 @@ const LABS = {
   // the toasts are the subject and they stack at the viewport's own corner, so
   // this is the one clip cropped to the page rather than to the demo
   "sonner-extended-toast": {
+    zoom: 2,
+    // the toasts stack at the viewport's corner, so the pinch is anchored there
+    zoomAt: "corner",
     async run({ page, pick, m }) {
       await wait(300);
       await m.press(pick("With footer").first());
@@ -229,6 +270,7 @@ const LABS = {
   },
 
   "number-counter": {
+    zoom: 3,
     focus: [204, 84, 130, 81],
     async run({ pick, m }) {
       await m.move(269, 160, 8);
@@ -246,6 +288,7 @@ const LABS = {
   },
 
   "multi-step-form": {
+    zoom: 2,
     // the card is a step taller on step two, so the crop is measured there
     async run({ page, pick, m }) {
       await wait(400);
@@ -269,6 +312,7 @@ const LABS = {
   },
 
   "morphing-icons": {
+    zoom: 3,
     focus: [155, 20, 230, 144],
     async run({ pick, m }) {
       await m.move(269, 240, 8);
@@ -287,6 +331,7 @@ const LABS = {
   },
 
   "animated-dashed-border": {
+    zoom: 3,
     focus: [144, 69, 249, 156],
     async run({ pick, m }) {
       await m.move(269, 250, 8);
@@ -472,6 +517,7 @@ const LABS = {
     },
   },
   "halftone-ripple": {
+    zoom: 3,
     focus: [169, 59, 200, 125],
     // hover first, so the label's step shows, then a press at each end of the
     // pill: one in the hue turning it on, one in grey turning it off, one more
@@ -1906,13 +1952,6 @@ function crop(rect, bounds) {
   };
 }
 
-const VIEWPORT_BOUNDS = {
-  x: 0,
-  y: 0,
-  width: VIEWPORT.width,
-  height: VIEWPORT.height,
-};
-
 async function record(page, slug, lab, tmp) {
   await page.goto(`${BASE}/lab/${slug}`, { waitUntil: "load" });
   // the placeholder is taller than 80px too, so the lab has to have replaced it,
@@ -1922,7 +1961,7 @@ async function record(page, slug, lab, tmp) {
     return (
       demo !== null &&
       demo.querySelector("[data-lab-placeholder]") === null &&
-      demo.getBoundingClientRect().height > 80
+      demo.offsetHeight > 80
     );
   });
   await page.waitForTimeout(400);
@@ -1955,6 +1994,45 @@ async function record(page, slug, lab, tmp) {
     // it may have changed size, so centre it again before it is measured
     await centre();
     await page.waitForTimeout(400);
+  }
+
+  /*
+   * Pinch in round the crop's centre, after the demo is centred and before it
+   * is measured, so `box` is in the zoomed view's coordinates like everything
+   * else a gesture reads. As a mouse pinch, a ctrl-wheel, since a touch pinch
+   * would hand the page a pointer down.
+   */
+  const view = { x: 0, y: 0, scale: 1, ...VIEWPORT };
+  if (lab.zoom) {
+    const flat = await page.locator("[data-lab-demo]").boundingBox();
+    const [ax, ay] =
+      lab.zoomAt === "corner"
+        ? // a pinch exactly on the viewport's edge is refused as out of bounds
+          [VIEWPORT.width - 1, VIEWPORT.height - 1]
+        : lab.focus
+          ? [
+              flat.x + lab.focus[0] + lab.focus[2] / 2,
+              flat.y + lab.focus[1] + lab.focus[3] / 2,
+            ]
+          : [flat.x + flat.width / 2, flat.y + flat.height / 2];
+    await cdp.send("Input.synthesizePinchGesture", {
+      x: ax,
+      y: ay,
+      scaleFactor: lab.zoom,
+      relativeSpeed: 3000,
+      gestureSourceType: "mouse",
+    });
+    await page.waitForTimeout(400);
+    Object.assign(
+      view,
+      await page.evaluate(() => ({
+        x: visualViewport.offsetLeft,
+        y: visualViewport.offsetTop,
+        scale: visualViewport.scale,
+        width: visualViewport.width,
+        height: visualViewport.height,
+      })),
+    );
   }
 
   const box = await page.locator("[data-lab-demo]").boundingBox();
@@ -2043,10 +2121,17 @@ async function record(page, slug, lab, tmp) {
   const seconds = (Date.now() - clock) / 1000;
   await ab("--json", "record", "stop");
 
-  const region = measured
-    ? crop(measured, VIEWPORT_BOUNDS)
+  /*
+   * Every rect here ends in the zoomed view's CSS pixels. A measured one comes
+   * off `getBoundingClientRect`, which is the page's, so it moves by the view's
+   * offset. The frame is that view at `view.scale` pixels per CSS pixel.
+   */
+  const bounds = { x: 0, y: 0, width: view.width, height: view.height };
+  const toView = ([x, y, w, h]) => [x - view.x, y - view.y, w, h];
+  const fit = measured
+    ? crop(toView(measured), bounds)
     : lab.viewport
-      ? crop(lab.viewport, VIEWPORT_BOUNDS)
+      ? crop(toView(lab.viewport), bounds)
       : crop(
           [
             box.x + lab.focus[0],
@@ -2056,6 +2141,17 @@ async function record(page, slug, lab, tmp) {
           ],
           box,
         );
+  // and the crop has to lie inside the zoomed view, or ffmpeg cuts off the frame
+  fit.w = Math.min(fit.w, bounds.width);
+  fit.h = Math.min(fit.h, bounds.height);
+  fit.x = Math.max(0, Math.min(fit.x, bounds.width - fit.w));
+  fit.y = Math.max(0, Math.min(fit.y, bounds.height - fit.h));
+  const region = {
+    x: Math.round(fit.x * view.scale),
+    y: Math.round(fit.y * view.scale),
+    w: Math.round(fit.w * view.scale),
+    h: Math.round(fit.h * view.scale),
+  };
 
   const mp4 = join(OUT, `${slug}.mp4`);
   await run("ffmpeg", [
@@ -2104,7 +2200,13 @@ async function record(page, slug, lab, tmp) {
 
   await rm(raw, { force: true });
   const size = (await readFile(mp4)).byteLength;
-  return { seconds: seconds.toFixed(1), kb: Math.round(size / 1024) };
+  return {
+    seconds: seconds.toFixed(1),
+    kb: Math.round(size / 1024),
+    // how many times the crop was enlarged to fill the card, the number that
+    // says whether a clip will be soft
+    scale: (CARD.w / region.w).toFixed(2),
+  };
 }
 
 const only = process.argv.slice(2);
@@ -2128,16 +2230,16 @@ await ab("--executable-path", CHROME, "open", "about:blank");
 const browser = await chromium.connectOverCDP(await ab("get", "cdp-url"));
 const page = browser.contexts()[0].pages().at(-1);
 await page.setViewportSize(VIEWPORT);
-const emulation = await page.context().newCDPSession(page);
-await emulation.send("Emulation.setEmulatedMedia", {
+const cdp = await page.context().newCDPSession(page);
+await cdp.send("Emulation.setEmulatedMedia", {
   features: [{ name: "prefers-reduced-motion", value: "no-preference" }],
 });
 
 for (const slug of slugs) {
   process.stdout.write(`${slug.padEnd(24)}`);
   try {
-    const { seconds, kb } = await record(page, slug, LABS[slug], tmp);
-    console.log(`${seconds}s  ${kb}KB`);
+    const { seconds, kb, scale } = await record(page, slug, LABS[slug], tmp);
+    console.log(`${seconds}s  ${kb}KB  x${scale}`);
   } catch (error) {
     console.log(`failed: ${error.message.split("\n")[0]}`);
   }
