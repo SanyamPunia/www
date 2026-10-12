@@ -26,7 +26,9 @@ export const metadata: Metadata = {
 export default function IconsPage() {
   return (
     <PageTransition>
-      <PageShell>
+      {/* every press here is aimed at a tile, and a quick run of them
+          anchors a selection on the nearest text it can find */}
+      <PageShell className="select-none">
         <JsonLd schema={iconSetSchema()} />
         <h1 className="sr-only">Icons</h1>
         <IconSheet />
