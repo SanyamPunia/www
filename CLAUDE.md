@@ -2087,6 +2087,45 @@ checked in as assets.
   and Playwright's recorder before it only ever scaled a page down. So the 537px
   column is captured at 537px and upscaled to 640x400 at encode time, which is
   still 1.66x what the 324px grid card paints.
+- **So a small subject is recorded pinch-zoomed.** A lab whose crop is a small
+  box round a small component was enlarged up to five times to fill the card:
+  `number-counter` was a 130px crop at 4.9x, and the soft text and edges were
+  plainly visible on the index. Asking the screencast for more does not work:
+  a page at device scale 2 and a screencast asked for 2560 wide both returned
+  1280. So `zoom` on a lab's entry pinches the page in by that factor round the
+  crop's centre, through `Input.synthesizePinchGesture`, before the demo is
+  measured, and the frame is the zoomed view at that many pixels per CSS pixel.
+  - **A pinch changes nothing the page can measure.** Layout,
+    `getBoundingClientRect` and `innerWidth` read as they do unzoomed, so a lab
+    that measures itself is drawn exactly as on the site.
+  - **CSS `zoom` on `<html>` was the first build, and it broke every lab that
+    measures.** `getBoundingClientRect` returns zoomed pixels and a style
+    written back from it is zoomed again: `halftone-ripple`'s count is laid out
+    by `torph`, and its digits came out three times too far apart and flew off
+    the pill. `multi-step-form` uses `torph` and `split-to-edit` a Motion
+    `layout` animation, which measure the same way. Do not go back to it.
+  - **Under a pinch, Playwright's element boxes and mouse events are both in
+    the zoomed view's CSS pixels**, so gestures written against `box` and
+    against locators run unchanged. A crop measured off
+    `getBoundingClientRect` is in the page's pixels and is shifted by the
+    view's offset, and every crop is clamped inside the zoomed view.
+  - **3 is the most there is.** Chrome holds a desktop page's scale at 3
+    whether it is pinched to 4 or set to 4 with `Emulation.setPageScaleFactor`.
+  - **It is a mouse pinch, a ctrl-wheel**, since a touch pinch would hand the
+    page a pointer down. A pinch exactly on the viewport's edge is refused as
+    out of bounds, which is why `sonner-extended-toast`, anchored on the corner
+    its toasts stack in, pinches one pixel inside it.
+  - The pinch resets on navigation, so a lab with no `zoom` is recorded as it
+    always was.
+  - Ten labs use it, at 2 or 3, and each run prints how many times its crop was
+    enlarged. They are now 0.68x to 1.64x, against 4.9x at worst before and
+    1.19x for a full-width stage. `cursor-origin-button` and `number-counter`
+    are the two still over 1.5x, being the smallest crops at the most a pinch
+    gives. `split-to-edit` is at 2, since at 3 its spread is wider than the
+    zoomed view.
+  - Every one was checked at six points across its length against the live
+    lab. One frame each was not enough: it is how the broken `halftone-ripple`
+    clip got past the first check.
 - **A `focus` rect per lab, in the demo's own coordinates**, corrected to the
   card's 8:5 inside the demo box and padded in white where the demo is the wrong
   shape for it. Cropping past the demo's edge pulls in the heading and the
@@ -2132,7 +2171,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-one clips, 5.2MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Sixty-one clips, 5.3MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
