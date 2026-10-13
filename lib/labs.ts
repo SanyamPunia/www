@@ -980,7 +980,7 @@ const ALL_LABS: LabMetadata[] = [
       "hover a row and its icon plays as a flipbook. dots shared by name travel to each other, so the record icon becomes the red dot and the bin carries into the pill.",
     ],
     createdAt: "2026-10-13",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/dot-island/dots.ts",
     flush: true,

@@ -10520,9 +10520,6 @@ is something whose every value is visible while it moves.
 
 ### `dot-island`
 
-**A draft, `live: false`.** It shows locally, and not on sanyam.sh, until it
-is published.
-
 A screen recorder in a Dynamic Island, drawn on a dot-matrix panel. Press the
 island for a menu, record, press again to stop, then save, restart or delete.
 A screenshot runs a shutter and saves. Every word, icon and digit on it is lit
