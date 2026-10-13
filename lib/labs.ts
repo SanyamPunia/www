@@ -995,7 +995,7 @@ const ALL_LABS: LabMetadata[] = [
       "every hub is placed by two numbers, its seat round the table and how far the hubs have spread. past the last seat a hub walks round the back of the table, so the arc wraps with no jump.",
     ],
     createdAt: "2026-10-13",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/home-hub/pose.ts",
     flush: true,
