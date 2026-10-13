@@ -986,6 +986,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Press the island, then record or take a screenshot.",
   },
+  {
+    slug: "home-hub",
+    title: "Home Hub",
+    description: [
+      "five home hubs on the front of a round table, a screen on a dome each, facing out. one hub in profile turns to face you as the view closes in, then the others fan out from behind it. drag or press a hub to turn the table.",
+      "key insight: the dome is a solid of revolution, so it is drawn flat and turned back to face the camera, and only the screen is a real 3d slab. the billboard stands on the dome's axis, so a screen behind it is hidden where the real dome would hide it.",
+      "every hub is placed by two numbers, its seat round the table and how far the hubs have spread. past the last seat a hub walks round the back of the table, so the arc wraps with no jump.",
+    ],
+    createdAt: "2026-10-13",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/home-hub/pose.ts",
+    flush: true,
+    hint: "Drag the table, or press a hub to bring it to the front.",
+  },
 ];
 
 /**
@@ -1116,6 +1131,7 @@ export const IMPLEMENTED_LABS = [
   "voice-orb",
   "scrub-number",
   "dot-island",
+  "home-hub",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
