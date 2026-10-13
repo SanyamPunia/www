@@ -1913,6 +1913,48 @@ const LABS = {
       await wait(1600);
     },
   },
+  "text-reveal": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The reference plays first, then the shutter, the decode, the weight
+     * wave and the dot cloud, each from the picker under the copy. The clip
+     * ends on the dot cloud's finished type, which is the frame it opens on,
+     * so it loops. Every press jumps on and off its pill, so no tooltip opens
+     * over the copy.
+     *
+     * `prep` waits out the first reveal, which plays when the demo comes
+     * into view, so the poster is the finished type.
+     */
+    async prep() {
+      await wait(2000);
+    },
+    async run({ page }) {
+      const press = async (name) => {
+        const box = await page
+          .locator(`[data-lab-demo] button[aria-label="${name}"]`)
+          .boundingBox();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(box.x + box.width / 2, box.y - 400);
+      };
+      await wait(500);
+      await press("Replay the reveal");
+      await wait(1900);
+      await press("Next pattern");
+      await wait(2400);
+      await press("Next pattern");
+      await wait(60);
+      await press("Next pattern");
+      await wait(2200);
+      await press("Next pattern");
+      await wait(2700);
+      await press("Next pattern");
+      await wait(2900);
+    },
+  },
   "scrub-number": {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
