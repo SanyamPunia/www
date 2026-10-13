@@ -503,6 +503,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     ssr: false,
     loading: Placeholder,
   }),
+  "text-reveal": dynamic(
+    () => import("@/components/labs/text-reveal").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
