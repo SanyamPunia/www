@@ -1892,7 +1892,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number` and `dot-island` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island` and `home-hub` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1957,6 +1957,9 @@ experiment is a directory under `components/labs/`.
   own section.
   `dot-island` scopes one red for its record dot, which is the same narrow
   claim as `halftone-ripple`'s: a state and not a subject. See its own section.
+  `home-hub` scopes three finishes for its hubs and a palette per screen,
+  since a device's finish and its display are the picture. See its own
+  section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2171,7 +2174,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-one clips, 5.3MB with their stills, 3.4 to 13.0 seconds each, at 60
+- Sixty-two clips, 5.4MB with their stills, 3.4 to 13.0 seconds each, at 60
   frames a second. `scribble-type` is the long one, since a note takes 11s to
   write and the clip is one whole note.
 
@@ -10643,6 +10646,123 @@ and the frame loop.
   plays, records to three seconds, stops, hovers delete so the lid lifts, and
   deletes, so the island folds back to the loader it opened on and loops.
   12.0s and 172KB.
+
+### `home-hub`
+
+Five home hubs on the front of a round table, a screen on a dome each, every
+screen facing out from the table's centre, seen at eye level. Drag
+the table, press a hub or use the dots, and the table turns to bring that hub
+to the front seat. `pose.ts` is the geometry, pure and DOM-free,
+`screens.tsx` the five displays, and `index.tsx` the scene, the gestures and
+the opening.
+
+- **The layout went arc, then a council facing in, then facing out, then
+  this**, each at the author's request. The last step matched the reference's
+  final frame: five hubs on the front of the table rather than spread round
+  all of it. The table is still a circle, and the hubs still move round it.
+- **The five seats are `STEP` degrees apart on the front of the table**, and
+  every hub is drawn twice, ten copies for five items. Past the last seat a
+  copy carries on round the table and slides out past the stage's edge, while
+  the other copy of that hub slides in at the far end. A turn is one
+  continuous run. With five copies, the hub leaving one end had to walk round
+  the back of the table to arrive at the other, and the author asked for that
+  to go. A copy past 2.6 seats is off the stage and `visibility: hidden`,
+  which does not flatten a 3D context the way `opacity` does.
+- **The outer seats are drawn smaller than honest perspective makes them**, 9%
+  a seat, since the reference's outer hubs are smaller than that too.
+- **The ring is pushed back by its own radius**, so the front seat stands on
+  the stage's own plane and the front hub is drawn at its own size.
+- **The opening is the reference's, beat for beat.** One hub, small and in
+  profile facing left, holds for 0.7s. It turns to face the reader over 2.4s
+  while the view closes in on it, from 0.82 to 1.45. From 60% of the turn the
+  others slide out from behind it over 0.8s, from wholly hidden to a few
+  degrees either side, through `peek` in `seat`. They appeared in one frame
+  first, which the author called out. Then they fan out to their seats while
+  the view eases back to 1. The front hub never moves. The zoom is a 2D scale
+  held still on the front hub's screen, `FOCUS_Y`.
+- **The profile is a true -90, and two side faces carry it.** The slab's
+  stacked layers paint nothing exactly edge on, so at -84, where they still
+  did, the hub showed its screen's face rather than a thin aluminium edge. The
+  side faces fade in past 58 degrees of turn and are full by 80, since nearer
+  the front they stand out square past the screen's rounded corners.
+- **The profile is measured off the reference's.** The screen leans back 18
+  degrees, and a metal neck runs from its back into the dome's upper left,
+  half a radius above the half sphere's centre. At 12 degrees, with the hinge
+  at the centre and no neck, the author read the hub as squat.
+- **The dome is drawn flat and turned back to face the camera.** It is a
+  solid of revolution, so it looks the same from every yaw and a billboard is
+  exact for it. The billboard cancels the hub's yaw and the view's pitch, and
+  it pivots on its foot so it stays on the table. Only the screen is a 3D
+  slab. Each hub is about ten planes.
+- **The billboard is on the dome's axis and the screen hinges in front of
+  it.** A screen behind the axis is then hidden by the dome image, where the
+  real dome would hide it.
+- **The neck is a plane along the screen's normal**, so it reads in profile
+  and is hidden behind the screen from the front. It was removed once, when
+  hubs faced in and were seen from behind, where it drew a wedge across the
+  dome. Facing out, no hub is seen from behind at rest.
+- **The slab's thickness is seven stacked rounded layers**, the middle ones
+  darker, so the edge reads as a curve. Separate side faces leave gaps at
+  rounded corners.
+- **Two numbers place every hub**: `o`, its offset from the front seat, and
+  `fan`, from 0 (stacked behind the front hub) to 1 (seated). A drag, a throw,
+  a press and the opening all move these two values. A seat is a turn about
+  the table's centre, so the ring container is one point, and tilting it
+  tilts every hub.
+- **The opening resets its values with `jump`, never `set`.** A `set` reads
+  as a large velocity, and the fan's spring started from it: every hub swung
+  past the middle before it spread. Traced per frame before the fix, one hub
+  reached scale 1.07 in front of the first at 1080ms.
+- **A council facing in was built and taken out.** Spreading it from the
+  middle of the table turned the hubs round a circle a few pixels across, and
+  their screens folded over each other like an accordion. Stacking them behind
+  one hub and walking them round the rim fixed that, which is the same move
+  the opening makes now.
+- **The scene is `pointer-events-none` and the hubs turn it back on.** The
+  scene is a plane at z 0 in its own 3D context, so Chrome hit-tested it
+  above every hub behind that plane, and a press on those hubs did nothing.
+  Measured with `elementFromPoint`: the scene before the change, each hub
+  after it. The table is inside the scene, so it takes no pointer either.
+- **A press on the front hub nods it**, a short tilt on its hinge, and a
+  press on another hub turns the table the short way to it. The click is read
+  on `pointerup` with `elementFromPoint`, so a drag past 6px of slop never
+  presses. A drag right carries the front seat right. A release throws by the
+  table's own velocity, capped at two seats.
+- **Hover brightens the glass and moves nothing**, through `data-hover`
+  written to the hub, so a hover cannot move a hub from under the pointer.
+  The glass carries a band of light that slides with the hub's turn.
+- **A sideways trackpad swipe turns the table** and lands on a seat 140ms
+  after the last event. It prevents the default only when the swipe is more
+  sideways than vertical, so the page still scrolls.
+- **The dots are the keyboard path.** They are one tab stop, and the arrow
+  keys turn the table and move focus. A polite live region names the hub in
+  the front seat.
+- **There is no table drawn, only a contact shadow under each dome.** A rimmed
+  table read as a white plate, and a feathered pool under a camera looking
+  down read as a cushion the hub sat on. `PITCH` is 3 degrees: at 8 the hubs
+  stacked behind the front one rose above its top.
+- **The screens are drawn, never fetched**, since `/privacy` promises no image
+  from another origin. A call has an initial and no face. The clocks run on
+  the live time from one shared interval. The screens are off the type scale
+  and keep their casing, the standing `foil-card` gives printed type. Glyphs
+  the icon set does not have (a lock, a bulb, a camera, a microphone, the skip
+  arrows) are drawn as artwork on the picture. The music bar is the
+  `hub-progress` keyframe in `globals.css`, behind `motion-safe:`.
+- **The finishes and the screen palettes are scoped**, not tokens. Silver,
+  blush and cream are the reference's three finishes.
+- **The stage is a 538 by 336 design space scaled to fit**, the call
+  `book-shelf` makes. The geometry is in pixels, since 3D offsets cannot be
+  `cqw`.
+- **Reduced motion keeps every state and drops the travel.** The hubs are
+  seated from the first frame, a turn lands in one step, and there is no nod
+  and no zoom.
+- It is `flush` on `bg-fill` with its own inset ring, and `aspect-8/5`.
+  Verified at 1280 and 390px, by mouse, by touch and by keyboard, with no
+  sideways scroll and no console errors.
+- Its clip has a `prep` that waits out the first opening, so the poster is
+  the seated arc. It replays the opening, drags the table one seat, and
+  presses the hub right of the front, so it ends on the clock it opened on
+  and loops. 10.2s and 163KB.
 
 ## Motion
 
