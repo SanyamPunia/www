@@ -1863,6 +1863,56 @@ const LABS = {
       await wait(2600);
     },
   },
+  "home-hub": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The clip opens on the arc, which is the card's poster, then replays
+     * the reveal: one hub in profile turns to face the reader while the view
+     * closes in, and the others fan out from behind it. A drag turns the
+     * table one seat to the call, and a press on the hub right of the front
+     * brings the clock back, so the clip ends where it began and loops. The
+     * replay press jumps on and off, so its tooltip never opens over the demo.
+     *
+     * `prep` waits out the first opening, which plays when the demo comes
+     * into view, so the poster is the arc and not a frame of the reveal.
+     */
+    async prep() {
+      await wait(5600);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = (fx, fy) => [
+        demo.x + demo.width * fx,
+        demo.y + demo.height * fy,
+      ];
+      const replay = await page
+        .locator('[data-lab-demo] button[aria-label="Replay the reveal"]')
+        .boundingBox();
+      await wait(600);
+      await page.mouse.move(replay.x + 16, replay.y + 16);
+      await page.mouse.down();
+      await wait(40);
+      await page.mouse.up();
+      await page.mouse.move(...at(0.5, 0.95));
+      await wait(5400);
+      await page.mouse.move(...at(0.35, 0.45), { steps: 4 });
+      await page.mouse.down();
+      await page.mouse.move(...at(0.62, 0.45), { steps: 30 });
+      // held still before the release, so the drag lands where it stopped
+      // rather than throwing on a seat further
+      await wait(250);
+      await page.mouse.up();
+      await page.mouse.move(...at(0.5, 0.95), { steps: 6 });
+      await wait(1300);
+      await page.mouse.move(...at(0.72, 0.45), { steps: 8 });
+      await page.mouse.down();
+      await wait(50);
+      await page.mouse.up();
+      await page.mouse.move(...at(0.5, 0.95), { steps: 6 });
+      await wait(1600);
+    },
+  },
   "scrub-number": {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
