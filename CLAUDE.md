@@ -1892,7 +1892,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island` and `home-hub` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub` and `text-reveal` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2174,9 +2174,9 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-two clips, 5.4MB with their stills, 3.4 to 13.0 seconds each, at 60
-  frames a second. `scribble-type` is the long one, since a note takes 11s to
-  write and the clip is one whole note.
+- Sixty-three clips, 5.8MB with their stills, 3.4 to 13.2 seconds each, at 60
+  frames a second. `scribble-type` and `text-reveal` are the long ones, since a
+  note takes 11s to write and the reveal clip plays five patterns.
 
 ### `tab-overview`
 
@@ -10763,6 +10763,75 @@ the opening.
   the seated arc. It replays the opening, drags the table one seat, and
   presses the hub right of the front, so it ends on the clock it opened on
   and loops. 10.2s and 163KB.
+
+### `text-reveal`
+
+Eight ways to reveal the same three lines, in order of how much machinery each
+one needs: `fade`, `rise`, `wipe`, `shutter`, `focus`, `decode`, `weight` and
+`assemble`. `wipe` is the reference, and the demo opens on it. `patterns.ts`
+is the copy and the eight patterns, pure apart from the nodes they write to.
+`assemble.ts` samples the letters into dots and draws them. `index.tsx` is the
+stage, the clock and the picker.
+
+- **Every pattern is a pure function of one clock**, `t` in seconds, so a
+  pattern carries no state between frames and a replay is the same run every
+  time. It plays on a press rather than on scroll, since a lab is one frame in
+  a column and is already in view on load, so a scroll trigger would have
+  nothing to drive.
+- **The picker is inside the stage, under the copy, and nothing else is.** Two
+  chevrons and the current pattern between them, in `text-meta` and muted
+  until pointed at, at the author's request. A strip under the stage carried
+  the arrows, a scrubber and a replay pill, and read as a panel bolted onto the
+  demo. Pressing the name replays its pattern, since pressing what is playing
+  is the obvious place to ask for it again. Their hover goes lighter, to `bg`,
+  `book-opening`'s call for controls on a `fill` ground, and the focus ring
+  paints its offset in `fill`. A polite live region names the pattern.
+- **The copy is split once, into lines, words and characters, and never
+  rendered again.** `Copy` is memoised with a stable prop. A pattern writes
+  styles, and in `decode` the text itself, straight to the nodes. `reset`
+  takes every one of those styles off, and a pattern change calls it first,
+  so no pattern can leave its styles on another's frame.
+- **Kerning and ligatures are off on the copy**, `highlight-wave`'s call. An
+  inline-block ends a shaping run, so a kerned pair split across two character
+  spans would set differently from the same pair in one.
+- **The lines are fixed, not wrapped**, and the type is `5.4cqw`, so the
+  longest line fits the stage at every width.
+- **`wipe` is the reference's timeline.** A rounded rectangle on each line in
+  `fill-active` squeezes to its left over 0.8s on an in-out expo curve, 50ms
+  apart. Each line slides in from 2.4em to the right behind it on an out expo
+  curve, starting 60% into the rectangle's move, and its own box clips it.
+- **`shutter` is the wipe per word, both ways.** A bar draws across the word
+  from its left, the word appears under it, and the bar leaves to the right.
+  The origin swaps while the bar is whole, so the swap cannot be seen. The
+  phrase each line ends on gets a `text-primary` bar and the rest
+  `stroke-strong`.
+- **`decode`'s noise is a hash of the character and the frame, never a random
+  call**, so a replay shows the same noise.
+- **`decode` and `weight` hold every character at its resting width.** A
+  centred line re-flows when a glyph or a weight changes, and the whole line
+  shivers sideways. The widths are measured once in ems, after the font has
+  loaded and with every style off, and each character is an `inline-flex`
+  box centred on its glyph. So a swell past black spills over its neighbours
+  evenly.
+- **`weight` runs Inter's variable axis** from 100 up to 860 and back to the
+  copy's 500, per character.
+- **`assemble` draws the copy onto an offscreen canvas at each character's
+  DOM position and samples it on a grid.** The dots then land on the type the
+  page fades in. The baseline is the character's line box less half leading,
+  the canvas sets `fontKerning = "none"` to match, and it lowercases the text
+  itself, since the stylesheet's lowercase does not reach a canvas. Plain words
+  are drawn red and the line-ending phrase green, so one read tells the two
+  tones apart. The dots are batched into one path per tone and alpha band.
+- **It invents no colour.** The rectangles are `fill-active`, the copy is
+  `text-secondary` with the phrase each line ends on in `text-primary`, the
+  same split the reference uses, and the dots read those two tokens at mount.
+- It plays once when it scrolls into view and again on every pattern change.
+  Reduced motion lands every pattern on its last frame.
+- It is `flush`, `aspect-8/5` with a `min-h-56` floor.
+- Its clip replays the wipe, then steps through the shutter, the decode, the
+  weight wave and the dot cloud. It ends on the finished type it opens on, so
+  it loops, apart from the picker's label, which jumps from `08 assemble` back
+  to `03 wipe`. 13.2s and 356KB, most of it the dot cloud.
 
 ## Motion
 
