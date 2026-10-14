@@ -1010,7 +1010,7 @@ const ALL_LABS: LabMetadata[] = [
       "`wipe` is the reference: a rectangle squeezes off each line and the line slides in 60% into its move. `weight` holds every glyph at its resting width, so a swell past black spills over its neighbours instead of shoving the line.",
     ],
     createdAt: "2026-10-14",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/text-reveal/patterns.ts",
     flush: true,
