@@ -1016,6 +1016,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Step through the patterns. Press the name to replay one.",
   },
+  {
+    slug: "loupe",
+    title: "Loupe",
+    description: [
+      "a magnifying glass over a printed harbour map. drag it to read the print, press the map to bring it there, and raise or lower it to change how much it shows.",
+      "key insight: the glass is held at a height, never set to a magnification. a lens at `u` of its focal length shows the print `1 / (1 - u)` times its size, and the bright spot it focuses on the paper is its radius times `1 - u`, so the view grows as the spot tightens.",
+      "the map is drawn once at up to seven times the stage's size and read through mipmaps. its border is a line of microprint that only the glass at full height resolves.",
+    ],
+    createdAt: "2026-10-15",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/loupe/optics.ts",
+    bare: true,
+    hint: "Drag the glass over the map. Pinch or use the corner to raise it.",
+  },
 ];
 
 /**
@@ -1148,6 +1163,7 @@ export const IMPLEMENTED_LABS = [
   "dot-island",
   "home-hub",
   "text-reveal",
+  "loupe",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
