@@ -1955,6 +1955,67 @@ const LABS = {
       await wait(2900);
     },
   },
+  loupe: {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The glass is picked up off the note it rests on and carried down
+     * across the station and the sound to the title block, where it is
+     * raised two steps and lowered again, then carried home. So the clip
+     * ends on the frame it opens on and loops. The pill presses jump on and
+     * off, so neither tooltip opens over the map.
+     *
+     * `prep` waits out the glass's first arrival, so the poster is the glass
+     * at rest on the map rather than sliding in from the corner.
+     */
+    async prep() {
+      await wait(1800);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      // the lab column's stage is the map's own design space, 538 by 336
+      const at = (x, y) => [
+        demo.x + (x * demo.width) / 538,
+        demo.y + (y * demo.height) / 336,
+      ];
+      const press = async (name) => {
+        const b = await page
+          .locator(`[data-lab-demo] button[aria-label="${name}"]`)
+          .boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(...at(470, 330));
+      };
+      await wait(500);
+      await page.mouse.move(...at(401, 136));
+      await page.mouse.down();
+      await page.mouse.move(...at(330, 200), { steps: 40 });
+      await page.mouse.move(...at(240, 220), { steps: 30 });
+      await page.mouse.move(...at(98, 278), { steps: 50 });
+      await wait(250);
+      await page.mouse.up();
+      await page.mouse.move(...at(470, 330), { steps: 4 });
+      await wait(500);
+      await press("Raise the glass");
+      await wait(450);
+      await press("Raise the glass");
+      await wait(1100);
+      await press("Lower the glass");
+      await wait(450);
+      await press("Lower the glass");
+      await wait(700);
+      await page.mouse.move(...at(98, 278), { steps: 4 });
+      await page.mouse.down();
+      await page.mouse.move(...at(260, 170), { steps: 50 });
+      await page.mouse.move(...at(401, 136), { steps: 40 });
+      await wait(250);
+      await page.mouse.up();
+      await page.mouse.move(...at(470, 330), { steps: 4 });
+      await wait(900);
+    },
+  },
   "scrub-number": {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
