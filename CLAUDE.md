@@ -1839,8 +1839,10 @@ experiment is a directory under `components/labs/`.
   experiment gets the column's full width. It is for a demo that draws its own
   container: the frame's hairline then sits a padding-width outside the
   experiment's own edge, and the two nested boxes read as chrome around chrome.
-  `tab-overview` and `venetian-blind` use it. The blind draws no edge at all:
-  its slats run the full width, so the blind is its own edge.
+  `tab-overview`, `venetian-blind` and `loupe` use it. The blind draws no edge
+  at all: its slats run the full width, so the blind is its own edge. The
+  loupe's map is the whole lab and draws its own border and paper margin, so a
+  frame round it was a box round a sheet that already has edges.
 - **`hint` on a registry entry is one line naming the gesture**, rendered by the
   page beside the source links rather than inside the demo. For an experiment
   whose affordance is not visible: `event-stacking` looks like a calendar and
@@ -1960,6 +1962,8 @@ experiment is a directory under `components/labs/`.
   `home-hub` scopes three finishes for its hubs and a palette per screen,
   since a device's finish and its display are the picture. See its own
   section.
+  `loupe` scopes the inks of its printed map, since a map's colours are what
+  tell sea, land, park and road apart. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2174,7 +2178,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-three clips, 5.8MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-four clips, 6.0MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -10832,6 +10836,103 @@ stage, the clock and the picker.
   weight wave and the dot cloud. It ends on the finished type it opens on, so
   it loops, apart from the picker's label, which jumps from `08 assemble` back
   to `03 wipe`. 13.2s and 356KB, most of it the dot cloud.
+
+### `loupe`
+
+A magnifying glass over a printed harbour map. Drag the glass to read the
+print, press the map to bring the glass there, and raise or lower it from the
+pill in the corner or with a trackpad pinch. `optics.ts` is the glass as a
+function of its height, pure and DOM-free. `lens.ts` is one WebGL 2 fragment
+shader that draws the whole stage. `map.ts` draws the print, and `index.tsx`
+is the gesture and the frame loop.
+
+- **The glass is held at a height, never set to a magnification.** A simple
+  magnifier at `u` of its focal length shows the print `1 / (1 - u)` times its
+  size: 1x on the paper, and without limit as it nears the focal length. `u`
+  runs 0.2 to 0.75, which is 1.25x to 4x, and rests at 0.6, which is 2.5x and
+  enough to read the street names. Every other number comes off `u`.
+- **The light is the other half of the drawing.** A lamp to the upper left
+  shines through the lens, so the paper under it carries the frame's and the
+  handle's shadow, a dim disc where the lens took light away, and a bright
+  caustic where it focused that light. The caustic's radius is the glass's
+  radius times `1 - u`, so the spot tightens as the view grows. Both are offset
+  along the light by the height, which puts the shadow beside the glass and not
+  under it.
+- **The print is lit before it is seen.** `paper(x)` in the shader is the map
+  at a point times the light reaching it, and the view through the glass
+  samples `paper()` as well. So the caustic is magnified with the print under
+  it, as it is through a real lens.
+- **The glass bends the print by radius.** A pixel at `rho` of the rim samples
+  the print at `d / (m * (1 + k * rho^2))`, which is pincushion distortion, and
+  red, green and blue each take a slightly different `m`, so the rim fringes.
+  Both grow with the height, the way a hand lens comes apart at its edge.
+- **A carried glass lifts by 0.035**, so its shadow separates from it while it
+  is held and settles back when it is put down. The handle swings behind a
+  moving glass by up to 0.22 rad, off its sideways speed.
+- **The map is drawn once onto a canvas at up to seven times the stage's
+  size**, within a 9 megapixel budget and the context's texture limit, and
+  uploaded with mipmaps. Without mips, the microprint border shimmers outside
+  the glass as the glass moves.
+  - **Every read passes its own gradients through `textureGrad`.** A read inside
+    the glass covers 1/m of a pixel, and an implicit derivative across the
+    glass's branch picks the wrong mip there.
+  - **The canvas waits on `document.fonts.load` for each weight and slant it
+    uses**, since canvas text falls back silently to another face when a face
+    is not loaded yet.
+  - A resize keeps the glass over the same part of the print, and redraws the
+    print 140ms after the last change.
+- **The print is set at three sizes on purpose.** District names read at 1x.
+  Street names, soundings, house numbers and the title block's small print are
+  1.5 to 3 units, which read at about 2.5x. The border's inner rule is a line
+  of 1.7 unit microprint, `sanyam.sh lab loupe`, which reads at 4x.
+- **The glass rests on a note**: a red cross and "you are here, reading this"
+  at 1.6 units, readable at the resting 2.5x. The pond in the park says "no
+  fishing" at 1.3 units.
+- **The map is laid out in a 538 by 336 design space and scaled to cover the
+  stage.** The border, the compass, the scale bar and the title block are
+  placed off the visible rect instead, so a phone's taller stage crops the
+  town and never the sheet's edge.
+- **Everything on the print is drawn, never fetched**, since `/privacy`
+  promises no image from another origin. Nothing rolls at runtime: every
+  scattered sounding, building and tree is a hash of its index.
+- **The inks are scoped to this experiment and are not tokens.** A map's
+  colours are what tell sea, land, park, river and road apart. The frame is
+  near-black and the handle is wood with a brass ferrule, both lit in the
+  shader.
+- **A press on the bare map brings the glass there** and it follows the hand
+  from there. The bare map shows `cursor-zoom-in` for that reason. The glass and
+  its handle show `cursor-grab`, and the stage writes `data-carry` for the
+  grabbing cursor while a hand is down, `notch-drop`'s pair.
+- **On touch, a tap on the map brings the glass there and a drag on the map
+  scrolls the page.** The stage is `touch-pan-y` and only the glass and its
+  handle are `touch-none`. The handle's hit box is at least 24px thick.
+- **A trackpad pinch raises and lowers the glass.** It arrives as a wheel event
+  with `ctrlKey` held, and in Safari as a gesture event. A plain wheel is left
+  to the page, so scrolling past the demo is never caught on it.
+- **The glass is a real button.** The arrow keys move it, by 32px with Shift,
+  and plus, minus and the page keys raise and lower it. A polite live region
+  says the magnification. The readout morphs through `torph` and shows quarter
+  steps as themselves, so 3.75 reads as 3.75 and not 3.8.
+- **Without WebGL 2, a 2D canvas draws the print and a plain enlarged circle of
+  it under a frame.** No distortion, no fringe and no caustic, and it still
+  magnifies by the same height.
+- **The glass arrives once**, gliding in from off the stage's lower right
+  corner the first time the stage is seen and the print is ready. The canvas
+  fades in over 200ms when the print is ready, through `data-ready` on the
+  stage.
+- **Nothing renders while the glass moves**, and the loop stops when the glass
+  has settled. Measured: 0 frames requested in 1.5s at rest.
+- **Reduced motion keeps every state and drops the travel.** The glass lands
+  where it is sent in one step, does not swing and does not glide in.
+- It is `bare`, `aspect-8/5` with a `min-h-78` floor, and draws no ring of its
+  own. The print's ruled border and paper margin are its edge.
+- Verified in a browser at 1280px and on a 390px touch phone: a drag, a press
+  on the map, a tap on the map, the pill at both ends, the arrow keys and minus
+  from the keyboard, no sideways scroll, and no console errors.
+- Its clip picks the glass up off the note and carries it across the station
+  and the sound onto the title block, raises it two steps and lowers it again,
+  and carries it home, so the clip loops. `prep` waits out the first arrival,
+  so the poster is the glass at rest. 9.1s and 244KB.
 
 ## Motion
 
