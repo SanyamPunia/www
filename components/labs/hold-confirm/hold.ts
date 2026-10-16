@@ -28,11 +28,19 @@ export const TICKS = 12;
 export const LID_OPEN = 34;
 export const RATTLE_AT = 0.8;
 
-/** how long the undo stays offered */
-export const UNDO_S = 5;
+/** how long a fired button holds its red before it puts itself back */
+export const RESET_MS = 1500;
 
-/** how long a file takes to fly between the row and the trash */
-export const FLIGHT_MS = 520;
+/**
+ * How much the button grows by the end of a hold, in px. Real width and
+ * height, never a scale: a scale would smear the label sideways, which is why
+ * nothing on this site scales on press. About 9% wider and 10% taller.
+ */
+export const GROW_W = 18;
+export const GROW_H = 4;
+
+/** the lid's centre in the 24 unit box, which a toss spins it about */
+export const LID_CENTRE = "12 4.9";
 
 export function advance(p: number, held: boolean, dt: number): number {
   if (held) return Math.min(1, p + dt / HOLD);
@@ -79,54 +87,35 @@ export function lidAngle(p: number, t: number): number {
   return open + Math.sin(t * Math.PI * 2 * 17) * 3.2 * k;
 }
 
-/** a CSS cubic-bezier's ease-in-out, cheap enough to sample for a keyframe arc */
-function easeInOut(t: number): number {
-  return t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+/**
+ * How much the button has grown. The square of `p`, so it barely moves early
+ * and swells into the end, which is where the tension is.
+ */
+export function growOf(p: number): number {
+  return p * p;
 }
 
-export interface Point {
-  x: number;
-  y: number;
+export interface Toss {
+  /** how high the lid goes, in the bin's 24 unit box */
+  height: number;
+  /** how far it drifts sideways at the top of the arc */
+  drift: number;
+  /** whole turns, signed, so it lands the right way up */
+  turns: number;
 }
 
 /**
- * The flight between the row's file and the trash's mouth, as keyframes.
- *
- * A quadratic arc whose control sits above both ends, so the file is lobbed
- * rather than slid. It is sampled rather than eased per axis because the arc
- * and the timing have to share one curve: the position along the arc is the
- * eased time, and the file shrinks and tips on that same eased time, so it
- * reads as one object travelling.
+ * Where the lid goes when the hold lands. The press kicks it away from its own
+ * side, so a hold from the right throws the lid left, and every other throw is
+ * a double flip, so two in a row never look the same. It always lands back on
+ * the bin, since the lid is the bin's.
  */
-export function flight(
-  from: Point,
-  to: Point,
-  size: number,
-  end: number,
-  out: boolean,
-): Keyframe[] {
-  const lift = Math.max(46, Math.abs(to.x - from.x) * 0.22);
-  const c = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - lift };
-  const frames: Keyframe[] = [];
-  const n = 24;
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const e = easeInOut(t);
-    const u = 1 - e;
-    const x = u * u * from.x + 2 * u * e * c.x + e * e * to.x;
-    const y = u * u * from.y + 2 * u * e * c.y + e * e * to.y;
-    // a file keeps its size for most of the trip and shrinks into the mouth,
-    // since one that shrinks on leaving is a speck for the whole flight
-    const scale = out
-      ? end + (1 - end) * (1 - (1 - e) ** 2)
-      : 1 - (1 - end) * e ** 2;
-    const tip = (out ? 1 - e : e) * -16;
-    const fade = out ? Math.min(1, t / 0.15) : Math.min(1, (1 - t) / 0.15);
-    frames.push({
-      offset: t,
-      opacity: fade,
-      transform: `translate(${x - size / 2}px, ${y - size / 2}px) scale(${scale}) rotate(${tip}deg)`,
-    });
-  }
-  return frames;
+export function tossOf(origin: number, count: number): Toss {
+  const away = 0.5 - origin;
+  const side = away === 0 ? (count % 2 === 0 ? 1 : -1) : Math.sign(away);
+  return {
+    height: 40 + Math.abs(away) * 14 + (count % 2) * 6,
+    drift: side * (5 + Math.abs(away) * 12),
+    turns: side * (count % 2 === 0 ? 1 : 2),
+  };
 }

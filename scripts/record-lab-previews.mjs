@@ -2067,16 +2067,14 @@ const LABS = {
     /*
      * A tap first, which shakes the button and asks for a hold. Then a hold
      * from the left that is let go early, so the ink drains back, and a full
-     * hold from the right, so the file flies into the bin and the button turns
-     * into an undo. The undo sends the file back out, so the clip ends on the
-     * card it opens on and loops. Every press jumps on and off, since the
-     * screencast captures no cursor and an approach costs nothing.
+     * hold from the right, so the button swells, the lid flies off to the left
+     * and lands, and the ink drains back into the press. The button puts
+     * itself back, so the clip ends on the frame it opens on and loops. Every press jumps on and off, since the screencast captures no
+     * cursor and an approach costs nothing.
      */
     async run({ page, m }) {
       const demo = await page.locator("[data-lab-demo]").boundingBox();
-      const b = await page
-        .locator("[data-lab-demo] button[aria-label^='Delete']")
-        .boundingBox();
+      const b = await page.locator("[data-lab-demo] button").boundingBox();
       const at = (f) => [
         b.x - demo.x + b.width * f,
         b.y - demo.y + b.height / 2,
@@ -2093,11 +2091,8 @@ const LABS = {
       await hold(0.22, 640);
       await wait(800);
       await hold(0.72, 1350);
-      await wait(2100);
-      await hold(0.5, 60);
-      await wait(1300);
       await m.move(at(0.5)[0], 320);
-      await wait(500);
+      await wait(2400);
     },
   },
   loupe: {

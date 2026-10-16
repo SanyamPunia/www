@@ -20,16 +20,13 @@ export const HINGE = "20 6.25";
 
 export function Trash({
   lidRef,
-  svgRef,
   className,
 }: {
   lidRef: Ref<SVGGElement>;
-  svgRef?: Ref<SVGSVGElement>;
   className?: string;
 }) {
   return (
     <svg
-      ref={svgRef}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="none"

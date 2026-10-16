@@ -11,64 +11,51 @@ import {
   useState,
 } from "react";
 import { TextMorph } from "torph/react";
-import {
-  ArrowCounterClockwiseIcon,
-  ArrowUUpLeftIcon,
-  FileTextIcon,
-  SpeakerHighIcon,
-  SpeakerSlashIcon,
-} from "@/components/icons";
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   advance,
-  FLIGHT_MS,
-  flight,
+  GROW_H,
+  GROW_W,
+  growOf,
   inkBox,
-  LID_OPEN,
+  LID_CENTRE,
   lidAngle,
+  RESET_MS,
   SLIP,
   TAP_MS,
   TICKS,
   tickOf,
-  UNDO_S,
+  tossOf,
 } from "./hold";
-import {
-  armHold,
-  buzz,
-  latch,
-  nudge,
-  restore,
-  settle,
-  thump,
-  tick,
-  unwind,
-} from "./hold-sound";
+import { armHold, buzz, latch, nudge, thump, tick, unwind } from "./hold-sound";
 import { HINGE, Trash } from "./trash";
 
 /*
- * A delete button you hold. `hold.ts` is the numbers, `hold-sound.ts` the
- * ratchet, `trash.tsx` the bin with a lid on a hinge. This file is the
- * gesture, the loop and the five phases.
+ * A delete button you hold, and nothing else on the stage. `hold.ts` is the
+ * numbers, `hold-sound.ts` the ratchet, `trash.tsx` the bin with a lid on a
+ * hinge. This file is the gesture and the loop.
  *
  * **The fill is a drop of ink that spreads from the press.** It is a red copy
  * of the button over the button, clipped to a pill that grows out of the
  * finger, so the label turns white exactly where the ink is and nowhere else.
- * Timing a colour change on the label could never land on the ink's edge.
  *
- * **Nothing renders while a hand is down.** The fill, the lid and the ratchet
- * are written to the DOM from one frame loop. React hears about a hold twice,
- * when it ends early with a tap and when it completes.
+ * **Nothing renders while a hand is down.** The fill, the lid and the button's
+ * size are written to the DOM from one frame loop and a few motion values.
+ * React hears about a hold when it ends in a tap and when it completes.
+ *
+ * **Five motions, and each answers one moment.** The button swells as the hold
+ * builds and squashes back when it lands. The lid lifts and rattles through the
+ * hold, then flies off on the landing, spins and drops back onto the bin. The
+ * ink spreads from the press and, on the reset, drains back into it.
  */
 
-type Phase = "idle" | "committing" | "undo" | "restoring" | "gone";
 type Hint = "none" | "hold" | "again";
-
-const FILE = "q3-report.pdf";
 
 interface Model {
   p: number;
   held: boolean;
+  /** the button has fired and holds its red until it resets */
+  done: boolean;
   /** where the press landed, 0 to 1 across the button */
   origin: number;
   /** 1 for a hand, faster for the screen reader's second press */
@@ -81,42 +68,26 @@ interface Model {
   raf: number;
   last: number;
   t: number;
-  w: number;
-  h: number;
+  /** the button's resting size, measured whenever it is not grown */
+  w0: number;
+  h0: number;
+  /** how many holds have landed, so every other toss is a double flip */
+  count: number;
   /** a key is the hand, so its release is the lift */
   key: boolean;
   keyUpAt: number;
   /** when the screen reader's first press armed the second */
   armedAt: number;
-  sound: boolean;
 }
 
-/** a crossfade between two states that occupy one place */
-const SWAP =
-  "transition-[opacity,filter,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]";
-
 export default function HoldConfirm() {
-  const stage = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const overlay = useRef<HTMLSpanElement>(null);
   const pulse = useRef<HTMLSpanElement>(null);
-  const tile = useRef<HTMLDivElement>(null);
-  const ghost = useRef<HTMLDivElement>(null);
-  const bin = useRef<SVGSVGElement>(null);
   const lidBase = useRef<SVGGElement>(null);
   const lidInk = useRef<SVGGElement>(null);
-  const ring = useRef<SVGCircleElement>(null);
-  const countdown = useRef<Animation | null>(null);
   const timers = useRef<number[]>([]);
   const hintTimer = useRef(0);
-  /*
-   * The undo's clock stops while it is being looked at, the way Sonner pauses
-   * a toast, and while the tab is hidden. `hover` is cleared when the clock
-   * starts and only a fresh `pointerenter` sets it: the hand that held the
-   * button is already on the card, and a clock that never moved would read as
-   * broken.
-   */
-  const pause = useRef({ hover: false, hidden: false });
 
   const reduceValue = useReducedMotion() ?? false;
   const reduce = useRef(reduceValue);
@@ -125,6 +96,7 @@ export default function HoldConfirm() {
   const model = useRef<Model>({
     p: 0,
     held: false,
+    done: false,
     origin: 0.5,
     rate: 1,
     pointer: -1,
@@ -134,242 +106,200 @@ export default function HoldConfirm() {
     raf: 0,
     last: 0,
     t: 0,
-    w: 0,
-    h: 0,
+    w0: 0,
+    h0: 0,
+    count: 0,
     key: false,
     keyUpAt: 0,
     armedAt: 0,
-    sound: true,
   });
-  const phaseRef = useRef<Phase>("idle");
 
-  const [phase, setPhaseState] = useState<Phase>("idle");
-  const [home, setHome] = useState(true);
-  /*
-   * The row's words change a beat after the file leaves it, so the file does
-   * not take off over the text that announces it has gone. `home` is the
-   * tile, `vacant` is the words.
-   */
-  const [vacant, setVacant] = useState(false);
+  const [done, setDone] = useState(false);
   const [hint, setHint] = useState<Hint>("none");
-  const [loud, setLoud] = useState(true);
   const [message, setMessage] = useState("");
 
+  /** how far the lid is open on its hinge, in degrees */
   const lid = useMotionValue(0);
-
-  const setPhase = useCallback((next: Phase) => {
-    phaseRef.current = next;
-    setPhaseState(next);
-  }, []);
+  /** the toss: the lid's offset in the 24 unit box, and its spin */
+  const lidX = useMotionValue(0);
+  const lidY = useMotionValue(0);
+  const spin = useMotionValue(0);
+  /** how much the button has grown, 0 at rest and 1 at a full hold */
+  const grow = useMotionValue(0);
 
   const later = useCallback((fn: () => void, ms: number) => {
     timers.current.push(window.setTimeout(fn, ms));
   }, []);
 
-  // both copies of the lid read one value, so the white bin and the red bin
-  // under it can never disagree about how open they are
-  useEffect(
-    () =>
-      lid.on("change", (v) => {
-        const turn = `rotate(${-v} ${HINGE})`;
-        lidBase.current?.setAttribute("transform", turn);
-        lidInk.current?.setAttribute("transform", turn);
-      }),
-    [lid],
-  );
-
-  /* ---------------------------------------------------------------- paint */
+  /*
+   * Both bins read one transform, so the white one and the red one under it
+   * can never disagree about where the lid is. A tossed lid leaves the pill,
+   * and the red bin under the ink is what draws it out there, since the ink's
+   * copy is clipped to the pill: the lid turns red as it crosses the edge.
+   */
+  useEffect(() => {
+    const write = () => {
+      const turn = `translate(${lidX.get()} ${lidY.get()}) rotate(${spin.get()} ${LID_CENTRE}) rotate(${-lid.get()} ${HINGE})`;
+      lidBase.current?.setAttribute("transform", turn);
+      lidInk.current?.setAttribute("transform", turn);
+    };
+    const off = [lid, lidX, lidY, spin].map((v) => v.on("change", write));
+    return () => {
+      for (const f of off) f();
+    };
+  }, [lid, lidX, lidY, spin]);
 
   const paint = useCallback(() => {
     const s = model.current;
     const el = overlay.current;
-    if (!el || s.w === 0) return;
-    const box = inkBox(s.p, s.origin, s.w, s.h);
+    const b = button.current;
+    if (!el || !b || s.w0 === 0) return;
+    const box = inkBox(s.p, s.origin, b.offsetWidth, b.offsetHeight);
     el.style.clipPath =
       s.p <= 0
         ? "inset(50% 50% 50% 50%)"
         : `inset(${box.top}px ${box.right}px ${box.bottom}px ${box.left}px round 999px)`;
-    if (phaseRef.current === "idle") {
-      lid.set(reduce.current ? 0 : lidAngle(s.p, s.t));
-    }
+    if (!s.done) lid.set(reduce.current ? 0 : lidAngle(s.p, s.t));
   }, [lid]);
 
   useEffect(() => {
     const el = button.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
-      model.current.w = el.offsetWidth;
-      model.current.h = el.offsetHeight;
+      if (grow.get() !== 0) return;
+      model.current.w0 = el.offsetWidth;
+      model.current.h0 = el.offsetHeight;
       paint();
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [paint]);
+  }, [grow, paint]);
 
-  /* ---------------------------------------------------------- the commit */
+  /*
+   * The button's size, written from one value. Width and height in px rather
+   * than a scale, so the label never resamples, and back to the stylesheet's
+   * own size at rest. The ink's clip is read off the box just written, so the
+   * two can never be a frame apart.
+   */
+  useEffect(
+    () =>
+      grow.on("change", (g) => {
+        const s = model.current;
+        const el = button.current;
+        if (!el || s.w0 === 0) return;
+        if (g === 0) {
+          el.style.width = "";
+          el.style.height = "";
+        } else {
+          el.style.width = `${s.w0 + GROW_W * g}px`;
+          el.style.height = `${s.h0 + GROW_H * g}px`;
+        }
+        paint();
+      }),
+    [grow, paint],
+  );
 
-  /** send the ghost between the row and the bin, and wait for it to land */
-  const fly = useCallback(async (out: boolean) => {
-    const g = ghost.current;
-    const st = stage.current?.getBoundingClientRect();
-    const a = tile.current?.getBoundingClientRect();
-    const b = bin.current?.getBoundingClientRect();
-    if (!g || !st || !a || !b) return;
-    const row = {
-      x: a.left - st.left + a.width / 2,
-      y: a.top - st.top + a.height / 2,
-    };
-    // the bin's mouth, a little above its middle, which is where a file goes
-    const mouth = {
-      x: b.left - st.left + b.width / 2,
-      y: b.top - st.top + b.height * 0.4,
-    };
-    const end = b.width / a.width;
-    const frames = out
-      ? flight(mouth, row, a.width, end, true)
-      : flight(row, mouth, a.width, end, false);
-    g.style.width = `${a.width}px`;
-    g.style.height = `${a.height}px`;
-    g.style.display = "grid";
-    const run = g.animate(frames, {
-      duration: FLIGHT_MS,
-      easing: "linear",
-      fill: "forwards",
-    });
-    try {
-      await run.finished;
-    } catch {
-      // cancelled by an unmount, and the ghost goes with it
-    }
-    g.style.display = "none";
-    run.cancel();
-  }, []);
+  /* ----------------------------------------------------------- the commit */
 
-  const expire = useCallback(() => {
-    countdown.current = null;
-    setPhase("gone");
-    setMessage(`${FILE} was deleted for good.`);
-  }, [setPhase]);
-
-  const syncPause = useCallback(() => {
-    const run = countdown.current;
-    if (!run) return;
-    const { hover, hidden } = pause.current;
-    if (hover || hidden) run.pause();
-    else if (run.playState === "paused") run.play();
-  }, []);
-
-  /** the undo's clock, drawn as a ring that drains, and paused while looked at */
-  const startCountdown = useCallback(() => {
-    const el = ring.current;
-    if (!el) return;
-    countdown.current?.cancel();
-    const run = el.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }], {
-      duration: UNDO_S * 1000,
-      easing: "linear",
-      fill: "forwards",
-    });
-    countdown.current = run;
-    pause.current.hover = false;
-    syncPause();
-    run.finished.then(
-      () => {
-        if (countdown.current === run) expire();
-      },
-      () => undefined,
-    );
-  }, [expire, syncPause]);
-
-  const commit = useCallback(async () => {
+  const commit = useCallback(() => {
     const s = model.current;
     s.held = false;
+    s.done = true;
     s.p = 1;
     s.rate = 1;
     cancelAnimationFrame(s.raf);
     s.raf = 0;
     s.last = 0;
     paint();
-    setPhase("committing");
+    setDone(true);
     setHint("none");
-    setMessage(`Deleting ${FILE}.`);
-    if (s.sound) latch();
+    setMessage("Deleted.");
+    latch();
     buzz([16, 40, 24]);
 
     const r = reduce.current;
-    const ring = pulse.current;
-    if (ring && !r && s.w > 0) {
-      // grown by the same 10px on every side, so a wide pill does not
-      // balloon sideways while its height barely moves
-      ring.animate(
-        [
-          { opacity: 0.45, transform: "scale(1, 1)" },
-          {
-            opacity: 0,
-            transform: `scale(${(s.w + 20) / s.w}, ${(s.h + 20) / s.h})`,
-          },
-        ],
-        { duration: 520, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
-      );
-    }
-
     if (r) {
-      setHome(false);
-      setVacant(true);
       lid.set(0);
+      grow.set(0);
+      thump();
     } else {
-      // the lid stays wide for the file, then slams once it is in
-      lid.stop();
-      animate(lid, LID_OPEN + 4, { duration: 0.12, ease: "easeOut" });
-      setHome(false);
-      later(() => setVacant(true), 260);
-      await fly(false);
-      animate(lid, [lid.get(), 0, 7, 0], {
-        duration: 0.34,
-        times: [0, 0.38, 0.62, 1],
-        ease: ["easeIn", "easeOut", "easeIn"],
+      // the button lets go of its swell and squashes past its own size
+      animate(grow, 0, { type: "spring", stiffness: 620, damping: 13 });
+
+      const ring = pulse.current;
+      const b = button.current;
+      if (ring && b) {
+        // grown by the same 10px on every side, so a wide pill does not
+        // balloon sideways while its height barely moves
+        const w = b.offsetWidth;
+        const h = b.offsetHeight;
+        ring.animate(
+          [
+            { opacity: 0.45, transform: "scale(1, 1)" },
+            {
+              opacity: 0,
+              transform: `scale(${(w + 20) / w}, ${(h + 20) / h})`,
+            },
+          ],
+          { duration: 520, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+        );
+      }
+
+      // the lid is kicked off, spins, and drops back onto the bin
+      s.count += 1;
+      const toss = tossOf(s.origin, s.count);
+      const air = 0.54;
+      animate(lid, 0, { duration: 0.12, ease: "easeOut" });
+      animate(lidY, [0, -toss.height, 0, -5, 0], {
+        duration: air / 0.8,
+        times: [0, 0.44, 0.8, 0.9, 1],
+        ease: ["easeOut", "easeIn", "easeOut", "easeIn"],
       });
+      animate(lidX, [0, toss.drift, 0], {
+        duration: air,
+        times: [0, 0.44, 1],
+        ease: ["easeOut", "easeIn"],
+      });
+      animate(spin, [0, toss.turns * 360], {
+        duration: air,
+        ease: [0.3, 0.55, 0.4, 1],
+      }).then(() => spin.set(0));
+      // it lands with a clack and rocks once on the rim
+      later(() => {
+        thump();
+        buzz(12);
+        animate(lid, [0, 7, 0], { duration: 0.22, ease: "easeOut" });
+      }, air * 1000);
     }
-    if (s.sound) thump();
-    buzz(14);
 
-    setPhase("undo");
-    setMessage(`${FILE} moved to trash. Undo is available for 5 seconds.`);
-    startCountdown();
-    // the ink fades with the overlay, and is put back to nothing after
+    // nothing real was deleted, so the button puts itself back: the ink drains
+    // back into the point it came out of, the same drop run backwards
     later(() => {
-      s.p = 0;
-      paint();
-    }, 260);
-  }, [fly, later, lid, paint, setPhase, startCountdown]);
+      setDone(false);
+      setMessage("");
+      const finish = () => {
+        s.done = false;
+        s.p = 0;
+        paint();
+      };
+      if (r) {
+        finish();
+        return;
+      }
+      unwind(0.6);
+      animate(1, 0, {
+        duration: 0.42,
+        ease: [0.65, 0, 0.35, 1],
+        onUpdate: (v) => {
+          s.p = v;
+          paint();
+        },
+        onComplete: finish,
+      });
+    }, RESET_MS);
+  }, [grow, later, lid, lidX, lidY, paint, spin]);
 
-  const bringBack = useCallback(async () => {
-    const from = phaseRef.current;
-    if (from !== "undo" && from !== "gone") return;
-    countdown.current?.cancel();
-    countdown.current = null;
-    setPhase("restoring");
-    const s = model.current;
-    if (s.sound) restore();
-    if (reduce.current) {
-      setHome(true);
-      setVacant(false);
-      setPhase("idle");
-      setMessage(`${FILE} restored.`);
-      return;
-    }
-    // the bin comes back into view first, so the file has somewhere to leave
-    await new Promise((r) => later(() => r(null), 140));
-    animate(lid, LID_OPEN, { duration: 0.16, ease: [0.23, 1, 0.32, 1] });
-    await fly(true);
-    setHome(true);
-    setVacant(false);
-    if (s.sound) settle();
-    animate(lid, 0, { duration: 0.24, ease: [0.23, 1, 0.32, 1] });
-    setPhase("idle");
-    setMessage(`${FILE} restored.`);
-  }, [fly, later, lid, setPhase]);
-
-  /* ------------------------------------------------------------- the loop */
+  /* -------------------------------------------------------------- the loop */
 
   const frame = useCallback(
     (now: number) => {
@@ -379,10 +309,11 @@ export default function HoldConfirm() {
       s.t += dt;
       s.p = advance(s.p, s.held, dt * s.rate);
       if (!s.held && reduce.current) s.p = 0;
+      if (!reduce.current) grow.set(growOf(s.p));
 
       const k = tickOf(s.p);
       if (s.held && k > s.tick && k < TICKS) {
-        if (s.sound) tick(s.p);
+        tick(s.p);
         buzz(6);
       }
       // a drain walks the ratchet back down, so a press that catches it
@@ -391,7 +322,7 @@ export default function HoldConfirm() {
       paint();
 
       if (s.held && s.p >= 1) {
-        void commit();
+        commit();
         return;
       }
       if (s.held || s.p > 0) s.raf = requestAnimationFrame(frame);
@@ -400,7 +331,7 @@ export default function HoldConfirm() {
         s.last = 0;
       }
     },
-    [commit, paint],
+    [commit, grow, paint],
   );
 
   const kick = useCallback(() => {
@@ -408,7 +339,7 @@ export default function HoldConfirm() {
     if (!s.raf) s.raf = requestAnimationFrame(frame);
   }, [frame]);
 
-  /* --------------------------------------------------------- the gesture */
+  /* ----------------------------------------------------------- the gesture */
 
   const showHint = useCallback((which: Hint) => {
     setHint(which);
@@ -422,7 +353,7 @@ export default function HoldConfirm() {
   const start = useCallback(
     (origin: number, pointer: number) => {
       const s = model.current;
-      if (phaseRef.current !== "idle" || s.held) return;
+      if (s.done || s.held) return;
       s.held = true;
       s.origin = origin;
       s.pointer = pointer;
@@ -431,7 +362,7 @@ export default function HoldConfirm() {
       s.rate = 1;
       setHint("none");
       lid.stop();
-      if (s.sound) armHold();
+      armHold();
       kick();
     },
     [kick, lid],
@@ -448,7 +379,7 @@ export default function HoldConfirm() {
       const tapped = why === "lift" && performance.now() - s.pressAt < TAP_MS;
       if (tapped) {
         showHint("hold");
-        if (s.sound) nudge();
+        nudge();
         buzz([8, 60, 8]);
         if (!reduce.current) {
           button.current?.animate(
@@ -463,14 +394,13 @@ export default function HoldConfirm() {
             { duration: 320, easing: "ease-out" },
           );
         }
-      } else if (s.p > 0.05 && s.sound) unwind(s.p);
+      } else if (s.p > 0.05) unwind(s.p);
       kick();
     },
     [kick, showHint],
   );
 
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
-    if (phaseRef.current !== "idle") return;
     if (!e.isPrimary || e.button !== 0 || model.current.held) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
@@ -504,7 +434,6 @@ export default function HoldConfirm() {
       release("cancel");
       return;
     }
-    if (phaseRef.current !== "idle") return;
     if (e.key !== " " && e.key !== "Enter") return;
     // the default would be a click, which this button answers on its own
     e.preventDefault();
@@ -529,15 +458,10 @@ export default function HoldConfirm() {
    * a sighted helper watching sees the same thing happen.
    */
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
-    const p = phaseRef.current;
-    if (p === "undo" || p === "gone") {
-      void bringBack();
-      return;
-    }
     const s = model.current;
-    if (p !== "idle" || e.detail !== 0) return;
-    if (performance.now() - s.keyUpAt < 80) return;
+    if (s.done || e.detail !== 0) return;
     const now = performance.now();
+    if (now - s.keyUpAt < 80) return;
     if (s.armedAt && now - s.armedAt < 4000) {
       s.armedAt = 0;
       start(0.5, -1);
@@ -549,7 +473,7 @@ export default function HoldConfirm() {
     setMessage("Press again to delete.");
   };
 
-  /* ------------------------------------------------------- the edges */
+  /* ------------------------------------------------------------- the edges */
 
   useEffect(() => {
     const onBlur = () => release("cancel");
@@ -557,61 +481,42 @@ export default function HoldConfirm() {
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape" && model.current.held) release("cancel");
     };
-    window.addEventListener("keydown", onKey);
     const onVisible = () => {
-      pause.current.hidden = document.hidden;
-      syncPause();
       if (document.hidden) release("cancel");
     };
     window.addEventListener("blur", onBlur);
+    window.addEventListener("keydown", onKey);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [release, syncPause]);
+  }, [release]);
 
   useEffect(() => {
     const s = model.current;
     const t = timers;
     return () => {
       cancelAnimationFrame(s.raf);
-      countdown.current?.cancel();
       t.current.forEach(clearTimeout);
       clearTimeout(hintTimer.current);
     };
   }, []);
 
-  const toggleSound = () => {
-    const s = model.current;
-    s.sound = !s.sound;
-    setLoud(s.sound);
-    if (s.sound) armHold();
-  };
+  /* ---------------------------------------------------------------- render */
 
-  /* ------------------------------------------------------------- render */
+  const label = done
+    ? "Deleted"
+    : hint === "hold"
+      ? "Press and hold"
+      : hint === "again"
+        ? "Press again to delete"
+        : "Hold to delete";
 
-  const label =
-    phase === "committing"
-      ? "Deleted"
-      : hint === "hold"
-        ? "Press and hold"
-        : hint === "again"
-          ? "Press again to delete"
-          : "Hold to delete";
-  const showIdle =
-    phase === "idle" || phase === "committing" || phase === "restoring";
-  const inkOn = phase === "idle" || phase === "committing";
-  const busy = phase === "committing" || phase === "restoring";
-  const soundLabel = loud ? "Turn the sound off" : "Turn the sound on";
-
-  const shown = "opacity-100 blur-none";
-  const hidden = "opacity-0 blur-[2px]";
-
-  const idleContent = (lidRef: typeof lidBase, svgRef?: typeof bin) => (
+  const row = (lidRef: typeof lidBase) => (
     <>
-      <Trash lidRef={lidRef} svgRef={svgRef} className="size-4" />
+      <Trash lidRef={lidRef} className="size-5" />
       <span className="whitespace-nowrap text-action">
         <TextMorph duration={200} ease="cubic-bezier(0.4, 0, 0.2, 1)">
           {label}
@@ -621,245 +526,61 @@ export default function HoldConfirm() {
   );
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div
-        ref={stage}
-        className="relative flex aspect-8/5 min-h-78 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-fill"
-      >
-        <div
-          className="flex w-[min(20rem,calc(100%-2rem))] flex-col gap-3 rounded-[1.8rem] bg-bg p-3"
-          style={{
-            boxShadow:
-              "0 1px 2px rgba(0,0,0,0.04), 0 14px 36px -14px rgba(0,0,0,0.16)",
-          }}
-          onPointerEnter={(e) => {
-            if (e.pointerType !== "mouse") return;
-            pause.current.hover = true;
-            syncPause();
-          }}
-          onPointerLeave={() => {
-            pause.current.hover = false;
-            syncPause();
-          }}
-        >
-          {/* the row: the file, and the empty slot it leaves */}
-          <div className="flex items-center gap-3 px-1.5 pt-1.5">
-            <div ref={tile} className="relative size-10 shrink-0">
-              <div
-                className={cn(
-                  "absolute inset-0 grid place-items-center rounded-lg bg-fill text-text-secondary transition-opacity duration-150",
-                  home ? "opacity-100" : "opacity-0",
-                )}
-              >
-                <FileTextIcon className="size-5" />
-              </div>
-              <div
-                className={cn(
-                  "absolute inset-0 rounded-lg border border-stroke-strong border-dashed transition-opacity duration-200",
-                  home ? "opacity-0" : "opacity-100",
-                )}
-              />
-            </div>
-            <div className="grid min-w-0 flex-1">
-              <div
-                className={cn(
-                  "col-start-1 row-start-1 flex min-w-0 flex-col",
-                  SWAP,
-                  vacant ? cn(hidden, "motion-safe:-translate-y-0.5") : shown,
-                )}
-              >
-                <span className="truncate text-body text-text-primary normal-case">
-                  {FILE}
-                </span>
-                <span className="flex items-center gap-1.5 text-meta text-text-muted normal-case">
-                  <span>2.4 MB</span>
-                  <span
-                    aria-hidden="true"
-                    className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
-                  />
-                  <span>edited 2h ago</span>
-                </span>
-              </div>
-              <div
-                className={cn(
-                  "col-start-1 row-start-1 flex min-w-0 flex-col",
-                  SWAP,
-                  vacant ? shown : cn(hidden, "motion-safe:translate-y-0.5"),
-                )}
-              >
-                <span className="text-body text-text-secondary">
-                  {phase === "gone" ? "Deleted" : "Moved to trash"}
-                </span>
-                <span className="text-meta text-text-muted">
-                  {phase === "gone"
-                    ? "Nothing left to undo"
-                    : "Undo within 5 seconds"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* the button, and the ring it throws when it lets go */}
-          <div className="relative">
-            <span
-              ref={pulse}
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-full border-2 border-danger opacity-0"
-            />
-            <button
-              ref={button}
-              type="button"
-              aria-label={
-                phase === "undo"
-                  ? `Undo deleting ${FILE}`
-                  : phase === "gone"
-                    ? `Restore ${FILE}`
-                    : `Delete ${FILE}`
-              }
-              aria-describedby={
-                phase === "idle" ? "hold-confirm-help" : undefined
-              }
-              aria-disabled={busy || undefined}
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerEnd}
-              onPointerCancel={onPointerEnd}
-              onLostPointerCapture={onPointerEnd}
-              onKeyDown={onKeyDown}
-              onKeyUp={onKeyUp}
-              onClick={onClick}
-              onContextMenu={(e) => e.preventDefault()}
-              onBlur={() => release("cancel")}
-              className={cn(
-                "relative block h-12 w-full touch-none rounded-full transition-colors duration-200 [-webkit-touch-callout:none]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2",
-                busy ? "cursor-default" : "cursor-pointer",
-                showIdle
-                  ? "bg-danger/10 text-danger hover:bg-danger/15"
-                  : "bg-fill text-text-primary hover:bg-fill-hover active:bg-fill-active active:duration-0",
-              )}
-            >
-              {/* idle: the bin and the instruction */}
-              <span
-                className={cn(
-                  "absolute inset-0 flex items-center justify-center gap-2",
-                  SWAP,
-                  showIdle ? shown : hidden,
-                )}
-              >
-                {idleContent(lidBase, bin)}
-              </span>
-
-              {/* the ink: the same row in white on red, clipped by the loop */}
-              <span
-                ref={overlay}
-                aria-hidden="true"
-                className={cn(
-                  "pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-full bg-danger text-bg shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] transition-opacity duration-200",
-                  inkOn ? "opacity-100" : "opacity-0",
-                )}
-                style={{ clipPath: "inset(50% 50% 50% 50%)" }}
-              >
-                {idleContent(lidInk)}
-              </span>
-
-              {/* undo, with its clock */}
-              <span
-                className={cn(
-                  "absolute inset-0 flex items-center justify-center gap-2",
-                  SWAP,
-                  phase === "undo" ? shown : hidden,
-                )}
-              >
-                <ArrowUUpLeftIcon className="size-4" />
-                <span className="text-action">Undo</span>
-                <svg
-                  viewBox="0 0 20 20"
-                  aria-hidden="true"
-                  className="size-3.5 -rotate-90"
-                >
-                  <circle
-                    cx="10"
-                    cy="10"
-                    r="7.5"
-                    fill="none"
-                    strokeWidth="2.5"
-                    className="stroke-stroke-strong"
-                  />
-                  <circle
-                    ref={ring}
-                    cx="10"
-                    cy="10"
-                    r="7.5"
-                    fill="none"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    pathLength={1}
-                    strokeDasharray="1 1"
-                    className="stroke-text-secondary"
-                  />
-                </svg>
-              </span>
-
-              {/* gone: the demo's way back */}
-              <span
-                className={cn(
-                  "absolute inset-0 flex items-center justify-center gap-2",
-                  SWAP,
-                  phase === "gone" ? shown : hidden,
-                )}
-              >
-                <ArrowCounterClockwiseIcon className="size-4" />
-                <span className="text-action">Restore</span>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* the file in the air between the row and the bin */}
-        <div
-          ref={ghost}
+    <div className="relative flex aspect-8/5 min-h-78 w-full select-none items-center justify-center overflow-hidden rounded-lg bg-fill">
+      <div className="relative">
+        <span
+          ref={pulse}
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 z-20 hidden place-items-center rounded-lg bg-fill text-text-secondary shadow-[0_6px_14px_-6px_rgb(0_0_0/0.25)]"
-        >
-          <FileTextIcon className="size-5" />
-        </div>
-
-        <div className="absolute top-3 right-3">
-          <Tooltip label={soundLabel}>
-            <button
-              type="button"
-              aria-label={soundLabel}
-              aria-pressed={loud}
-              onClick={toggleSound}
-              className={cn(
-                "inline-flex size-7 cursor-pointer items-center justify-center rounded-full bg-fill-hover text-text-secondary transition-colors duration-200",
-                // one step up from the site's order, since it sits on `fill`
-                "hover:bg-fill-active hover:text-text-primary active:bg-stroke-strong active:duration-0",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 focus-visible:ring-offset-fill",
-              )}
-            >
-              {loud ? (
-                <SpeakerHighIcon className="size-3.5 shrink-0" />
-              ) : (
-                <SpeakerSlashIcon className="size-3.5 shrink-0" />
-              )}
-            </button>
-          </Tooltip>
-        </div>
-
-        <p id="hold-confirm-help" className="sr-only">
-          Press and hold for about a second to delete. With a screen reader,
-          activate it twice.
-        </p>
-        <span aria-live="polite" className="sr-only">
-          {message}
-        </span>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-stroke ring-inset"
+          className="pointer-events-none absolute inset-0 rounded-full border-2 border-danger opacity-0"
         />
+        <button
+          ref={button}
+          type="button"
+          aria-label="Delete"
+          aria-describedby="hold-confirm-help"
+          aria-disabled={done || undefined}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          onLostPointerCapture={onPointerEnd}
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
+          onClick={onClick}
+          onBlur={() => release("cancel")}
+          onContextMenu={(e) => e.preventDefault()}
+          className={cn(
+            "relative flex h-12 w-60 touch-none items-center justify-center gap-2 rounded-full bg-bg text-danger transition-colors duration-200 [-webkit-touch-callout:none]",
+            "shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-8px_rgb(0_0_0/0.14)]",
+            "hover:bg-surface",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 focus-visible:ring-offset-fill",
+            done ? "cursor-default" : "cursor-pointer",
+          )}
+        >
+          {row(lidBase)}
+          {/* the ink: the same row in white on red, clipped by the loop */}
+          <span
+            ref={overlay}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-full bg-danger text-bg shadow-[inset_0_1px_0_rgb(255_255_255/0.18)]"
+            style={{ clipPath: "inset(50% 50% 50% 50%)" }}
+          >
+            {row(lidInk)}
+          </span>
+        </button>
       </div>
-    </TooltipProvider>
+
+      <p id="hold-confirm-help" className="sr-only">
+        Press and hold for about a second. With a screen reader, activate it
+        twice.
+      </p>
+      <span aria-live="polite" className="sr-only">
+        {message}
+      </span>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-stroke ring-inset"
+      />
+    </div>
   );
 }

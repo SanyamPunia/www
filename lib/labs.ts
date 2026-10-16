@@ -1050,11 +1050,11 @@ const ALL_LABS: LabMetadata[] = [
     slug: "hold-confirm",
     title: "Hold Confirm",
     description: [
-      "a delete button you hold. the fill spreads from under your finger like ink, the bin's lid rattles near the end, and the file flies into the bin.",
-      "key insight: the fill is one number that holding adds to at a constant rate and letting go drains on an exponential. it measures time honestly, and a press during the drain catches it where it is rather than starting over.",
-      "the ink is a red copy of the button clipped to a pill that grows from the press, so the label turns white exactly at its edge. undo sends the file back out the way it came.",
+      "a delete button you hold. the ink spreads from your finger and the button swells, then the bin's lid flies off, spins and lands back on it.",
+      "key insight: the fill is one number that holding adds to at a constant rate and letting go drains on an exponential. it measures time honestly, and a press during the drain catches it where it is.",
+      "the ink is a red copy of the button clipped to a pill that grows from the press, so the label turns white exactly at its edge.",
     ],
-    createdAt: "2026-10-16",
+    createdAt: "2026-10-17",
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/hold-confirm/hold.ts",

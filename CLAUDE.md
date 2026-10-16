@@ -11043,13 +11043,19 @@ takes it, `upload.ts` the simulated transfer, `samples.ts` the sample set, and
 
 ### `hold-confirm`
 
-A delete button you hold, on a card that holds the file it deletes. The fill
-spreads from under the press, the bin's lid lifts and rattles near the end, and
-when it lets go the file flies into the bin and the button becomes an undo with a
-draining clock. `hold.ts` is the numbers, pure and DOM-free, `hold-sound.ts` the
-ratchet, `trash.tsx` the bin with its lid on a hinge, and `index.tsx` the
-gesture, the loop and the five phases: idle, committing, undo, restoring, gone.
+A delete button you hold, and nothing else on the stage. The fill spreads from
+under the press and the button swells as the hold builds. The bin's lid lifts
+and rattles, then flies off when the hold lands, spins and drops back onto the
+bin, while the button squashes back past its own size. The ink then drains back
+into the press and the button is itself again. `hold.ts` is the numbers,
+pure and DOM-free, `hold-sound.ts` the ratchet, `trash.tsx` the bin with its lid
+on a hinge, and `index.tsx` the gesture and the loop.
 
+- **It was built bigger first and cut back to the button, at the author's
+  request.** That build had a file row on a card, a file that flew into the bin,
+  an undo with a draining clock, a restore state and a mute control. It was too
+  many elements and too much text for one idea. What survived is the part that
+  is the idea: a hold that measures time and a fill that answers the finger.
 - **The fill is one number, `p`, and it measures time honestly.** Holding adds
   to it at `1 / HOLD`, 1.2s for a full hold, which is linear because time passes
   linearly and any other curve lies about how long is left. Letting go drains it
@@ -11059,83 +11065,81 @@ gesture, the loop and the five phases: idle, committing, undo, restoring, gone.
 - **The ink is a red copy of the button over the button, clipped by the loop.**
   The label turns white exactly where the ink is, since it is a second white
   label under the same clip. Timing a colour change on one label could never land
-  on the ink's edge. This is the duplicated-tabs technique, and it is why the idle
-  row is rendered twice, once in each tone.
+  on the ink's edge. This is the duplicated-tabs technique.
 - **The clip is a drop of ink that spreads from the press.** `inkBox` places the
   fill so its two edges reach the pill's two ends on the same frame: its width is
   `p * w` and its left edge is `origin * w * (1 - p)`. Its height is its width
   until it reaches the pill's, and `round 999px` makes it a circle under the
   finger first and a pill after. A keyboard hold starts from the middle.
-- **Nothing renders while a hand is down.** One frame loop writes the clip and
-  the lid. React hears about a hold twice: a tap, which earns the hint, and the
-  commit. Measured: 0 frames requested in 1.5s at rest.
+- **Nothing renders while a hand is down.** One frame loop writes the clip, the
+  lid and the size. React hears about a hold twice: a tap, which earns the hint,
+  and the commit. The loop stops when the ink has drained.
+- **The button swells by real width and height, never by a scale**, 18px wider
+  and 4px taller at a full hold, on the square of `p` so it barely moves early
+  and swells into the end. A scale would resample the label, which is the
+  reason nothing on this site scales on press, and width keeps the type crisp.
+  Measured: 192 by 38px at rest and 210 by 42 at a full hold. The ink's clip is
+  read off the box just written, so the two are never a frame apart.
+- **When the hold lands the swell lets go on a spring and overshoots**, so the
+  button squashes to 187px and settles back at 192. That rebound is the only
+  bounce in the lab, and it belongs to the moment force is released.
 - **The lid is one motion value read by both bins**, the red one and the white
   one over it, so the two cannot disagree. It lifts most at the start of a hold,
   since a lid coming up is the first sign the press was understood, and past 80%
   it rattles at 17Hz, harder as the end nears. Its turn is a `transform`
   attribute about the lid's right end, written from a subscription.
+- **The lid is tossed on the landing and lands back on the bin.** It rises about
+  50 units of the 24 unit box, drifts away from the press side, turns about its
+  own centre and drops with one small bounce, then rocks once on the rim. A
+  hold from the right throws it left, and every other toss is a double flip,
+  so two in a row never look the same. `tossOf` in `hold.ts` is the whole rule.
+  - **The ink's copy of the lid is clipped to the pill, and the red copy under
+    it is what draws the lid outside it**, so a tossed lid turns from white to
+    red as it crosses the button's edge, with nothing written for it. It is the
+    duplicated-row technique paying out a second time.
+  - The bin is `size-5`. At `size-4`, 12.8px on this scale, the lid in flight
+    was a speck.
+- **The commit is a latch, the toss, a ring and a thump on the landing.** The
+  ring goes out round the button, grown 10px on every side by a separate
+  `scaleX` and `scaleY`, so a wide pill does not balloon sideways. The label
+  morphs to "Deleted".
+- **The reset drains the ink back into the press**, the same drop run
+  backwards on an ease-in-out over 420ms, rather than fading it. It starts 1.5s
+  after the commit, since nothing real was deleted.
 - **A release sooner than 240ms is a tap, and a tap asks for a hold.** The label
   morphs to "Press and hold" through `torph`, the button shakes 4px in whole
   pixels, and two soft knocks play. A tap still leaves a small dot of ink, which
-  is the thing a reader needs to see to learn what a hold does.
+  shows a reader what a hold does.
 - **A hand that slips 16px off the button lets go**, tested against the box
-  read at the press, since the pointer is captured and the button would hear the
-  move anyway. Escape, a window `blur` and a hidden tab let go too, and a second
-  pointer is ignored for the length of a hold.
-- **The commit is three beats.** The latch clicks and a ring goes out round the
-  button, grown 10px on every side by a separate `scaleX` and `scaleY`, so a wide
-  pill does not balloon sideways. Then the file flies from the row into the bin's
-  mouth on a quadratic arc, `flight` in `hold.ts`, sampled into WAAPI keyframes so
-  the arc and the shrink share one eased time. Then the lid slams with one small
-  bounce and the ink fades into the undo. 520ms of flight in all.
-  - **The file keeps its size for most of the trip and shrinks into the mouth**,
-    on the square of the eased time. Shrinking linearly made it a speck from the
-    moment it left the row.
-  - **The row's words change 260ms after the file leaves**, through `vacant`
-    rather than `home`, so the file does not take off over the line saying it
-    has gone.
-- **Undo sends the file back the way it came**, out of the bin's mouth on the
-  same arc reversed, which is spatial consistency for an action and its undo. The
-  idle row fades back under the file first, so the bin is there to leave.
-- **The undo clock is a WAAPI animation on a ring's dash, and it pauses while it
-  is looked at**, the way Sonner pauses a toast, and while the tab is hidden.
-  Only a fresh `pointerenter` counts as looking. The hand that held the button is
-  already on the card, and a clock that never moves reads as broken.
-- **When the undo runs out the file is gone**, and the button offers "Restore",
-  which is the demo's way back rather than a claim about the file.
+  read at the press, since the pointer is captured. Escape, a window `blur` and a
+  hidden tab let go too, and a second pointer is ignored for the length of a hold.
 - **A screen reader's click cannot be held, so it gets a second press.** A click
   with `detail` 0 that no key produced arms the button and says "Press again to
   delete", and a second inside four seconds fills the bar at four times the speed
-  rather than skipping it, so a sighted helper sees the same thing happen. Space
-  and Enter hold like a hand, with both defaults prevented so no click lands on a
-  hold.
+  rather than skipping it. Space and Enter hold like a hand, with both defaults
+  prevented so no click lands on a hold.
 - **It uses `danger` for a destructive action and invents no colour.** That is
   the token's meaning stretched by one step, from "this went wrong" to "this will
   cost you something", and a delete button in any other colour reads as safe. The
-  ink is `danger` with `bg` text at 5.13:1, and the resting button `danger` on a
-  10% wash of itself.
+  ink is `danger` with `bg` text at 5.13:1, and the resting button is `danger` on
+  white at the same ratio.
 - **No scale on press**, per Local overrides. The ink is the press feedback.
 - **Touch: `touch-none` and no callout on the button**, and the context menu is
-  prevented, so a long press is a hold and never a selection or a menu. Measured
-  on a Pixel 7 emulation: a 1.4s touch hold deletes, the page does not scroll and
-  nothing is selected.
-- **Sound, on by default with a mute control in the corner**, since every sound
-  answers a press. A tick at every twelfth of the fill climbs in pitch and level,
-  so the last few say "nearly". The commit is a latch and a thump, an early
-  release a short fall, and the undo the fall turned upward. Synthesised on
-  `crack-sound.ts`'s shape and unlocked on the press. A phone with a motor feels
-  the ratchet through `navigator.vibrate`.
+  prevented, so a long press is a hold and never a selection or a menu.
+- **The sound has no mute control**, the call `crack-button` makes, since every
+  sound answers a press. A tick at every twelfth of the fill climbs in pitch and
+  level, so the last few say "nearly". The commit is a latch and a thump, and an
+  early release a short fall. Synthesised on `crack-sound.ts`'s shape and
+  unlocked on the press. A phone with a motor feels the ratchet through
+  `navigator.vibrate`.
 - **Reduced motion keeps the fill and drops the travel.** The fill is time
-  passing and is the gesture's only feedback, so it stays. The drain, the lid,
-  the shake, the ring and the flight go, and the commit lands in one step.
-  Measured: the undo is up 120ms after a full hold, the lid never moves, and an
-  early release clears the ink on the next frame.
+  passing and is the gesture's only feedback, so it stays. The swell, the
+  squash, the toss, the drain, the shake and the ring go, and an early release
+  clears the ink on the next frame.
 - It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
-  Verified in a browser at 1280px with a mouse and the keyboard, with no console
-  errors.
-- Its clip taps, holds and lets go early, holds to the end, waits through the
-  flight and the undo clock, and presses undo, so it ends on the card it opens on
-  and loops. 9.1s and 49KB.
+- Its clip taps, holds and lets go early, then holds to the end and waits for
+  the toss and the button putting itself back, so it ends on the frame it opens
+  on and loops. 7.5s and 33KB.
 
 ## Motion
 

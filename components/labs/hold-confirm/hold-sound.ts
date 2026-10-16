@@ -5,8 +5,7 @@
  *
  * A hold is a ratchet being wound: a tick at every twelfth of the fill, each a
  * little higher and a little louder, so the last few say "nearly" without a
- * word. The commit is a latch and a lid slamming, the cancel a short fall, and
- * the undo the cancel turned upward.
+ * word. The commit is a latch and a lid slamming, and the cancel a short fall.
  */
 
 let ctx: AudioContext | null = null;
@@ -143,22 +142,6 @@ export function nudge(): void {
   const now = audio.currentTime;
   burst(audio, now, "lowpass", 700, 1, 0.05, GAIN * 0.5);
   burst(audio, now + 0.09, "lowpass", 620, 1, 0.05, GAIN * 0.4);
-}
-
-/** the file coming back out, the unwind turned upward */
-export function restore(): void {
-  const audio = running();
-  if (!audio) return;
-  const now = audio.currentTime;
-  tone(audio, now, 330, 520, 0.12, GAIN * 0.3);
-  tone(audio, now + 0.08, 520, 780, 0.14, GAIN * 0.24);
-}
-
-/** the file landing back in its row */
-export function settle(): void {
-  const audio = running();
-  if (!audio) return;
-  burst(audio, audio.currentTime, "lowpass", 1400, 0.8, 0.05, GAIN * 0.35);
 }
 
 /**
