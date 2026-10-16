@@ -1894,7 +1894,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub` and `text-reveal` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal` and `drop-zone` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1964,6 +1964,9 @@ experiment is a directory under `components/labs/`.
   section.
   `loupe` scopes the inks of its printed map, since a map's colours are what
   tell sea, land, park and road apart. See its own section.
+  `drop-zone` scopes its folder's blues and one hue per kind of file, since the
+  folder is the picture and a hue is what tells an image's sheet from a PDF's.
+  See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2178,7 +2181,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-four clips, 6.0MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-five clips, 6.1MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -10933,6 +10936,100 @@ is the gesture and the frame loop.
   and the sound onto the title block, raises it two steps and lowers it again,
   and carries it home, so the clip loops. `prep` waits out the first arrival,
   so the poster is the glass at rest. 9.1s and 244KB.
+
+### `drop-zone`
+
+An upload drop zone as one card. The card's picture and its own edge tell
+every state, and the only words on it are one line and a muted line under it.
+`folder.tsx` is the picture, `files.ts` what a file is and whether the card
+takes it, `upload.ts` the simulated transfer, `samples.ts` the sample set, and
+`index.tsx` the drag, the drop, the loop and the card.
+
+- **It was built twice before this, and both were too much.** The first had a
+  header, a zone that shrank into a bar when files arrived, rows with two lines
+  and a bar, and a footer with a rate and a time left. The second had fixed
+  rows in a list. Both read as a form. What survives is one card, and the
+  rest went: the list, the rows, the ghost that followed the drag, the flights
+  into rows, the header and the footer.
+- **Nothing on it changes size.** The card is a fixed box, the two lines
+  cross-fade in fixed grid cells, and everything that moves moves by
+  transform, opacity or a stroke's dash. Measured on every frame through a
+  refused drag, a drop, an upload, a failure and a resume: one card size.
+- **The folder acts out every state, as one drawing in poses.** At rest a sheet
+  peeks out, and under a mouse it rises a little. A file entering the window
+  ducks it into the folder and tips the flap. Over the card the flap falls open
+  and the incoming sheets hang above it, fanned, each with a chip in its kind's
+  hue. A refused drag hangs grey sheets higher and shakes the folder once. A
+  drop lets the sheets fall in, staggered, and the flap snaps shut. While
+  uploading each sheet rises out over its own share of the batch and fades at
+  the top. Done draws a check, and a dropped connection shows a red mark.
+  - **The flap opens by scaling from its foot**, `scaleY` with
+    `transform-box: fill-box` and the origin at the bottom, which reads as the
+    front falling toward the reader without any 3D.
+  - **A sheet's rise is a motion value the loop sets**, on a group inside the
+    one the pose animates, so the pose's spring and the upload's progress never
+    fight over one transform.
+- **The card's own edge is the progress bar.** It is a dashed SVG path at rest
+  that marches through `ants` while a drag is armed and closes into a solid
+  line over the card. While uploading a second path with `pathLength` of 1
+  traces round the card from twelve o'clock, since the outline is built to
+  start at the top's middle. It turns `success` when done and `danger` when the
+  connection drops. A dashed CSS border could do none of this.
+  - **Every tone on the edge is well short of its state's colour**: `text-muted`
+    at 70% over the card and for the progress line, which is 1.5px, `success`
+    and `danger` at 40% to 45%. At full strength a line round the whole card
+    outweighed the folder it frames, and the folder's own check and mark still
+    carry the state at full colour.
+- **The drag is heard on the window, not on the card.** A file entering the
+  window anywhere arms the card before the hand is near it.
+- **Whether the pointer is over the card is a test against its box on every
+  `dragover`.** `dragenter` and `dragleave` fire for every child the pointer
+  crosses, which is the flicker most drop zones have.
+- **A drag ends three ways, and each is heard.** A drop, a `dragleave` with no
+  related target at the window's edge, and a watchdog. The watchdog is 1s: the
+  spec has a still pointer fire `dragover` every 350ms give or take 200, so
+  anything under 550ms disarms a hand that is only resting.
+- **A drag carries types and no names**, so the card judges a drag by MIME type
+  before the drop, "Drop 3 files" or "2 of 3 can upload", and again by name
+  after it.
+- **The stage takes every drop over it**, so the browser never opens a file in
+  place of the page. Only the card sets `dropEffect` to `copy`.
+- **A folder is walked** through `webkitGetAsEntry`, up to 64 files. The
+  entries are taken while the drop event is still running, since a
+  `DataTransfer` empties when its event returns. Folder drops have not been
+  verified in automation, since a synthetic `DataTransfer` cannot carry a
+  directory.
+- **Paste lands in the card** when the pointer or the focus is on the demo, and
+  the card is a button that opens the file picker. A refused file shows its
+  reason in place of the title for 1.8s.
+- **The upload is simulated, and nothing leaves the browser.** A file's bytes
+  are never read. Three files go at once, each rate wanders on two sines, every
+  transfer takes 0.9s to 4.2s whatever its size, and a finished one spends half
+  a second processing, which the line calls "finishing".
+  - **Only the flaky sample fails**, at 62%, and pressing the card resumes it
+    from there. A rule that failed about one real file in nine was taken out:
+    on a card this quiet a random failure reads as a bug.
+  - A finished card holds for 2.6s and resets itself. A drop on a finished,
+    refused or failed card starts a fresh batch.
+- **Nothing renders while bytes move.** One loop writes the edge's dash, the
+  sheets' rise and the line's percentage straight to their nodes.
+- **"or try sample files" sits under the card**, the one control outside it, for
+  a phone or anyone with nothing to drop. The samples are held over the card as
+  a drag would be, then let go.
+- **Sizes keep their casing** through `normal-case` on the second line, which is
+  written lowercase so only the units carry capitals.
+- **The folder's blues and the kind hues are scoped** to this experiment and
+  are not tokens. `success` marks a finished upload, which is that token's
+  meaning.
+- Reduced motion keeps every state and drops the travel, through
+  `MotionProvider`, and the drop lands at once.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
+- Verified in a browser at 1280px: a refused drag, an armed drag, a drop, the
+  picker, the samples, a failure and a resume, and the done state, with no
+  console errors.
+- Its clip drags a refused file over the card, then three it takes, drops them,
+  and waits out the upload, the check and the reset, so it ends on the empty
+  card it opens on and loops. 13.0s and 76KB.
 
 ## Motion
 
