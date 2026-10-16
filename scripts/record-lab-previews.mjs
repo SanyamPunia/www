@@ -1955,6 +1955,112 @@ const LABS = {
       await wait(2900);
     },
   },
+  "drop-zone": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A file the card refuses is dragged over it first, so the folder shakes
+     * and the edge goes red. Three files it takes are then dragged in from the
+     * stage's corner with a real `DataTransfer`: the edge marches, the flap
+     * falls open, the sheets fall in, rise out as the edge traces round the
+     * card, and a check draws. The card resets itself after that, so the clip
+     * ends on the empty card it opens on and loops.
+     */
+    async run({ page }) {
+      await page.evaluate(async () => {
+        const c = document.createElement("canvas");
+        c.width = 480;
+        c.height = 320;
+        const ctx = c.getContext("2d");
+        const g = ctx.createLinearGradient(0, 0, 0, 320);
+        g.addColorStop(0, "#2b2f6b");
+        g.addColorStop(1, "#f6c28b");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 480, 320);
+        const png = await new Promise((r) => c.toBlob(r, "image/png"));
+        const good = new DataTransfer();
+        good.items.add(
+          new File([png], "evening-swim.png", {
+            type: "image/png",
+            lastModified: 3,
+          }),
+        );
+        good.items.add(
+          new File([new Uint8Array(1_900_000)], "lease-signed.pdf", {
+            type: "application/pdf",
+            lastModified: 3,
+          }),
+        );
+        good.items.add(
+          new File([new Uint8Array(240_000)], "payroll-oct.csv", {
+            type: "text/csv",
+            lastModified: 3,
+          }),
+        );
+        const bad = new DataTransfer();
+        bad.items.add(
+          new File([new Uint8Array(4000)], "installer.dmg", {
+            type: "application/x-apple-diskimage",
+            lastModified: 3,
+          }),
+        );
+        window.__good = good;
+        window.__bad = bad;
+      });
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const card = await page
+        .locator("[data-lab-demo] button[aria-describedby]")
+        .boundingBox();
+      const fire = (type, x, y, which) =>
+        page.evaluate(
+          ([type, x, y, which]) => {
+            const el = document.elementFromPoint(x, y) ?? document.body;
+            el.dispatchEvent(
+              new DragEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                clientX: x,
+                clientY: y,
+                dataTransfer: window[which],
+              }),
+            );
+          },
+          [type, x, y, which],
+        );
+      const glide = async (from, to, which, steps) => {
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const e = 1 - (1 - t) ** 2;
+          await fire(
+            "dragover",
+            from[0] + (to[0] - from[0]) * e,
+            from[1] + (to[1] - from[1]) * e - Math.sin(t * Math.PI) * 30,
+            which,
+          );
+          await wait(30);
+        }
+      };
+      const corner = [demo.x + 24, demo.y + demo.height - 30];
+      const middle = [card.x + card.width / 2, card.y + card.height * 0.45];
+      await wait(500);
+      await fire("dragenter", ...corner, "__bad");
+      await glide(corner, middle, "__bad", 24);
+      for (let i = 0; i < 18; i++) {
+        await fire("dragover", middle[0] + i * 0.3, middle[1], "__bad");
+        await wait(40);
+      }
+      await glide(middle, corner, "__bad", 16);
+      await wait(200);
+      await glide(corner, middle, "__good", 28);
+      for (let i = 0; i < 14; i++) {
+        await fire("dragover", middle[0] + i * 0.3, middle[1], "__good");
+        await wait(40);
+      }
+      await fire("drop", middle[0] + 4, middle[1], "__good");
+      // the upload, the check, and the card resetting itself
+      await wait(8600);
+    },
+  },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
