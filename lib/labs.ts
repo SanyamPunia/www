@@ -1031,6 +1031,21 @@ const ALL_LABS: LabMetadata[] = [
     bare: true,
     hint: "Drag the glass over the map. Pinch or use the corner to raise it.",
   },
+  {
+    slug: "drop-zone",
+    title: "Drop Zone",
+    description: [
+      "an upload card that tells every state with its picture: the flap falls open for a drag, refused files shake it, accepted ones fall in and rise out as they upload, and a check draws when they are gone.",
+      "key insight: the card's own edge is the progress bar. it marches when a file enters the window, closes into a solid line over the card, traces round it as the upload goes, and turns green or red when it ends.",
+      "nothing on it changes size. a drag is judged by its types before it lands, and whether the pointer is over the card is a test against its box on every `dragover`, never `dragenter`, which flickers.",
+    ],
+    createdAt: "2026-10-16",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/drop-zone/folder.tsx",
+    flush: true,
+    hint: "Drop files on the card, or try the samples.",
+  },
 ];
 
 /**
@@ -1164,6 +1179,7 @@ export const IMPLEMENTED_LABS = [
   "home-hub",
   "text-reveal",
   "loupe",
+  "drop-zone",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
