@@ -2061,6 +2061,45 @@ const LABS = {
       await wait(8600);
     },
   },
+  "hold-confirm": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A tap first, which shakes the button and asks for a hold. Then a hold
+     * from the left that is let go early, so the ink drains back, and a full
+     * hold from the right, so the file flies into the bin and the button turns
+     * into an undo. The undo sends the file back out, so the clip ends on the
+     * card it opens on and loops. Every press jumps on and off, since the
+     * screencast captures no cursor and an approach costs nothing.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const b = await page
+        .locator("[data-lab-demo] button[aria-label^='Delete']")
+        .boundingBox();
+      const at = (f) => [
+        b.x - demo.x + b.width * f,
+        b.y - demo.y + b.height / 2,
+      ];
+      const hold = async (f, ms) => {
+        await m.move(...at(f));
+        await m.down();
+        await wait(ms);
+        await m.up();
+      };
+      await wait(600);
+      await hold(0.5, 70);
+      await wait(1500);
+      await hold(0.22, 640);
+      await wait(800);
+      await hold(0.72, 1350);
+      await wait(2100);
+      await hold(0.5, 60);
+      await wait(1300);
+      await m.move(at(0.5)[0], 320);
+      await wait(500);
+    },
+  },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
