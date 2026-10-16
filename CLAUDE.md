@@ -370,9 +370,19 @@ flow after a title**, for the lab grid below `xl`, where its first card has no
 margin beside it wide enough. From `xl` up the grid uses `margin` too. The circle is one stroke that overshoots its own start, since a closed
 ellipse reads as a border rather than as a pen mark, and **every offset around
 it is measured from the circle rather than from the word**, since the circle
-hangs 6.4px past the span on all four sides. Sizing the gap to the word alone is
+hangs 6.4px past the span on each side. Sizing the gap to the word alone is
 what put the circle inside the row's hover pill. In a row it is the first child,
 so a screen reader hears "new" before the title.
+
+**The circle is sized by a width and the viewBox's ratio, never by four
+insets.** An SVG is a replaced element, so an absolute one does not stretch
+between its insets the way a box does. Chrome and current WebKit stretched the
+width and took the height from the 62:40 ratio, so the circle was 38.6 by 24.9px
+and never the 29.6px its bottom inset asked for. iOS Safari stretched neither and
+drew a small ellipse at the word's left edge, round the "n" alone. `w-[calc(100%+0.8rem)]`
+plus `aspect-[62/40]` is the tuned shape in every engine. Measured in Chrome and
+Playwright's WebKit: 38.6 by 24.9px before and after, so the desktop look did not
+move.
 
 **`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
 post open with a real `<h1>` at `text-lead`, followed by a `text-body`
@@ -1894,7 +1904,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal` and `drop-zone` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone` and `hold-confirm` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2181,7 +2191,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-five clips, 6.1MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-six clips, 6.1MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11030,6 +11040,102 @@ takes it, `upload.ts` the simulated transfer, `samples.ts` the sample set, and
 - Its clip drags a refused file over the card, then three it takes, drops them,
   and waits out the upload, the check and the reset, so it ends on the empty
   card it opens on and loops. 13.0s and 76KB.
+
+### `hold-confirm`
+
+A delete button you hold, on a card that holds the file it deletes. The fill
+spreads from under the press, the bin's lid lifts and rattles near the end, and
+when it lets go the file flies into the bin and the button becomes an undo with a
+draining clock. `hold.ts` is the numbers, pure and DOM-free, `hold-sound.ts` the
+ratchet, `trash.tsx` the bin with its lid on a hinge, and `index.tsx` the
+gesture, the loop and the five phases: idle, committing, undo, restoring, gone.
+
+- **The fill is one number, `p`, and it measures time honestly.** Holding adds
+  to it at `1 / HOLD`, 1.2s for a full hold, which is linear because time passes
+  linearly and any other curve lies about how long is left. Letting go drains it
+  on an exponential with a 70ms time constant, so the cancel is fast and settles
+  gently. A press during the drain catches `p` where it is, and the ratchet walks
+  back down with it, so nothing restarts from zero.
+- **The ink is a red copy of the button over the button, clipped by the loop.**
+  The label turns white exactly where the ink is, since it is a second white
+  label under the same clip. Timing a colour change on one label could never land
+  on the ink's edge. This is the duplicated-tabs technique, and it is why the idle
+  row is rendered twice, once in each tone.
+- **The clip is a drop of ink that spreads from the press.** `inkBox` places the
+  fill so its two edges reach the pill's two ends on the same frame: its width is
+  `p * w` and its left edge is `origin * w * (1 - p)`. Its height is its width
+  until it reaches the pill's, and `round 999px` makes it a circle under the
+  finger first and a pill after. A keyboard hold starts from the middle.
+- **Nothing renders while a hand is down.** One frame loop writes the clip and
+  the lid. React hears about a hold twice: a tap, which earns the hint, and the
+  commit. Measured: 0 frames requested in 1.5s at rest.
+- **The lid is one motion value read by both bins**, the red one and the white
+  one over it, so the two cannot disagree. It lifts most at the start of a hold,
+  since a lid coming up is the first sign the press was understood, and past 80%
+  it rattles at 17Hz, harder as the end nears. Its turn is a `transform`
+  attribute about the lid's right end, written from a subscription.
+- **A release sooner than 240ms is a tap, and a tap asks for a hold.** The label
+  morphs to "Press and hold" through `torph`, the button shakes 4px in whole
+  pixels, and two soft knocks play. A tap still leaves a small dot of ink, which
+  is the thing a reader needs to see to learn what a hold does.
+- **A hand that slips 16px off the button lets go**, tested against the box
+  read at the press, since the pointer is captured and the button would hear the
+  move anyway. Escape, a window `blur` and a hidden tab let go too, and a second
+  pointer is ignored for the length of a hold.
+- **The commit is three beats.** The latch clicks and a ring goes out round the
+  button, grown 10px on every side by a separate `scaleX` and `scaleY`, so a wide
+  pill does not balloon sideways. Then the file flies from the row into the bin's
+  mouth on a quadratic arc, `flight` in `hold.ts`, sampled into WAAPI keyframes so
+  the arc and the shrink share one eased time. Then the lid slams with one small
+  bounce and the ink fades into the undo. 520ms of flight in all.
+  - **The file keeps its size for most of the trip and shrinks into the mouth**,
+    on the square of the eased time. Shrinking linearly made it a speck from the
+    moment it left the row.
+  - **The row's words change 260ms after the file leaves**, through `vacant`
+    rather than `home`, so the file does not take off over the line saying it
+    has gone.
+- **Undo sends the file back the way it came**, out of the bin's mouth on the
+  same arc reversed, which is spatial consistency for an action and its undo. The
+  idle row fades back under the file first, so the bin is there to leave.
+- **The undo clock is a WAAPI animation on a ring's dash, and it pauses while it
+  is looked at**, the way Sonner pauses a toast, and while the tab is hidden.
+  Only a fresh `pointerenter` counts as looking. The hand that held the button is
+  already on the card, and a clock that never moves reads as broken.
+- **When the undo runs out the file is gone**, and the button offers "Restore",
+  which is the demo's way back rather than a claim about the file.
+- **A screen reader's click cannot be held, so it gets a second press.** A click
+  with `detail` 0 that no key produced arms the button and says "Press again to
+  delete", and a second inside four seconds fills the bar at four times the speed
+  rather than skipping it, so a sighted helper sees the same thing happen. Space
+  and Enter hold like a hand, with both defaults prevented so no click lands on a
+  hold.
+- **It uses `danger` for a destructive action and invents no colour.** That is
+  the token's meaning stretched by one step, from "this went wrong" to "this will
+  cost you something", and a delete button in any other colour reads as safe. The
+  ink is `danger` with `bg` text at 5.13:1, and the resting button `danger` on a
+  10% wash of itself.
+- **No scale on press**, per Local overrides. The ink is the press feedback.
+- **Touch: `touch-none` and no callout on the button**, and the context menu is
+  prevented, so a long press is a hold and never a selection or a menu. Measured
+  on a Pixel 7 emulation: a 1.4s touch hold deletes, the page does not scroll and
+  nothing is selected.
+- **Sound, on by default with a mute control in the corner**, since every sound
+  answers a press. A tick at every twelfth of the fill climbs in pitch and level,
+  so the last few say "nearly". The commit is a latch and a thump, an early
+  release a short fall, and the undo the fall turned upward. Synthesised on
+  `crack-sound.ts`'s shape and unlocked on the press. A phone with a motor feels
+  the ratchet through `navigator.vibrate`.
+- **Reduced motion keeps the fill and drops the travel.** The fill is time
+  passing and is the gesture's only feedback, so it stays. The drain, the lid,
+  the shake, the ring and the flight go, and the commit lands in one step.
+  Measured: the undo is up 120ms after a full hold, the lid never moves, and an
+  early release clears the ink on the next frame.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
+  Verified in a browser at 1280px with a mouse and the keyboard, with no console
+  errors.
+- Its clip taps, holds and lets go early, holds to the end, waits through the
+  flight and the undo clock, and presses undo, so it ends on the card it opens on
+  and loops. 9.1s and 49KB.
 
 ## Motion
 
