@@ -127,13 +127,22 @@ export function NewBadge({
          * descender, which puts its ink low in the box: centring the circle on
          * the box left the word sitting in its bottom half.
          *
-         * So the box is kept the same height, 1.6px above and 8px below instead
-         * of 4.8px either side, which drops the circle 3.2px onto the ink. The
-         * figure is measured off the render, not computed: reading Caveat's real
+         * So the circle starts only 1.6px above the box and runs 3.3px below it,
+         * which puts it on the ink rather than on the box. The figure is
+         * measured off the render, not computed: reading Caveat's real
          * metrics needs the woff2 decompressed, and nothing here can do that.
          * Re-measure it if the size or the word changes.
+         *
+         * **The size is an explicit width and the viewBox's ratio, never four
+         * insets.** An SVG is a replaced element, so an absolute one does not
+         * stretch between its insets the way a box does. Chrome and current
+         * WebKit stretched the width and took the height from the 62:40 ratio,
+         * which is the shape this was tuned on: 38.6 by 24.9px, not the 29.6px
+         * the bottom inset asked for. iOS Safari stretched neither, and drew a
+         * small fixed ellipse at the word's left edge. A width plus
+         * `aspect-[62/40]` is the tuned shape in every engine.
          */
-        className="new-circle -inset-x-2 -top-0.5 -bottom-2.5 pointer-events-none absolute"
+        className="new-circle -left-2 -top-0.5 pointer-events-none absolute aspect-[62/40] w-[calc(100%+0.8rem)]"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
