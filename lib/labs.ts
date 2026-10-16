@@ -1046,6 +1046,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drop files on the card, or try the samples.",
   },
+  {
+    slug: "hold-confirm",
+    title: "Hold Confirm",
+    description: [
+      "a delete button you hold. the fill spreads from under your finger like ink, the bin's lid rattles near the end, and the file flies into the bin.",
+      "key insight: the fill is one number that holding adds to at a constant rate and letting go drains on an exponential. it measures time honestly, and a press during the drain catches it where it is rather than starting over.",
+      "the ink is a red copy of the button clipped to a pill that grows from the press, so the label turns white exactly at its edge. undo sends the file back out the way it came.",
+    ],
+    createdAt: "2026-10-16",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/hold-confirm/hold.ts",
+    flush: true,
+    hint: "Press and hold the button. Let go early to cancel.",
+  },
 ];
 
 /**
@@ -1180,6 +1195,7 @@ export const IMPLEMENTED_LABS = [
   "text-reveal",
   "loupe",
   "drop-zone",
+  "hold-confirm",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

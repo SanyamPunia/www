@@ -515,6 +515,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/drop-zone").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "hold-confirm": dynamic(
+    () => import("@/components/labs/hold-confirm").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
