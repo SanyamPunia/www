@@ -1061,6 +1061,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Press and hold the button. Let go early to cancel.",
   },
+  {
+    slug: "swipe-row",
+    title: "Swipe Row",
+    description: [
+      "an inbox you swipe the way mail does. a short swipe opens the actions, a long one does them, and a trackpad swipe drives the same row.",
+      "key insight: the row goes where its momentum would carry it, not where the finger let go. the release velocity is projected the way a scroll view decays, so a short flick opens a row and a slow drag back closes it.",
+      "the far action arms past half the row and lets go under 44%, so a hand resting on the line does not flicker it. everything that moves reads one offset, so the face and the actions under it cannot disagree.",
+    ],
+    createdAt: "2026-10-18",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/swipe-row/swipe.ts",
+    flush: true,
+    hint: "Swipe a row left or right. Swipe far to act.",
+  },
 ];
 
 /**
@@ -1196,6 +1211,7 @@ export const IMPLEMENTED_LABS = [
   "loupe",
   "drop-zone",
   "hold-confirm",
+  "swipe-row",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -519,6 +519,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/hold-confirm").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "swipe-row": dynamic(
+    () => import("@/components/labs/swipe-row").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
