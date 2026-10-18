@@ -2095,6 +2095,55 @@ const LABS = {
       await wait(2400);
     },
   },
+  "swipe-row": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A short swipe opens the second row and a tap closes it. A long swipe
+     * deletes the first, and the undo brings it back from the side it left
+     * by. A full swipe right marks the third unread, and a tap opens it, which
+     * reads it again. So every row ends as it began and the clip loops.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = async (id, f) => {
+        const r = await page.locator(`[data-row="${id}"]`).boundingBox();
+        return [r.x - demo.x + r.width * f, r.y - demo.y + r.height / 2];
+      };
+      const swipe = async (id, from, by, ms) => {
+        const [x, y] = await at(id, from);
+        await m.move(x, y);
+        await m.down();
+        const steps = Math.round(ms / 16);
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          await m.move(x + by * (1 - (1 - t) ** 2), y);
+          await wait(16);
+        }
+        await m.up();
+      };
+      const tap = async (id, f) => {
+        const [x, y] = await at(id, f);
+        await m.move(x, y);
+        await m.down();
+        await wait(60);
+        await m.up();
+      };
+      await wait(600);
+      await swipe("studio", 0.8, -110, 260);
+      await wait(900);
+      await tap("studio", 0.3);
+      await wait(700);
+      await swipe("maya", 0.9, -330, 420);
+      await wait(1100);
+      await page.getByRole("button", { name: "Undo" }).dispatchEvent("click");
+      await wait(900);
+      await swipe("jonah", 0.1, 290, 380);
+      await wait(900);
+      await tap("jonah", 0.5);
+      await wait(900);
+    },
+  },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
