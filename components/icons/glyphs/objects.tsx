@@ -109,6 +109,26 @@ export function TrashIcon(props: IconProps) {
   );
 }
 
+export function EnvelopeIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M5 5L19 5A2 2 0 0 1 21 7L21 17A2 2 0 0 1 19 19L5 19A2 2 0 0 1 3 17L3 7A2 2 0 0 1 5 5ZM7.71 6.85L12 9.82L16.29 6.85A2.125 2.125 0 0 1 18.71 10.35L13.21 14.15A2.125 2.125 0 0 1 10.79 14.15L5.29 10.35A2.125 2.125 0 0 1 7.71 6.85Z"
+        {...SOLID}
+      />
+    </Svg>
+  );
+}
+
+export function FlagIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M7.6 4.5L17.8 4.5L15.3 8.75L17.8 13L7.6 13Z" {...SOLID} />
+      <path d="M6.3 3.5L6.3 20.5" {...LINE} />
+    </Svg>
+  );
+}
+
 export function EraserIcon(props: IconProps) {
   return (
     <Svg {...props}>

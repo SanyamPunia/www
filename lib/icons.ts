@@ -67,6 +67,8 @@ export const ICON_GROUPS = [
       "MagnifyingGlass",
       "Copy",
       "Trash",
+      "Envelope",
+      "Flag",
       "Eraser",
       "Link",
       "LinkBreak",
