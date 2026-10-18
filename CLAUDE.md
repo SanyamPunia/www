@@ -1904,7 +1904,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone` and `hold-confirm` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm` and `swipe-row` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1977,6 +1977,9 @@ experiment is a directory under `components/labs/`.
   `drop-zone` scopes its folder's blues and one hue per kind of file, since the
   folder is the picture and a hue is what tells an image's sheet from a PDF's.
   See its own section.
+  `swipe-row` scopes three action hues, Apple's red and blue and an orange,
+  since colour is what tells three actions built from one button apart. See its
+  own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2191,7 +2194,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-six clips, 6.1MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-seven clips, 6.2MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11140,6 +11143,114 @@ on a hinge, and `index.tsx` the gesture and the loop.
 - Its clip taps, holds and lets go early, then holds to the end and waits for
   the toss and the button putting itself back, so it ends on the frame it opens
   on and loops. 7.5s and 33KB.
+
+### `swipe-row`
+
+An inbox you swipe the way Mail does. A short swipe left opens flag and trash,
+a short swipe right opens mark as read, and a long swipe either way does the far
+action. `swipe.ts` is the numbers, pure and DOM-free, `row.tsx` one row and its
+gesture, `mail.ts` the messages and the hues, `swipe-sound.ts` the sounds, and
+`index.tsx` the list, the undo and the refill.
+
+- **One value per row, `x`, and everything that moves reads it.** The face rides
+  `x`, and the width of the strip each side uncovers, where each icon sits in it
+  and how far the far action has grown are all `useTransform`s of it. So the face
+  and the actions under it cannot disagree about where the finger is.
+- **A release goes where the momentum would carry the row, not where the finger
+  let go.** `project` is Apple's projection from the *Designing Fluid Interfaces*
+  sample code, at a rate of 0.99, and `settle` compares the projected rest
+  against half the open width. That is why a short flick opens a row and a slow
+  drag back closes it. A row that was thrown gets a little bounce and one that
+  was put down gets none, since only the throw applied a force.
+- **The far action arms past 52% of the row and lets go under 44%.** The gap is
+  hysteresis, so a hand resting on the line does not flicker it. Arming is a
+  detent you hear and, on a phone, feel. The flag gives its share of the strip to
+  the trash on a spring with a little bounce, and the trash icon pins half a
+  button from the face's edge, so it rides out with the finger.
+- **The drag is one to one up to 92% of the row, then rubber-banded** with the
+  UIScrollView curve, so a full swipe always has somewhere to go and the edge
+  reads as resistance rather than a wall.
+- **A press only becomes a swipe past 8px of slop, and only if it is 1.2 times
+  more horizontal than vertical.** Anything else is a scroll, and the face is
+  `touch-pan-y`, so the page keeps it. The drag starts from where the slop ran
+  out, so there is no jump. Measured on a Pixel 7 emulation: a horizontal touch
+  swipe opens the row with no page scroll, and a vertical one scrolls the page
+  188px and opens nothing.
+- **A trackpad's two-finger swipe drives the same `x`**, the way Mail's does on a
+  Mac. It arrives as wheel events with no start or end, so the end is 90ms with
+  no event. The listener is bound by hand, since one that calls `preventDefault`
+  cannot be passive.
+- **A delete tells the list the moment the face crosses the edge, not when the
+  spring settles.** A spring spends its last few hundred milliseconds on
+  fractions of a pixel, and waiting for them left a red sliver that would not go.
+  The collapse is then a 280ms tween on the drawer curve rather than a spring, so
+  the node is gone when it looks gone. Measured: 614ms from the Delete key to the
+  row's node leaving the DOM, slide and collapse together.
+- **A delete from a key or a button has no throw behind it, so it is given the
+  speed of a flick**, 1600px/s, which is how Mail's trash leaves.
+- **Undo runs the delete backwards.** The row comes back from the side it left
+  by, with the trash filling the strip and shrinking as it comes home.
+  - **It starts armed rather than being set so in an effect, and that was a
+    bug.** A motion element subscribes to its derived styles after the effects
+    have run, so `arm.set(1)` in a layout effect was missed and the flag showed
+    beside the trash. `useMotionValue(returning ? 1 : 0)` is the fix.
+  - The undo pill pauses while the pointer is on it, and Cmd or Ctrl and Z undoes
+    while the pointer or the focus is on the demo.
+- **A strip under a pixel draws nothing.** A spring settles within half a pixel
+  of its target, and that half pixel showed as a red hairline down a closed row.
+- **Only one row is open at a time, and the list owns that.** A press on another
+  row closes the open one and is spent, so it does not also count as a tap. A
+  press on bare stage closes it too.
+- **A tap opens the message, which marks it read**, the way Mail does. A tap on
+  an open row closes it instead.
+- **The first row peeks once, the first time the list is 60% on screen.** It
+  slides open 52px, far enough to show a sliver of both trailing colours, holds
+  180ms and springs home with a little bounce. A list of rows at rest says
+  nothing about being swipeable, and the hint line sits outside the frame. A
+  press during the peek catches the row where it is. Reduced motion skips it.
+- **The unread dot sits on the sender's line, not between the two lines**, so
+  "unread" and the name read as one unit, the way Mail places it. Its box is
+  `h-[1lh]` at `text-body`, so it follows the looser leading below `sm` without
+  a second number. Measured: the dot's centre and the name's centre both land
+  at 269.9px.
+- **An unread sender carries one step of weight**, `font-medium`, so the state
+  reads before the eye reaches the dot. Inter is variable, so the step eases
+  when a row is read.
+- **Focus is a rounded ring set 6px in from the row, in the system blue.** The
+  site's inset ring is a square, and the card's corners clipped it into what
+  read as a stray selection box, at 1.2:1. A ring draws outward from its box, so
+  at 6px its outer edge sits 4px inside the row, clear of the card's 20px
+  corners. The blue is 4.02:1, so it is stronger than the declared pattern, which
+  is the direction the rule allows.
+- **The keyboard has the whole path.** The left arrow opens the trailing actions
+  and focuses Flag, the right arrow opens the leading one and focuses its button,
+  Escape closes, and Delete or Backspace deletes and moves focus to the row that
+  slides up into the gap. An action pressed from the keyboard hands focus back to
+  the face, since its button goes inert as the row closes.
+- **The hues are Apple's system red and blue and an orange taken down to clear
+  3:1**, since a white icon on `#ff9500` is 2.2:1. White on each: red 3.55, blue
+  4.02, orange 3.01. The actions are icons alone, so 3:1 is the floor that
+  applies. Scoped in `mail.ts`, not tokens.
+- **`Envelope` and `Flag` were added to the icon set for it**, drawn on the
+  set's rules: the envelope is a solid with its flap cut as an `evenodd` hole
+  drawn 1 larger than it shows, and the flag is a solid on a line part.
+- **The list sits in a fixed box**, so the card shrinks upward as rows go rather
+  than re-centring under the hand.
+- **An empty inbox fills itself again** after the undo has gone, since this is a
+  demo of a gesture.
+- **Sound, with no mute control**, the call `crack-button` makes, since every
+  sound answers a press: a detent when the far action arms, a swish when a row
+  leaves, and a click when a toggle lands. Synthesised on `crack-sound.ts`'s
+  shape and unlocked on the press.
+- **Reduced motion keeps every state and drops the travel.** A row lands on its
+  pose in one step, and the collapse is instant. The drag is direct
+  manipulation and still tracks the finger.
+- **Nothing renders while a row moves.** Measured: 0 frames requested at rest.
+- It is `flush`, `aspect-8/5` with a `min-h-96` floor, with its own inset ring.
+- Its clip opens a row and closes it, deletes one and undoes it, and swipes one
+  unread and reads it again, so every row ends as it began and it loops. The peek
+  plays before the recording starts, so the poster is the list at rest. 8.6s and
+  78KB.
 
 ## Motion
 
