@@ -1904,7 +1904,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm` and `swipe-row` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row` and `pull-refresh` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1980,6 +1980,9 @@ experiment is a directory under `components/labs/`.
   `swipe-row` scopes three action hues, Apple's red and blue and an orange,
   since colour is what tells three actions built from one button apart. See its
   own section.
+  `pull-refresh` scopes an up green and a down red for its quotes, since colour
+  is what says which way a stock moved before the number is read. See its own
+  section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2194,7 +2197,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-seven clips, 6.2MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-eight clips, 6.3MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11251,6 +11254,148 @@ gesture, `mail.ts` the messages and the hues, `swipe-sound.ts` the sounds, and
   unread and reads it again, so every row ends as it began and it loops. The peek
   plays before the recording starts, so the poster is the list at rest. 8.6s and
   78KB.
+
+### `pull-refresh`
+
+Pull to refresh, the way iOS does it, on a watchlist of made-up stocks. The list
+scrolls freely, and pulling past its top refreshes the prices. `pull.ts` is the
+pull's numbers, `market.ts` the prices, `spinner.tsx` the activity indicator,
+`pull-sound.ts` the two sounds, and `index.tsx` the scroller, the gesture and the
+refresh.
+
+- **It was a list of messages first, and that read as generic.** A refresh that
+  added one row to a column of initial circles showed little. A watchlist
+  refreshes every row at once, so the pull visibly does something to the whole
+  card. The gesture did not change.
+- **The list scrolls freely, and the pull is what happens past its top.** The
+  watchlist is longer than the card and scrolls natively, so touch, a trackpad
+  and the keyboard keep the browser's own momentum. A pull only starts when the
+  list is already at the top and the hand keeps going down, the way iOS turns
+  an overscroll into a refresh. The scroller is `overscroll-y-contain`, so the
+  page never scrolls under it, and its bar is hidden.
+  - **Touch:** the touch listeners take only the part of a gesture past the top,
+    calling `preventDefault` from there on, so a swipe up still scrolls
+    natively. They are bound by hand, since a listener that calls
+    `preventDefault` cannot be passive.
+  - **Trackpad and wheel:** a wheel gesture turns into a pull only when it began
+    with the list already at its top. A fling that reaches the top carries on as
+    momentum events with the same sign, and starting a pull off those would
+    refresh a list nobody pulled. A gesture is fresh after 160ms with no event,
+    and a pull ends after 140ms. Measured: wheeling back up to the top leaves
+    the list at rest, and a new wheel gesture at the top pulls.
+  - **Mouse:** a mouse has no native drag to scroll, so a drag scrolls the list
+    and coasts on UIScrollView's 0.325s decay, and turns into a pull at the top
+    in the same gesture. Pushing back past the top hands the rest of the hand
+    back to the scroll. Measured: a quick drag scrolls 140px and coasts to 233.
+- **The refresh starts while the hand is still down**, on the frame the pull
+  crosses 64px, with a detent you hear and, on a phone, feel. Letting go then
+  only decides where the list rests: at 52px, the spinner's own room, while it
+  spins, and back at the top once the prices are in. Waiting for the release to
+  start the refresh is the common build, and it reads as late.
+- **One value, `y`, and everything reads it.** The finger's travel goes through
+  the rubber band to become `y`, and the gap above the list, the spinner's
+  place in that gap and how many of its ticks have appeared all come off it.
+- **The rubber band is the UIScrollView curve** measured against the card's
+  230px, at a constant of 0.7, so the threshold is about 110px of hand and the
+  list never hits a wall.
+- **A second pull during a refresh starts from where the list rests.** `unband`
+  runs the rubber band backwards, so the hand that would have put the list at
+  52px is where the new pull begins. Measured: a 1px step at the press.
+- **A refresh that finishes while a hand is still pulling waits for the
+  release**, so the list never moves out from under a finger.
+- **The spinner is the iOS activity indicator: eight rounded ticks.** While the
+  list is pulled they appear one after another, clockwise from the top, each
+  over its own eighth of the pull, so the spinner draws itself as the hand goes.
+  Once a refresh starts they take a trail of opacities and the whole spinner
+  turns in eighths, `spinner-steps` in `globals.css` on `steps(8)`, so what
+  appears to move is the trail. The ticks are written imperatively, so a pull
+  renders nothing.
+- **The new prices land in a wave from the top**, each row 45ms after the one
+  above it, so the refresh reads as one movement down the list. In each row the
+  sparkline morphs to its new shape, the price and the change morph their digits
+  through `torph`, and the pill crossfades between green and red when the day
+  turns. Two soft notes play as the wave starts.
+  - **Every sparkline is a window of the last 24 prices**, and a refresh pushes
+    one on and drops the oldest, so the path always has the same number of
+    points and Motion can interpolate `d` from one shape to the next. A dotted
+    line marks the day's open.
+  - **Nothing rolls at runtime.** Every price comes off a seeded generator, and
+    each step nudges back toward the open, so a long run of pulls does not run a
+    stock away.
+- **The companies are made up**, so nothing here can be read as a real quote.
+  Tickers and names keep their casing, since they are data.
+- **The large title collapses into a bar as the list scrolls**, the way it does
+  on iOS. The bar's frosted material comes up over the first 6 to 28px of
+  scroll and the small centred title only from 30 to 44px, once the large one
+  has gone under the bar, so the two are never on screen together. Both are
+  `useTransform`s of a scroll motion value set from `onScroll`, so scrolling
+  renders nothing. The bar's material replaced the top fade as the scroll edge.
+  - **The bar carries the card's top corners itself**, since a
+    `backdrop-filter` escapes an ancestor's rounded `overflow: hidden` clip in
+    Chrome and the blurred list showed square in the card's top corners.
+  - **Pulling grows the large title by up to 6%, anchored at its left**, which
+    is the rubber band showing on the type the way it does on iOS.
+- **A tap on any pill moves every pill to the next thing it can show**: percent
+  change, then price change, then market cap, and round again, the way Stocks
+  does. The pills are buttons, and the numbers morph through `torph`.
+  - **A mouse press only becomes a drag past 4px**, and the scroller only
+    captures the pointer then. Capturing on the press sent the click to the
+    scroller instead of the pill under it.
+  - **The pill's casing is an inline `textTransform: "none"`**, since "505.3B"
+    is data and its unit is its casing, and `button { text-transform: inherit }`
+    in `globals.css` is unlayered and beats `normal-case`. It rendered "1.39t".
+- **Pressing a sparkline scrubs it.** A hairline and a dot follow the hand along
+  the chart, the line past the hand dims to 28%, and the price and the pill show
+  that point until the hand lets go. A faint notch plays at each point crossed.
+  - **The scrub stops its own pointer events from reaching the list**, and its
+    hit area is the sparkline plus 6px either side, `touch-none`, so a scrub
+    never scrolls the list or starts a pull. Measured: the list's `scrollTop`
+    stays 0 through a scrub.
+  - **The scrubbed numbers are plain text, not morphs**, since a value changing
+    at every point would morph into a smear, the rule `scrub-number` and
+    `event-stacking` follow. Letting go snaps back to now.
+  - **It is a `slider` for the keyboard**, stepped by the arrows, with Home and
+    End, Escape to let go, and a value text that says the price and how many
+    steps ago it was.
+- **Every change pill is one width, 4.25rem, with its number to the right**, and
+  the price column is that width too, so the change column reads as a column the
+  way Stocks sets it. Pills as wide as their own numbers made three widths in
+  four rows and a ragged left edge.
+- **The list keeps `pb-3` under its last row**, so it does not sit on the
+  card's rounded foot when scrolled to the end.
+- **Both scroll edges are soft.** The list runs out under a 2rem fade at the
+  card's foot, and a fade at the top appears only while content sits under it,
+  written to the card as `data-scrolled` from `onScroll` so scrolling renders
+  nothing. iOS softens an edge only when something is behind it. The foot's
+  fade goes the same way once the last row is fully in view, through
+  `data-end`, since there is nothing left under it to soften.
+- **The status line under the card says in words what the spinner says in
+  motion**: "Checking prices" while it spins, then "Updated just now", which ages
+  on its own every 15 seconds, the way Mail's toolbar does.
+- **Up is green `#15803d` and down is red `#d6372b`**, each clearing 4.5:1 under
+  white text, 5.02 and 4.73, since the pill carries a number. Scoped in
+  `market.ts`, not tokens.
+- **The keyboard's way in is a Refresh button at the top of the card, shown only
+  while it has focus.** The scroller takes focus too, so the arrow and page keys
+  scroll it.
+  - **Its focus ring is a layer of its own over the list**, shown through
+    `peer-focus-visible`. An inset ring on the scroller paints under its own
+    children and the list's white covered it completely, the trap the album
+    cover and the lab cards document. It follows the card's corners and is
+    `text-secondary`, 5.3:1, since the declared `text-primary/15` is 1.2:1 and a
+    ring that faint round a whole card is not there at all.
+- **Sound, with no mute control**, the call `crack-button` makes, since both
+  sounds answer a gesture. Synthesised on `crack-sound.ts`'s shape and unlocked
+  on the press.
+- **Reduced motion keeps every state and drops the travel.** The list lands on
+  its rest in one step, the spinner does not turn, a mouse drag does not coast,
+  and the prices all change on one frame. The pull is direct manipulation and
+  still tracks the hand.
+- It is `flush`, `aspect-8/5` with a `min-h-96` floor, with its own inset ring.
+- Its clip pulls short of the line so the ticks draw part way and spring back,
+  then pulls past it, spins, and lands the new prices. Then it scrubs the first
+  sparkline out and back, and taps a pill three times, which runs every pill
+  through price change and market cap and back to percent. 10.9s and 106KB.
 
 ## Motion
 
