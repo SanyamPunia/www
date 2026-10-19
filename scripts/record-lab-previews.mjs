@@ -2144,6 +2144,69 @@ const LABS = {
       await wait(900);
     },
   },
+  "pull-refresh": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A short pull that stops under the line, so the ticks draw part way and
+     * the list springs back. Then a full pull past it, so the spinner turns,
+     * the list rests open while it spins, and the new prices land in a wave
+     * down the watchlist. Then a scrub along the first sparkline and back,
+     * and three taps on a pill, which run every pill through price change and
+     * market cap and back to percent, so the clip ends in the mode it began.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const list = await page.locator("[data-lab-demo] ul").boundingBox();
+      const x = list.x - demo.x + list.width / 2;
+      const y = list.y - demo.y + 40;
+      const pull = async (by, ms) => {
+        await m.move(x, y);
+        await m.down();
+        const steps = Math.round(ms / 16);
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          await m.move(x, y + by * (1 - (1 - t) ** 2));
+          await wait(16);
+        }
+        await m.up();
+      };
+      await wait(600);
+      await pull(70, 420);
+      await wait(900);
+      await pull(170, 520);
+      await wait(2600);
+      const spark = await page
+        .locator('[data-lab-demo] [role="slider"]')
+        .first()
+        .boundingBox();
+      const sy = spark.y - demo.y + spark.height / 2;
+      const sx0 = spark.x - demo.x + spark.width - 8;
+      await m.move(sx0, sy);
+      await m.down();
+      for (let i = 1; i <= 30; i++) {
+        const t = i / 30;
+        await m.move(sx0 - Math.sin(t * Math.PI) * (spark.width - 16), sy);
+        await wait(28);
+      }
+      await m.up();
+      await wait(600);
+      const pillBox = await page
+        .locator("[data-lab-demo] li button")
+        .first()
+        .boundingBox();
+      const px = pillBox.x - demo.x + pillBox.width / 2;
+      const py = pillBox.y - demo.y + pillBox.height / 2;
+      for (let i = 0; i < 3; i++) {
+        await m.move(px, py);
+        await m.down();
+        await wait(50);
+        await m.up();
+        await m.move(px, py + 60);
+        await wait(900);
+      }
+    },
+  },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
