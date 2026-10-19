@@ -2207,6 +2207,47 @@ const LABS = {
       }
     },
   },
+  "reading-depth": {
+    // the page's middle at the card's 8:5, since the stage is taller than
+    // that and the text in the band is what the clip is about
+    focus: [0, 72, 538, 336],
+    /*
+     * A slow scroll down the page, so lines arrive faint at the foot and
+     * recede at the head. A tap on a tick in the margin jumps ahead, and a
+     * scroll back up to the top ends the clip on the frame it opens on, so it
+     * loops.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const area = await page.locator("[data-lab-demo] section").boundingBox();
+      const cx = area.x - demo.x + area.width / 2;
+      const cy = area.y - demo.y + area.height / 2;
+      await wait(600);
+      await m.move(cx, cy);
+      for (let i = 0; i < 90; i++) {
+        await page.mouse.wheel(0, 4);
+        await wait(24);
+      }
+      await wait(700);
+      const tick = await page
+        .getByRole("button", { name: "Go to paragraph 5" })
+        .boundingBox();
+      await m.move(
+        tick.x - demo.x + tick.width / 2,
+        tick.y - demo.y + tick.height / 2,
+      );
+      await m.down();
+      await wait(50);
+      await m.up();
+      await wait(1400);
+      await m.move(cx, cy);
+      for (let i = 0; i < 60; i++) {
+        await page.mouse.wheel(0, -14);
+        await wait(24);
+      }
+      await wait(900);
+    },
+  },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
     focus: [0, 0, 538, 336],
