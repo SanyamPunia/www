@@ -1091,6 +1091,22 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Pull from the top. Tap a pill, or press a chart to scrub.",
   },
+  {
+    slug: "reading-depth",
+    title: "Reading Depth",
+    description: [
+      "a page of a story with depth. each line arrives faint, sharpens in the reading band, then shrinks, blurs and fades as it scrolls out at the top.",
+      "key insight: the depth is per line, not per paragraph, so the text is split into the lines the browser actually draws. each line is then a css animation on a view timeline, which runs on the compositor.",
+      "one curve feeds both paths: it is written out as keyframes, and the same stops are sampled on scroll where scroll timelines are not supported. the rail in the margin takes you to any paragraph.",
+    ],
+    createdAt: "2026-10-20",
+    live: true,
+    reference: "https://x.com/zzzzshawn/status/2111001941677617197",
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/reading-depth/depth.ts",
+    flush: true,
+    hint: "Scroll the page. Tap a tick in the margin to jump.",
+  },
 ];
 
 /**
@@ -1228,6 +1244,7 @@ export const IMPLEMENTED_LABS = [
   "hold-confirm",
   "swipe-row",
   "pull-refresh",
+  "reading-depth",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

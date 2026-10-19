@@ -527,6 +527,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/pull-refresh").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "reading-depth": dynamic(
+    () => import("@/components/labs/reading-depth").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
