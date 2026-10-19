@@ -1904,7 +1904,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row` and `pull-refresh` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh` and `reading-depth` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2197,7 +2197,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-eight clips, 6.3MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Sixty-nine clips, 6.6MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11396,6 +11396,94 @@ refresh.
   then pulls past it, spins, and lands the new prices. Then it scrubs the first
   sparkline out and back, and taps a pill three times, which runs every pill
   through price change and market cap and back to percent. 10.9s and 106KB.
+
+### `reading-depth`
+
+A page of a short story with depth. Every line arrives faint at the foot,
+sharpens and darkens in the reading band, then shrinks toward its centre, blurs
+and fades as it scrolls out at the head, so text recedes rather than being cut
+off by an edge. `depth.ts` is the curve, pure and DOM-free, `story.ts` the words,
+and `index.tsx` the page, the line splitter, the rail and the time left.
+
+- **It came from a reference the author shared, and the UI was made different
+  on request.** The reference was a white card with a frosted tab bar. This is
+  a page with a chapter heading, a reading rail in its margin and a time-left
+  line under it. Only the idea carried over: scale and blur as text scrolls out.
+  The story is written for the lab.
+- **The depth is per line, not per paragraph**, so the text is split into the
+  lines the browser actually draws. `splitLines` sets a paragraph's words in a
+  hidden copy at the column's width and groups them by `offsetTop`, and each line
+  renders as its own `nowrap` block. A new width splits again, and so does the
+  font arriving. Splitting by sentence or by a character count would show its
+  seams. Measured: 37 lines at 390px and 22 on the lab column, none wider than the
+  column.
+- **One curve feeds two deliveries, so they cannot drift.** `STOPS` in
+  `depth.ts` is a line's look at each point of its trip, `p` running 0 as its top
+  edge comes in at the foot to 1 as its bottom edge leaves at the head, which is
+  exactly the `cover` range of a CSS view timeline.
+  - **Where scroll timelines run, the curve is CSS.** `keyframes` writes the
+    stops as `@keyframes`, and every line is `animation-timeline: view()` on the
+    page's scroller, so the depth runs on the compositor and scrolling costs
+    nothing on the main thread. Measured: 0 frames requested at rest.
+  - **Where they do not, the same stops are sampled on scroll**, one frame per
+    scroll event, written to each line. Firefox takes this path. Measured line
+    by line against Chrome at the same scroll: opacity 0.283 and 0.285 leaving,
+    1 and 1 in the band, 0.193 and 0.192 arriving, blur 2.99px and 2.97px.
+  - **The CSS is a `<style>` the component renders**, built from the stops.
+    That is the one-stylesheet rule bending for the reason it bends for the
+    labs with a local `styles.css`, and here it is what keeps the keyframes and
+    the fallback one curve rather than two copies.
+- **The reading band sits a little below the middle**, from 44% to 62% of a
+  line's trip, since that is where an eye rests on a page. A line leaving shrinks
+  to 0.94, blurs to 6px and rises 4px. **A line arriving mirrors it**, at the
+  author's request: it starts at 0.94, 6px of blur and 6px low, and grows into
+  the band, so the text comes up out of the depth as well as going back into it.
+- **Spacers above and below are shares of the page**, 38% and 46%, so the first
+  line starts in the band and the last one can reach it.
+- **The rail is one tick per paragraph and a marker for where you are.** A
+  tick sits at the scroll that puts its paragraph in the band, and is a button
+  that glides you there on the wheel's own glide. Ticks the reader has passed darken. The marker and the
+  ticks are written to the nodes on scroll, so scrolling renders nothing.
+  Measured: a tap lands its paragraph's first line on the band to the pixel.
+- **The time left is four steps, not a ticking count**: "1 min left", "Under a
+  minute", "Almost there" and "The end", at 230 words a minute, morphing through
+  `torph`. It sits under the page rather than on it, since on the page it sat on
+  the line arriving at the foot.
+- **A wheel glides, the way Lenis does, and is written by hand rather than
+  installed.** A notch moves a target and one loop eases the page toward it on
+  `approach` from `lib/lerp.ts`, at a 0.16s time constant, which is Lenis's 0.1
+  of the gap per frame at 60Hz held to one speed on every display. So a run of
+  notches is one movement rather than a stair. Measured: three notches of 100px
+  reach 126px at 200ms, 267 at 465 and 298 at 930, with the page behind at 0.
+  - **Only the wheel and the rail glide.** A thumb, a key and the scrollbar are
+    the browser's own, and any of them mid-glide stops it: a scroll the loop
+    did not write, more than 2px from where it put the page, lets go. The loop
+    keeps its position as a float, since `scrollTop` rounds to the pixel grid.
+  - **A wheel with nothing left to scroll that way is not taken**, and a pinch,
+    which is a wheel with `ctrlKey`, is left alone.
+  - Reduced motion takes each notch in one step. Measured: 0 frames requested
+    at rest.
+- **The page scrolls natively otherwise**, with its bar hidden and its
+  overscroll contained, and takes focus for the arrow and page keys. Its focus
+  ring is a layer over the text, `pull-refresh`'s call, since an inset ring on a
+  scroller paints under its own children.
+- **Reduced motion keeps the tone and drops the rest**: a second keyframe set,
+  `CALM`, holds scale, blur and travel at rest, and the fallback samples it
+  too. Measured: opacity 0.25 with no filter and no transform.
+- It invents no colour. The text is `text-primary` and the depth is opacity.
+- **The page is a 30rem by 25rem card in a fixed `h-[30rem]` stage**, at the
+  author's request, with the type at 16px on a 1.75 leading and paragraphs
+  `mb-6` apart. That is off the type scale on purpose, the standing `foil-card`
+  gives type printed on a drawn object. One `TEXT` constant sets the lines and
+  the measuring copy, so a split is never taken at a different size from the
+  one it is drawn at. It was a 25rem by 16.5rem card in an `aspect-8/5` stage,
+  and on the lab column the text sat cramped in the middle of the frame.
+- It is `flush`, with its own inset ring.
+- Its clip scrolls slowly down the page, taps a tick to jump ahead, and scrolls
+  back to the top, so it ends on the frame it opens on and loops. The stage is
+  taller than 8:5, so the crop is the middle of the page and cuts the card's
+  top and bottom. 11.3s and 359KB, large for its length since a blurred line
+  changes on every frame.
 
 ## Motion
 
