@@ -731,6 +731,18 @@ html[data-scrub="true"] * {
 }
 
 /*
+ * The spinner in `components/labs/pull-refresh/`, which turns in eighths the
+ * way iOS's activity indicator does. Run on `steps(8)`, so the ticks never
+ * move and what appears to travel is their trail of opacities. It is
+ * `motion-safe:` at the call site.
+ */
+@keyframes spinner-steps {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/*
  * The drawn caret's blink, for `components/labs/smooth-caret/`. One second a
  * cycle, which is the rate the native caret blinks at, with a short fade at
  * each edge rather than a hard step. It is not `motion-safe:`, since it stands

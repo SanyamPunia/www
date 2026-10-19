@@ -1076,6 +1076,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Swipe a row left or right. Swipe far to act.",
   },
+  {
+    slug: "pull-refresh",
+    title: "Pull Refresh",
+    description: [
+      "pull to refresh the way ios does it, on a watchlist that scrolls freely. the spinner draws itself tick by tick as you pull, and new prices land in a wave.",
+      "key insight: the refresh starts the moment the pull crosses the line, while the hand is still down, with a detent you hear and feel. letting go only decides where the list rests.",
+      "the list scrolls natively, and only the part of a gesture past its top becomes a pull. tap a pill to switch what every pill shows, and press a sparkline to scrub it.",
+    ],
+    createdAt: "2026-10-19",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/pull-refresh/pull.ts",
+    flush: true,
+    hint: "Pull from the top. Tap a pill, or press a chart to scrub.",
+  },
 ];
 
 /**
@@ -1212,6 +1227,7 @@ export const IMPLEMENTED_LABS = [
   "drop-zone",
   "hold-confirm",
   "swipe-row",
+  "pull-refresh",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
