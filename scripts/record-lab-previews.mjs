@@ -2207,6 +2207,63 @@ const LABS = {
       }
     },
   },
+  "wheel-picker": {
+    // the card and its readout at the card's 8:5, since the stage is taller
+    focus: [0, 32, 538, 336],
+    /*
+     * A flick of the minutes that coasts and lands with a click, then the
+     * hour turned slowly up past 11 and 12, so AM turns to PM on its own.
+     * Both are taken back to 7:30 AM by drags that stop before they let go,
+     * so they land exactly and the clip ends on the frame it opens on.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const cols = page.locator("[data-lab-demo] [role=spinbutton]");
+      const centre = async (i) => {
+        const b = await cols.nth(i).boundingBox();
+        return [b.x - demo.x + b.width / 2, b.y - demo.y + b.height / 2];
+      };
+      const value = async (i) =>
+        Number(await cols.nth(i).getAttribute("aria-valuenow"));
+      // a drag of `rows`, up when positive, that holds still before the lift
+      const drag = async (i, rows, steps) => {
+        const [x, y] = await centre(i);
+        const half = (rows * 44) / 2;
+        await m.move(x, y + half);
+        await m.down();
+        for (let k = 1; k <= steps; k++) {
+          await m.move(x, y + half - (rows * 44 * k) / steps);
+          await wait(16);
+        }
+        await wait(140);
+        await m.up();
+      };
+      await wait(600);
+      // the flick: fast, and let go while still moving
+      const [mx, my] = await centre(1);
+      await m.move(mx, my + 80);
+      await m.down();
+      for (let k = 1; k <= 8; k++) {
+        await m.move(mx, my + 80 - k * 22);
+        await wait(12);
+      }
+      await m.up();
+      await wait(1500);
+      await drag(0, 5, 34);
+      await wait(900);
+      // back to 30 minutes, five rows at a time
+      let left = (await value(1)) - 30;
+      while (left !== 0) {
+        const step = Math.max(-5, Math.min(5, left));
+        await drag(1, -step, 18);
+        left -= step;
+        await wait(250);
+      }
+      await wait(400);
+      await drag(0, -5, 34);
+      await wait(1000);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
