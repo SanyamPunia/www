@@ -1904,7 +1904,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh` and `reading-depth` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth` and `wheel-picker` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2197,7 +2197,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Sixty-nine clips, 6.6MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy clips, 6.7MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11484,6 +11484,100 @@ and `index.tsx` the page, the line splitter, the rail and the time left.
   taller than 8:5, so the crop is the middle of the page and cuts the card's
   top and bottom. 11.3s and 359KB, large for its length since a blurred line
   changes on every frame.
+
+### `wheel-picker`
+
+The iOS time picker: three drums, the hour, the minute and AM or PM, that you
+flick, that coast, and that land on a row with a click. `wheel.ts` is the
+numbers, pure and DOM-free, `wheel-sound.ts` the click, and `index.tsx` the
+drums, the gesture, the keyboard and the readout.
+
+- **A drum's whole state is one float in rows**, so 7.4 is four tenths of the
+  way from the eighth row to the ninth. A row's angle is its distance from that
+  float times `STEP`, 18 degrees, and the value in the band is the float
+  rounded. Nothing renders while a drum turns: each row's transform, opacity and
+  text are written to the nodes, and its text only when its value changes.
+- **Each row is a chord of the drum.** The radius is `ROW / (2 sin(STEP / 2))`,
+  141px for 44px rows, so neighbouring rows meet with no gap and no overlap. A
+  row is placed with `translateZ(-R) rotateX(-a) translateZ(R)` under a 1000px
+  perspective, so the front row sits on the page's own plane at its own size.
+  Rows past 90 degrees are hidden, which is 5 either side of the band.
+- **The band's black is a second copy of every row, clipped to the band.** The
+  grey copy has the band cut out of its mask, and the black one is clipped to
+  it, so a number changes colour exactly at the band's edge while it moves. It
+  is the duplicated-layer technique `hold-confirm` uses for its ink. The grey
+  rows also fade with the cosine of their angle and under a mask at the drum's
+  ends.
+- **A release coasts on UIScrollView's own time constant, 0.325s, to the
+  nearest row to where the coast would stop.** The coast is an exponential
+  decay to that row, with its time constant picked as the gap over the hand's
+  speed, so it leaves at exactly the hand's speed and still ends on a row. A
+  spring was the other option and overshoots or crawls, depending on its
+  numbers, against a throw of any length. The speed is the hand's over its last
+  80ms, and a hand that stopped for 60ms before letting go throws nothing.
+  - **A drum is caught where it is.** A press on a coasting drum stops it on
+    that frame and the drag carries on from there. A press that only catches it
+    lands it on the nearest row, rather than counting as a tap on the row under
+    the finger.
+  - **A flick the way the drum is already going adds to its speed**, the way it
+    does on iOS. The press keeps the coast's speed, which for a decay is the gap
+    over the time constant, and a release faster than 2 rows a second in the
+    same direction adds it on, capped at 80 rows a second. Measured on the
+    minutes: one flick travels 14 rows, two quick flicks 29 and three 44.
+  - **It stops at a hundredth of a row.** At 0.002 a long coast's tail ran for
+    two and a half seconds after it had visibly landed.
+- **The hour passing between 11 and 12 turns AM and PM over**, the way the iOS
+  picker does, since that is the one place a 12 hour clock changes half of the
+  day. It is checked for every row crossed, so a fast spin through it several
+  times lands right.
+- **AM and PM is bounded and the other two loop.** Past either end of the
+  bounded drum the hand is rubber-banded with the UIScrollView curve, and a
+  release springs it back to the end row.
+- **A tap goes to the row drawn under it**, by inverting the drum's own
+  projection with `asin`, so a tap on a squashed row near the edge lands on that
+  row rather than on a flat grid of rows.
+- **A mouse notch moves one row and a trackpad turns the drum by hand.** A
+  notch is a wheel event of 50px or more, or in lines, and glides one row. A
+  trackpad moves the drum one to one and settles on the nearest row 120ms after
+  its last event, since the system sends its own momentum events. A wheel that
+  cannot move the drum, at the end of AM and PM, is not taken.
+- **Each wheel is a `role="spinbutton"`.** The arrow keys step one row, the page
+  keys five, and Home and End go to the ends. Digits type a value, and a second
+  digit inside 900ms joins the first, so "1" then "1" is 11. A and P set AM
+  and PM. The focus mark is a ring round that wheel's part of the band.
+- **The readout says when the alarm rings**, against the real clock, and counts
+  down every 20 seconds. It changes when a hand lets go, since a coast knows its
+  row at once, and it morphs through `torph`.
+- **A click every row, synthesised**, on `crack-sound.ts`'s shape: a very short
+  bandpass of noise, a step lower on each wheel to the right, no closer than 24ms
+  apart, so a fast flick is a rattle. A phone with a motor feels each row
+  through `navigator.vibrate`.
+  - **The row a drum lands on gets a thud instead of a click**: a lower, longer
+    burst with a falling sine under it, and a firmer buzz. So a landing is heard
+    as done without looking. The coast's own final row stays quiet as it comes
+    into the band, so the two do not double.
+  - **It plays when the drum arrives, inside 0.08 of a row**, not when the decay
+    ends. The tail runs on well past what an eye can see, and a thud that waited
+    for it came half a second after the drum had visibly stopped. Measured: one
+    thud per flick, tap, catch and key. The context starts on a press or a key, so a
+  trackpad alone is silent until something is pressed.
+- **It invents no colour.** The band is `fill-hover`, the iOS selection fill,
+  on a white card on a `fill` stage. The numbers are off the type scale at
+  28px, the standing `foil-card` gives type printed on a drawn object, and AM
+  and PM keep their casing, since they are data.
+- **`touch-none` covers the three drums**, so a thumb on the card turns a drum
+  and does not scroll the page, the trade `region-comment` makes.
+- **Reduced motion keeps every state and drops the travel.** A key, a tap or a
+  release lands on its row in one step. A drag still tracks the hand.
+- Measured: 0 frames requested at rest, and a 16.7ms median and a 16.8ms worst
+  frame under a 4x CPU throttle through a flick.
+- It is `flush`, a fixed `h-[25rem]`, with its own inset ring. It was
+  `aspect-8/5`, and the author asked for it bigger: at 44px rows the card is
+  297px tall, which an 8:5 stage cannot hold with its readout. At `min-h-78` a
+  phone's stage was already shorter than the card and cut its top off.
+- Its clip flicks the minutes, turns the hour slowly up past 11 and 12 so AM
+  turns to PM, and takes both back to 7:30 AM with drags that stop before they
+  let go, so it ends on the frame it opens on and loops. The crop is the card and its readout at 8:5. 9.7s and 70KB.
 
 ## Motion
 
