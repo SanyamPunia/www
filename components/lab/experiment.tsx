@@ -531,6 +531,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/reading-depth").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "wheel-picker": dynamic(
+    () => import("@/components/labs/wheel-picker").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

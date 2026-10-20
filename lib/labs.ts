@@ -1107,6 +1107,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Scroll the page. Tap a tick in the margin to jump.",
   },
+  {
+    slug: "wheel-picker",
+    title: "Wheel Picker",
+    description: [
+      "the ios time picker: three drums of numbers you flick, that coast, and land on a row with a click. the hour passing 11 and 12 turns am and pm over, the way a clock does.",
+      "key insight: a release coasts on uiscrollview's own time constant to the nearest row, with the decay picked so it leaves at the hand's own speed. the drag hands over to the coast with no seam, and the coast still ends exactly on a row.",
+      "each row is a chord of the drum, so the rows meet with no gap. a tap goes to the row drawn under it, and digits type a value.",
+    ],
+    createdAt: "2026-10-21",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/wheel-picker/wheel.ts",
+    flush: true,
+    hint: "Flick a wheel, or tap a row. Digits type a value.",
+  },
 ];
 
 /**
@@ -1245,6 +1260,7 @@ export const IMPLEMENTED_LABS = [
   "swipe-row",
   "pull-refresh",
   "reading-depth",
+  "wheel-picker",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
