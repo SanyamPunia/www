@@ -193,6 +193,12 @@ in the light tokens to sit it against.
   so without a ground under it a sixth of the cube is not there at all. Only the
   six blocks of plastic invert and the stage stays light, which is the narrow
   use `book-opening`'s boards make: one object opts in, not the ground.
+- `components/labs/volume-slider/` is the Control Center slider, whose fill is
+  white: on a light slab the fill and the empty part would sit inside a few
+  percent of each other, and the level is the one thing the slider has to show.
+  Only the slab inverts and the stage stays light, `book-opening`'s narrow use,
+  and it is mixed a third of the way toward `text-secondary`, so it is a soft
+  charcoal rather than the set's near-black.
 - `components/labs/window-shade/` is the one caller that does not pick an end.
   **It reads both sets at once and asks for the point between them**, since the
   whole experiment is a cabin crossing from lit to dark on the position of a
@@ -1904,7 +1910,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth` and `wheel-picker` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker` and `volume-slider` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2197,7 +2203,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy clips, 6.7MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-one clips, 6.8MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11578,6 +11584,110 @@ drums, the gesture, the keyboard and the readout.
 - Its clip flicks the minutes, turns the hour slowly up past 11 and 12 so AM
   turns to PM, and takes both back to 7:30 AM with drags that stop before they
   let go, so it ends on the frame it opens on and loops. The crop is the card and its readout at 8:5. 9.7s and 70KB.
+
+### `volume-slider`
+
+The Control Center volume slider. Drag it and the white fill follows the hand,
+pull past either end and the slab stretches and springs back, and every
+sixteenth is heard at the level it lands on. `volume.ts` is the numbers, pure
+and DOM-free, `volume-sound.ts` the sound, and `index.tsx` the slab, the hand
+and one loop.
+
+- **The state is a level from 0 to 1 and a stretch in px.** The stretch is
+  how far past an end the hand has pulled, positive past the top. Nothing
+  renders while it moves: the slab's box, the fill and the speaker are written
+  to the nodes from refs.
+- **A drag is relative, the way iOS's is.** A press does not jump the fill to
+  the finger, and the level moves by the hand's travel over the slab's height.
+- **A release eases the fill onto the nearest sixteenth**, on a 0.09s time
+  constant, since iOS keeps the volume in sixteenths and so does every click
+  here. The hand moves the fill freely, and only letting go settles it. A press
+  catches a fill still easing. Measured: let go at 67% it rests at 69, which
+  is eleven sixteenths, and at 61% it rests at 63.
+- **Past either end the slab stretches on the UIScrollView rubber band**, to
+  at most 34px however far the hand goes, so the end reads as the slab giving
+  way and not as a wall. It grows toward the end being pulled, so the other end
+  stays put, and it narrows by a third of a pixel for each pixel it stretches,
+  so it reads as elastic. It is a real width and
+  height, never a scale, so the corner and the speaker keep their shape.
+  - **Letting go springs it back softly, at a 0.6 damping ratio**, so it
+    overshoots a little, since letting go of something elastic does. Measured
+    on a release from 253px: 246, 228, 218, 216, 217 and home at 216.
+  - **The overshoot squashes the slab at the end that was pulled, and that was
+    a bug.** The stretch was one signed number, positive at the top, so a
+    spring past zero after a pull at the top read as a stretch at the bottom:
+    the slab grew downward under a full fill, which looked like it unfilled and
+    refilled, and the bottom did the mirror image. The stretch is now an extent
+    along a `side` that holds through the release, so below zero the slab is a
+    little shorter at that same end. Measured on every frame of a release: the
+    fill covers the whole slab at the top and none of it at the bottom.
+  - **A press on a slab still springing back catches it**, stretch and all.
+- **A press grows the whole slab 8px about its middle**, quicker in than out,
+  which is the Control Center module answering a touch. It is a width and a
+  height, not a scale, per Local overrides, and the level fills the grown
+  height so the fill does not move.
+- **It is soft at the author's request: a charcoal slab, a 2rem corner, a
+  gentle shadow and quiet sounds.** The slab is `inverse-fill` mixed a third of
+  the way toward `text-secondary` in oklab, since the near-black of the set read
+  as a hole in the light stage, and the white fill still reads on it at a
+  glance. The speaker is drawn twice, white over the glass and `text-secondary`
+  over the fill, and the second copy is clipped to the fill, so it changes
+  colour exactly at the fill's edge. It is
+  the duplicated-layer technique `hold-confirm` and `wheel-picker` use.
+- **The end the slab is sent to gets a doodle**: seven short, slightly bent
+  strokes ring that rounded end, draw on, flick outward and wipe off, like the
+  "boing" marks round something that hit a wall in a sketch. It was asked for
+  at the edge the slab is sent to, after a ripple out of the speaker missed
+  that, and it was picked over confetti, since reaching an end of a volume
+  slider is not an achievement.
+  - **`burst` places the strokes off the slab's real outline**, a rounded box
+    measured by its signed distance, so each starts 9px out whether it leaves
+    the flat of the end or the curve of a corner. The strokes are reshaped on
+    every burst from an integer hash, so no two are the same and none is random.
+  - **Each end's group rides that end as the slab stretches**, through one
+    `transform` written in `paint`.
+  - **It fires when the stretch starts at that end**, and on a key or a notch
+    pushed at it, and not again at the same end inside 420ms.
+  - **The dash is `1 2` and rests at 1.02 and -1.02.** At `1 1` on 1 and -1 a
+    dash ended exactly on the path's end, and a round cap on a zero-length dash
+    paints a dot, so every finished stroke left one behind. The signature
+    documents the same trap.
+  - It is WAAPI on fourteen paths, in `text-secondary`, and reduced motion
+    drops it.
+- **The speaker is drawn here, not taken from the icon set**, since its waves
+  step in and out with the level, one, two or three, and at silence a slash
+  draws on over a gap in the glass's own tone. The level is one `data-waves`
+  attribute on the svg and every part reads it.
+- **Everything is heard at the level it sets**, since that is what a volume
+  control should let you hear. Synthesised on `crack-sound.ts`'s shape:
+  - each sixteenth crossed is a short, low blip with a 12ms swell rather than a
+    click, louder and a little higher as the level rises, silent at zero and no
+    closer than 30ms apart;
+  - letting go plays the macOS pop at the new level;
+  - reaching an end is a soft knock at a fixed level, with a 10ms buzz on a
+    phone, since it says "no further" and not "this loud".
+- **The keyboard steps in sixteenths**, the arrows one, the page keys four, and
+  Home and End to the ends. A key pressed at an end bumps the slab past it, and
+  it springs back with a knock. A mouse notch is one sixteenth with a pop, and
+  a trackpad moves the fill by hand, stretching past the ends, and lets go 140ms
+  after its last event.
+- **There is nothing on the stage but the slab.** A percentage under it was
+  built and taken out, since the fill already says the level, and the
+  `aria-valuetext` says it in words.
+- **`touch-none` covers the slab alone**, so a thumb anywhere else on the stage
+  still scrolls the page. `cursor-grab` with `data-carry` on the stage is one
+  more place the shared `cursor-pointer` rule is off.
+- **The focus mark is an outline in `text-secondary` 4px out**, stronger than
+  the declared pattern, which is near-black on a dark slab.
+- **Reduced motion keeps the stretch while the hand is on it**, since that is
+  direct manipulation, and drops the spring, the bump and the press growth.
+- Measured: 0 frames requested at rest. Verified at 1280 and 390px, by mouse,
+  keyboard, wheel and touch, with no sideways scroll and no console errors.
+- It is `flush`, a fixed `h-[25rem]`, with its own inset ring. At `aspect-8/5`
+  the stretch past the top ran off the stage.
+- Its clip pulls up past the top and lets go, pulls down to silence and past
+  the bottom, and then up by exactly nine sixteenths of the slab, back to the
+  56% it opens on, so it loops. Each pull to an end shows its doodle. 9.2s and 43KB.
 
 ## Motion
 
