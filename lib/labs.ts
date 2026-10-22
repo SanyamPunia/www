@@ -1122,6 +1122,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Flick a wheel, or tap a row. Digits type a value.",
   },
+  {
+    slug: "volume-slider",
+    title: "Volume Slider",
+    description: [
+      "the control center volume slider. drag it and the fill follows the hand, pull past either end and the slab stretches and springs back.",
+      "key insight: every sixteenth is heard at the level it lands on, so the slider lets you hear what it sets. letting go plays the mac pop at the new level, and an end is a soft knock.",
+      "the stretch is the uiscrollview rubber band, and the end the slab hits gets a doodle. a release settles the fill on the nearest sixteenth.",
+    ],
+    createdAt: "2026-10-22",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/volume-slider/volume.ts",
+    flush: true,
+    hint: "Drag the slider, and pull past either end. Sound on.",
+  },
 ];
 
 /**
@@ -1261,6 +1276,7 @@ export const IMPLEMENTED_LABS = [
   "pull-refresh",
   "reading-depth",
   "wheel-picker",
+  "volume-slider",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
