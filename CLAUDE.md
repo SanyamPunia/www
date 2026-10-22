@@ -11654,6 +11654,15 @@ and one loop.
     documents the same trap.
   - It is WAAPI on fourteen paths, in `text-secondary`, and reduced motion
     drops it.
+- **The charcoal is a layer above the fill, never the slab's own background,
+  and that was a bug.** With the slab painting charcoal and the white fill on
+  top, both were anti-aliased along the same rounded clip, so a full slab
+  showed a dark hairline round its top corners: the nested corner the
+  `why-nested-rounded-corners-show-an-extra-curve` post is about. The charcoal
+  now covers only the part above the fill, a pixel into it so the seam has no
+  gap, and nothing once the fill reaches the top, so every point of the edge
+  has one colour against the stage. Verified at 3x on a full slab: no dark
+  pixel at the corner.
 - **The speaker is drawn here, not taken from the icon set**, since its waves
   step in and out with the level, one, two or three, and at silence a slash
   draws on over a gap in the glass's own tone. The level is one `data-waves`
@@ -11687,7 +11696,7 @@ and one loop.
   the stretch past the top ran off the stage.
 - Its clip pulls up past the top and lets go, pulls down to silence and past
   the bottom, and then up by exactly nine sixteenths of the slab, back to the
-  56% it opens on, so it loops. Each pull to an end shows its doodle. 9.2s and 43KB.
+  56% it opens on, so it loops. Each pull to an end shows its doodle. 9.2s and 42KB.
 
 ## Motion
 
