@@ -2264,6 +2264,42 @@ const LABS = {
       await wait(1000);
     },
   },
+  "volume-slider": {
+    // the slab and its stretch room at the card's 8:5
+    focus: [0, 32, 538, 336],
+    /*
+     * The slider dragged up past the top, held so the slab stretches, and let
+     * go so it springs back. Then down to silence, where the slash draws on,
+     * and past the bottom. Last, up by exactly nine sixteenths of the slab,
+     * which is the 56% it opens on, so the clip loops.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const b = await page
+        .getByRole("slider", { name: "Volume" })
+        .boundingBox();
+      const x = b.x - demo.x + b.width / 2;
+      const y = b.y - demo.y + b.height / 2;
+      const pull = async (dy, steps, hold) => {
+        await m.move(x, y);
+        await m.down();
+        for (let k = 1; k <= steps; k++) {
+          await m.move(x, y + (dy * k) / steps);
+          await wait(16);
+        }
+        await wait(hold);
+        await m.up();
+      };
+      await wait(600);
+      await pull(-180, 40, 500);
+      await wait(900);
+      await pull(320, 60, 500);
+      await wait(1000);
+      // from silence, nine sixteenths of the 216px slab, held still
+      await pull(-121.5, 40, 200);
+      await wait(1000);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
