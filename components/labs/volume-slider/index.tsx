@@ -71,6 +71,7 @@ const SETTLE = 140;
 export default function VolumeSlider() {
   const slab = useRef<HTMLDivElement>(null);
   const fill = useRef<HTMLDivElement>(null);
+  const empty = useRef<HTMLDivElement>(null);
   const covered = useRef<HTMLDivElement>(null);
   // the doodle at each end, the top's at 0 and the bottom's at 1
   const ends = useRef<(SVGGElement | null)[]>([]);
@@ -126,6 +127,11 @@ export default function VolumeSlider() {
     const filled =
       level.current * b.base + (side.current > 0 ? over.current : 0);
     if (fill.current) fill.current.style.height = `${filled}px`;
+    // the charcoal covers only what the fill does not, a pixel into it so the
+    // seam has no gap, and nothing at all once the fill reaches the top
+    const above = b.height - filled;
+    if (empty.current)
+      empty.current.style.height = `${above > 1 ? above + 1 : Math.max(0, above)}px`;
     if (covered.current)
       covered.current.style.clipPath = `inset(${b.height - filled}px 0 0 0)`;
     const waves = String(wavesOf(level.current));
@@ -488,11 +494,23 @@ export default function VolumeSlider() {
             width: WIDTH,
             height: HEIGHT,
             transform: "translate(-50%, 0px)",
-            backgroundColor: SLAB,
             boxShadow:
               "0 1px 2px rgba(0,0,0,0.06), 0 8px 18px -8px rgba(0,0,0,0.16), 0 28px 56px -24px rgba(0,0,0,0.26)",
           }}
         >
+          {/*
+           * The charcoal is its own layer above the fill, never the slab's own
+           * background. Under the fill it would be anti-aliased along the same
+           * rounded clip as the white, and a dark hairline of it showed round
+           * the top of a full slab: the nested corner the
+           * `why-nested-rounded-corners-show-an-extra-curve` post is about.
+           */}
+          <div
+            ref={empty}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0"
+            style={{ backgroundColor: SLAB }}
+          />
           {/* the glass: a lit top edge, a sheen, and a lift under a mouse */}
           <div
             aria-hidden="true"
