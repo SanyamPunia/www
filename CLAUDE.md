@@ -1314,6 +1314,77 @@ line. `demos.tsx` holds `Anatomy` and `Compare`.
   64px) against 48px of ink, in every engine. That is a separate post if it is
   ever one.
 
+### `your-site-is-probably-broken-for-reduced-motion`
+
+A one-minute post on what breaks when a reader turns on reduce motion: a
+fade-in stuck invisible, logic waiting on an end event, and Framer Motion
+ignoring the setting by default. Its source is Aviral's write-up, which the
+last line credits and links. It was cut down to this at the author's request.
+`demos.tsx` holds `Hero`, `FadeIn` and `Modal`.
+
+- **It passes `toc={false}`**, the call the nested-corners post makes, since
+  the figures break out into the margin the section list would sit in. The
+  rail keeps its back link.
+
+- **All three set one page twice, as the author tested it and as a reduce
+  motion visitor gets it, and all three break out of the prose column** to
+  `min(100vw-2rem,54rem)`, the width the nested-corners post measured to clear
+  the rail. Below `sm` the two pages stack.
+- **The mock window is `Browser`, a container with everything inside it in
+  `cqw`**, so one drawing reads the same in the wide figure and on a phone.
+  The chrome and the nav never animate, which is what says the page has
+  loaded. What fails is outlined in dashed `danger` with an `opacity 0` tag, the
+  same mark in all three, since the element is still there taking up its box.
+- **`Hero` runs under the opening on a storyboard**, one integer stepped by
+  `TIMING`: the left page's headline, subline, button and cards rise in, the
+  right page's empty slots outline themselves at 2.2s, and the left fades out
+  and loops at 6.2s. It plays only while in view. Under real reduced motion it
+  rests on the final frame, everything shown and every slot outlined, and
+  requests no frames.
+- **`FadeIn` and `Modal` carry a simulated reduce motion switch and a
+  replay.** A page cannot change the system setting, so the switch drives the
+  same code paths the setting would, and both start off so the reader sees the
+  working version first.
+- **`FadeIn` runs the post's own two snippets on a mock dashboard.** Toggling or
+  replaying remounts both pages, since Motion keeps a value it has reached when
+  `animate` goes away.
+- **`Modal` waits for a real `transitionend`.** The broken dialog removes
+  itself, and its backdrop, only when that event fires, and with the switch on
+  its card takes `transition-none`, so the card vanishes, the backdrop stays
+  and the card's empty box is outlined. The fixed one removes itself at once
+  when motion is off and keeps a 350ms timeout otherwise. The handler checks
+  that the event's target is the card, or the close button's own colour
+  transition would close it.
+- **The captions are plain text and short.** A `torph` morph left gaps between
+  the letters of "closed", and the long version ran into the next column on a
+  phone.
+- **The switch's name never changes, and `aria-pressed` carries the state.**
+  It flipped between "Turn reduce motion on" and "off" while also setting
+  `aria-pressed`, which announced the state twice and contradicted itself.
+- **`Hero` is one `role="img"` with a description**, since read word by word it
+  was two URLs, two headlines and a tag. `FadeIn` and `Modal` are figures with
+  an `aria-label`, and each status caption is a polite live region.
+- **The mock dialog behaves like one.** It is a `role="dialog"` named by its
+  title, Escape closes it, and a keyboard open focuses Close and hands focus
+  back to Save once the dialog is gone. A mouse press moves nothing, for
+  `notice-stack`'s reason. It enters from 0.95 and opacity 0 through
+  `@starting-style` over 200ms on a strong ease-out, its backdrop fades in with
+  it, and the exit is 150ms. Under the switch both are `transition-none`, which
+  is the bug.
+- **Save and Close are real controls inside a drawing**, so they are larger
+  than the drawing's scale, 2.8cqw labels, and carry a `before:` hit area 6.4px
+  past every edge. Measured: a 57 by 26px Save is a 70 by 39px target.
+- **Its two technical claims link their sources**, MDN for the media query and
+  Motion's docs for `reducedMotion`, since a claim an AI answer can quote is
+  worth more with its source beside it.
+  - **Each link is one word.** `InlineLink` draws its rule as an absolute
+    `::after` on an inline span, and a span that breaks across two lines gives
+    that box no width, so a wrapping link shows no rule at all. Measured on
+    "browsers pass to your code", which wrapped at 1280px. A link on a code
+    span reads as plain code, so neither link sits on one.
+- **The title says "with reduced motion on"** so the phrase a reader searches
+  is in it, at 60 characters with the site's suffix.
+
 ### `why-nested-rounded-corners-show-an-extra-curve`
 
 A scroll panel with a thick grey frame showed a faint curved outline at every
@@ -12411,6 +12482,15 @@ indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment,
 - **`dateModified` is deliberately absent.** Nothing records when a post was
   last edited, so stamping `datePublished` there would assert "never edited
   since" as fact.
+- **`BlogPosting` carries `image`, the post's generated card at
+  `/og/blogs/<slug>`.** Every post has one, since `blogMetadata` points
+  `og:image` at the same route, and a parser that finds the markup without the
+  head still gets the picture.
+- **The root layout's `twitter` block sets the card type and nothing else.** It
+  carried `title: "Sanyam Punia"`, and a root title beats each page's Open Graph
+  title, so every page's `twitter:title` was the name. Without it Next fills the
+  card from the page's own Open Graph tags. `/` and `/work` still read the name,
+  since that is their Open Graph title.
 - **The email is deliberately absent.** It is already public on the page, and it
   is the content of `/contact`, but machine-readable markup hands it to scrapers
   for no ranking benefit. So `ContactPage` describes the page and points at the
