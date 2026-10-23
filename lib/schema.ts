@@ -156,6 +156,8 @@ export function blogPostSchema(meta: BlogMeta): Json {
     datePublished: meta.date,
     url: `${SITE_URL}/blogs/${meta.slug}`,
     mainEntityOfPage: { "@id": `${SITE_URL}/blogs/${meta.slug}` },
+    // the card `blogMetadata` already points `og:image` at, which every post has
+    image: `${SITE_URL}/og/blogs/${meta.slug}`,
     isPartOf: { "@id": SITE_ID },
     author: person(),
     inLanguage: "en-US",
