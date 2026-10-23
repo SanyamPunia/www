@@ -1910,7 +1910,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker` and `volume-slider` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider` and `zoom-dial` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -1989,6 +1989,9 @@ experiment is a directory under `components/labs/`.
   `pull-refresh` scopes an up green and a down red for its quotes, since colour
   is what says which way a stock moved before the number is read. See its own
   section.
+  `zoom-dial` scopes the camera's own yellow for its live value and needle, and
+  the paper and discs it is pointed at, since those colours are the picture.
+  See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2203,7 +2206,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-one clips, 6.8MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-two clips, 6.9MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11697,6 +11700,120 @@ and one loop.
 - Its clip pulls up past the top and lets go, pulls down to silence and past
   the bottom, and then up by exactly nine sixteenths of the slab, back to the
   56% it opens on, so it loops. Each pull to an end shows its doodle. 9.2s and 42KB.
+
+### `zoom-dial`
+
+The iPhone camera's zoom control, over a drawn abstract of nested discs. A pill of lenses at
+rest, `.5`, `1`, `2` and `5`: tap one and the camera zooms there. Hold the pill,
+or drag across it, and it opens into a curved ruler you scrub, which catches on
+each lens and folds back into the pill a moment after you let go. `dial.ts` is
+the numbers, pure and DOM-free, `scene.tsx` what the camera sees,
+`zoom-sound.ts` the clicks and `index.tsx` the viewfinder, the pill, the ruler
+and every way in.
+
+- **Zoom is worked in its log.** One octave is a doubling, so the ruler is even
+  in octaves, a step from 1x to 2x is as long as one from 5x to 10x, and a hand
+  moving at one speed zooms at one rate. The dial is one float, `raw`, in
+  octaves along the ruler, and nothing renders while it moves: the ruler's turn,
+  the scene's `viewBox`, the readout, the pill and the slider's value are
+  written to the nodes from it.
+- **The ruler is longer than the zoom range by a short flat at each lens, and
+  that is the catch.** Across a flat, 0.12 of an octave, the zoom holds at the
+  stop while the hand keeps going, and the ruler stands still under the needle.
+  Leaving it is continuous, so there is no jump on the way out. `zoomOf` and
+  `rawOf` are the two directions of that mapping, and a lens's ruler position is
+  the middle of its flat. Measured on a slow drag: 2.0x held across about 40px of
+  hand on the lab column. A catch is a lower click with a little body and a 6ms
+  buzz on a phone.
+- **The ruler is an arc of a circle a little wider than the frame**, turned
+  about its centre by the zoom's angle, 22 degrees an octave, so the marks move
+  under a needle that stands still. A mark is a tenth below 2x, a fifth to 5x and
+  a half to 10x, so they stay about evenly spaced on a log ruler, and the lenses
+  and 10x are the long marks with their numbers. Its ends fade under a mask, and
+  a halo of paper keeps the marks legible over the discs.
+- **Dragging right turns the ruler right and zooms out**, the way the camera's
+  does. Past either end the hand is rubber-banded with the UIScrollView curve,
+  and a release coasts on its time constant, 0.325s, to wherever the coast would
+  stop, a landing inside a flat going to the lens.
+- **The pill opens on a hold of 240ms or a 6px sideways drag**, and the scrub
+  starts from where the slop ran out, so there is no jump. A press that is
+  neither is a tap on the lens under it. Shut, only the pill takes a press, and
+  open, the whole band does. The ruler folds back 1.4s after the last touch.
+- **Opening is a crossfade, not a morph.** The pill shrinks a tenth, blurs and
+  fades as the ruler and the readout rise 8px into place over 300ms. A morph
+  from the pill's four chips into an arc of forty marks has no honest in
+  between.
+- **The active chip carries the live value**, `2.4×` on the 2 lens, in the
+  camera's yellow on a darker ground, and the others read their lens.
+  - **A tap names its lens at once and does not count.** It counted at first:
+    the chip read every value the glide passed through, 1.6, 1.9, 2.4 on the
+    way from 1 to 5, and lit the 2 chip in between, which read as the number
+    going up and down on its own. `tapTo` holds the tapped lens on the pill
+    until the glide lands, so only the picture moves. A scrub, a pinch, a key
+    and a coast still count, since there the number follows the hand.
+- **The scene is zoomed by its `viewBox`, never a transform**, so every zoom
+  is a fresh vector render and stays sharp at 10x, where a scaled layer would be
+  a blurred bitmap. It is drawn at 1600 by 1000 units, which is the frame at
+  0.5x, with the discs centred on the middle of the 1x frame.
+  - **It was a night sky with a moon, hills and a lit window**, and it was
+    replaced at the author's request with something lighter and more abstract.
+  - **The discs are nested, each about two and a half times the next**, 330,
+    140, 56 and 22 units, so every lens finds one that fills its frame: 1x the
+    widest, 2x the next, 5x the next and 10x the last, with a hole and a dot in
+    it. A faint dot grid every 40 units is what says how far the camera has
+    gone, and one small circle on an orbit gives the wide shot its asymmetry.
+  - **The paper runs 400 units past the drawing on every side**, since the lift
+    below moves the frame, and at 0.5x a strip of bare stage showed at the foot.
+  - **The discs are held 34px above the frame's middle at every zoom**, so the
+    readout and the ruler never land on the centre. The offset is screen px
+    divided by the slice's scale, which keeps it still while the camera zooms.
+  - **The scene smears a little by how fast it zooms**, up to 1.4px, the way a
+    lens does through a fast zoom, and none at rest.
+  - **Past 5x the picture goes a little soft and grainy**, since the camera
+    has run out of lenses and is cropping. The blur grows to 0.9px and a fine
+    noise tile to 22% between 5x and 10x, and both are gone below 5x. It stays
+    on at rest, so the loop does not have to run to keep it. The long mark at 5
+    is where the lenses end, and this is what says so.
+  - **A lens hand-off was built and taken out.** Crossing a lens nudged the
+    picture 2 to 3px with a 0.5px blur and let it settle, the way a phone
+    switching cameras does. Fired at a lens's own number, it came after a zoom
+    in had stopped and read as a twitch. Moved half way between two lenses, it
+    was still visible as a small shift mid-glide, so it went. The picture now
+    zooms about one fixed point: measured, the discs' centre holds to the
+    hundredth of a pixel on every frame of a tap.
+- **A frame's step is clamped at zero.** A frame's timestamp can be earlier
+  than the clock `run` reads, and a negative step ran the glide backwards for
+  that frame: a tap from 1x to 2x showed 0.5x for one frame before it set off.
+- **Every way in.** A tap, a hold and a drag on the pill. A trackpad pinch
+  anywhere on the viewfinder, which is a wheel with `ctrlKey`, and a two-finger
+  pinch on a touch screen. A trackpad swipe across the band, settling on a lens
+  it stops in. The band is a `role="slider"`: the arrows step a mark, the page
+  keys go to the next or the last lens, and Home and End to the ends. The focus
+  mark is a ring round the pill in `text-primary` at 30%.
+- **The sound is two quiet clicks**, synthesised on `crack-sound.ts`'s shape: a
+  very short one for each mark under the needle, no closer than 26ms so a fast
+  scrub purrs, and the lower one for a lens catching.
+- **It is the camera's yellow, `#ffd60a`, and a warm paper and terracotta,
+  scoped here.** The yellow is the live value and the needle, the two things
+  that say "now", and the picture's colours are the picture. None are tokens.
+  - **The UI is dark ink on a light picture.** The ruler is `text-primary` at
+    alpha over a wash of `bg` rising from the foot. The yellow is too light to
+    read on paper, so it only sits on dark: the live value on a `text-primary`
+    pill, the active chip on a `text-primary` ground, and the needle over a
+    wider dark line. The pill of lenses is `bg` at 70% with a hairline, and the
+    corners darken by 8% of `text-primary` rather than 35% of black.
+- **`touch-none` covers the band**, so a finger on the ruler scrubs and does
+  not scroll the page.
+- **Reduced motion keeps every state and drops the travel**: a tap or a key
+  lands in one step, the pill and the ruler swap with no transition, and there
+  is no smear. The softness past 5x stays, since it is a
+  state and not a movement. A scrub is direct manipulation and is unchanged.
+- Measured: 0 frames requested at rest. Verified at 1280 and 390px, by mouse,
+  keyboard, trackpad and touch, with no sideways scroll and no console errors.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
+- Its clip taps the wide lens and 2x, holds the pill open and scrubs out to the
+  moon through the catch at 5x, lets the ruler fold back and taps 1x, so it ends
+  on the frame it opens on and loops. 9.3s and 86KB.
 
 ## Motion
 
