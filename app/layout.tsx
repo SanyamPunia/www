@@ -47,8 +47,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // no title here: Next fills the card from each page's Open Graph tags, and a
+  // title set at the root beat every page's own, so every card read the name
   twitter: {
-    title: "Sanyam Punia",
     card: "summary_large_image",
   },
   verification: {
