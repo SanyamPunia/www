@@ -1137,6 +1137,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag the slider, and pull past either end. Sound on.",
   },
+  {
+    slug: "zoom-dial",
+    title: "Zoom Dial",
+    description: [
+      "the iphone camera's zoom control. tap a lens to zoom there, or hold and drag and the pill opens into a curved ruler you scrub, which folds back a moment after you let go.",
+      "key insight: the ruler is longer than the zoom range by a short flat at each lens, so the zoom holds at the stop while the hand keeps moving. that is the catch, and leaving it is continuous.",
+      "the dial is one float in octaves, so zoom is even along the ruler. the scene is zoomed by its viewbox, so it stays sharp at 10x, and each lens finds a disc that fills its frame.",
+    ],
+    createdAt: "2026-10-23",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/zoom-dial/dial.ts",
+    flush: true,
+    hint: "Tap a lens, or hold and drag the pill. Pinch works too.",
+  },
 ];
 
 /**
@@ -1277,6 +1292,7 @@ export const IMPLEMENTED_LABS = [
   "reading-depth",
   "wheel-picker",
   "volume-slider",
+  "zoom-dial",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

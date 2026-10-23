@@ -539,6 +539,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/volume-slider").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "zoom-dial": dynamic(
+    () => import("@/components/labs/zoom-dial").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
