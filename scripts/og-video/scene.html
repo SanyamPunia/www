@@ -1,0 +1,285 @@
+<!doctype html>
+<!--
+  The home page's social card as a moving scene: the same three bubbles over the
+  same background, arriving as a conversation. `render(t)` is a pure function of
+  the time in seconds, so `scripts/og-video/render.mjs` can step it frame by
+  frame and the clip is identical on every run.
+
+  The clip opens and closes on the finished card, which is `app/opengraph-image.jpg`,
+  so it loops with no seam and a player that shows the first frame before it
+  plays shows the same card the image does.
+
+  Opened directly in a browser it plays itself on a loop, which is the quick way
+  to look at a change before rendering.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OG video scene</title>
+    <style>
+      @font-face {
+        font-family: "Inter";
+        src: url("../../app/og/_assets/Inter-Regular.ttf") format("truetype");
+        font-weight: 400;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #fdfdfd;
+      }
+      #stage {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: url("../../app/og/_assets/background.png") 0 0 / 1200px 630px;
+      }
+      .bubble {
+        position: absolute;
+        height: 62px;
+        transform-origin: var(--ox) 100%;
+      }
+      .bubble svg {
+        position: absolute;
+        top: 0;
+        overflow: visible;
+      }
+      .text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        padding: 0 22px 0 23px;
+        font: 400 22px/1 "Inter", "Apple Color Emoji", sans-serif;
+        white-space: nowrap;
+        overflow: hidden;
+        border-radius: 31px;
+      }
+      .text .wave {
+        display: inline-block;
+        margin: 0 0.06em;
+        transform-origin: 68% 88%;
+      }
+      .dots {
+        position: absolute;
+        top: 50%;
+        display: flex;
+        gap: 6px;
+        transform: translate(-50%, -50%);
+      }
+      .dots i {
+        display: block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #8e8e93;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script>
+      const H = 62;
+      const TYPING_W = 78;
+
+      // Measured off app/opengraph-image.jpg: the body's left edge, its top,
+      // which side the tail is on, and the fill.
+      const BUBBLES = [
+        { x: 253, y: 210, side: "left", fill: "#e2e2e2", ink: "#111", text: 'hi <span class="wave">👋</span>, myself sanyam' },
+        { right: 961, y: 309, h: 64, side: "right", fill: "#0b9bfa", ink: "#fff", text: "a fullstack-developer" },
+        { x: 253, y: 389, side: "left", fill: "#e2e2e2", ink: "#111", text: "based out of india 🇮🇳" },
+      ];
+
+      // One left-tailed bubble of body width `w`, in the body's own
+      // coordinates. The bottom-left corner is the tail, a short curl out to a
+      // point 9px past the edge with a notch where it rejoins the body.
+      function leftPath(w, H = 62) {
+        const R = H / 2;
+        return [
+          `M ${R} 0 H ${w - R}`,
+          `A ${R} ${R} 0 0 1 ${w - R} ${H}`,
+          `H 22`,
+          `C 18 ${H} 15 61 14 58`,
+          `C 11 62 3 ${H + 1.2} -9 ${H + 1}`,
+          `C -3 62 0 58 0 50`,
+          `V ${R}`,
+          `A ${R} ${R} 0 0 1 ${R} 0 Z`,
+        ].join(" ");
+      }
+
+      const stage = document.getElementById("stage");
+      const nodes = BUBBLES.map((b) => {
+        const el = document.createElement("div");
+        el.className = "bubble";
+        el.innerHTML =
+          `<svg height="${H}"><path fill="${b.fill}"/></svg>` +
+          `<div class="text" style="color:${b.ink}"><span class="line">${b.text}</span></div>` +
+          `<div class="dots"><i></i><i></i><i></i></div>`;
+        stage.appendChild(el);
+        return {
+          b,
+          el,
+          svg: el.querySelector("svg"),
+          path: el.querySelector("path"),
+          text: el.querySelector(".text"),
+          line: el.querySelector(".line"),
+          dots: el.querySelector(".dots"),
+          dot: [...el.querySelectorAll(".dots i")],
+          wave: el.querySelector(".wave"),
+        };
+      });
+
+      // Each bubble is as wide as its text plus the padding, which is how the
+      // card was laid out. Measured once the font is in.
+      function measure() {
+        for (const n of nodes) n.full = Math.round(n.line.getBoundingClientRect().width) + 45;
+      }
+
+      // ---- timing helpers --------------------------------------------------
+
+      const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+      const span = (t, a, b) => clamp((t - a) / (b - a));
+      const mix = (a, b, p) => a + (b - a) * p;
+      const easeOut = (p) => 1 - (1 - p) ** 3;
+      const easeInOut = (p) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2);
+
+      // A damped spring from 0 to 1, as a function of seconds since it started.
+      // Underdamped, so it passes 1 a little and settles back, which is what a
+      // bubble arriving does.
+      function spring(t, { zeta = 0.72, omega = 18 } = {}) {
+        if (t <= 0) return 0;
+        const wd = omega * Math.sqrt(1 - zeta * zeta);
+        return 1 - Math.exp(-zeta * omega * t) * (Math.cos(wd * t) + ((zeta * omega) / wd) * Math.sin(wd * t));
+      }
+
+      // ---- the timeline ----------------------------------------------------
+      //
+      // 0.0  the finished card, held
+      // 1.7  it clears, top first, drifting up as a chat scrolls
+      // 2.6  someone is typing
+      // 3.5  "hi, myself sanyam", and the hand waves
+      // 4.5  the reply arrives from the right
+      // 5.4  typing again
+      // 6.3  "based out of india"
+      // 9.6  back to the frame it opened on
+
+      const DURATION = 9.6;
+      const CLEAR = 1.7;
+      const SCENES = [
+        { type: 2.6, open: 3.5 },
+        { send: 4.5 },
+        { type: 5.4, open: 6.3 },
+      ];
+
+      function typingDots(n, t, since) {
+        n.dot.forEach((d, i) => {
+          const phase = (((t - since) * 1.4 - i * 0.18) % 1 + 1) % 1;
+          const pulse = Math.sin(Math.PI * clamp(phase / 0.55)) ** 2;
+          d.style.opacity = String(mix(0.35, 1, pulse));
+          d.style.transform = `translateY(${-2.5 * pulse}px)`;
+        });
+      }
+
+      function place(n, w, { opacity, scale = 1, dy = 0, textOpacity = 1, dotsOpacity = 0, blur = 0 }) {
+        const { b } = n;
+        const x = b.side === "left" ? b.x : b.right - w;
+        n.el.style.left = `${x}px`;
+        n.el.style.top = `${b.y}px`;
+        n.el.style.width = `${w}px`;
+        n.el.style.setProperty("--ox", b.side === "left" ? "-9px" : `${w + 9}px`);
+        n.el.style.opacity = String(opacity);
+        n.el.style.transform = `translateY(${dy}px) scale(${scale})`;
+        n.el.style.filter = blur > 0.01 ? `blur(${blur}px)` : "none";
+
+        n.svg.setAttribute("width", String(w + 24));
+        n.svg.style.left = "-12px";
+        n.path.setAttribute("d", leftPath(w, b.h));
+        n.el.style.height = `${b.h ?? H}px`;
+        n.svg.setAttribute("height", String(b.h ?? H));
+        n.path.setAttribute(
+          "transform",
+          b.side === "left" ? "translate(12 0)" : `translate(${w + 12} 0) scale(-1 1)`,
+        );
+
+        n.text.style.opacity = String(textOpacity);
+        // The text sits where it will end, so a bubble growing around it
+        // uncovers it rather than sliding it. A right bubble grows leftward,
+        // so its text is pinned to the right edge.
+        n.text.style.justifyContent = b.side === "left" ? "flex-start" : "flex-end";
+        n.dots.style.left = `${b.side === "left" ? TYPING_W / 2 : w - TYPING_W / 2}px`;
+        n.dots.style.opacity = String(dotsOpacity);
+      }
+
+      function render(t) {
+        t = ((t % DURATION) + DURATION) % DURATION;
+        const looped = t >= SCENES[2].open; // everything has arrived again
+
+        nodes.forEach((n, i) => {
+          const full = n.full;
+
+          // The opening hold and its clearing.
+          if (t < SCENES[0].type) {
+            const p = easeInOut(span(t, CLEAR + i * 0.08, CLEAR + 0.5 + i * 0.08));
+            place(n, full, { opacity: 1 - p, dy: -14 * p, blur: 3 * p });
+            if (n.wave) n.wave.style.transform = "none";
+            return;
+          }
+
+          const s = SCENES[i];
+
+          if (s.send !== undefined) {
+            // The reply is sent, not typed: it rises out of its own corner.
+            const k = spring(t - s.send, { zeta: 0.68, omega: 17 });
+            const o = easeOut(span(t, s.send, s.send + 0.18));
+            place(n, full, { opacity: o, scale: mix(0.86, 1, k), dy: mix(16, 0, k) });
+            return;
+          }
+
+          // Typed: a short bubble with three dots, which then grows into the
+          // message.
+          const appear = spring(t - s.type, { zeta: 0.7, omega: 20 });
+          const grow = spring(t - s.open, { zeta: 0.78, omega: 16 });
+          const w = mix(TYPING_W, full, grow);
+          const o = easeOut(span(t, s.type, s.type + 0.16));
+          const dotsOut = 1 - easeOut(span(t, s.open, s.open + 0.14));
+          const textIn = easeOut(span(t, s.open + 0.2, s.open + 0.5));
+          place(n, w, {
+            opacity: o,
+            scale: t < s.open ? mix(0.6, 1, appear) : 1,
+            textOpacity: textIn,
+            dotsOpacity: t < s.type ? 0 : dotsOut,
+          });
+          typingDots(n, t, s.type);
+
+          if (n.wave) {
+            // Two swings about the wrist once the line is readable.
+            const p = span(t, s.open + 0.3, s.open + 1.2);
+            const a = p <= 0 || p >= 1 ? 0 : Math.sin(p * Math.PI * 4) * 16 * (1 - p) ** 0.8;
+            n.wave.style.transform = `rotate(${a.toFixed(2)}deg)`;
+          }
+        });
+        return looped;
+      }
+
+      window.DURATION = DURATION;
+      window.render = render;
+      window.ready = document.fonts.ready.then(() => {
+        measure();
+        render(0);
+      });
+
+      // Opened by hand, it plays on a loop. The renderer passes `?still` and
+      // drives `render` itself.
+      if (!location.search.includes("still")) {
+        window.ready.then(() => {
+          const start = performance.now();
+          const tick = (now) => {
+            render((now - start) / 1000);
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+      }
+    </script>
+  </body>
+</html>

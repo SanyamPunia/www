@@ -15,6 +15,7 @@
     "tc": "tsc --noEmit",
     "check": "biome check && tsc --noEmit && next build --turbopack",
     "previews": "node scripts/record-lab-previews.mjs",
+    "og-video": "node scripts/og-video/render.mjs",
     "test:agents": "node --test scripts/agent-readiness.test.mjs"
   },
   "dependencies": {
