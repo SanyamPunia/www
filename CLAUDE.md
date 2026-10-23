@@ -12599,7 +12599,25 @@ markdown pipeline cannot quietly break them.
   covers and which went stale on every new post. `/api/` is the one real
   exclusion, because `/api/spotify/login` redirects to Spotify's authorize
   screen.
-- **`not-found.tsx` sets `robots: { index: false }`.** An indexed 404 competes
+- **The home card also ships as a video, `og:video`.** `public/assets/og-video.mp4`
+  is 9.6s at 1200 by 630 and 60fps, about 240KB, rendered by `pnpm og-video` from
+  `scripts/og-video/scene.html`. The scene is the card as a pure function of time:
+  the three bubbles clear, then arrive again as a conversation, typing dots and a
+  wave included. It opens and closes on the finished card, so it loops with no
+  seam and its first frame is `opengraph-image.jpg`. The bubble geometry and
+  colours are measured off that JPG, and the last frame differs from it only in
+  glyph antialiasing and the newer Apple wave emoji. Opening the HTML in Chrome
+  plays it on a loop, which is the quick way to look at a change.
+  - Frames are stepped and screenshotted at 2x, never recorded, so no frame is
+    dropped, and the encode spells out BT.709 or players shift the blue.
+  - **The URL is absolute.** Next resolves `openGraph.images` against
+    `metadataBase` and leaves `videos` as written, so a relative path ships as a
+    relative `og:video`. Measured on the build output.
+  - Posts, labs and `/icons` declare their own `openGraph`, which replaces the
+    root one, so they carry no video. Every other route inherits the home card
+    and its video together.
+  - Edit the scene, run `pnpm og-video`, and commit the mp4. Nothing rebuilds it.
+$1 An indexed 404 competes
   with the real pages for the same terms. It centres rather than aligning top,
   since there is no content to scroll, and it carries no `BackLink` because the
   copy already names every route worth reaching. Its second paragraph is for a
@@ -12696,7 +12714,9 @@ package, no provider component and no per-route call.
   index's hover clips into `public/assets/labs`, see Recording the previews
   above, and `agent-readiness.test.mjs` is the `node --test` suite behind
   `pnpm test:agents`, see Agent readiness above. Both drive a server that is
-  already listening rather than starting one.
+  already listening rather than starting one. `og-video/` is a scene and its
+  renderer, which needs no server: it writes `public/assets/og-video.mp4`, see
+  SEO routes above.
 
 ## Keeping this current
 
