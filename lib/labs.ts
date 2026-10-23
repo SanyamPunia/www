@@ -1143,7 +1143,7 @@ const ALL_LABS: LabMetadata[] = [
     description: [
       "the iphone camera's zoom control. tap a lens to zoom there, or hold and drag and the pill opens into a curved ruler you scrub, which folds back a moment after you let go.",
       "key insight: the ruler is longer than the zoom range by a short flat at each lens, so the zoom holds at the stop while the hand keeps moving. that is the catch, and leaving it is continuous.",
-      "the dial is one float in octaves, so zoom is even along the ruler. the scene is zoomed by its viewbox, so it stays sharp at 10x, and each lens finds a disc that fills its frame.",
+      "the dial is one float in octaves, so zoom is even along the ruler. the photograph is zoomed by its svg's viewbox and the frame is held inside its edges, so the zoom closes in on the sofa.",
     ],
     createdAt: "2026-10-23",
     live: true,

@@ -76,7 +76,7 @@ const LIFT = 34;
  * says so.
  */
 const OPTICAL = 5;
-const SOFT = 0.9;
+const SOFT = 0.5;
 const GRAIN = 0.22;
 
 /** a sensor's grain, one inline tile, so the page fetches nothing for it */
@@ -166,10 +166,13 @@ export default function ZoomDial() {
     const f = frameSize.current;
     const scale = Math.max(f.w / w, f.h / h);
     const lens = lensOf(zoom);
+    // the frame closes in on the sofa and never runs past the photograph
     const lift = LIFT / scale;
+    const fx = Math.min(SCENE.w - w / 2, Math.max(w / 2, SCENE.focus.x));
+    const fy = Math.min(SCENE.h - h / 2, Math.max(h / 2, SCENE.focus.y + lift));
     scene.current?.setAttribute(
       "viewBox",
-      `${SCENE.cx - w / 2} ${SCENE.cy - h / 2 + lift} ${w} ${h}`,
+      `${fx - w / 2} ${fy - h / 2} ${w} ${h}`,
     );
     const text = readout(zoom);
     if (value.current && value.current.textContent !== text)
@@ -535,10 +538,14 @@ export default function ZoomDial() {
       <svg
         ref={scene}
         aria-hidden="true"
-        className="absolute inset-0 size-full"
+        className="absolute inset-0 size-full opacity-0 data-[ready=true]:opacity-100 motion-safe:transition-opacity motion-safe:duration-200"
         preserveAspectRatio="xMidYMid slice"
       >
-        <Scene />
+        <Scene
+          onLoad={() => {
+            if (scene.current) scene.current.dataset.ready = "true";
+          }}
+        />
       </svg>
       {/* the sensor's grain, which only shows past the last lens */}
       <div
