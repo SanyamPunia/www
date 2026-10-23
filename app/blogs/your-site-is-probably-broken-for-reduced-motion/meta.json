@@ -1,0 +1,6 @@
+{
+  "title": "your site is probably broken with reduced motion on",
+  "description": "Turn on reduce motion and reload your site. Framer Motion fade-ins that start hidden never show, and dialogs waiting on transitionend never close.",
+  "date": "2026-10-23",
+  "readTime": "1 min read"
+}

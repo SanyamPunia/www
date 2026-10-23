@@ -1,0 +1,66 @@
+import { FadeIn, Hero, Modal } from "./demos";
+
+If you animate with Framer Motion, GSAP or a scroll reveal library, there's a
+decent chance part of your site never loads for some visitors. Nothing crashes,
+and nothing shows up in your error tracking. The headline is just missing.
+
+It happens to people who turned on **reduce motion**, which
+[browsers](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion)
+pass to your code as `prefers-reduced-motion: reduce`. Turn it on in your system's
+accessibility settings and reload the last thing you shipped.
+
+<Hero />
+
+## the fade-in that never fades in
+
+```tsx
+const reduce = useReducedMotion();
+
+<motion.h1
+  initial={{ opacity: 0 }}
+  animate={reduce ? undefined : { opacity: 1 }}
+/>
+```
+
+The heading starts at opacity 0, and with reduced motion on nothing ever moves
+it to 1. The people who asked for less motion get no heading at all.
+
+Keep `animate` and drop `initial` instead, so the heading starts where it would
+have ended up.
+
+```tsx
+<motion.h1
+  initial={reduce ? false : { opacity: 0 }}
+  animate={{ opacity: 1 }}
+/>
+```
+
+Turn the switch on and replay.
+
+<FadeIn />
+
+## the modal that never closes
+
+If a dialog waits for `transitionend` before it removes itself, and reduced
+motion sets `transition: none`, the event never fires and the dialog stays
+open. Toasts and steppers break the same way. When motion is off, remove the
+dialog directly, and add a timeout in case the event never comes.
+
+Open both dialogs and close them, then do it again with the switch on.
+
+<Modal />
+
+## framer motion ignores it by default
+
+`MotionConfig` defaults `reducedMotion` to `"never"`, so Motion animates
+everything whatever the user picked. One wrapper changes that.
+
+```tsx
+<MotionConfig reducedMotion="user">{children}</MotionConfig>
+```
+
+With `"user"`, Motion skips movement and scaling and keeps opacity fades, as its
+[docs](https://motion.dev/docs/react-motion-config) describe.
+
+Credit to [Aviral's write-up](https://skills.heyaviral.com/skills/reduced-motion),
+which covers a few more of these.
