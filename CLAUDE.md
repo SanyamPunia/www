@@ -11760,17 +11760,20 @@ and every way in.
   - **It is a WebP at the source's own size, quality 90, 39KB, with no alpha
     channel.** The source is a 1368 by 768 PNG of 882KB. Upscaling it would add
     no detail, so it is not upscaled.
-  - **The zoom closes in on the sofa, `SCENE.focus`, and the frame is held
-    inside the photograph's edges.** Each frame is centred on the focus,
-    clamped so it never runs past the picture, so the wide lens shows the whole
-    room and the long ones move onto the sofa. The clamp makes that move
-    continuous.
+  - **The zoom is a pure zoom about the sofa, `SCENE.focus`, and nothing
+    pans.** The sofa keeps the share of the frame it has in the whole
+    photograph, 45% across and 56% down, so the frame's corner is the focus
+    less that share of the frame's size. At 0.5x that is the whole photograph,
+    and at every longer zoom the frame lies inside it, so the frame never runs
+    past an edge either.
+    - **A frame centred on the sofa and clamped to the photograph came first,
+      and it panned.** At 0.5x the clamp held it on the photograph's middle, and
+      zooming in slid it across to the sofa, which read as the picture moving.
+      Measured now: the sofa lands at the same screen point to a hundredth of a
+      pixel at every lens.
   - **A raster is soft at the long end, and that is the source's limit.** At 10x
     the frame is 68 source pixels across on a 538px column, so 5x and 10x are
     soft cushions. A source of 4000px or more would keep them sharp.
-  - **The sofa is held 34px above the frame's middle wherever the clamp lets
-    it**, so the readout and the ruler do not land on it. The offset is screen
-    px divided by the slice's scale.
   - **The photograph fades in over 200ms once it has loaded**, through
     `data-ready` on the SVG, so the stage is `fill` until then rather than a
     half-decoded picture.
@@ -11786,7 +11789,7 @@ and every way in.
     switching cameras does. Fired at a lens's own number, it came after a zoom
     in had stopped and read as a twitch. Moved half way between two lenses, it
     was still visible as a small shift mid-glide, so it went. The picture now
-    zooms about one fixed point: measured, the centre of the old discs held to the
+    zooms about one fixed point, the sofa. Measured on the old discs, the centre held to the
     hundredth of a pixel on every frame of a tap.
 - **A frame's step is clamped at zero.** A frame's timestamp can be earlier
   than the clock `run` reads, and a negative step ran the glide backwards for
@@ -11820,7 +11823,7 @@ and every way in.
 - It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
 - Its clip taps the wide lens and 2x, holds the pill open and scrubs out to the
   moon through the catch at 5x, lets the ruler fold back and taps 1x, so it ends
-  on the frame it opens on and loops. 9.3s and 162KB.
+  on the frame it opens on and loops. 9.3s and 154KB.
 
 ## Motion
 
