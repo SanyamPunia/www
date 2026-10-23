@@ -1989,9 +1989,8 @@ experiment is a directory under `components/labs/`.
   `pull-refresh` scopes an up green and a down red for its quotes, since colour
   is what says which way a stock moved before the number is read. See its own
   section.
-  `zoom-dial` scopes the camera's own yellow for its live value and needle, and
-  the paper and discs it is pointed at, since those colours are the picture.
-  See its own section.
+  `zoom-dial` scopes the camera's own yellow for its live value and needle.
+  The rest of its colour is a photograph. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -11703,7 +11702,7 @@ and one loop.
 
 ### `zoom-dial`
 
-The iPhone camera's zoom control, over a drawn abstract of nested discs. A pill of lenses at
+The iPhone camera's zoom control, over a photograph of a bright room. A pill of lenses at
 rest, `.5`, `1`, `2` and `5`: tap one and the camera zooms there. Hold the pill,
 or drag across it, and it opens into a curved ruler you scrub, which catches on
 each lens and folds back into the pill a moment after you let go. `dial.ts` is
@@ -11730,7 +11729,7 @@ and every way in.
   under a needle that stands still. A mark is a tenth below 2x, a fifth to 5x and
   a half to 10x, so they stay about evenly spaced on a log ruler, and the lenses
   and 10x are the long marks with their numbers. Its ends fade under a mask, and
-  a halo of paper keeps the marks legible over the discs.
+  a white halo keeps the marks legible over the photograph.
 - **Dragging right turns the ruler right and zooms out**, the way the camera's
   does. Past either end the hand is rubber-banded with the UIScrollView curve,
   and a release coasts on its time constant, 0.325s, to wherever the coast would
@@ -11751,26 +11750,34 @@ and every way in.
     going up and down on its own. `tapTo` holds the tapped lens on the pill
     until the glide lands, so only the picture moves. A scrub, a pinch, a key
     and a coast still count, since there the number follows the hand.
-- **The scene is zoomed by its `viewBox`, never a transform**, so every zoom
-  is a fresh vector render and stays sharp at 10x, where a scaled layer would be
-  a blurred bitmap. It is drawn at 1600 by 1000 units, which is the frame at
-  0.5x, with the discs centred on the middle of the 1x frame.
-  - **It was a night sky with a moon, hills and a lit window**, and it was
-    replaced at the author's request with something lighter and more abstract.
-  - **The discs are nested, each about two and a half times the next**, 330,
-    140, 56 and 22 units, so every lens finds one that fills its frame: 1x the
-    widest, 2x the next, 5x the next and 10x the last, with a hole and a dot in
-    it. A faint dot grid every 40 units is what says how far the camera has
-    gone, and one small circle on an orbit gives the wide shot its asymmetry.
-  - **The paper runs 400 units past the drawing on every side**, since the lift
-    below moves the frame, and at 0.5x a strip of bare stage showed at the foot.
-  - **The discs are held 34px above the frame's middle at every zoom**, so the
-    readout and the ruler never land on the centre. The offset is screen px
-    divided by the slice's scale, which keeps it still while the camera zooms.
+- **The scene is a photograph, `public/assets/zoom-dial/room.webp`, drawn as an
+  SVG `<image>` and zoomed by the SVG's `viewBox`**, so every zoom resamples the
+  source rather than scaling a bitmap already drawn at another size. The scene's
+  units are the photograph's own pixels, 1368 by 768, and the frame at 0.5x is
+  the whole photograph.
+  - **It was a night sky, then an abstract of nested discs**, both drawn in
+    SVG, and the author asked for this photograph instead.
+  - **It is a WebP at the source's own size, quality 90, 39KB, with no alpha
+    channel.** The source is a 1368 by 768 PNG of 882KB. Upscaling it would add
+    no detail, so it is not upscaled.
+  - **The zoom closes in on the sofa, `SCENE.focus`, and the frame is held
+    inside the photograph's edges.** Each frame is centred on the focus,
+    clamped so it never runs past the picture, so the wide lens shows the whole
+    room and the long ones move onto the sofa. The clamp makes that move
+    continuous.
+  - **A raster is soft at the long end, and that is the source's limit.** At 10x
+    the frame is 68 source pixels across on a 538px column, so 5x and 10x are
+    soft cushions. A source of 4000px or more would keep them sharp.
+  - **The sofa is held 34px above the frame's middle wherever the clamp lets
+    it**, so the readout and the ruler do not land on it. The offset is screen
+    px divided by the slice's scale.
+  - **The photograph fades in over 200ms once it has loaded**, through
+    `data-ready` on the SVG, so the stage is `fill` until then rather than a
+    half-decoded picture.
   - **The scene smears a little by how fast it zooms**, up to 1.4px, the way a
     lens does through a fast zoom, and none at rest.
   - **Past 5x the picture goes a little soft and grainy**, since the camera
-    has run out of lenses and is cropping. The blur grows to 0.9px and a fine
+    has run out of lenses and is cropping. The blur grows to 0.5px and a fine
     noise tile to 22% between 5x and 10x, and both are gone below 5x. It stays
     on at rest, so the loop does not have to run to keep it. The long mark at 5
     is where the lenses end, and this is what says so.
@@ -11779,7 +11786,7 @@ and every way in.
     switching cameras does. Fired at a lens's own number, it came after a zoom
     in had stopped and read as a twitch. Moved half way between two lenses, it
     was still visible as a small shift mid-glide, so it went. The picture now
-    zooms about one fixed point: measured, the discs' centre holds to the
+    zooms about one fixed point: measured, the centre of the old discs held to the
     hundredth of a pixel on every frame of a tap.
 - **A frame's step is clamped at zero.** A frame's timestamp can be earlier
   than the clock `run` reads, and a negative step ran the glide backwards for
@@ -11793,12 +11800,12 @@ and every way in.
 - **The sound is two quiet clicks**, synthesised on `crack-sound.ts`'s shape: a
   very short one for each mark under the needle, no closer than 26ms so a fast
   scrub purrs, and the lower one for a lens catching.
-- **It is the camera's yellow, `#ffd60a`, and a warm paper and terracotta,
-  scoped here.** The yellow is the live value and the needle, the two things
-  that say "now", and the picture's colours are the picture. None are tokens.
+- **It is the camera's yellow, `#ffd60a`, scoped here.** The yellow is the live
+  value and the needle, the two things that say "now". It is not a token. The
+  rest of the colour is the photograph's own.
   - **The UI is dark ink on a light picture.** The ruler is `text-primary` at
     alpha over a wash of `bg` rising from the foot. The yellow is too light to
-    read on paper, so it only sits on dark: the live value on a `text-primary`
+    read on the light photograph, so it only sits on dark: the live value on a `text-primary`
     pill, the active chip on a `text-primary` ground, and the needle over a
     wider dark line. The pill of lenses is `bg` at 70% with a hairline, and the
     corners darken by 8% of `text-primary` rather than 35% of black.
@@ -11813,7 +11820,7 @@ and every way in.
 - It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
 - Its clip taps the wide lens and 2x, holds the pill open and scrubs out to the
   moon through the catch at 5x, lets the ruler fold back and taps 1x, so it ends
-  on the frame it opens on and loops. 9.3s and 86KB.
+  on the frame it opens on and loops. 9.3s and 162KB.
 
 ## Motion
 
