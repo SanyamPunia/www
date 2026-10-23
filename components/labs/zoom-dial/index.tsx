@@ -62,14 +62,6 @@ const BAND = 136;
 const ARC_TOP = 58;
 
 /*
- * The moon sits this many px above the frame's middle at every zoom, so the
- * readout and the ruler under it never land on it. The offset is held in
- * screen px rather than scene units, which is what keeps it still while the
- * camera zooms.
- */
-const LIFT = 34;
-
-/*
  * Past the last lens the camera crops rather than looks, so the picture goes a
  * little soft and grainy between 5x and 10x and comes back crisp below it. The
  * long mark at 5 on the ruler is where the lenses run out, and this is what
@@ -105,7 +97,6 @@ export default function ZoomDial() {
   const chips = useRef<(HTMLSpanElement | null)[]>([]);
 
   const [width, setWidth] = useState(538);
-  const frameSize = useRef({ w: 538, h: 336 });
   const radius = Math.max(380, width * 1.02);
   const perOctave = (radius * DEG * Math.PI) / 180;
   const perOctaveRef = useRef(perOctave);
@@ -162,17 +153,14 @@ export default function ZoomDial() {
     rotor.current?.setAttribute("transform", `rotate(${-rulerAngle(r)})`);
     const w = SCENE.w / 2 / zoom;
     const h = SCENE.h / 2 / zoom;
-    // the scene is drawn sliced to the frame, so its scale is the larger fit
-    const f = frameSize.current;
-    const scale = Math.max(f.w / w, f.h / h);
     const lens = lensOf(zoom);
-    // the frame closes in on the sofa and never runs past the photograph
-    const lift = LIFT / scale;
-    const fx = Math.min(SCENE.w - w / 2, Math.max(w / 2, SCENE.focus.x));
-    const fy = Math.min(SCENE.h - h / 2, Math.max(h / 2, SCENE.focus.y + lift));
+    // a pure zoom about the sofa: it holds the same share of the frame at every
+    // zoom, and at 0.5x that share is its place in the whole photograph
+    const u = SCENE.focus.x / SCENE.w;
+    const v = SCENE.focus.y / SCENE.h;
     scene.current?.setAttribute(
       "viewBox",
-      `${fx - w / 2} ${fy - h / 2} ${w} ${h}`,
+      `${SCENE.focus.x - u * w} ${SCENE.focus.y - v * h} ${w} ${h}`,
     );
     const text = readout(zoom);
     if (value.current && value.current.textContent !== text)
@@ -501,7 +489,6 @@ export default function ZoomDial() {
     const s = stage.current;
     if (!s) return;
     const measure = () => {
-      frameSize.current = { w: s.clientWidth, h: s.clientHeight };
       setWidth(s.clientWidth);
       paint();
     };

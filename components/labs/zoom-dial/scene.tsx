@@ -5,9 +5,9 @@
  * rather than scaling a bitmap already drawn at another size.
  *
  * The scene's units are the photograph's own pixels, 1368 by 768, so the frame
- * at 0.5x is the whole photograph. `focus` is the sofa, which is what the
- * camera zooms toward. The frame is held inside the photograph's edges, so the
- * wide lens shows all of it and the long ones close in on the sofa.
+ * at 0.5x is the whole photograph. `focus` is the sofa, and the camera zooms
+ * about it as one fixed point: it holds the share of the frame it has in the
+ * whole photograph, so nothing pans and no frame runs past the edges.
  */
 
 export const SCENE = {
