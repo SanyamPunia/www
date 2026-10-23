@@ -22,6 +22,19 @@ export const metadata: Metadata = {
     siteName: "Sanyam Punia",
     locale: "en-US",
     type: "website",
+    // The card as a looping clip, rendered by `scripts/og-video/render.mjs`.
+    // It opens and closes on the same frame as `opengraph-image.jpg`, so a
+    // platform that plays it and one that shows the image show the same card.
+    // Next resolves image URLs against `metadataBase` and not video URLs, so
+    // this one is absolute or a crawler gets a path it cannot fetch.
+    videos: [
+      {
+        url: `${SITE_URL}/assets/og-video.mp4`,
+        type: "video/mp4",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
   robots: {
     index: true,
