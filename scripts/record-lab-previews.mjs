@@ -2300,6 +2300,50 @@ const LABS = {
       await wait(1000);
     },
   },
+  "zoom-dial": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A tap on the wide lens and one on 2x, then a hold on the pill that opens
+     * the ruler and a slow scrub out to the moon, through the catch at 5x.
+     * The ruler folds back on its own, and a tap on 1x ends the clip on the
+     * frame it opens on, so it loops. Taps jump on and off, since the
+     * screencast captures no cursor.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const chips = page.locator("[data-lab-demo] [data-active]");
+      const at = async (i) => {
+        const b = await chips.nth(i).boundingBox();
+        return [b.x - demo.x + b.width / 2, b.y - demo.y + b.height / 2];
+      };
+      const tap = async (i) => {
+        const [x, y] = await at(i);
+        await m.move(x, y);
+        await m.down();
+        await wait(50);
+        await m.up();
+      };
+      await wait(600);
+      await tap(0);
+      await wait(1100);
+      await tap(2);
+      await wait(1100);
+      const [x, y] = await at(2);
+      await m.move(x, y);
+      await m.down();
+      await wait(320);
+      for (let k = 1; k <= 60; k++) {
+        await m.move(x - k * 4, y);
+        await wait(22);
+      }
+      await wait(250);
+      await m.up();
+      await wait(2400);
+      await tap(1);
+      await wait(1200);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
