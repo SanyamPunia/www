@@ -1167,6 +1167,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag the tab to unzip, then pull at what is inside.",
   },
+  {
+    slug: "tear-calendar",
+    title: "Tear-off Calendar",
+    description: [
+      "a tear-off calendar on a nail, a page a day. pull a page and it tears along its perforation from the corner you pull toward, then hangs from your fingers and flutters off when you let go.",
+      "key insight: how fast the hand was moving as the tear passed each hole decides how cleanly that hole tore. a slow pull pops the holes one by one, and a yank outruns them, so the tear wanders and leaves a bite of the page stuck under the header.",
+      "the page turns about the tear's front only as far as the untorn part lets it, so the tear runs as far as the turn needs. each page prints its date, its week and that night's moon.",
+    ],
+    createdAt: "2026-10-25",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/tear-calendar/tear.ts",
+    flush: true,
+    hint: "Pull a page down to tear it off. Yank it for a ragged tear.",
+  },
 ];
 
 /**
@@ -1309,6 +1324,7 @@ export const IMPLEMENTED_LABS = [
   "volume-slider",
   "zoom-dial",
   "zipper-pouch",
+  "tear-calendar",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

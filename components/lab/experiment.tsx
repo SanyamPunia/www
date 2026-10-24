@@ -547,6 +547,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/zipper-pouch").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "tear-calendar": dynamic(
+    () => import("@/components/labs/tear-calendar").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
