@@ -1981,7 +1981,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider` and `zoom-dial` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial` and `zipper-pouch` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2062,6 +2062,9 @@ experiment is a directory under `components/labs/`.
   section.
   `zoom-dial` scopes the camera's own yellow for its live value and needle.
   The rest of its colour is a photograph. See its own section.
+  `zipper-pouch` scopes a pine canvas, brass teeth, a dark lining and the two
+  things inside it, since the pouch and what is in it are the picture. See its
+  own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2276,7 +2279,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-two clips, 6.9MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-three clips, 7.0MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11895,6 +11898,102 @@ and every way in.
 - Its clip taps the wide lens and 2x, holds the pill open and scrubs out to the
   moon through the catch at 5x, lets the ruler fold back and taps 1x, so it ends
   on the frame it opens on and loops. 9.3s and 154KB.
+
+### `zipper-pouch`
+
+A pouch with a zipper across its front. Drag the pull tab and the teeth part
+behind the slider, the pouch opens, and a ticket and a pencil rise through the
+gap, where a hand can pull at them. A tap on the tab zips it the whole way.
+`zipper.ts` is the geometry, pure
+and DOM-free, `zipper-sound.ts` the sound, and `index.tsx` the drawing, the
+hand and one loop.
+
+- **The whole pouch is one number, `s`, where the slider sits on the track.**
+  Every tooth, both tapes, the hole, the clip on the items and how far each
+  item may rise are read off it, so none of them can disagree with another.
+- **Both ends of the track are sewn, so the opening is a lens.** It is shut at
+  the left end and at the slider's throat, and widest between them:
+  `sin(pi u)^0.8` over the run behind the slider, capped at 58 units and
+  growing with the run. The bottom lip takes 60% of the gap and the top 40%,
+  since the contents weigh the bottom down.
+- **A tooth reads the lip it sits on.** The two rows sit half a pitch apart, so
+  they mesh where the zipper is shut, and each tooth turns with its tape's
+  slope where it is open. 49 teeth a side, written as one `transform` each.
+- **An item rises only as far as the opening over it lets it.** Its target is
+  the narrowest gap across its span, so a closed stretch holds it down. It is
+  drawn in front of the top tape and behind the bottom one, and clipped to
+  everything above the bottom lip, so a risen item comes out over the fabric
+  and one at rest is hidden behind the front.
+  - **A closing zipper pushes an item down with it.** It sank on its spring
+    first and lagged the slider, so the pencil's eraser showed through teeth
+    that had already shut. An item may now sit at most 4 units above what the
+    gap allows, which is room for its bob and not enough to clear the lip.
+  - A shade over each item clears as it rises, so an item deep in the pouch is
+    in the lining's shadow and one that is out is lit.
+  - **Each item is long enough that its bottom stays inside at the furthest
+    pull.** The ticket was 58 units and its bottom edge cleared the lip when it
+    was pulled, so it floated over the pouch. It is 96 now and the pencil 130,
+    and everything below the lip is clipped anyway.
+- **An item that is out can be taken hold of and pulled, and it never comes
+  free.** It is out once it has risen 60% of its way. A hand pulls it on the
+  UIScrollView rubber band, up to 34 units up, 20 sideways and 8 back in, and
+  a sideways pull leans it from its place in the pouch's mouth, 0.45 degrees a
+  unit. Let go, it springs home at a 0.38 damping ratio, so it overshoots and
+  settles. A mouse over an item that is out lifts it 2.5 units, which is what
+  says it can be taken, and it shows `cursor-grab` through `data-out`.
+  Measured: a long pull holds the ticket 23 units up and 13 across at a 5.8
+  degree lean, and the release overshoots by 6 before settling.
+  - A grab is a soft paper rustle and a 6ms buzz. An item that sinks under 60%
+    while held, from a key closing the zipper, is let go.
+  - **`touch-action` on an SVG shape is not honoured**, so a finger on the tab
+    or an item scrolled the page and the browser cancelled the drag. A
+    non-passive `touchstart` on the drawing cancels the scroll when the touch
+    starts on `[data-grip]` or an item that is out, and a swipe anywhere else
+    still scrolls. Measured on a 390px phone: a pencil pull and a tab drag move
+    the page 0px, a swipe on the fabric scrolls it.
+  - There is no keyboard path to it, since it is a flourish on direct
+    manipulation, and reduced motion lets go without the spring.
+- **The slider follows the hand through a little friction**, a 45ms time
+  constant, so the tab leans toward the pull. While held, the tab points at
+  the hand. Released, it is a pendulum driven by the slider's own
+  acceleration, so it trails a glide and swings when let go, at a 0.23 damping
+  ratio. At 0.15 it rang for nearly four seconds.
+- **A release coasts a short way**, on a 90ms time constant, since a zipper
+  drags. A press on a gliding or coasting slider catches it where it is.
+- **A press that travels under 4px is a tap**, which zips the whole way: open
+  from the first half of the track and shut from the second, at a zipper's
+  pace, 0.18s plus 0.55s for the whole track.
+- **The zip is not a recording.** Every tooth the slider crosses is one 12ms
+  click of band-passed noise, so a slow pull ticks and a fast one buzzes, and
+  the sound follows the drawing because it is made of the same teeth. Opening
+  is a little brighter than closing. A sewn end is a low knock. On
+  `crack-sound.ts`'s shape, unlocked on the press.
+  - **The noise buffer is longer than the longest sound read from it, and that
+    was a bug.** The knock's 70ms read from an 80ms buffer gave a negative
+    start offset, `AudioBufferSourceNode.start` threw, and the throw stopped
+    the step that moved the slider. Under reduced motion Enter did nothing at
+    all. The buffer is 300ms and the offset is clamped at 0.
+- **The keyboard's slider is an HTML `div` over the track**, since an outline
+  on an SVG group does not paint. It is `pointer-events-none`, so the drawing
+  keeps the pointer. The arrows move a twentieth of the track, the page keys a
+  quarter, Home and End go to the ends, and Enter and Space zip the whole way.
+  Its focus ring is `inverse-text`, since the declared ring is grey on a green
+  pouch.
+- **The ticket's text is written lowercase**, since the stylesheet's lowercase
+  does not reach SVG text.
+- **Reduced motion keeps every state and drops the travel.** A tap or a key
+  lands the slider in one step, the tab does not swing and the items take
+  their place at once. A drag is direct manipulation and still follows the
+  hand.
+- Measured: 0 frames requested at rest. Verified at 1280 and 390px, by mouse,
+  keyboard, touch and with reduced motion, with no sideways scroll and no
+  console errors.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
+- Its clip pulls the tab to the middle so the ticket peeks, holds, pulls the
+  rest of the way so the pencil rises, lets go so the tab swings, pulls the
+  ticket and lets it spring back, and taps the tab to zip it shut, so it ends
+  on the frame it opens on and loops. The points are read off the drawing's own
+  transform. 10.7s and 99KB.
 
 ## Motion
 
