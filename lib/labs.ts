@@ -1152,6 +1152,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Tap a lens, or hold and drag the pill. Pinch works too.",
   },
+  {
+    slug: "zipper-pouch",
+    title: "Zipper Pouch",
+    description: [
+      "a pouch with a zipper across its front. drag the pull tab and the teeth part behind the slider, the pouch opens, and what is inside rises through the gap.",
+      "key insight: the whole pouch is one number, where the slider sits. every tooth, both tapes, the hole and how far each item may rise are read off it, so an item only comes out where the zipper is open.",
+      "once it is open, take hold of what is inside and pull: it gives on a rubber band and springs back when you let go. every tooth the slider crosses is one short click, and a tap on the tab zips it the whole way.",
+    ],
+    createdAt: "2026-10-24",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/zipper-pouch/zipper.ts",
+    flush: true,
+    hint: "Drag the tab to unzip, then pull at what is inside.",
+  },
 ];
 
 /**
@@ -1293,6 +1308,7 @@ export const IMPLEMENTED_LABS = [
   "wheel-picker",
   "volume-slider",
   "zoom-dial",
+  "zipper-pouch",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
