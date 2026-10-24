@@ -1981,7 +1981,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial` and `zipper-pouch` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch` and `tear-calendar` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2065,6 +2065,9 @@ experiment is a directory under `components/labs/`.
   `zipper-pouch` scopes a pine canvas, brass teeth, a dark lining and the two
   things inside it, since the pouch and what is in it are the picture. See its
   own section.
+  `tear-calendar` scopes a warm paper, its inks and the red and blue a daily
+  pad prints its weekends in, since a printed page is the object. See its own
+  section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2279,7 +2282,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-three clips, 7.0MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-four clips, 7.3MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -11994,6 +11997,108 @@ hand and one loop.
   ticket and lets it spring back, and taps the tab to zip it shut, so it ends
   on the frame it opens on and loops. The points are read off the drawing's own
   transform. 10.7s and 99KB.
+
+### `tear-calendar`
+
+A tear-off calendar on a nail, a page a day. Pull a page and it tears along its
+perforation from one top corner, comes away in the hand, hangs and swings from
+the fingers, and flutters off when let go. `tear.ts` is the geometry and the
+tear, `days.ts` what a page prints, `sheet.tsx` the printed page,
+`tear-sound.ts` the sound and `index.tsx` the hand, one loop and the layers.
+
+- **Every page on the stage is one drawing, cropped.** The page being torn, the
+  page behind it, the bits left under the header and the pages in the air are
+  all `Sheet` under a `clip-path` polygon. So a ragged tear that leaves a bite
+  of a page under the header carries that page's print: a bit of "october" or
+  "today" stays stuck to the pad.
+- **A tear is two numbers: the corner it started from, and `f`, how far along
+  the perforation it has run.** `f` only grows. The torn edge is drawn from
+  them and from one raggedness value per hole, so nothing about an edge is
+  stored as a shape.
+- **Pulling a page one way tears it from the other top corner.** A pull to the
+  right turns the page counterclockwise about its top, so the top left corner
+  takes the strain. The first build had this backwards, and the page then
+  turned away from the hand. A straight pull tears from the half the hand
+  holds. Until the first 3 units have torn, the corner can still change.
+- **The page turns about the tear's front, and only as far as the untorn part
+  lets it.** Turning lifts the part beyond the front into the paper above the
+  holes, and only `GIVE` units of it can bend, so `turnMax` is
+  `asin(GIVE / (W - f))`. `tearFor` is the same function the other way round:
+  the tear runs as far as the page has to turn to point at the hand. Without
+  that coupling the tear ran on hand travel alone, and the page sat still
+  while the hand moved 150px away from it.
+  - Past `TURN_MAX`, 50 degrees, or with less than `LAST` of the perforation
+    left, the rest lets go at once.
+  - A straight pull also tears, at a page's width per `TEAR_SPAN` of travel.
+  - What the turn cannot reach shows as a stretch, on the UIScrollView rubber
+    band, at most 4 units.
+- **How cleanly a hole tears comes from the hand's speed, not the tear's.**
+  Near the end the tear runs fast on any pull, since `tearFor` is steep there,
+  so the tear's own speed made every slow pull ragged at the far end. The hand
+  speed is smoothed over 20ms. `jagOf` is 0 below 420 units a second and 1
+  above 1700.
+- **A ragged tear wanders off the holes**: mostly down into the page, which is
+  the bite left under the header, and a little up into the margin. Value noise
+  at three scales, hashed off the page's seed, so a torn edge is the same on
+  every frame.
+- **A yank released mid-tear still tears the page off** when the hand had
+  pulled far enough to tear through. `thrown` on the hold keeps the tear
+  running after the hand has gone, and the page leaves at the hand's speed.
+- **The stubs are the pad's record of how it was torn.** The oldest is in
+  front, since it was the front page when it was torn, and each is a shade
+  warmer (`sepia`) than the one behind it, which separates them where their
+  edges cross. A drop shadow alone drew them as grey scribbles. The header
+  keeps 10. The pad opens with four seeded stubs from the days before today,
+  one in four of them yanked, kept shallow so a first visit does not read as a
+  rendering fault.
+- **A loose page is a pendulum hanging from the grab point**, driven by the
+  hand's acceleration, at a 0.2 damping ratio. Held by its bottom edge, it
+  swings over and hangs upside down, which is what a sheet does. Let go, it is
+  a leaf: it falls toward a slow terminal speed, drifts side to side, rocks,
+  and tumbles in 3D. A falling page can be caught.
+- **The calendar swings on its nail.** A pull leans it toward the hand and dips
+  it, and a page coming free lets it swing back, at a 0.22 damping ratio. A
+  press on the header knocks it. It settles in about three seconds.
+- **No 3D tilt on a page at rest or held still.** A 3D layer rasterised its
+  type without smoothing in headless Chrome, and a part-torn page can rest for
+  a long time. The page coming off the pad is a 2D growth about the tear's
+  front, at most 3%, with its shadow opening. Only a falling page tumbles in
+  3D. Headful Chrome draws both smoothly.
+- **The hit tests are arithmetic against the poses**, so a page that moves
+  under the pointer cannot drop its own hover. A touch that starts on a page or
+  a loose page is kept from the page scroll by a non-passive `touchstart`, and
+  a swipe anywhere else still scrolls.
+- **A page coming free is committed with `flushSync`.** Without it the page on
+  the pad was drawn whole for one frame before React swapped it for the loose
+  one.
+- **One `Day` object per date and one crop per stub**, so `Sheet`'s memo holds.
+  The hole row is one repeating gradient, not 26 elements. The commit when a
+  page comes free went from 168ms to 58ms under a 4x CPU throttle.
+- Every page prints its date, the ISO week, how far it is from today, the moon
+  that night from the mean synodic month, and the days left in the year. The
+  pad edge thins as the year goes, and the last page leaves the backing board.
+  Saturday prints in blue and Sunday in red.
+- The sound is synthesised on `crack-sound.ts`'s shape. Each hole is a pop, and
+  a fast tear makes each one longer and lower so they run into a rip. A page
+  coming free is a snap, a part-torn page falling back is a pat, and a falling
+  page brushes the air at each turn of its rock.
+- A tap tears the page for you, cleanly, toward the side tapped. Enter and
+  Space do the same from a focusable button over the page. Back to today
+  appears once the pad is off today, with a tooltip.
+- Reduced motion keeps every state and drops the travel: a torn page is gone in
+  one step, nothing swings and nothing falls. A drag still tears, since it is
+  direct manipulation.
+- Measured: 0 frames requested at rest, and a 9.2ms 95th percentile at 120Hz
+  under a 4x CPU throttle through a tear. Verified at 1280 and 390px, by mouse,
+  touch, keyboard and with reduced motion, with no sideways scroll and no
+  console errors.
+- It is `flush`, a fixed `h-[25rem]` with its own inset ring. The calendar is
+  drawn in a 300 by 380 design box scaled to fit, so its size does not change
+  between a phone and the lab column.
+- Its clip tears a page carefully to the right, holds it up beside the
+  calendar so it dangles and swings, throws it, yanks the next page down and
+  left, and presses Back to today, so it ends on the frame it opens on and
+  loops. 11.5s and 163KB.
 
 ## Motion
 
