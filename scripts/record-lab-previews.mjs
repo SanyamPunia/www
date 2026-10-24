@@ -2405,6 +2405,78 @@ const LABS = {
       await wait(1600);
     },
   },
+  "tear-calendar": {
+    // the stage is taller than the card, and this band holds the nail and the
+    // whole pad
+    focus: [0, 32, 538, 336],
+    /*
+     * A careful pull to the right tears the page cleanly from its top left
+     * corner, and the page is held up for a moment so it swings from the hand,
+     * then let go so it flutters off. The next page is yanked down and to the
+     * left, which tears it ragged and leaves a bite of it under the header.
+     * Back to today puts the pad as it was, which is the frame the clip opens
+     * on, so it loops. The button is pressed in one step so its tooltip never
+     * opens over the demo.
+     */
+    async run({ page, m }) {
+      const stage = await page
+        .locator("[data-lab-demo] [data-over]")
+        .boundingBox();
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const ox = stage.x - demo.x;
+      const oy = stage.y - demo.y;
+      const cx = ox + stage.width / 2;
+      await wait(700);
+      let x = cx + 36;
+      let y = oy + 318;
+      await m.move(x, y);
+      await m.down();
+      for (let k = 1; k <= 70; k++) {
+        x += 2.3;
+        y += 1.1;
+        await m.move(x, y);
+        await wait(20);
+      }
+      // the page comes away and hangs from the hand, which lifts it up beside
+      // the calendar so it dangles in the frame
+      const lift = { x: cx + 168 - x, y: oy + 120 - y };
+      for (let k = 1; k <= 30; k++) {
+        const e = 1 - (1 - k / 30) ** 2;
+        await m.move(x + lift.x * e, y + lift.y * e);
+        await wait(18);
+      }
+      x += lift.x;
+      y += lift.y;
+      await wait(900);
+      for (let k = 1; k <= 6; k++) {
+        await m.move(x + k * 10, y - k * 4);
+        await wait(16);
+      }
+      await m.up();
+      await wait(1900);
+      // a yank, released as it goes
+      x = cx + 34;
+      y = oy + 312;
+      await m.move(x, y);
+      await m.down();
+      for (let k = 1; k <= 7; k++) {
+        await m.move(x - k * 26, y + k * 18);
+        await wait(16);
+      }
+      await m.up();
+      await m.move(ox + stage.width - 60, oy + 200);
+      await wait(2400);
+      const back = await page
+        .getByRole("button", { name: "Back to today" })
+        .boundingBox();
+      await page.mouse.move(back.x + back.width / 2, back.y + back.height / 2);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await m.move(ox + stage.width - 60, oy + 380);
+      await wait(1400);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
