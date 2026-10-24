@@ -2344,6 +2344,67 @@ const LABS = {
       await wait(1200);
     },
   },
+  "zipper-pouch": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * The tab pulled slowly to the middle, so the ticket peeks through the
+     * gap, held, then pulled the rest of the way so the pencil rises too. The
+     * release swings the tab. The ticket is taken hold of, pulled and let go,
+     * so it springs home. A tap on the tab zips the pouch shut, which is the
+     * frame the clip opens on, so it loops. Points are read off the drawing's
+     * own transform, so a change to the geometry moves the gesture with it.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = (x, y) =>
+        page.evaluate(
+          ([x, y, dx, dy]) => {
+            const s = document.querySelector("[data-lab-demo] svg");
+            const q = new DOMPoint(x, y).matrixTransform(s.getScreenCTM());
+            return [q.x - dx, q.y - dy];
+          },
+          [x, y, demo.x, demo.y],
+        );
+      // the tab hangs 27 units under the track, which runs 72 to 328
+      const [x0, y] = await at(72, 135);
+      const [x1] = await at(328, 135);
+      const pull = async (from, to, steps) => {
+        for (let k = 1; k <= steps; k++) {
+          await m.move(from + ((to - from) * k) / steps, y + 4);
+          await wait(18);
+        }
+      };
+      await wait(600);
+      await m.move(x0, y);
+      await m.down();
+      await pull(x0, x0 + (x1 - x0) * 0.5, 50);
+      await wait(700);
+      await pull(x0 + (x1 - x0) * 0.5, x1 + 16, 40);
+      await wait(500);
+      await m.up();
+      await wait(1300);
+      // the ticket taken hold of and pulled up and to the side, then let go
+      const [gx, gy] = await at(160, 96);
+      await m.move(gx, gy);
+      await wait(300);
+      await m.down();
+      for (let k = 1; k <= 24; k++) {
+        await m.move(gx + k * 2, gy - k * 4);
+        await wait(18);
+      }
+      await wait(400);
+      await m.up();
+      await m.move(gx + 120, gy + 140);
+      await wait(1300);
+      const [xe, ye] = await at(328, 135);
+      await m.move(xe, ye);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await wait(1600);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
