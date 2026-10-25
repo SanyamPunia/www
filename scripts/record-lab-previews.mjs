@@ -2477,6 +2477,45 @@ const LABS = {
       await wait(1400);
     },
   },
+  "overengineered-button": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A publish that succeeds. Then the corner is flipped to fails and the
+     * next one fails, shakes and counts down to a retry with the line draining
+     * round the pill. The corner is flipped back to succeeds during the
+     * countdown, so the automatic retry lands green, and the button resets.
+     * The clip ends on the frame it opens on and loops. Every press jumps on
+     * and off, since the screencast captures no cursor and an approach costs
+     * nothing.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const centre = async (selector) => {
+        const b = await page.locator(selector).first().boundingBox();
+        return [b.x - demo.x + b.width / 2, b.y - demo.y + b.height / 2];
+      };
+      const tap = async (selector) => {
+        const [x, y] = await centre(selector);
+        await m.move(x, y);
+        await m.down();
+        await wait(50);
+        await m.up();
+        await m.move(x, 330);
+      };
+      const main = "[data-lab-demo] button";
+      const flip = "[data-lab-demo] button[aria-label^='Next']";
+      await wait(600);
+      await tap(main);
+      await wait(3700);
+      await tap(flip);
+      await wait(400);
+      await tap(main);
+      await wait(3300);
+      await tap(flip);
+      await wait(6800);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
