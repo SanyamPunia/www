@@ -851,6 +851,13 @@ files:
   - **An identifier in a cell needs a code span.** `body { text-transform:
     lowercase }` is not exempt for table cells, so a bare `rotateY` header
     renders `rotatey`.
+- **A ```prompt fence renders as a `PromptBlock`**, from
+  `components/blogs/prompt-block.tsx`, through the `pre` handler in
+  `mdx-components.tsx`. It is prose the reader pastes into their own agent, so it
+  skips `sugar-high`, wraps instead of scrolling, and its copy control is always
+  visible with a label. Write each bullet on one line in the MDX: the block wraps
+  for the column, and a hard break in the source becomes a broken line on
+  screen. The markdown variant keeps the fence as written.
 - **`Terms` in `components/blogs/terms.tsx` is a named thing and what it is**,
   which is the shape an argument takes when it weighs three approaches rather
   than making one. The pairs are separated by space and nothing else, since
@@ -1384,6 +1391,43 @@ last line credits and links. It was cut down to this at the author's request.
     span reads as plain code, so neither link sits on one.
 - **The title says "with reduced motion on"** so the phrase a reader searches
   is in it, at 60 characters with the site's suffix.
+
+### `unslopping-a-site-with-dither-grain-ascii-and-line-screens`
+
+One mock hero four times, each with one treatment on its art: ordered dither,
+film grain, ASCII and a line screen. Each section ends with a prompt the reader
+copies into their own coding agent. The credit at the foot links the post on X
+the idea came from. `scene.ts` is the picture, `paint.ts` the four treatments,
+`demos.tsx` the figures.
+
+- **One picture, four sets of marks.** `tone(x, y, light)` in `scene.ts` says
+  how much ink a point of a ringed planet gets, and every treatment samples it.
+  Only the marks differ, so the figures cannot disagree about the planet.
+- **Ink on paper, not light on black.** The reference images are glowing marks
+  on dark grounds. Each treatment here is the print version of the same idea:
+  1-bit dither, stippled grain, typed ASCII, an engraved line screen. That
+  keeps the site's light theme and needs no `inverse-*` tokens.
+- **The pointer is the light, and the pill swaps in the smooth render.** The
+  smooth render is the "slop" baseline the post argues against. The pill is the
+  site's mode selector, the current value as its label.
+- **Dither is an 8x8 Bayer matrix on 2px cells**, a whole number of device
+  pixels, drawn small and scaled up with smoothing off. The matrix is built by
+  the recursion.
+- **Grain only removes ink.** The smooth render is drawn 1.45 times darker, then
+  a seeded noise tile is drawn over it with `destination-out`, so the page never
+  greys. The tile moves at 24 frames a second, and the loop runs only while the
+  figure is on screen. Measured: 90 frames requested in 1.5s while visible, 0
+  under reduced motion.
+- **ASCII lifts the tone by a power of 0.8 and skips anything under 0.09.**
+  Without the skip the planet's faint halo scattered dots across the frame, and
+  without the lift the lit side was all full stops.
+- **The line screen opens under the pointer.** Blocks whose centres sit inside
+  the lens show the smooth render through a clip, and the ring of blocks just
+  outside is drawn hollow, after the second reference image.
+- **The figures break out of the column**, the reduced-motion post's 54rem, so
+  the post passes `toc={false}`.
+- Measured: 0 frames requested at rest on the dither figure, and the build, the
+  typecheck and the lint are green.
 
 ### `why-nested-rounded-corners-show-an-extra-curve`
 
