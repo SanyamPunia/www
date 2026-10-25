@@ -1,0 +1,92 @@
+import { Ascii, Dither, Grain, Lines } from "./demos";
+
+Ask an AI for a landing page and the art is a smooth gradient with a soft glow.
+Nothing on it looks chosen.
+
+Dither, grain, ASCII and line screens draw tone with marks you can see instead.
+Below is one hero four times. Move over the planet to move the light, and press
+the pill to see the gradient it started from. Each section ends with a prompt
+for your own agent.
+
+## dither
+
+<Dither />
+
+Two colours only. Each cell checks its darkness against a repeating grid of
+thresholds, the Bayer matrix, and turns to ink if it is darker. Early Macs
+looked like this.
+
+```prompt
+Add an ordered dither treatment to the hero art on my site.
+
+- Draw the source art to an offscreen canvas at half its display size.
+- For each pixel, compute darkness = 1 - (0.299 R + 0.587 G + 0.114 B) / 255.
+- Compare darkness with an 8x8 Bayer matrix threshold, (value + 0.5) / 64, tiled across the image. Above the threshold, write my ink colour at full alpha. Below it, leave the pixel transparent.
+- Draw the result to the visible canvas at full size with imageSmoothingEnabled = false, so every cell stays a crisp square.
+- Make each cell a whole number of device pixels, Math.round(2 * devicePixelRatio), so the grid never blurs.
+- Use my existing ink and background colour tokens. Add no new colours.
+- Redraw only when the source or the canvas size changes.
+- Keep the art's description on the canvas with role="img" and aria-label.
+```
+
+## grain
+
+<Grain />
+
+Random specks knocked out of a smooth tone. The page stays white and the
+gradient gets texture. It changes 24 times a second, like film.
+
+```prompt
+Add animated film grain to the hero art on my site.
+
+- Generate a 160 by 160 noise tile once, on an offscreen canvas. Give every pixel a random alpha, squared so most of it is faint. Use a seeded random generator so the grain is the same on every load.
+- Draw the art about 1.4 times darker than usual, since the grain takes ink back out.
+- Draw the tile over it, repeated across the canvas, with globalCompositeOperation = "destination-out". The grain then only removes ink and never greys the background.
+- Draw one noise pixel per CSS pixel, scaled by devicePixelRatio with smoothing off, so the grain stays visible on a high density screen.
+- Move the tile to a random offset 24 times a second.
+- Run the loop only while the art is on screen, with an IntersectionObserver.
+- With prefers-reduced-motion: reduce, draw one frame of grain and stop.
+```
+
+## ascii
+
+<Ascii />
+
+One character per cell, picked by darkness from `.,:;-=+*#%@`. Use a monospaced
+font so the grid holds.
+
+```prompt
+Render the hero art on my site as ASCII on a canvas.
+
+- Pick a monospaced font at 11px. Measure one character with measureText to get the cell width, and use 1.15 times the font size as the cell height.
+- For each cell, sample the source at the cell's centre and compute darkness = 1 - luminance.
+- Skip cells with darkness under 0.09, so a faint background does not scatter dots everywhere. Map the rest to a character from the ramp ".,:;-=+*#%@", lightest first.
+- Draw each character with fillText in my ink colour, centred in its cell, at alpha 0.5 + 0.5 * darkness so the shape has depth.
+- Redraw only when the source changes. If the source animates, stop the loop while the canvas is off screen.
+- Keep the real content in the DOM. The canvas is decoration, so mark it aria-hidden.
+```
+
+## line screen
+
+<Lines />
+
+Vertical stripes, wider where the art is darker, cut into short blocks. Under
+the pointer the lines open onto the gradient.
+
+```prompt
+Render the hero art on my site as a vertical line screen, with a reveal under the pointer.
+
+- Split the canvas into columns 6px wide, and each column into blocks 7px tall.
+- For each block, sample the source at its centre and compute darkness = 1 - luminance. Draw a bar centred in the block, darkness * 5px wide and 1px shorter than the block, so the blocks read as separate steps. Skip bars narrower than 0.5px.
+- Find the blocks whose centres sit within 46px of the pointer. Clip to those block rectangles and draw the original art there instead of bars. Draw the blocks in the next 9px outside as hollow outlined bars.
+- Ease the reveal radius from 0 to 46px when the pointer enters and back to 0 when it leaves, with an exponential ease on a 90ms time constant.
+- Use my ink colour on my background colour, and stop the loop when nothing moves.
+```
+
+## using them
+
+One per page, on the art and never on text. Keep marks a few pixels wide, or
+they blur back into a gradient. Stop anything animated when it is off screen or
+when reduced motion is on.
+
+Idea from [this post on X](https://x.com/aaayandev/status/2111869611851522121).
