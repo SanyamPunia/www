@@ -1182,6 +1182,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Pull a page down to tear it off. Yank it for a ragged tear.",
   },
+  {
+    slug: "overengineered-button",
+    title: "Overengineered Button",
+    description: [
+      "a publish button that lands green or red, with the result's colour flowing out from the middle of the pill. a failure counts down and retries itself twice before the retry is yours.",
+      "key insight: the colour is one radial gradient that fades out over most of its radius and is several times the pill's size, so the part over the pill at any moment spans most of it and the change reads as a flow with no front.",
+      "flip the corner to make the next request fail.",
+    ],
+    createdAt: "2026-10-26",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/overengineered-button/index.tsx",
+    flush: true,
+    hint: "Press publish. Flip the corner to make it fail.",
+  },
 ];
 
 /**
@@ -1325,6 +1340,7 @@ export const IMPLEMENTED_LABS = [
   "zoom-dial",
   "zipper-pouch",
   "tear-calendar",
+  "overengineered-button",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -551,6 +551,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/tear-calendar").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "overengineered-button": dynamic(
+    () => import("@/components/labs/overengineered-button").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
