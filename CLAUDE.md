@@ -142,6 +142,8 @@ text measures 4.59, which is the danger pill's own 4.61.
   one" and not "you did it". The two live on one page in
   `the-card-flinches-when-you-reach-its-edge`, where the hold meter goes green
   and the quiz below it grades neutral.
+- **`overengineered-button` is the third caller**, with `danger` beside it:
+  a request that succeeded is a task done, and one that failed is wrong.
 - **`fingerprint-ink` is the second caller**, for the same job: the print goes
   `success` once every portion is inked, and its pill is the 10% wash above.
 - **It is not `selection`.** That emerald is 1.7:1 on white, which is a
@@ -2025,7 +2027,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch` and `tear-calendar` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar` and `overengineered-button` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2326,7 +2328,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-four clips, 7.3MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-five clips, 7.3MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12143,6 +12145,85 @@ tear, `days.ts` what a page prints, `sheet.tsx` the printed page,
   calendar so it dangles and swings, throws it, yanks the next page down and
   left, and presses Back to today, so it ends on the frame it opens on and
   loops. 11.5s and 163KB.
+
+### `overengineered-button`
+
+A publish button that lands green or red, with the result's colour flowing out
+from the middle of the pill. A failure counts down and retries itself.
+`ripple.ts` is how its colour changes, `button-sound.ts` the sound, and
+`index.tsx` the button, its states and the timing between them.
+
+- **Six states**: idle, pending, success, failure, retrying and retry. A press
+  is taken in idle, success, retrying and retry. Success resets after 2s.
+- **A cancel, a slow state and two more scenarios were built and taken out at
+  the author's request**, who wanted the demo to show success and failure only.
+  The cancel was a hover that morphed "Publishing" into "Cancel". The slow and
+  instant scenarios showed the spinner's timing rules: no spinner before 150ms,
+  at least 500ms once shown, and "Still publishing" at 3s. With only the two
+  outcomes left, at 1.2 to 1.4s, none of those rules could fire, so they went
+  too rather than stay as unreachable code.
+- Every request carries a token, bumped by the next request and by a stop, so a
+  timer from an old one does nothing.
+- **A failure retries itself twice.** "Failed" holds 900ms, then "Retrying in
+  3" counts down. Over the 3s a deeper wash of red, `danger` at 20% over
+  `bg`, recedes to the left inside the pill on a linear `translateX`, with a
+  2rem gradient at its leading edge so it has no line, like the colour flow.
+  A hairline draining round the pill came first and read as a stray mark once
+  it was short. A press retries at once and Escape stops it. After the second automatic
+  retry fails, "Try again" is the reader's and resets after 3.2s.
+- **The corner picks the next outcome**, `succeeds` at 1.4s or `fails` at
+  1.2s. It is the site's mode selector, one pill whose label is the value,
+  morphed through `torph`. It is read as each request is sent, so flipping it
+  during a countdown makes the automatic retry land.
+- **The label morphs through `torph`**, since "Publish", "Publishing" and
+  "Published" share most of their letters. The icon beside it crossfades with
+  a blur and a scale. Digits are tabular, so the countdown never changes the
+  pill's width.
+- **The button is a pill in every state.** Width is the one value that moves,
+  on a spring, between the widths of each row, measured off hidden copies and
+  again when the font arrives. A circle while the request ran came first and
+  was too small to show the colour change.
+- **Every change of colour flows out from the middle of the pill, inside the
+  button.** It is one radial gradient, solid only in its inner fifth and fading
+  to nothing over the rest through ten smoothstep stops of `color-mix`. It is
+  five times the pill's reach, so the fade over the pill spans most of it and
+  there is no front for the eye to catch. It grows from 0.04 to 0.45 over the
+  first 72% of 1.3s, which is while it is about the pill's size, and the rest
+  finishes the corners. Then it becomes the button's own colour and removes
+  itself. Nothing renders for it.
+  - It was three gradient rings spreading across the stage first, after a
+    reference, then a wave from the status icon with a light band, then a soft
+    disc from the centre. Each was the author asking for it subtler, until it
+    reads as a flow.
+- **The button is white, and a result is a wash of its colour over white.**
+  Idle and pending are `bg` with a `stroke` hairline and a soft lift. Success
+  and failure are `success` and `danger` at 12% over `bg`, mixed opaque, with
+  ink in the full tone, the pill the token table measures at 4.59 and 4.61. It
+  invents no colour.
+- **The tick and the cross draw on with `pathLength`**, each stroke hidden
+  until it starts, since a round cap on a stroke of no length paints a dot. A
+  failure also shakes the button, through WAAPI on a wrapper, since Motion owns
+  the button's width.
+- **Nothing scales on press**, per Local overrides. Hover and press are black
+  at 3% and 7% on a `before:` layer.
+- **The `aria-label` says the state and what a press does**, such as "Retrying
+  in 2, press to retry now". `aria-busy` is set while pending and
+  `aria-disabled` while a press would do nothing, so focus stays on the button.
+  A polite live region says each change.
+- **The sound is synthesised**: a soft click on a press, two notes up a fifth
+  for a success and two down a minor third for a failure. No mute control,
+  since every sound answers a press.
+- **Reduced motion keeps every state and drops the travel.** The width changes
+  in one step, the spinner holds still, the marks are drawn at once, there is
+  no shake, a colour change is a 200ms fade, and the countdown wash holds
+  still while the count says it.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, on `bg` with its own
+  inset ring. Verified in a browser: a success, a failure that counts down 3,
+  2, 1 and that Escape stops, and a flip of the corner during a countdown that
+  lands the retry. No console errors.
+- Its clip publishes once, then fails and counts down, and the corner is
+  flipped back to succeeds so the automatic retry lands. The button resets, so
+  the clip ends on the frame it opens on and loops. 15.2s and 53KB.
 
 ## Motion
 
