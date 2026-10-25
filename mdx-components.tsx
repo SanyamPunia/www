@@ -2,6 +2,7 @@ import type { MDXComponents } from "mdx/types";
 import type { ComponentPropsWithoutRef } from "react";
 import { FootnoteBackref, FootnoteRef } from "@/components/blogs/footnote";
 import { HeadingAnchor } from "@/components/blogs/heading-anchor";
+import { PromptBlock } from "@/components/blogs/prompt-block";
 import { CodeBlock } from "@/components/ui/code-block";
 import { CodeSpan } from "@/components/ui/code-span";
 import { InlineLink } from "@/components/ui/inline-link";
@@ -232,9 +233,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       // MDX nests the fence's <code> inside <pre>. CodeBlock renders its own
       // <pre>, so unwrap rather than nesting two.
       const child = children as {
-        props?: { children?: string };
+        props?: { children?: string; className?: string };
       };
-      return <CodeBlock>{String(child?.props?.children ?? "")}</CodeBlock>;
+      const text = String(child?.props?.children ?? "");
+      // a ```prompt fence is prose for the reader to paste, not code
+      if (child?.props?.className === "language-prompt") {
+        return <PromptBlock>{text}</PromptBlock>;
+      }
+      return <CodeBlock>{text}</CodeBlock>;
     },
     /*
      * Tables, which arrived with `remark-gfm` rather than being asked for.
