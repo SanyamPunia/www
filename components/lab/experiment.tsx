@@ -555,6 +555,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/overengineered-button").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "plucked-strings": dynamic(
+    () => import("@/components/labs/plucked-strings").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

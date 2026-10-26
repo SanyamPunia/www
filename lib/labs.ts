@@ -1197,6 +1197,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Press publish. Flip the corner to make it fail.",
   },
+  {
+    slug: "plucked-strings",
+    title: "Plucked Strings",
+    description: [
+      "six strings in open g. drag across them to pluck, and each one bends round your finger, slips off it and rings, with the sound built from the same 24 modes the drawing is.",
+      "key insight: a plucked string starts as a triangle, and its harmonics are that triangle's sine series. a node at the pluck point removes every harmonic that has one there, so a pluck at the middle has no even harmonics and one near the bridge keeps them all. the bars show it.",
+      "tuned just rather than equal, so the strings ring each other through the bridge. a touch on a ringing string damps it.",
+    ],
+    createdAt: "2026-10-27",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/plucked-strings/strings.ts",
+    flush: true,
+    hint: "Drag across the strings. Where you pluck sets the tone.",
+  },
 ];
 
 /**
@@ -1341,6 +1356,7 @@ export const IMPLEMENTED_LABS = [
   "zipper-pouch",
   "tear-calendar",
   "overengineered-button",
+  "plucked-strings",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
