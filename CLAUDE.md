@@ -2027,7 +2027,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar` and `overengineered-button` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button` and `plucked-strings` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2328,7 +2328,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-five clips, 7.3MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-six clips, 7.5MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12230,6 +12230,116 @@ from the middle of the pill. A failure counts down and retries itself.
 - Its clip publishes once, then fails and counts down, and the corner is
   flipped back to succeeds so the automatic retry lands. The button resets, so
   the clip ends on the frame it opens on and loops. 15.2s and 53KB.
+
+### `plucked-strings`
+
+Six strings in open G. Drag across them and each string bends round the hand,
+slips off it and rings. A tap flicks a string, and a touch on a ringing string
+damps it. `strings.ts` is the physics, pure and DOM-free, `strings-sound.ts`
+the sound, and `index.tsx` the canvas, the gesture and one frame loop.
+
+- **The look is minimal on purpose and the depth is in the model**, at the
+  author's request: six lines, two posts, the note names and one row of
+  harmonic bars. It invents no colour.
+- **A string at rest is `text-muted` and takes on a little ink as it swings**,
+  30% of the way to `text-primary` at most, 45% while held and 20% under a
+  hovering mouse. The first build drew every string in `text-primary` at up to
+  2.6px, and a second went 80% of the way while ringing. The author found both
+  too dark, so a ringing string reads as a step darker and never as black.
+- **A ringing string also draws the band it sweeps**, the sum of its mode
+  amplitudes at each point, in the resting grey at 12%. That is the soft lens a vibrating string
+  shows the eye.
+- **The posts are white pills on the `fill` stage** with a hairline, and the
+  strings end on a 2px pin at each. The harmonic bars and their line sit in a
+  white pill under the strings, in `text-muted` with the note in
+  `text-secondary`, so nothing on the stage is black.
+- **A string's state is a list of mode amplitudes, and three things read it.**
+  The canvas draws their sum, the audio plays them as oscillators, and the bars
+  show their loudness. So the drawing, the sound and the bars cannot disagree.
+- **A pluck is the triangle's Fourier sine series**, `2A sin(n pi p) /
+  (n^2 pi^2 p (1 - p))`, for 24 modes. A node at the pluck point removes every
+  mode that has one there. Measured off the bars after a pluck at the middle:
+  modes 2, 4, 6, 8, 10 and 12 read 0.00. A pluck near the bridge lights all
+  twelve. That is the lab's one idea, and the bars make it visible.
+- **The contact has a width.** The triangle is convolved with a box as wide as
+  what touched it, which multiplies mode n by `sinc(n pi w / 2)`. A mouse or a
+  pen is a pick, 0.6% of the string. A finger takes its width from the touch
+  event's own `width`, so a broad thumb rolls the high modes off and sounds
+  darker. With no width reported it is 3%.
+- **Each mode has its own decay**, a base time per string plus a loss that
+  grows with the square of frequency. So the kink rounds off within a second
+  and the fundamental rings on alone.
+- **Each partial is stretched by stiffness**, `n f0 sqrt(1 + B n^2)`, with the
+  plain top strings stiffer than the wound bottom ones.
+- **The tuning is just, not equal tempered**, off G at 98Hz: D at 3:2 and B at
+  5:4. A strummed chord does not beat, and the strings ring each other.
+  - `couple` drives every mode of every other string through the bridge, by
+    the source mode's velocity and a Lorentzian as wide as the driven mode's
+    own bandwidth, `1 / (pi tau)` Hz. The equal-tempered fifth is 0.34Hz out
+    at 294Hz, which is wider than that bandwidth, so the sympathy depends on
+    the tuning.
+  - A sympathetic string builds up over 0.18s and then decays. In the sound it
+    is about 30dB under the pluck, worked out from the gains and not
+    measured. On screen it is under a pixel.
+- **The drawing runs slow and the decay does not.** A D2 swings 73 times a
+  second, which is only a blur on screen, so each shape plays at about two
+  swings a second, a little faster for higher strings. A string that rings for
+  three seconds is still drawn ringing for three seconds.
+- **The gesture is a segment test, not a hit test.** Each coalesced pointer
+  sample is a segment, and a string is crossed where the segment meets its
+  line. The crossing point and its time are both interpolated along the
+  segment, and so is the slip point.
+  - A string bends round the hand until it is `slip` (0.48 of the string gap)
+    out, then gets away. A fast strum crosses and slips inside one sample and
+    is plucked where it would have slipped.
+  - A finger that rolls back off the side it came from lets the string go
+    silently. It is not treated as a crossing in that same step, or the
+    string is caught from the other side and plucked when the hand lifts.
+  - Several pointers each hold their own strings, so two fingers play two.
+- **A strum keeps its timing in the sound.** Every pluck carries its
+  interpolated event time, and `getOutputTimestamp` maps that time from the
+  page's clock to the audio clock, with a 20ms lead. Six strings crossed
+  inside one event come out spread as the hand crossed them, not as one
+  chord.
+- **The sound is additive, one sine per mode**, at the mode's stretched
+  frequency and its own decay. The modes are already known, so the sound is
+  the same sum the canvas draws, and the oscillators run on the audio thread.
+  - Loudness is mode velocity, n times displacement, normalised by its energy.
+    So the pluck point changes the colour of the note and not its level.
+  - A pick adds a few ms of high-passed noise and a finger does not. A
+    finger's attack is also slower.
+  - Each string has its own stereo position, low on the left. The bus is a body
+    of two peaks at 102 and 205Hz, a 7.2kHz low-pass and a compressor, so six
+    strings at once do not clip.
+  - A touch damps a string in about 25ms, through `mute`, which ramps every
+    voice on that string to zero and stops its oscillators.
+  - No mute control, the call `crack-button` makes, since every sound answers
+    a press. A phone with a motor ticks once per pluck.
+- **The readout describes a ringing string**, so damping the string it shows
+  clears the bars and the line. That also makes the clip loop.
+- **The keyboard path is a transparent button over the stage**, with
+  `pointer-events-none`. Keys 1 to 6 pluck a string, Enter strums down and
+  Shift+Enter strums up, 24ms apart. The arrow keys move the pluck point, 5% a
+  step or 1% with Shift. A dashed line shows the point while the keyboard has
+  focus. The live region is the readout line.
+- **Nothing renders while a string moves.** The pluck commits one readout per
+  pluck, and the canvas and the bars are written from refs. The loop stops
+  once every string is still under 0.15px and the bars are under 3%. Measured:
+  0 frames requested at rest under reduced motion.
+- **Reduced motion keeps the sound and the held bend and drops the swing.** A
+  plucked string is drawn straight at once and the bars hold their first
+  values.
+- `touch-none` covers the stage, so a thumb on the strings plays them and does
+  not scroll the page. That is the trade `region-comment` makes.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, on `bg-fill` with its
+  own inset ring. The strings and the readout are centred as one group. Verified
+  at 1280 and 390px, by mouse, touch, keyboard and with reduced motion, with
+  no sideways scroll and no console errors.
+- Its clip pulls G3 at its middle slowly, pulls G2 near the bridge, strums
+  down and back up, then damps each string with a finger that rolls back off
+  it. So the clip ends on still strings and loops. Each string's height is
+  read off its note label, which carries `data-string`, so a layout change
+  cannot move the gesture off the strings. 10.3s and 131KB.
 
 ## Motion
 
