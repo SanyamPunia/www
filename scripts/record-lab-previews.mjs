@@ -2516,6 +2516,77 @@ const LABS = {
       await wait(6800);
     },
   },
+  "plucked-strings": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A slow pull on the G3 string at its middle, held so the string is seen
+     * bent round the hand, then let go. A pull on the G2 near the bridge,
+     * which lights every harmonic bar. A strum down and a strum back up. Then
+     * a finger rests on each string and rolls back off it, which damps it
+     * without a sound, so the clip ends on still strings and loops. Each
+     * string's height is read off its note label, which the component places
+     * on the string, so a change to the layout cannot move the gesture off
+     * the strings.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const c = await page.locator("[data-lab-demo] canvas").boundingBox();
+      const ox = c.x - demo.x;
+      const oy = c.y - demo.y;
+      const ys = [];
+      for (let i = 0; i < 6; i++) {
+        const b = await page
+          .locator(`[data-lab-demo] [data-string="${i}"]`)
+          .boundingBox();
+        ys.push(b.y - demo.y + b.height / 2);
+      }
+      const gap = ys[1] - ys[0];
+      const x0 = ox + c.width * 0.13;
+      const x1 = ox + c.width * 0.89;
+      const along = (p) => x0 + (x1 - x0) * p;
+      const pull = async (i, p, steps, each) => {
+        const x = along(p);
+        await m.move(x, ys[i] - gap * 0.45);
+        await m.down();
+        for (let k = 1; k <= steps; k++) {
+          await m.move(x, ys[i] - gap * 0.45 + (k * gap * 1.05) / steps);
+          await wait(each);
+        }
+        await m.up();
+      };
+      const strum = async (from, to, p) => {
+        await m.move(along(p), from);
+        await m.down();
+        for (let k = 1; k <= 14; k++) {
+          await m.move(along(p) + k * 3, from + ((to - from) * k) / 14);
+          await wait(16);
+        }
+        await m.up();
+      };
+      await wait(600);
+      await pull(3, 0.5, 26, 34);
+      await wait(1500);
+      await pull(1, 0.9, 10, 20);
+      await wait(1400);
+      await strum(ys[0] - gap, ys[5] + gap, 0.62);
+      await wait(1000);
+      await strum(ys[5] + gap, ys[0] - gap, 0.66);
+      await wait(1600);
+      for (let i = 0; i < 6; i++) {
+        const x = along(0.4);
+        await m.move(x, ys[i] - 1);
+        await m.down();
+        await m.move(x, ys[i] + 2);
+        await wait(30);
+        await m.move(x, ys[i] - 3);
+        await m.up();
+        await wait(40);
+      }
+      await m.move(along(0.5), oy + c.height - 10);
+      await wait(900);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
