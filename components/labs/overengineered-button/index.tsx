@@ -144,6 +144,8 @@ export default function OverengineeredButton() {
   const outcomeRef = useRef(outcome);
   outcomeRef.current = outcome;
   const [widths, setWidths] = useState<Record<Phase, number> | null>(null);
+  /** false until the first widths have painted, so the pill mounts at its size */
+  const [sized, setSized] = useState(false);
   const [message, setMessage] = useState("");
 
   /*
@@ -162,7 +164,12 @@ export default function OverengineeredButton() {
       setWidths(next);
     };
     read();
-    void document.fonts?.ready.then(read);
+    // the pill takes its measured width in one step, and the spring only
+    // answers changes after that, or it grows out of a line on mount
+    void document.fonts?.ready.then(() => {
+      read();
+      requestAnimationFrame(() => setSized(true));
+    });
   }, []);
 
   /*
@@ -321,7 +328,7 @@ export default function OverengineeredButton() {
           onClick={press}
           initial={false}
           animate={w === undefined ? undefined : { width: w }}
-          transition={reduce ? { duration: 0 } : RESIZE}
+          transition={reduce || !sized ? { duration: 0 } : RESIZE}
           className={cn(
             "relative isolate flex h-14 items-center justify-center overflow-hidden rounded-full ring-1 ring-stroke",
             "shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-8px_rgb(0_0_0/0.16)]",
@@ -362,7 +369,9 @@ export default function OverengineeredButton() {
               INK[phase],
             )}
           >
-            <span className="relative grid size-4 shrink-0 place-items-center">
+            {/* down 0.1em onto the lowercase x-height's centre, which sits
+                below the line box's centre that flex lines it up on */}
+            <span className="relative top-[0.1em] grid size-4 shrink-0 place-items-center">
               <AnimatePresence initial={false}>
                 <motion.span
                   key={phase}
@@ -413,7 +422,7 @@ export default function OverengineeredButton() {
       >
         <ArrowsLeftRightIcon
           aria-hidden="true"
-          className="size-3 shrink-0 text-text-muted"
+          className="relative top-[0.1em] size-3 shrink-0 text-text-muted"
         />
         <TextMorph duration={200} ease={MORPH.ease}>
           {outcome}
