@@ -12181,7 +12181,13 @@ from the middle of the pill. A failure counts down and retries itself.
   pill's width.
 - **The button is a pill in every state.** Width is the one value that moves,
   on a spring, between the widths of each row, measured off hidden copies and
-  again when the font arrives. A circle while the request ran came first and
+  again when the font arrives. The first width lands in one step, and the
+  spring only takes over a frame after the font is in: with it from the start,
+  the pill grew out of a line on every load.
+- **The icon sits 0.1em below the row's centre**, and so does the corner's.
+  Flex centres it on the line box, and lowercase text reads at its x-height's
+  centre, which is 1.7px lower at `text-body`. Measured after: the icon's
+  centre is within 0.25px of the x-height's. A circle while the request ran came first and
   was too small to show the colour change.
 - **Every change of colour flows out from the middle of the pill, inside the
   button.** It is one radial gradient, solid only in its inner fifth and fading
