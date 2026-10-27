@@ -1224,6 +1224,7 @@ const ALL_LABS: LabMetadata[] = [
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/bubble-wrap/sheet.ts",
+    reference: "https://x.com/archivess_19/status/2114003008011079780",
     flush: true,
     hint: "Press and hold a bubble to pop it. Drag to pop a row.",
   },
