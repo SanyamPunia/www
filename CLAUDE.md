@@ -2027,7 +2027,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button` and `plucked-strings` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings` and `bubble-wrap` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2113,6 +2113,9 @@ experiment is a directory under `components/labs/`.
   own section.
   `tear-calendar` scopes a warm paper, its inks and the red and blue a daily
   pad prints its weekends in, since a printed page is the object. See its own
+  `bubble-wrap` scopes the shipping box under its sheet: kraft board, tape,
+  a label and a red stamp, since what is seen through the film is the picture.
+  See its own section.
   section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
@@ -2328,7 +2331,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-six clips, 7.5MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-seven clips, 7.5MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12340,6 +12343,97 @@ the sound, and `index.tsx` the canvas, the gesture and one frame loop.
   it. So the clip ends on still strings and loops. Each string's height is
   read off its note label, which carries `data-string`, so a layout change
   cannot move the gesture off the strings. 10.3s and 131KB.
+
+### `bubble-wrap`
+
+A sheet of bubble wrap lying on a shipping box. Press a bubble and it tightens
+and bulges round the finger, then pops. Drag at depth and a row pops. One
+bubble in sixteen is a dud and hisses flat. `sheet.ts` is the layout and the
+air, pure and DOM-free, `shader.ts` the WebGL 2 drawing, `box.ts` the box
+under the sheet, `bubble-sound.ts` the sound, and `index.tsx` the stage, the
+fingers and one frame loop.
+
+- **It is WebGL 2 and not GSAP.** The look is per-pixel light through curved
+  film, which only a fragment shader can draw at this size, and `gsap` is
+  scoped to `custom-cursor`. Nothing here is a tween: the motion comes from
+  the physics and one `requestAnimationFrame` loop.
+- **A pop is a pressure, not a timer.** A dome is
+  `h = H (1 - r²/a²)^0.62` with a fixed amount of air in it. A fingertip is a
+  sphere coming down at a dome height every `PRESS` (0.12s), and the film's
+  height is the lower of the dome and the fingertip. The air in less room is
+  at a higher pressure, `P = m / V` (Boyle), and the film stretches to hold
+  it, `P - 1 = 3.2 (s - 1)`, which lifts the part of the dome the finger is
+  not on. `settle` bisects for the dome height where the two agree, over a
+  112-point polar sum of the dome's volume. A bubble bursts when `P` passes
+  its own limit, 1.62 to 2.24 by its seed.
+  - So a slow press pops late and a quick one early, a press on a bubble's
+    edge pushes the air round and may not pop at all, and a finger held at
+    depth and dragged pops the next bubble the moment it rolls onto it.
+  - **The fingertip is a thumb, 1.6 bubble radii.** At 0.78 the finger
+    covered too little of the dome, the rest bulged, and the pressure capped
+    at 1.51 with the finger on the box: nothing ever popped. A touch takes
+    its own contact width, clamped to 1.3 to 2.2 radii.
+  - **A hand let go keeps pressing for 35ms**, `FOLLOW`. Measured: a 90ms
+    click squashed a bubble and left it whole without it, and pops with it.
+    A 400ms hold always pops.
+  - A pen's depth follows its pressure instead of the clock.
+- **A dud has a pinhole.** One in sixteen starts at 0.8 to 0.9 of its air,
+  so it sags and folds a little. Past 1.28 atmospheres its air goes out
+  rather than its film, with a hiss, and once it is under 0.6 of its air it
+  sighs and counts as done. 0.6 because a thumb on the box still leaves about
+  0.4 of a dome's volume round its rim, so a lower line was never reached.
+- **The domes are one fragment shader over the whole stage.** Each pixel
+  finds its bubble on the hexagonal lattice (the row it falls in and the one
+  below are the only candidates), takes the film's height there and at two
+  neighbours, and shades off the normal:
+  - The box is sampled through the film, bent by the slope and pulled toward
+    the dome's middle by its height, with red and blue a few percent apart.
+  - The film reflects a room with two softboxes, weighted by Fresnel for two
+    surfaces, so a dome's top carries a crisp window and its walls go
+    silvery. The walls are hazier than the top.
+  - Each dome throws a ring of shadow and a bright focused spot on the box,
+    away from the light.
+  - A burst bubble is a crumple of ridged noise with the slit it tore along,
+    and it whitens a little, as stressed plastic does.
+  - The first pass looked like glass beads: the magnification, the shadow
+    ring and a dark weld line were each about twice too strong. Halving them
+    and brightening the reflected room turned the beads into film.
+- **The box is what makes the film visible.** Clear plastic over a flat
+  colour is only its highlights, so the sheet lies across kraft board with a
+  seam, packing tape, a shipping label and a fragile stamp, drawn once on a
+  canvas in the page's own face. The label runs out past the sheet's right
+  edge, so its type is seen bare and through the film side by side.
+- **Bubble data is a float texture**, two texels a bubble: where it is and
+  how big, then how high it stands, how far it has fallen in and how slack it
+  is. Each bubble is moulded a few percent off true in size and place.
+- **A burst knocks its neighbours**, which quiver at 11Hz for about a fifth
+  of a second, and a dome a finger comes off rings the same way.
+- **New sheet** pulls the sheet off to the left and slides a fresh one on
+  from the right, reseeded so the duds move. The count is the bubbles still
+  worth pressing: not popped and not a spent dud.
+- **The sound is synthesised** on `crack-sound.ts`'s shape: a pop is a snap,
+  a crack falling from 2.5kHz, a short thump and a puff, all inside 90ms,
+  tuned by the bubble's seed and louder for a tougher bubble. Crushed film
+  crinkles, a dud hisses, and the sheet rustles. No mute control, since every
+  sound answers a press. A phone with a motor feels each pop.
+- **The keyboard path is a transparent button over the stage.** The arrows
+  walk the sheet, the shader rings the focused bubble, and Space or Enter held
+  presses it, through the same physics.
+- **`data-centres` on the stage is for the preview recorder**: each bubble's
+  centre in stage px, so a press cannot drift off its bubble.
+- `touch-none` covers the stage, the trade `region-comment` makes: a thumb on
+  the sheet presses and does not scroll.
+- **Reduced motion keeps every state and drops the travel**: a burst falls in
+  in one step, nothing quivers, and a new sheet appears at once. A press is
+  direct manipulation and is unchanged.
+- Measured: 0 frames requested at rest, and a 16.7ms median and 16.8ms worst
+  frame under a 4x CPU throttle while dragging a row. Without WebGL 2, a 2D
+  canvas draws the box and a lit disc per bubble, and the sheet still pops.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset
+  ring. Verified at 1280 and 390px, by mouse, touch and keyboard, with no
+  sideways scroll and no console errors.
+- Its clip pops two bubbles, squeezes the dud flat, pops a row, and slides a
+  fresh sheet on, so it loops. 8.0s and 128KB.
 
 ## Motion
 
