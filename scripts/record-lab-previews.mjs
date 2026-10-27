@@ -2587,6 +2587,66 @@ const LABS = {
       await wait(900);
     },
   },
+  "bubble-wrap": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * Three bubbles pressed one at a time, each held until it pops, one of
+     * them a dud that hisses flat instead. Then a thumb comes down at the
+     * start of a row and drags along it, popping the row. A press on the
+     * corner control pulls the sheet off and slides a fresh one on, so the
+     * clip ends on a full sheet and loops. Every bubble is placed off the
+     * centres the component writes to its stage, so a change to the layout
+     * cannot move a press off its bubble.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const stage = page.locator("[data-lab-demo] [data-centres]");
+      const sb = await stage.boundingBox();
+      const centres = JSON.parse(await stage.getAttribute("data-centres"));
+      const at = (i) => [
+        sb.x - demo.x + centres[i][0],
+        sb.y - demo.y + centres[i][1],
+      ];
+      const press = async (i, hold) => {
+        const [x, y] = at(i);
+        await m.move(x, y);
+        await m.down();
+        await wait(hold);
+        await m.up();
+      };
+      await wait(600);
+      await press(31, 260);
+      await wait(500);
+      await press(46, 320);
+      await wait(500);
+      await press(28, 600);
+      await wait(700);
+      const [x0, y0] = at(65);
+      const [x1] = at(76);
+      await m.move(x0, y0);
+      await m.down();
+      await wait(220);
+      for (let k = 1; k <= 44; k++) {
+        await m.move(x0 + ((x1 - x0) * k) / 44, y0);
+        await wait(24);
+      }
+      await m.up();
+      await wait(1100);
+      const reset = await page
+        .locator("[data-lab-demo] button[aria-label='New sheet']")
+        .boundingBox();
+      await m.move(
+        reset.x - demo.x + reset.width / 2,
+        reset.y - demo.y + reset.height / 2,
+      );
+      await m.down();
+      await wait(50);
+      await m.up();
+      await m.move(20, 20);
+      await wait(1500);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
