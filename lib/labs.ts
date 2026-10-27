@@ -1212,6 +1212,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag across the strings. Where you pluck sets the tone.",
   },
+  {
+    slug: "bubble-wrap",
+    title: "Bubble Wrap",
+    description: [
+      "a sheet of bubble wrap on a shipping box. press a bubble and it tightens and bulges round your finger, then pops, drawn by one webgl shader with the box bent through every dome.",
+      "key insight: a pop is not a timer. the finger takes volume from a sealed dome, the air answers by boyle's law, the film stretches to hold it, and the bubble bursts when the pressure passes what its film can take. so a slow press pops late and a drag at depth pops a row.",
+      "one bubble in sixteen has a pinhole and hisses flat instead.",
+    ],
+    createdAt: "2026-10-28",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/bubble-wrap/sheet.ts",
+    flush: true,
+    hint: "Press and hold a bubble to pop it. Drag to pop a row.",
+  },
 ];
 
 /**
@@ -1357,6 +1372,7 @@ export const IMPLEMENTED_LABS = [
   "tear-calendar",
   "overengineered-button",
   "plucked-strings",
+  "bubble-wrap",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
