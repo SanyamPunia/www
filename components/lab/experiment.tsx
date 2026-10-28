@@ -563,6 +563,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/bubble-wrap").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "sheet-detents": dynamic(
+    () => import("@/components/labs/sheet-detents").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

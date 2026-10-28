@@ -1228,6 +1228,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Press and hold a bubble to pop it. Drag to pop a row.",
   },
+  {
+    slug: "sheet-detents",
+    title: "Sheet Detents",
+    description: [
+      "an ios bottom sheet over a map, with three detents. drag it, flick it past a detent, or scroll its list, and the map behind pushes back as the sheet reaches the top.",
+      "key insight: one gesture owns either the sheet or the list and hands over without a seam. drag up and the sheet rises to full, then the same drag scrolls the list. scroll the list back to its top and the same drag pulls the sheet down.",
+      "a release goes to the detent nearest where the throw would come to rest. the sheet's position is one value, and the map, the scrim, the corners and the favourites are all read off it.",
+    ],
+    createdAt: "2026-10-29",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/sheet-detents/sheet.ts",
+    flush: true,
+    hint: "Drag or flick the sheet, then keep dragging to scroll its list.",
+  },
 ];
 
 /**
@@ -1374,6 +1389,7 @@ export const IMPLEMENTED_LABS = [
   "overengineered-button",
   "plucked-strings",
   "bubble-wrap",
+  "sheet-detents",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

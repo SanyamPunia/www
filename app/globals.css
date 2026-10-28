@@ -774,3 +774,18 @@ html[data-scrub="true"] * {
     transform: scaleX(1);
   }
 }
+
+/*
+ * The reader's halo on the map in `components/labs/sheet-detents/`, a ring of
+ * light leaving the blue dot. `motion-safe:` at the call site.
+ */
+@keyframes you-halo {
+  from {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
