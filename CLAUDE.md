@@ -2027,7 +2027,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings` and `bubble-wrap` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap` and `sheet-detents` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2116,6 +2116,10 @@ experiment is a directory under `components/labs/`.
   `bubble-wrap` scopes the shipping box under its sheet: kraft board, tape,
   a label and a red stamp, since what is seen through the film is the picture.
   See its own section.
+  section.
+  `sheet-detents` scopes the inks of its town map, a hue per pin and the blue
+  of the reader's dot, since a map's colours tell land, water and park apart
+  and a hue is what tells ten pins built from one circle apart. See its own
   section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
@@ -2331,7 +2335,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-seven clips, 7.5MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-eight clips, 7.7MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12434,6 +12438,129 @@ fingers and one frame loop.
   sideways scroll and no console errors.
 - Its clip pops two bubbles, squeezes the dud flat, pops a row, and slides a
   fresh sheet on, so it loops. 8.0s and 128KB.
+
+### `sheet-detents`
+
+An iOS bottom sheet with three detents, over a map of a small town. Drag or
+flick the sheet between the peek, half and full, and keep dragging past full to
+scroll its list. `sheet.ts` is the numbers, pure and DOM-free, `places.ts` the
+places and the town's scale, `map.tsx` the town, `sheet-sound.ts` the sounds,
+and `index.tsx` the screen, the gesture and the scroll handoff.
+
+- **The sheet is one value, `y`, the distance from the screen's top to the
+  sheet's top.** The three detents are three values of it, and `level` turns it
+  into one number: 0 at the peek, 1 at half, 2 at full. The map's push back, the
+  scrim, the sheet's top corners, the map controls, the favourites and
+  where the map keeps its centre are all transforms of that number. Nothing
+  renders while the sheet moves. Measured: 0 frames requested at rest.
+- **One gesture owns either the sheet or the list, and hands over in the same
+  step.** `route` takes a move, gives it to its owner, and passes whatever the
+  owner cannot use to the other. So one drag from half lifts the sheet to full
+  and then scrolls the list, and one drag down on a scrolled list scrolls it to
+  its top and then pulls the sheet down. Measured on a phone with touch: one
+  360px drag from half ends at full with the list scrolled 235px, and the page
+  does not move.
+  - **A press on the header never scrolls the list.** Pushing the header past
+    full rubber-bands the sheet instead, the way iOS does.
+  - **A wheel run may only hand a downward pull to the sheet if it began with
+    the list at its top**, `pull-refresh`'s rule. A fling's momentum arriving at
+    the top would otherwise drag the sheet down with it.
+- **The list is scrolled by hand, through a motion value, never natively.** A
+  native scroll cannot give its remaining travel to something else in the
+  middle of a gesture, which is the whole handoff. A released list coasts on
+  UIScrollView's 0.325s time constant and springs off either end with the
+  speed it reached it at, and a press catches it.
+- **A release goes to the detent nearest where the throw would come to rest**,
+  through Apple's projection at a rate of 0.995, between `swipe-row`'s 0.99 and
+  a page's 0.998. A flick past 420px/s that would still land on its own detent
+  moves one detent its way, since a flick asks for a move. The spring is near
+  critical, stiffness 380 and damping 36, and starts at the hand's speed.
+- **Past full and the peek the sheet rubber-bands**, with the UIScrollView
+  curve. `unbandY` runs it backwards, so a sheet caught mid-bounce does not
+  jump under the hand.
+- **A drag crossing a detent ticks, and a sheet landing on one thuds.** The
+  thud plays when the sheet is within 1.5px of the detent, not when the
+  spring's tail ends. A phone with a motor feels both.
+- **The sheet runs to the screen's sides and foot at every detent**, at the
+  author's request. A floating build came first, inset 8px with nested
+  corners, and the inset closing past half. Only the top corners still answer
+  the sheet: they tighten from 20px to 12px past half.
+  - **The edge is a `clip-path`, never a size.** The sheet box is the screen's
+    height and runs off its foot, so the clip's bottom edge is the part below
+    the screen, and the screen's own corners round the foot.
+  - **The shadow is a `drop-shadow` on a wrapper**, since a box shadow on the
+    clipped element is clipped with it, and a drop shadow follows the clip.
+  - **Hit testing follows the clip**, so the wrapper is `pointer-events-none`
+    and the clipped element takes the pointer.
+- **Past half the map is pushed back**: it scales to 0.925 about its top and a
+  scrim comes up to 30%.
+  - **It stays concentric with the screen, and the first build was not.** The
+    scale leaves a gap at each side of half the width the map lost, so the map
+    drops by that same gap and the gap is even on three sides. Its painted
+    corner is the screen's 32px less the gap, and the radius is set before the
+    scale, so it is divided back out. The first build dropped a fixed 10px and
+    eased the corner to 14px, which painted at 13px inside a 32px corner with
+    an 11px gap. Measured after, on a 320px screen: a 12px gap on the left, the
+    right and the top, and a 20.0px painted corner. That is iOS's page
+  sheet, and the screen's `inverse-bg` is what shows above it. The scrim is a
+  button that brings the sheet back to half.
+- **The map keeps its centre in the part the sheet leaves uncovered.** Below
+  half that part grows and shrinks with the sheet, so the map moves at half the
+  sheet's speed. Above half the centre stops where half put it. A pick pans the
+  map to the place's pin on a 0.6s spring, and a pick at full brings the sheet
+  down to half so the map shows it.
+- **Every clipping box in the demo is `overflow-clip`, never `hidden`, and this
+  was a bug.** A hidden overflow is still a scroll container, so a click that
+  focused a row below the screen's foot scrolled the whole screen up by script:
+  the map's foot showed black and the sheet sat at the wrong height. A clip
+  cannot scroll. Measured after: the screen's `scrollTop` stays 0 through a
+  click, a Tab walk and a search.
+- **Keyboard focus in the list raises the sheet to full and keeps the row in
+  view**, with room for the focus ring. A mouse press focuses a row too, so the
+  test is `:focus-visible`: without it a click on a row at half flew the sheet
+  to full and back.
+- **A press that catches something mid-flight is not a tap.** It lets the
+  sheet finish to its nearest detent and a list off an end spring back.
+  "Moving" means more than 2px from where it is going: a spring's tail spends
+  most of a second on fractions of a pixel, and testing `isAnimating` there ate
+  the next tap. The recorded clip is what found it.
+- **The grabber is a `role="slider"`** over three named detents. The arrows and
+  the page keys step, Home and End go to the ends, and Enter, Space or a tap
+  walk up the detents and wrap to the peek. Escape clears a search, then lowers
+  the sheet to the peek.
+- **A mouse notch steps one detent**, or scrolls the list a notch at full. A
+  trackpad drives the sheet and the list by hand through `route`, and settles
+  120ms after its last event. A run that could only push past an end goes to
+  the page.
+- **Search filters the list as you type** and raises the sheet to full on the
+  first key or a click. A word in a place's name or kind has to start with the
+  query.
+- **Every distance on the list is measured off the map**, at 2.4m a world
+  unit from the reader's dot, so the list cannot claim a distance the map does
+  not draw.
+- **The map is one memoised SVG**, a hashed grid of blocks, a park, a hill, a
+  river with a bay and three roads that cross it as bridges. It is drawn once
+  and only ever moved. The pins and the reader's dot are HTML over it, so they
+  can be buttons with tooltips. SVG text does not take the stylesheet's
+  lowercase, so the labels are written lowercase.
+- **The hues are scoped**, the claim `loupe` and `swipe-row` make. White on
+  every pin measures 3.95 to 5.92. None are tokens.
+- **The sheet lifts 22px and settles the first time it is seen**, `swipe-row`'s
+  peek, since a sheet at rest says nothing about being draggable.
+- `touch-none` covers the sheet alone, so a thumb on the sheet drives the sheet
+  and a thumb on the stage around the screen still scrolls the page.
+- **Reduced motion keeps every state and drops the travel.** A detent lands in
+  one step, the list does not coast, the map does not glide and the halo does
+  not pulse. A drag still tracks the hand.
+- It is `flush`, a fixed `h-[31rem]`, with its own inset ring. The screen is
+  `min(20rem, 100% - 2rem)` by 26rem.
+- Verified in a browser at 1280px and at 390px with touch: drags, flicks, the
+  handoff both ways, the trackpad, the keys, search, a pin, a favourite, the
+  location button, no sideways scroll, and no console errors.
+- Its clip drags the sheet from half to full and on into the list, drags back
+  down to the peek, taps the grabber to half, picks a favourite and taps the
+  location button, so it ends on the frame it opens on and loops. 11.7s and
+  144KB.
 
 ## Motion
 
