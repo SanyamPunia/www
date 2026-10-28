@@ -2647,6 +2647,71 @@ const LABS = {
       await wait(1500);
     },
   },
+  "sheet-detents": {
+    // a band of the stage at the card's 8:5, from just above the full sheet's
+    // top to just past the peek, since the stage is taller than that
+    focus: [0, 44, 538, 336],
+    /*
+     * One drag from the list at half: the sheet rises to full, then the same
+     * drag scrolls the list. A slow drag back down scrolls the list to its top
+     * and then pulls the sheet down to the peek. A tap on the grabber brings it
+     * back to half, a favourite pans the map to its pin, and the location
+     * button pans it home, so the clip ends on the frame it opens on and loops.
+     * The location button is pressed in one step so its tooltip never opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const rel = (b, fx, fy) => [
+        b.x - demo.x + b.width * fx,
+        b.y - demo.y + b.height * fy,
+      ];
+      const drag = async (x, y, dy, ms) => {
+        await m.move(x, y);
+        await m.down();
+        const steps = Math.round(ms / 16);
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          await m.move(x, y + dy * (0.5 - Math.cos(Math.PI * t) / 2));
+          await wait(16);
+        }
+        await wait(90);
+        await m.up();
+      };
+      const press = async (x, y) => {
+        await m.move(x, y);
+        await m.down();
+        await wait(50);
+        await m.up();
+      };
+      await wait(700);
+      const sheet = await page
+        .locator("[data-lab-demo] [data-sheet]")
+        .boundingBox();
+      const [sx, sy] = rel(sheet, 0.5, 0);
+      await drag(sx, sy + 150, -380, 1100);
+      await wait(900);
+      await drag(sx, sy - 30, 470, 1200);
+      await wait(900);
+      const grab = await page
+        .getByRole("slider", { name: "Sheet height" })
+        .boundingBox();
+      await press(...rel(grab, 0.5, 0.5));
+      await wait(1100);
+      const fav = await page
+        .locator('[data-lab-demo] section[aria-label="Favourites"] button')
+        .nth(2)
+        .boundingBox();
+      await press(...rel(fav, 0.5, 0.4));
+      await m.move(sx, sy + 140);
+      await wait(1400);
+      const home = await page
+        .getByRole("button", { name: "Show my location" })
+        .boundingBox();
+      await press(...rel(home, 0.5, 0.5));
+      await m.move(sx, sy + 140);
+      await wait(1300);
+    },
+  },
   "reading-depth": {
     // the page's middle at the card's 8:5, since the stage is taller than
     // that and the text in the band is what the clip is about
