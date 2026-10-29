@@ -2647,6 +2647,64 @@ const LABS = {
       await wait(1500);
     },
   },
+  "haptic-menu": {
+    // a band of the stage at the card's 8:5, since the stage is taller
+    focus: [0, 32, 538, 336],
+    /*
+     * A hold on the lemons and a slide onto Favourite, so the photo lifts and
+     * the album blurs. A hold on the road and a slide onto Delete, then a tap
+     * on the confirmation, so the grid closes up. Restore brings it back, and
+     * a last hold takes the lemons out of favourites, so the clip ends on the
+     * frame it opens on and loops. Restore is pressed in one step, so its
+     * tooltip never opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const centre = async (sel) => {
+        const r = await page.locator(`[data-lab-demo] ${sel}`).boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const glide = async ([x0, y0], [x1, y1], ms) => {
+        const steps = Math.round(ms / 16);
+        for (let i = 1; i <= steps; i++) {
+          const t = 1 - (1 - i / steps) ** 2;
+          await m.move(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+          await wait(16);
+        }
+      };
+      const holdTo = async (tile, item) => {
+        const from = await centre(`[data-tile="${tile}"]`);
+        await m.move(...from);
+        await m.down();
+        await wait(650);
+        await glide(from, await centre(`[data-item="${item}"]`), 380);
+        await wait(250);
+        await m.up();
+      };
+      const tap = async (sel) => {
+        const at = await centre(sel);
+        await m.move(...at);
+        await m.down();
+        await wait(60);
+        await m.up();
+      };
+      await wait(600);
+      await holdTo("lemons", 0);
+      await m.move(20, 380);
+      await wait(1100);
+      await holdTo("road", 3);
+      await wait(700);
+      await tap('[data-item="0"]');
+      await m.move(20, 380);
+      await wait(1200);
+      await tap('[aria-label="Restore photos"]');
+      await m.move(20, 380);
+      await wait(1000);
+      await holdTo("lemons", 0);
+      await m.move(20, 380);
+      await wait(1200);
+    },
+  },
   "sheet-detents": {
     // a band of the stage at the card's 8:5, from just above the full sheet's
     // top to just past the peek, since the stage is taller than that
