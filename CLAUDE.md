@@ -271,6 +271,9 @@ deliberately replaced.
   smaller than that may, and no button, pill, row or inline target may.
   `components/labs/weather-morph/` is the second, on the same test: its icon
   tile is a 190px square, so its 3% press is 6px of edge.
+  `components/labs/haptic-menu/` is the third: a held photo is a 106px square
+  that shrinks 5% before it lifts, which is 5px of edge, and the shrink is the
+  gesture's progress rather than press feedback. See its own section.
 - **All lowercase**, via `text-transform` on `body` in `app/globals.css`, not by
   writing the copy in lowercase. The markup keeps real casing, so crawlers,
   screen readers and copied text still get "Oliv AI". Write new copy in
@@ -2027,7 +2030,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap` and `sheet-detents` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents` and `haptic-menu` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2121,6 +2124,8 @@ experiment is a directory under `components/labs/`.
   of the reader's dot, since a map's colours tell land, water and park apart
   and a hue is what tells ten pins built from one circle apart. See its own
   section.
+  `haptic-menu` scopes the inks of its six drawn photos, since a photo's
+  colours are the photo. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -2335,7 +2340,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-eight clips, 7.7MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Seventy-nine clips, 7.8MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12561,6 +12566,88 @@ and `index.tsx` the screen, the gesture and the scroll handoff.
   down to the peek, taps the grabber to half, picks a favourite and taps the
   location button, so it ends on the frame it opens on and loops. 11.7s and
   144KB.
+
+### `haptic-menu`
+
+The iOS long-press context menu on an album of six drawn photos. Hold a photo
+and it shrinks under the finger, then lifts out as a preview over a blurred
+album while a menu unfolds beside it. Keep the finger down and slide onto an
+action, and letting go chooses it. `menu.ts` is the numbers and the layout,
+pure and DOM-free, `photos.ts` the pictures, `haptic-sound.ts` the sounds, and
+`index.tsx` the press, the lift and the menu.
+
+- **One value, `press`, runs from 0 to 1 over the 0.45s hold.** It drives the
+  held tile's shrink and the first 35% of the blur, so the album is already
+  going soft when the photo lifts and the lift reads as the press arriving.
+  The shrink is front-loaded, so it holds at 95% for the last part of the hold.
+- **The press and the menu are one gesture.** The pointer is captured on the
+  tile at the press, so after the lift every move still reaches the tile, and
+  each move hit-tests the menu with `elementFromPoint`. Letting go over an
+  action chooses it. Letting go anywhere else leaves the menu open to tap,
+  which is what iOS does.
+- **A drift past 10px before the lift is a scroll**, and the press lets go.
+  After the lift a non-passive `touchmove` on the stage cancels the page
+  scroll, so a finger sliding onto the menu moves the highlight and not the
+  page. Measured on a 390px phone with touch: a slide to Favourite chose it and
+  the page moved 0px. The stage is `touch-pan-y` and carries
+  `-webkit-touch-callout: none`, so iOS shows no callout on the long press.
+- **The preview is the tile's own box, grown.** It starts on the tile's rect,
+  read with the shrink applied, and springs to its pose with a little bounce,
+  `left`, `top`, `width`, `height` and the corner from 10px to 16px, never a
+  scale, so the picture is drawn at the size it is shown. The tile under it is
+  transparent for as long as the preview is out. Closing springs it back to
+  the tile's rect with no bounce.
+- **`pose` in `menu.ts` places the preview and the menu from the stage's size
+  alone.** Side by side when the stage is at least 378px wide, stacked
+  otherwise. The menu goes on the side away from the edge the tile is nearer
+  to, and its transform origin is the edge nearest the preview, so it unfolds
+  out of the photo. The menu's height is arithmetic, rows of 40px, so nothing
+  is measured.
+- **The menu leaves the moment an action is chosen, and the preview stays
+  300ms to show what it did**, a heart or a quarter turn. Left up, a favourite
+  renamed its own row to "Unfavourite" while the menu was still on screen,
+  which the recorded clip is what showed.
+- **Delete confirms inside the menu**, which is the shared confirm rule in the
+  shape iOS gives it: the rows swap for "Delete photo" and "Cancel" under a
+  line saying it can be restored, and the menu's height eases between the two.
+  A deleted photo's preview shrinks and fades rather than going home, since
+  there is no slot to go to, and the grid closes up under the blur through
+  `layout`. Restore puts every deleted photo back and keeps the rest as they
+  are.
+- **A right click opens the menu at once**, and Enter, Space, the ContextMenu
+  key and Shift+F10 open it from the keyboard with focus on the first action.
+  The arrows, Home and End walk it, Enter chooses, and Escape or Tab closes it
+  and hands focus back to the tile. A click with `detail` 0 is an assistive
+  technology's, which cannot hold, so it opens the menu too. A quick tap says
+  "Press and hold a photo" in a pill.
+- **Hover and the keys share one highlight**, `hi`, as a native menu does, and
+  keyboard focus follows it.
+- **The blur is one button over the album**, `backdrop-blur-md` on `fill` at
+  40%, with its opacity on a motion value. A press on it closes the menu. It
+  is out of the tab order, since Escape is the keyboard's way out. The held
+  tile is `z-20` over it, so the blur starts round the photo and not on it.
+- **The menu header and the confirm note are `text-secondary`.** The first
+  build had the header in `text-muted`, at 2.9:1 on the menu's white, and the
+  `ui-taste` review caught it.
+- **The sound is synthesised** on `crack-sound.ts`'s shape: a low thunk on the
+  lift for the Taptic Engine, a tick as the finger crosses onto another action,
+  and a click on a choice. A phone with a motor feels each. No mute control,
+  since every sound answers a press.
+- **The photos are CSS gradients, not fetched images**, since `/privacy`
+  promises no image from another origin. Their hues are scoped here and are not
+  tokens.
+- **A resize closes the menu at once**, since the pose was laid out for the old
+  stage.
+- **Reduced motion keeps every state and drops the travel.** The tile does not
+  shrink, the preview lands in one step and the menu fades in. The hold still
+  takes 0.45s, since it is how the gesture is told from a tap.
+- It is `flush`, a fixed `h-[25rem]`, with its own inset ring.
+- Verified in a browser at 1280px and at 390px with touch: a hold and a slide,
+  a right click, delete and its confirm, restore, the keyboard path with focus
+  coming back, a quick tap, no sideways scroll, and no console errors.
+- Its clip holds the lemons and slides onto Favourite, deletes the road
+  through the confirm, restores it, and takes the lemons out of favourites, so
+  it ends on the frame it opens on and loops. 11.0s and 148KB.
 
 ## Motion
 
