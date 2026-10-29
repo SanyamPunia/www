@@ -1243,6 +1243,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag or flick the sheet, then keep dragging to scroll its list.",
   },
+  {
+    slug: "haptic-menu",
+    title: "Haptic Menu",
+    description: [
+      "the ios long-press context menu on an album of photos. hold one and it shrinks under the finger, then lifts out over a blurred album while a menu unfolds beside it.",
+      "key insight: the press and the menu are one gesture. keep the finger down after the lift and slide onto an action, and letting go chooses it. let go anywhere else and the menu stays open to tap.",
+      "one value runs over the half-second hold and drives both the shrink and the start of the blur, so the album is already going soft when the photo lifts.",
+    ],
+    createdAt: "2026-10-30",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/haptic-menu/index.tsx",
+    flush: true,
+    hint: "Press and hold a photo, then slide onto an action.",
+  },
 ];
 
 /**
@@ -1390,6 +1405,7 @@ export const IMPLEMENTED_LABS = [
   "plucked-strings",
   "bubble-wrap",
   "sheet-detents",
+  "haptic-menu",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
