@@ -112,7 +112,7 @@ export default function PixelReveal() {
    * It changes on almost every frame, so state would re-render the component
    * sixty times a second and `torph` would start a new morph before the last
    * had finished, which is a smear. `event-stacking` and the measured demos in
-   * `_details-you-can-measure` both make the same call for a per-frame counter.
+   * `details-you-can-measure` both make the same call for a per-frame counter.
    */
   /**
    * How far through the run the board is, from 0 to 1.

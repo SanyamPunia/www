@@ -216,7 +216,7 @@ recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 first choice for the secondary tone and fails at 3.94.
 
 **There are two shadow tokens, declared beside the colours in `@theme`.**
-`--shadow-stage` is the demo stage in `app/blogs/_details-you-can-measure/`,
+`--shadow-stage` is the demo stage in `app/blogs/details-you-can-measure/`,
 see that post's section. `--shadow-frame` draws a container's edge as a
 shadow instead of a ring, a 1px spread plus two short casts. `CodeBlock` uses it
 for every code fence, and so do the figures in
@@ -901,7 +901,7 @@ files:
   would link to a 404. It is how a finished post is taken down without
   deleting it: rename the directory, and rename it back to publish. The
   relative imports inside it survive the rename, so nothing else changes.
-  `_details-you-can-measure` is unpublished this way.
+ 
 - A post's demo component is **colocated** in the post directory when only that
   post uses it, and lives in `components/blogs/` when it might not be. Its
   import goes at the top of `page.mdx`.
@@ -1514,13 +1514,7 @@ deploy queue every panel shows, and `figure.tsx` is the shared layout:
 
 ### `details-you-can-measure`
 
-**Unpublished for now, under `app/blogs/_details-you-can-measure/`.** The
-underscore takes the route away and keeps the post out of the index, see
-Blogs above. Rename the directory to publish it again.
-
-Thirteen demos and a list, one per lesson, each with the number that settled
-it. The post is this site's notes and the other projects' notes read back, with
-Jakub Krehel's list of interface details as the prompt. `frame.tsx` holds the
+Thirteen details and a list, each with the number that settled it. The post is this site's notes and the other projects' notes read back. `frame.tsx` holds the
 parts every demo is built from and the demos are colocated, one file per
 section or pair.
 
@@ -1528,144 +1522,64 @@ section or pair.
   component.** `lib/markdown.ts` only recognises that shape, so a prop on the
   mount line would leak into the markdown variant as a stray tag. Verified on
   `/blogs/details-you-can-measure.md`: thirteen notes, no stray tags.
-- **`Frame` is a stage.** The `Demo` frame's hairline box, white, in three
-  fixed rows: the gesture in two to four words in the top left corner, the
-  subject centred, the demo's controls bottom right. Every stage puts its
-  subject in the same place, so the stages line up down the post.
-  - **No task sentence, no caption, no material.** Earlier versions carried a
-    sentence above the box and a paragraph under it, then header and footer
-    bands, which read as a card with a form in it, then a dot grid borrowed
-    from `sticker-peel`, which read as chrome. The prose makes the argument.
-    The stage shows the thing and reports the number.
-  - **The subject area is a flex column**, so a lane that wants the stage's
-    width gets it and a pair of pills still centres. As a centring row the
-    spring lane collapsed to nothing.
-  - **The stage is lifted by `shadow-stage`, the one shadow token on the
-    site.** Three faint layers in `globals.css`, a contact line, a short cast
-    and a wide ambient, since one shadow dark enough to read at this size
-    looks like a drop shadow rather than like light. The ring stays: a shadow
-    this faint draws no edge on white and the top of a lifted box has none.
-    Nothing else may reach for the token.
-  - **Every discrete text change on a stage morphs through `torph`**, on the
-    book opening lab's 200ms and ease: the mode switches, the two toggle pills,
-    the pass and fail words, and any `Readout` handed a string. A `Readout`
-    handed a node does not morph, which is how the contrast ratio and the
-    per-frame counters opt out. Morphing a value that ticks every frame is a
-    smear.
-  - **The stage is `select-none`.** Every gesture on it is a press or a drag
-    across type, and a drag that misses paints a selection and two carets
-    over the demo. The lowercase demo used to ask the reader to select and
-    copy a label, which that forbids, so a control copies the node's text for
-    them and a readout shows what the clipboard got.
+- **A stage shows one thing, and it tells the reader what to do.** `Frame` is a
+  lit surface holding the subject and a flat row at its foot, under a hairline. A
+  raised tray stacked its shadows on the stage's own and was taken out. The row shows `hint`, then
+  `after` once the reader has touched the stage, so the instruction turns into
+  what they just saw. Both lines share a grid cell, so the row holds its height.
+  A gesture label in the corner, secondary readouts and unlabelled graphs were
+  cut at the author's request, since they buried the point.
+  - **`Ping` marks where to start** and stops when the stage is first touched,
+    through `data-touched` on the section. It is a ring that takes its parent's
+    radius and breathes outward, `start-here` in `globals.css`, since a dot in
+    the corner read as a notification badge. Reduced motion holds a still ring.
+  - **Depth is three surfaces, `RAISED`, `WELL` and `KNOB`.** Objects stand on the
+    stage, slots are cut into it, and the balls are lit from the upper left. All
+    of it is black and white at low alpha, the rule `document-pocket` sets, and
+    the stage is lit from the top, `flip-clock`'s call.
+  - **The stages break out of the column to `min(100vw-2rem,46rem)` and stand at
+    about 374px tall**, at the author's request, since a demo with no room reads
+    as congested. The post passes `toc={false}` for that margin, the call the
+    nested-corners post makes, and the rail keeps its back link.
+  - **A number the prose already quotes stays out of the stage.** A stage reports
+    a number only when the reader produces it.
+  - **The `lead` pill is the one control a stage is driven by.**
+  - **Every pill here is centred on its x-height, through `pb-[0.16em]`.** The
+    site is lowercase and a flex row centres a line box built for capitals, so a
+    label sits 0.08em low. Measured on `move`: 11.9px above the ink and 9.9 below
+    before, 10.9 and 10.9 after.
+  - **The stage is `select-none`.** The lowercase demo copies the node's text for
+    the reader and shows what the clipboard got.
+  - **Every `after` line has to agree with what the demo measures.** Two first
+    drafts did not: 8px is 261ms against 512ms for the lane on one spring, and
+    216ms on the stiffer spring, as Motion reports the finish.
   - It moves to `components/blogs/` the day a second post wants it.
-- **Every stage reports bottom left and is driven bottom right.** `Frame`
-  takes `readouts` and `controls`, and every demo puts its numbers in the one
-  and its buttons in the other, so the eye learns the two places once.
-- **The thirteen demos, and what each one had to become.** The first build of
-  every one was the subject and a number. Each now shows the mechanism.
-  - **Press and hold** carries a loupe under each pill: the label rasterised
-    once at device resolution, drawn again through a 0.98 transform with
-    smoothing on, which is what a compositor does to a scaled layer, then a
-    16 by 9px window round the first glyph blown up twelve times with smoothing
-    off. The fill side draws the label crisp on the darker ground. A `press
-    both` control holds the press for a reader with no mouse.
-  - **Tap fast** traces each pill's colour per frame through a 90ms press and
-    the 480ms after it, as a line under the pill, with the release marked. The
-    timed step reads about 65% at release, the instant one 100%.
-  - **Press move** traces both knobs on one time axis as a share of their own
-    distance. On one spring the two curves lie on each other, which is the
-    claim. `by distance` hands the 8px move the stiffer spring and its curve
-    lands early. `SNAPPY` and `TRAVEL` are event-stacking's two springs.
-  - **Hover** stamps a rail beside each card with the card's position on every
-    frame of the lift. The spring's stamps bunch at the start and the
-    ease-out's spread there. `lift both` holds a lift for touch.
-  - **Park on a bottom edge** hit tests both rows itself, against each box's
-    current rect on every pointer move, which is what `:hover` does, so one
-    mechanism serves the real hand and the drawn one. `park a hand` puts a
-    cursor icon on each first card's bottom edge with a pixel of jitter for
-    three seconds. Measured: 58 hovers on the moving box against 1 on the
-    still one. The hit boxes carry a dashed outline so the reader sees which
-    one moves.
-  - **Drag** fills each lane behind its knob and counts renders through
-    `useTextMorph`, morphing every fifth render and once more at the drag's
-    end, since a morph per frame is a smear. The drag ends on the window, on
-    nib's rules.
-  - **Click, tab, tap** shows the three sequences as ghost rows at rest, and
-    the first real event replaces them. The grey slab is gone.
-  - **Switch the setting** is one sync notice: its icon loops, its bar fills
-    itself on arrival and the notice slides in when asked for. Reduced motion
-    stops the first two and keeps the third without its trip. The readouts say
-    the three durations under each setting.
-  - **Drag the swatch** makes the swatch the control, `role="slider"` with
-    pointer capture, up and down for lightness and left and right for hue, the
-    arrow keys doing the same. The ratio is a needle on a 1 to 8 scale with the
-    3.0 and 4.5 floors marked, the text floor labelled above the axis and the
-    graphic floor below, since one row of labels collides at the column's
-    width. A failed floor's label takes `danger`.
-  - **Run** puts a hairline after each number, which jumps with proportional
-    digits and holds with tabular ones, and reads the widths of a 1 and an 8
-    off hidden spans in the pill's own type: 6.7px and 9.3px against 9.1px for
-    both tabular.
-  - **Drag an edge** makes the column's dashed edges the handles, each a
-    `role="slider"` with arrow keys, narrowing about the centre. The last word
-    is marked with a dotted `danger` underline whenever its rect's top differs
-    from the word before it, which is a lone last line measured rather than
-    guessed.
-  - **Hover a row** draws the row's baseline off a zero-width inline-block
-    probe, and marks each separator's centre. The middot's centre is measured
-    off its ink, drawn to a canvas at the row's font and scanned, since a
-    span's rect is the line box and says nothing about where the glyph sits.
-    Measured at body size: the middot's ink sits 3.8px above the baseline and
-    the element 5.5px, where the line box put both at 5.5. `show guides` pins
-    them for touch.
-  - **Copy** is unchanged: a control copies the node's text and a readout shows
-    what the clipboard got.
-- **A readout that changes on hover holds a fixed width, and this was a bug
-  of the post's own fifth kind.** The dots demo's readouts arrived on hover and
-  wrapped the bottom row to a second line. The taller row shrank the centred
-  middle row, the hovered row shifted up out from under a pointer that had not
-  moved, the hover ended, the readouts emptied, and the row came back under it.
-  Instrumented: `enter 1, leave 1` alternating on every pointer step, with the
-  guides never on screen for a whole frame. The hover, park and dots demos give
-  their readouts `w-28` to `w-48`, so their arrival cannot reflow the stage.
-- **Measured on the dots stage at body size**: the middot's ink centre sits
-  3.8px above the baseline and the element's 5.5px, where reading the span's
-  line box had put both at 5.5. At lead size the middot is 4.3px up and 4.6px
-  wide against the element's 5.4 and 3.2.
-- **`Cycle` is the site's mode selector**, the value as the label and two
-  arrows saying a press swaps it, `book-opening`'s call.
-- **An empty readout is a `MinusIcon`, never a dash.** The first pass used an
-  em dash as the placeholder, which is the glyph the frontend rules ban.
-- **The lowercase demo's cased pill is an inline style, not a utility.**
-  `button { text-transform: inherit }` in `globals.css` is unlayered and beats
-  any `@layer utilities` class, so `[text-transform:none]` lost silently and
-  the pill rendered lowercase. The list at the end of the post carries the same
-  lesson from two other projects.
-- **The contrast demo's preset is `INK` imported from
-  `components/labs/halftone-ripple`**, converted to OKLCH at module load, so
-  the readout says 3.79 rather than the 3.71 a hand-copied approximation gave.
-  The hue stays scoped to the lab and the post only reads it.
-- **The hover flicker needs a moving hand.** Headless Chrome does not
-  re-evaluate `:hover` under a pointer that has not moved after the element
-  beneath it transforms away, so a parked pointer counted one hover. With 1px
-  of jitter for a second it counted 15 against 2 on the fixed row, and the task
-  line says a hand is never quite still.
+- **The press demo keeps its loupes**, now round lenses tied to their pills, since
+  the smear is too small to see at size. Each draws the label once at device resolution, resamples it through a
+  0.98 transform, then magnifies the first glyph twelve times with smoothing off. The pills are
+  `bg` now, so the raster paints on `bg`.
+- **The hover demo parks a hand on one card per side.** Each side hit tests its
+  box against the current rect, which is what `:hover` does. The parked hand has
+  a pixel of jitter. Measured: 59 hovers on the moving box against 1 on the still
+  one in three seconds. The hit boxes keep their dashed outline, since which box
+  moves is the point.
+- **The spring lanes hold a fixed-width result**, or its arrival shrinks the lane
+  after the knob has been sent to the old end. The lane clips, so a window
+  narrowed after a run cannot push the knob past the page.
+- **`Side` and `Card` in `springs.tsx` sit at module scope.** Defined inside the
+  demo, a new reading remounts the card mid-lift.
+- **The render counter shows nothing until a drag arms it**, since dev's double
+  effect counts 2 renders before anyone touches a knob. It morphs every fifth
+  render through `useTextMorph`, and the drag is on nib's rules.
+- **An empty readout is a `MinusIcon`, never a dash.**
+- **The lowercase demo's cased pill is an inline style.**
+  `button { text-transform: inherit }` in `globals.css` is unlayered and beats any
+  utility.
+- **The contrast demo starts on `INK` from `components/labs/halftone-ripple`**,
+  converted to OKLCH at module load, so it reads 3.79 rather than a hand-copied
+  approximation. The hue stays scoped to the lab.
 - **Motion's settle time does depend on distance**, through its absolute
-  `restDelta`, so the spring demo measures 263ms for 8px against about 414ms
-  for the lane rather than equal times. The copy says not much quicker, not the
-  same.
-- **The spring lanes are measured once per press, so the readouts beside them
-  hold a fixed width.** A readout growing from the icon to `462ms` shrank the
-  lane after the knob had been sent to the old end, and the knob overran into
-  the label. `KNOB` is 12.8 and `INSET` 3.2, since `size-4` and `left-1` are
-  on the 0.2rem scale.
-- **The render demo shows nothing until a drag arms it.** Dev's double effect
-  counted 2 renders before anyone touched a knob.
-- **The drag follows nib's rules**: `pointerdown` on the knob, move, up,
-  cancel and blur on the window, and `buttons === 0` ends it.
-- Measured on the page: 13 frames, no console errors, the tap demo reads 45%
-  against 100%, the render demo 20 against none, the first-frames demo 1.7px
-  against 11.9px after 33ms.
+  `restDelta`, so the lanes read about 261ms for 8px against 512ms.
 
 ### The signature player
 
@@ -4410,7 +4324,7 @@ button, the canvas and the frame loop.
   - **The heart's hue is inline `style`**, since it is not a token and no class
     can name it. Off, the span inherits the button's tone and steps with it.
   - **`INK` is exported for one reader**, the contrast demo in
-    `app/blogs/_details-you-can-measure/`, which converts it and reports its
+    `app/blogs/details-you-can-measure/`, which converts it and reports its
     ratio. Nothing else may paint with it.
   - **The heart fills while it is on**, as `HeartIcon` fading in over
     `HeartOutlineIcon` rather than one glyph swapping, so the fill arrives on
