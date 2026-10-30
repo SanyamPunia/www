@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { HeartIcon } from "@/components/icons";
 import { INK } from "@/components/labs/halftone-ripple";
 import { cn } from "@/lib/utils";
-import { Cycle, Frame, hexToRgb, Pill, Readout, token } from "./frame";
+import { Cycle, Frame, hexToRgb, Ping, RAISED, token, WELL } from "./frame";
 
 /*
  * A colour you drag, and the only number that matters about it on a ground:
@@ -115,53 +115,22 @@ function Scale({ value }: { value: number }) {
           4.5 text
         </span>
       </div>
-      <svg
-        aria-hidden="true"
-        viewBox={`0 0 ${W} 16`}
-        preserveAspectRatio="none"
-        className="h-4 w-full"
-      >
-        <line
-          x1={0}
-          x2={W}
-          y1={12}
-          y2={12}
-          className="stroke-stroke-strong"
-          vectorEffect="non-scaling-stroke"
-        />
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((v) => (
-          <line
-            key={v}
-            x1={x(v)}
-            x2={x(v)}
-            y1={9}
-            y2={12}
-            className="stroke-stroke-strong"
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
+      {/* a slot with the two floors cut across it and a needle standing in it */}
+      <div className={cn("relative h-3 rounded-full", WELL)}>
         {[FLOOR.graphic, FLOOR.text].map((v) => (
-          <line
+          <span
             key={v}
-            x1={x(v)}
-            x2={x(v)}
-            y1={0}
-            y2={16}
-            className="stroke-text-secondary"
-            strokeDasharray="2 2"
-            vectorEffect="non-scaling-stroke"
+            aria-hidden="true"
+            className="absolute inset-y-0 w-px bg-text-muted"
+            style={{ left: `${x(v)}%` }}
           />
         ))}
-        <line
-          x1={x(value)}
-          x2={x(value)}
-          y1={0}
-          y2={16}
-          className="stroke-text-primary transition-[x1,x2] duration-75"
-          strokeWidth={2}
-          vectorEffect="non-scaling-stroke"
+        <span
+          aria-hidden="true"
+          className="absolute -inset-y-1 w-1 -translate-x-1/2 rounded-full bg-text-primary shadow-[0_1px_3px_rgb(0_0_0/0.35)]"
+          style={{ left: `${x(value)}%` }}
         />
-      </svg>
+      </div>
       <div className="relative h-4 font-mono text-meta tabular-nums">
         <span
           className={cn(
@@ -247,34 +216,24 @@ export function ContrastDemo() {
 
   return (
     <Frame
-      label="drag the swatch"
-      readouts={
-        <>
-          <Readout label="L" value={<span>{l.toFixed(2)}</span>} />
-          <Readout label="H" value={<span>{Math.round(h)}</span>} />
-          <Readout label="ratio" value={<span>{r.toFixed(2)}:1</span>} />
-        </>
+      hint="Drag the tile to change the colour, then switch the ground."
+      after={
+        r >= FLOOR.text
+          ? `${r.toFixed(2)}:1 clears the floor for text.`
+          : r >= FLOOR.graphic
+            ? `${r.toFixed(2)}:1 clears the floor for a graphic, not for text.`
+            : `${r.toFixed(2)}:1 clears neither floor.`
       }
       controls={
-        <>
-          <Cycle
-            value={ground}
-            options={GROUNDS}
-            onChange={setGround}
-            label="ground"
-          />
-          <Pill
-            onClick={() => {
-              setL(PINK.l);
-              setH(PINK.h);
-            }}
-          >
-            the ripple's pink
-          </Pill>
-        </>
+        <Cycle
+          value={ground}
+          options={GROUNDS}
+          onChange={setGround}
+          label="ground"
+        />
       }
     >
-      <div className="mx-auto flex w-full max-w-96 flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-md flex-col gap-8">
         <div
           ref={swatch}
           role="slider"
@@ -289,7 +248,10 @@ export function ContrastDemo() {
           onPointerUp={up}
           onPointerCancel={up}
           onKeyDown={keys}
-          className="flex h-24 cursor-grab touch-none items-center justify-center gap-8 rounded-lg ring-1 ring-stroke ring-inset active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2"
+          className={cn(
+            "relative flex h-36 cursor-grab touch-none items-center justify-center gap-3 rounded-lg active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2",
+            RAISED,
+          )}
           style={{ backgroundColor: groundHex }}
         >
           <HeartIcon
@@ -303,11 +265,7 @@ export function ContrastDemo() {
           >
             128 likes
           </span>
-          <span
-            aria-hidden="true"
-            className="size-6 rounded-full"
-            style={{ backgroundColor: css }}
-          />
+          <Ping />
         </div>
         <Scale value={r} />
       </div>

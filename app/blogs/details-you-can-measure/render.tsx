@@ -2,7 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTextMorph } from "torph/react";
-import { Caption, Empty, Frame, MORPH, Readout } from "./frame";
+import { cn } from "@/lib/utils";
+import {
+  KNOB as BALL,
+  Caption,
+  Empty,
+  Frame,
+  MORPH,
+  Ping,
+  Readout,
+  WELL,
+} from "./frame";
 
 /*
  * Two knobs that drag the same way and cost a different amount. One puts the
@@ -61,8 +71,10 @@ function useDrag(onMove: (x: number) => void, onEnd: () => void) {
 
 const clamp = (v: number, max: number) => Math.max(0, Math.min(max, v));
 
-const HANDLE =
-  "absolute top-1 left-1 size-4 cursor-grab touch-none rounded-full bg-text-primary active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
+const HANDLE = cn(
+  "absolute top-1 left-1 size-4 cursor-grab touch-none rounded-full active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2",
+  BALL,
+);
 
 /**
  * A count that arrives in steps. The counter is written from a render effect,
@@ -99,7 +111,10 @@ function Lane({
   return (
     <div
       ref={laneRef}
-      className="relative h-6 min-w-0 flex-1 overflow-hidden rounded-full bg-fill"
+      className={cn(
+        "relative h-6 min-w-0 flex-1 overflow-hidden rounded-full",
+        WELL,
+      )}
     >
       {fill}
       {children}
@@ -157,7 +172,9 @@ function StateKnob() {
           }}
           className={HANDLE}
           style={{ transform: `translateX(${x}px)` }}
-        />
+        >
+          <Ping className="[--ping:3px]" />
+        </div>
       </Lane>
       <Readout
         label="renders"
@@ -252,8 +269,11 @@ function RefKnob() {
 
 export function RenderDemo() {
   return (
-    <Frame label="drag">
-      <div className="flex flex-col gap-6">
+    <Frame
+      hint="Drag each ball along its slot and compare the render counts."
+      after="The state knob renders on every move. The node knob stays at the press."
+    >
+      <div className="flex flex-col gap-10">
         <StateKnob />
         <RefKnob />
       </div>

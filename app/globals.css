@@ -779,6 +779,18 @@ html[data-scrub="true"] * {
  * The reader's halo on the map in `components/labs/sheet-detents/`, a ring of
  * light leaving the blue dot. `motion-safe:` at the call site.
  */
+/* The ring on a demo's starting control, in details-you-can-measure. */
+@keyframes start-here {
+  0% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--color-text-primary) 45%, transparent);
+  }
+  65%,
+  100% {
+    box-shadow: 0 0 0 var(--ping, 7px) transparent;
+  }
+}
+
 @keyframes you-halo {
   from {
     transform: scale(0.4);

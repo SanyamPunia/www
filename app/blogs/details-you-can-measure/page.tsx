@@ -10,7 +10,7 @@ export const metadata: Metadata = blogMetadata(post);
 
 export default function Page() {
   return (
-    <BlogPost meta={post}>
+    <BlogPost meta={post} toc={false}>
       <Content />
     </BlogPost>
   );

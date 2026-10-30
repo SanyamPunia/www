@@ -1,0 +1,210 @@
+import { PressDemo, TapDemo } from "./press";
+import { SpringDemo, FirstFramesDemo } from "./springs";
+import { HoverDemo, EventsDemo } from "./pointer";
+import { RenderDemo } from "./render";
+import { ReducedMotionDemo } from "./motion";
+import { ContrastDemo } from "./contrast";
+import { DigitsDemo, WrapDemo, DotsDemo, LowercaseDemo } from "./type";
+
+Each of these thirteen details started as a feeling that something was off, and
+each one ended with a measurement that showed why. Most have a demo you can try.
+
+## press with colour
+
+Most advice says to shrink a button 2% when it is pressed. On a 35px pill, that
+moves each edge 0.35px. Nobody can see that as movement, but the browser still
+has to act on it.
+
+A scaled button is not drawn again. The browser keeps the image of the button it
+already has and resamples that image at the new size. Every letter lands between
+pixels, so the edges of the type go soft for as long as the press lasts.
+
+A fill step avoids this because nothing changes size. The text stays on the
+pixels it was drawn on, and only the colour behind it moves.
+
+<PressDemo />
+
+## step in instantly, ease out
+
+A quick click lasts about 90ms. With a 200ms transition, the button is under half
+way to its pressed colour when the finger lifts, and then it turns back. On the
+fastest clicks, the reader gets almost no feedback at all.
+
+Press and release are different events, so give them different timing. Make the
+press instant, because it answers the hand. Time the release, because it can
+afford to be soft.
+
+<TapDemo />
+
+## pick a spring by distance
+
+A spring's duration comes mostly from its stiffness and damping, and distance
+changes it less than you would expect. On one spring, an 8px move takes about
+260ms, while a move across a whole lane takes about 510ms. The short move is a
+small fraction of the distance and still takes half the time.
+
+That suits a card thrown across a calendar. It does not suit the same card
+shifting 7px to make room, which took 181ms on that spring and read as sluggish.
+The small move needs a stiffer spring, which lands it in about 96ms.
+
+<SpringDemo />
+
+## judge lag by the first two frames
+
+I fixed a slow hover lift four times. Its settle time went 235, 141, 141, 91ms,
+and it still felt slow, because settle time was the wrong number.
+
+A spring released from rest starts gently, and a spring spends most of its time
+on the last pixel. So the card barely moved when the pointer arrived, and the eye
+read that delay as lag. A sharp ease-out spends its movement first. It covered
+5.7px in 29ms, where the spring took 103ms to cover 5px.
+
+The total duration tells you when a move ends. The first two frames tell you
+whether it answered.
+
+<FirstFramesDemo />
+
+## hit test a box that stays still
+
+A card that lifts on hover moves away from the pointer. If the pointer is near its
+bottom edge, the card leaves it behind. The hover ends, the card drops back under
+the pointer, and the hover starts again. A real hand is never completely still,
+so this repeats until the hand moves away.
+
+The fix is to separate what catches the pointer from what moves. Put the hover on
+a wrapper that stays in place, and lift a child inside it.
+
+<HoverDemo />
+
+## skip React for per-frame updates
+
+A drag fires an event every frame. If each event sets state, React renders the
+component every frame to change one transform, and anything else in that tree
+pays for it too.
+
+Nothing in the tree needs that value, so write it to the node from the event
+handler. React stays out of the drag completely.
+
+<RenderDemo />
+
+Sometimes React does need the value. In that case, reduce how often it changes. A
+hold to confirm only has to show progress in steps, so it renders 20 times rather
+than 108.
+
+```ts
+// 20 renders across 1800ms, not one per frame
+const STEPS = 20;
+
+function onFrame(progress: number) {
+  const step = Math.round(progress * STEPS);
+  setStep((prev) => (prev === step ? prev : step));
+}
+```
+
+## tell a tap from a click and a key
+
+A mouse sends `pointerdown`, `pointerup`, then `click` with `detail` 1. A finger
+sends the same three, or `pointercancel` if it drifts into a scroll. A key sends
+`click` alone, with `detail` 0.
+
+These differences matter when a control has to respond differently to each input.
+Read `pointerType` from the event, because it describes the input that fired. The
+`(hover: hover)` media query describes the device, so it is true on a laptop even
+when a finger is on the touchscreen.
+
+<EventsDemo />
+
+## reduce motion nobody asked for
+
+I decide what to remove by asking whether the reader requested the movement. Loops, autoplay and hover lifts arrive unasked, so they
+go. A panel the reader opened still has to open, so it keeps the change and loses
+the travel.
+
+One trap: `behavior: "smooth"` in a scroll call overrides the media query. Set
+smooth scrolling in the stylesheet, where the query can turn it off.
+
+<ReducedMotionDemo />
+
+## compute contrast on every ground
+
+Text needs 4.5:1 and a graphic needs 3:1. Most checks stop at the resting state,
+but a control paints on more than one ground. Its hover and pressed fills count
+too.
+
+My like button's pink is 3.79:1 at rest and 3.16:1 pressed. iOS pink and rose-500
+both look fine at rest and fall under 3:1 during the press, which is the moment
+the reader is looking at the button.
+
+<ContrastDemo />
+
+## use tabular digits for changing numbers
+
+At body size, a 1 is 6.7px wide and an 8 is 9.3px. When a number changes, the
+text after it shifts by the difference, so a live counter shakes everything
+beside it.
+
+`tabular-nums` gives every digit the same width. Inter draws its tabular figures
+slightly differently, so use them where numbers change or align, and keep the
+default figures in prose.
+
+<DigitsDemo />
+
+## balance titles and fix last lines
+
+`text-wrap: balance` evens out a title's lines, so a title does not end on a short
+stub. `text-wrap: pretty` stops a paragraph ending on one word. The browser limits
+how many lines it balances, so use `balance` for headings and `pretty` for body
+text.
+
+<WrapDemo />
+
+## draw separators as elements
+
+A middot is a glyph, so the font decides its size and height. It grows with the
+type and sits where the font put it, which is rarely the centre of the row.
+
+A `size-1` element is 4px at every size, and a flex row centres it. Arrows, checks
+and chevrons come from the icon set for the same reason. The one exception is a
+native `<option>`, which cannot hold an element.
+
+<DotsDemo />
+
+## lowercase in the stylesheet
+
+This site is lowercase through one `text-transform` on `body`, and the markup keeps
+its real casing. Screen readers get the proper words, and copied text keeps its
+capitals.
+
+Form controls do not inherit `text-transform`, and Tailwind's preflight does not
+add it, so buttons need the rule written out. Keep it off data that someone has
+to type back, such as a room code.
+
+<LowercaseDemo />
+
+## smaller notes
+
+- Outer radius equals inner radius plus the padding between them.
+- Measure skeleton heights. One guessed row was 36px against a real 49px, and the
+  page jumped when the content arrived.
+- A scroll lock moves the page by the scrollbar's width. `scrollbar-gutter:
+  stable` plus cancelling the lock's margin takes that 5px to 0.
+- Collapse a panel with `grid-template-rows: minmax(0, 0fr)`. A bare `0fr` keeps
+  the content's height as its floor.
+- `sr-only` is absolutely positioned, so its row needs `position: relative`, or it
+  can add scroll height far from where it sits.
+- Tailwind's `scale-*` sets the `scale` property, so a transition on `transform`
+  does not reach it.
+- `animate-[…]` compiles to the shorthand, which resets `animation-play-state`.
+  Write the longhands.
+- tailwind-merge reads `text-*` by value, so a named size lands in the colour
+  group and loses. Declare the group once.
+- Do not render a relative time on the server. One page said "4 minutes ago" from
+  a cache that was 8 hours old.
+- Node count is the cost. 100,000 nodes land at 647ms or worse, and 36 land at
+  9.5ms.
+- Give a `text-sm` input `placeholder:text-sm`. A placeholder otherwise renders
+  at the browser's base size.
+- Build the audio context on the press and play on the release. A suspended clock
+  queues sounds and fires them together.
+- Write a lerp as `a * (1 - t) + b * t`. The other form is not exact at both
+  ends.

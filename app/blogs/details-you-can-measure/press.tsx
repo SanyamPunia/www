@@ -8,8 +8,12 @@ import {
   Empty,
   Frame,
   hexToRgb,
+  Meter,
   Pair,
   Pill,
+  Ping,
+  PRESSED,
+  RAISED,
   Readout,
   token,
 } from "./frame";
@@ -20,14 +24,14 @@ import {
  */
 
 const BASE =
-  "inline-flex h-11 cursor-pointer select-none items-center justify-center rounded-full bg-fill px-7 text-action font-medium text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
+  "relative inline-flex h-11 cursor-pointer select-none items-center justify-center rounded-full px-7 pb-[0.16em] text-action font-medium text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2";
 
 /** the label both pills carry, lowercased here since a canvas has no `text-transform` */
 const LABEL = "save changes";
 /** the pill as the loupe rasterises it, in CSS px */
 const RASTER = { w: 140, h: 35, font: 12.8 };
 /** the window the loupe magnifies, in CSS px of the raster, and how much */
-const WINDOW = { w: 16, h: 9, zoom: 12 };
+const WINDOW = { w: 9, h: 9, zoom: 12 };
 const SCALE = 0.98;
 
 type Side = "scale" | "fill";
@@ -44,7 +48,7 @@ type Side = "scale" | "fill";
  * canvas through a 0.98 transform with smoothing on. The fill side draws the
  * label crisp on a darker ground, which is what a fill step does.
  *
- * The loupe then blows a window around the first glyph up eight times with
+ * The loupe then blows a window around the first glyph up twelve times with
  * smoothing off, so each device pixel is a square the eye can read.
  */
 function Loupe({ side, pressed }: { side: Side; pressed: boolean }) {
@@ -55,7 +59,7 @@ function Loupe({ side, pressed }: { side: Side; pressed: boolean }) {
     const out = canvas.current;
     if (!out) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const fill = token("fill");
+    const rest = token("bg");
     const active = token("fill-active");
     const ink = token("text-primary");
 
@@ -85,7 +89,7 @@ function Loupe({ side, pressed }: { side: Side; pressed: boolean }) {
     const sc = stage.getContext("2d");
     if (!sc) return;
     sc.setTransform(dpr, 0, 0, dpr, 0, 0);
-    sc.fillStyle = side === "fill" && pressed ? active : fill;
+    sc.fillStyle = side === "fill" && pressed ? active : rest;
     sc.fillRect(0, 0, RASTER.w, RASTER.h);
     if (side === "scale" && pressed) {
       sc.translate(RASTER.w / 2, RASTER.h / 2);
@@ -99,7 +103,7 @@ function Loupe({ side, pressed }: { side: Side; pressed: boolean }) {
     rc.font = bodyFont(RASTER.font);
     const width = rc.measureText(LABEL).width;
     const edge = (RASTER.w - width) / 2;
-    const x0 = edge - 4;
+    const x0 = edge - 1;
     const y0 = RASTER.h / 2 - WINDOW.h / 2;
     out.width = WINDOW.w * WINDOW.zoom * dpr;
     out.height = WINDOW.h * WINDOW.zoom * dpr;
@@ -120,15 +124,25 @@ function Loupe({ side, pressed }: { side: Side; pressed: boolean }) {
   }, [side, pressed]);
 
   return (
-    <canvas
-      ref={canvas}
-      className="rounded-md ring-1 ring-stroke ring-inset"
-      style={{ width: WINDOW.w * WINDOW.zoom, height: WINDOW.h * WINDOW.zoom }}
-    />
+    <div className={cn("relative rounded-full p-1", RAISED)}>
+      <canvas
+        ref={canvas}
+        className="block rounded-full"
+        style={{
+          width: WINDOW.w * WINDOW.zoom,
+          height: WINDOW.h * WINDOW.zoom,
+        }}
+      />
+      {/* the glass: a bevel and a soft highlight, over the pixels */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-1 rounded-full bg-linear-145 from-bg/45 to-transparent to-40% shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08),inset_0_2px_6px_rgb(0_0_0/0.12)]"
+      />
+    </div>
   );
 }
 
-/** how long the control holds both pills down, for a reader with no mouse */
+/** how long the control holds both pills down */
 const HOLD = 900;
 
 /**
@@ -137,15 +151,6 @@ const HOLD = 900;
  */
 export function PressDemo() {
   const [down, setDown] = useState<Side | "both" | null>(null);
-  const [edge, setEdge] = useState<number | null>(null);
-  const scaled = useRef<HTMLButtonElement>(null);
-
-  /* how far one edge of the real pill moves at 0.98, off its measured height */
-  useEffect(() => {
-    const el = scaled.current;
-    if (!el) return;
-    setEdge((el.getBoundingClientRect().height * (1 - SCALE)) / 2);
-  }, []);
 
   /* a lift anywhere ends a press, the call tether-button makes */
   useEffect(() => {
@@ -175,50 +180,55 @@ export function PressDemo() {
 
   return (
     <Frame
-      label="press and hold"
-      readouts={
-        <Readout
-          label="each edge moves"
-          value={edge === null ? <Empty /> : `${edge.toFixed(2)}px`}
-        />
-      }
+      hint="Press and hold a pill, then watch its first letter."
+      after="Only the scaled pill resamples its letter. The fill leaves it sharp."
       controls={
-        <Pill onClick={both} disabled={down === "both"}>
+        <Pill lead onClick={both} disabled={down === "both"}>
           press both
         </Pill>
       }
     >
       <Pair>
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-4">
           <button
-            ref={scaled}
             type="button"
             onPointerDown={() => setDown("scale")}
             {...keys("scale")}
             className={cn(
               BASE,
+              RAISED,
               "transition-transform duration-150",
               is("scale") && "scale-[0.98]",
             )}
           >
             Save changes
+            <Ping />
           </button>
+          <span
+            aria-hidden="true"
+            className="-my-4 h-4 w-px bg-stroke-strong"
+          />
           <Loupe side="scale" pressed={is("scale")} />
           <Caption>scale 0.98</Caption>
         </div>
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-4">
           <button
             type="button"
             onPointerDown={() => setDown("fill")}
             {...keys("fill")}
             className={cn(
               BASE,
-              "transition-colors duration-200 hover:bg-fill-hover",
-              is("fill") && "bg-fill-active duration-0",
+              RAISED,
+              "transition-[background-color,box-shadow] duration-200 hover:bg-surface",
+              is("fill") && cn("bg-fill-active duration-0", PRESSED),
             )}
           >
             Save changes
           </button>
+          <span
+            aria-hidden="true"
+            className="-my-4 h-4 w-px bg-stroke-strong"
+          />
           <Loupe side="fill" pressed={is("fill")} />
           <Caption>fill step</Caption>
         </div>
@@ -229,13 +239,6 @@ export function PressDemo() {
 
 /** how long a quick tap holds the button, in ms */
 const TAP = 90;
-/** how long after the press the colour is sampled, so the step back shows too */
-const WATCH = 480;
-
-interface Sample {
-  t: number;
-  p: number;
-}
 
 /** the pressed colour's share, off the red channel of the live background */
 function progress(el: HTMLElement, from: number, to: number): number {
@@ -244,61 +247,14 @@ function progress(el: HTMLElement, from: number, to: number): number {
   return Math.min(1, Math.max(0, (from - Number(rgb[0])) / (from - to)));
 }
 
-/** the colour over time, as a small line */
-function Trace({ samples }: { samples: Sample[] | null }) {
-  const W = 160;
-  const H = 44;
-  const x = (t: number) => (t / WATCH) * W;
-  const y = (p: number) => H - 3 - p * (H - 6);
-  const release = x(TAP);
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox={`0 0 ${W} ${H}`}
-      width={W}
-      height={H}
-      className="text-text-primary"
-    >
-      {/* the pressed colour, and the release */}
-      <line
-        x1={0}
-        x2={W}
-        y1={y(1)}
-        y2={y(1)}
-        className="stroke-stroke-strong"
-        strokeDasharray="2 3"
-      />
-      <line
-        x1={release}
-        x2={release}
-        y1={0}
-        y2={H}
-        className="stroke-stroke-strong"
-        strokeDasharray="2 3"
-      />
-      {samples ? (
-        <polyline
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-          points={samples.map((s) => `${x(s.t)},${y(s.p)}`).join(" ")}
-        />
-      ) : null}
-    </svg>
-  );
-}
-
 /**
- * Two pills with the same 200ms colour step. One takes the step in over
- * 200ms as well, the other takes it at once. A simulated 90ms tap presses both
- * and traces the colour each one paints, frame by frame, through the press
- * and the release.
+ * Two pills with the same 200ms step back. One takes the step in over 200ms as
+ * well, the other takes it at once. A simulated 90ms tap presses both and
+ * reports how much of the pressed colour each reached before the release.
  */
 export function TapDemo() {
   const slow = useRef<HTMLButtonElement>(null);
   const fast = useRef<HTMLButtonElement>(null);
-  const [traces, setTraces] = useState<[Sample[], Sample[]] | null>(null);
   const [reached, setReached] = useState<[number, number] | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -310,81 +266,75 @@ export function TapDemo() {
     const [from] = hexToRgb(token("fill"));
     const [to] = hexToRgb(token("fill-active"));
     const start = performance.now();
-    const out: [Sample[], Sample[]] = [[], []];
     let peak: [number, number] = [0, 0];
     a.setAttribute("data-pressed", "");
     b.setAttribute("data-pressed", "");
 
     const frame = (now: number) => {
-      const t = now - start;
-      if (t >= TAP) {
-        a.removeAttribute("data-pressed");
-        b.removeAttribute("data-pressed");
-      }
-      const pa = progress(a, from, to);
-      const pb = progress(b, from, to);
-      out[0].push({ t, p: pa });
-      out[1].push({ t, p: pb });
-      /* what each reached is its colour at the moment the tap let go */
-      if (t < TAP) peak = [pa, pb];
-      if (t < WATCH) {
+      if (now - start < TAP) {
+        peak = [progress(a, from, to), progress(b, from, to)];
         requestAnimationFrame(frame);
-      } else {
-        setTraces(out);
-        setReached([Math.round(peak[0] * 100), Math.round(peak[1] * 100)]);
-        setBusy(false);
+        return;
       }
+      a.removeAttribute("data-pressed");
+      b.removeAttribute("data-pressed");
+      setReached([Math.round(peak[0] * 100), Math.round(peak[1] * 100)]);
+      setBusy(false);
     };
     requestAnimationFrame(frame);
   };
 
   return (
     <Frame
-      label="tap fast"
-      readouts={
-        <>
-          <Readout
-            label="timed in"
-            value={reached ? `${reached[0]}%` : <Empty />}
-          />
-          <Readout
-            label="instant in"
-            value={reached ? `${reached[1]}%` : <Empty />}
-          />
-        </>
+      hint="Tap both pills for 90ms and compare how far each one gets."
+      after={
+        reached
+          ? "The timed press is cut off on the way. The instant one arrives."
+          : null
       }
       controls={
-        <Pill onClick={tap} disabled={busy}>
-          tap both for {TAP}ms
+        <Pill lead onClick={tap} disabled={busy}>
+          tap both
+          <Ping />
         </Pill>
       }
     >
       <Pair>
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-5">
           <button
             ref={slow}
             type="button"
             className={cn(
               BASE,
-              "transition-colors duration-200 hover:bg-fill-hover active:bg-fill-active data-pressed:bg-fill-active",
+              RAISED,
+              "transition-colors duration-200 hover:bg-surface active:bg-fill-active data-pressed:bg-fill-active",
             )}
           >
-            200ms in, 200ms out
+            200ms in
           </button>
-          <Trace samples={traces?.[0] ?? null} />
+          <Meter value={reached ? reached[0] / 100 : null} />
+          <Readout
+            label="reached"
+            value={reached ? `${reached[0]}%` : <Empty />}
+          />
         </div>
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-5">
           <button
             ref={fast}
             type="button"
             className={cn(
               BASE,
-              "transition-colors duration-200 hover:bg-fill-hover active:bg-fill-active active:duration-0 data-pressed:bg-fill-active data-pressed:duration-0",
+              RAISED,
+              "transition-colors duration-200 hover:bg-surface active:bg-fill-active active:duration-0 data-pressed:bg-fill-active data-pressed:duration-0",
             )}
           >
-            instant in, 200ms out
+            instant in
           </button>
-          <Trace samples={traces?.[1] ?? null} />
+          <Meter value={reached ? reached[1] / 100 : null} />
+          <Readout
+            label="reached"
+            value={reached ? `${reached[1]}%` : <Empty />}
+          />
         </div>
       </Pair>
     </Frame>
