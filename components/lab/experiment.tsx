@@ -571,6 +571,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/haptic-menu").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "browser-toolbar": dynamic(
+    () => import("@/components/labs/browser-toolbar").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

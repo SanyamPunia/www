@@ -1258,6 +1258,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Press and hold a photo, then slide onto an action.",
   },
+  {
+    slug: "browser-toolbar",
+    title: "Browser Toolbar",
+    description: [
+      "the toolbar of a browser, after dia's. a press flattens each icon, and the back arrow lets go of a copy of itself. reload tilts back on a hover, turns on a click and flips into a stop.",
+      "key insight: a press redraws the icon's path rather than scaling it, so a 20px glyph flattens with no resampling and every stroke stays crisp.",
+    ],
+    createdAt: "2026-10-31",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/browser-toolbar/index.tsx",
+    flush: true,
+    hint: "Hover reload, then press it. Press back quickly a few times.",
+  },
 ];
 
 /**
@@ -1406,6 +1420,7 @@ export const IMPLEMENTED_LABS = [
   "bubble-wrap",
   "sheet-detents",
   "haptic-menu",
+  "browser-toolbar",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
