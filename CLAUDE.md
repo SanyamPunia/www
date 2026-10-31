@@ -79,7 +79,7 @@ token here first.
 | `text-primary` | `#1a1a1a` | lead copy, headings |
 | `text-secondary` | `#6b6b6b` | body copy |
 | `text-muted` | `#9b9b9b` | metadata, footer |
-| `accent` | `#3b82f6` | **logo mark only**, never text or links |
+| `accent` | `#3b82f6` | logo mark and `browser-toolbar`'s star and load line, never text or links |
 | `danger` | `#b84a41` | invalid input, see below |
 | `success` | `#2d7a53` | a task the reader completed, see below |
 | `selection` | `#34d399` | text selection highlight, see below |
@@ -12562,6 +12562,66 @@ pure and DOM-free, `photos.ts` the pictures, `haptic-sound.ts` the sounds, and
 - Its clip holds the lemons and slides onto Favourite, deletes the road
   through the confirm, restores it, and takes the lemons out of favourites, so
   it ends on the frame it opens on and loops. 11.0s and 148KB.
+
+### `browser-toolbar`
+
+The toolbar of a browser, after Dia's, and nothing else: no page under it, at
+the author's request, since the first build's mock window made the stage
+congested. `glyphs.ts` is the icons as path data, pure and DOM-free, `tool.tsx`
+the button and the press, `pages.ts` the history, and `index.tsx` the six icons
+and the bar.
+
+- **A press redraws the icon and scales nothing**, so Local overrides stands.
+  Each glyph is a function of `flat`, 0 to 1, written to its `d` with no render:
+  the chevron loses depth and gains reach.
+- **A fired arrow lets go of a copy of itself.** `echo` clones the stroke, flies
+  the clone 7 units out on a fade through WAAPI, and brings the real stroke in
+  from the other side, still flat, so it springs open as it lands. Each clone is
+  its own node that removes itself, so quick presses leave a trail. Share is the
+  same send-off going up. Measured at 5% speed against the reference frames, and
+  the back button holds one path once it has settled.
+- **A press that leaves the button fires nothing and springs back**, since the
+  fire is the button's `click`.
+- **Reload and the stop are one drawing, and nothing flips or swaps.** A mouse
+  hover tilts it back 32 degrees and a press winds it to 52, on a spring. The
+  release turns it a full turn in 500ms, and over that turn `reloadMorph` moves
+  two strokes of 44 points each: the ring uncurls into one stroke of the X and
+  the arrowhead opens into the other. The way back is the same turn and the same
+  morph in reverse, and it reads `loading`, so a load that ends and one stopped
+  by hand go back the same way. A squash about its waist came first, after the
+  reference's frame, and read as a flip.
+- **The star does nothing but fill.** The fill grows out of its middle and the
+  outline takes the same colour. It is `accent`, the one use of that token off
+  the logo, at the author's request. 3.68:1 on `bg`.
+- **The share arrow never bends.** A press sinks it rigid toward the tray, and a
+  release launches a copy up and out while a new one rises out of the tray.
+  Flattening its head read as the arrow breaking. The head is 6.8 units
+  wide, so its caps clear the tray's two ends at any depth of the press.
+- **The bar has depth, drawn in light.** `RAISED` is a lit top edge, a shaded
+  foot and three cast shadows, `WELL` cuts the address into the bar with a top shadow and no ring, and the stage is
+  lit from the top. A hover stands up off the bar and a press sinks into it.
+- **A run of quick presses builds.** Arrows pressed inside 340ms of each other
+  send up to two more copies, each 34ms later and further out, and history opens
+  six pages deep so a run has room. The icons are optically sized to each other
+  and the sidebar stands apart as its own group.
+- **The address sets with kerning off**, since `torph` splits it into character
+  spans and kerned pairs came out uneven.
+- **The ends of history stay pressable.** The arrow is `aria-disabled` and
+  quiet, and a press nudges it 2.5 units and goes nowhere.
+- **The sidebar toggle is hidden below `sm`**, and that width goes to the
+  address bar. Its pane is one sprung value: toggled off it minimises to a
+  narrow strip, toggled on it extends, and a press leans it the way a release
+  will send it.
+- **Share copies the real link** in the bar, since the paths are this site's. The bar morphs through `torph` to say so.
+- **It scopes no hue.** The hover and press are `fill` and `fill-hover`, as in
+  the reference.
+- **Reduced motion keeps every state and drops the travel.** No flatten, echo,
+  tilt, turn or flip, and a load still runs.
+- A load shows as a line along the bar's foot, `accent` fading out behind its
+  leading edge, with the stop in reload's place.
+- It is `flush`, `aspect-8/5` with a `min-h-56` floor, with its own inset ring.
+  Buttons are `size-14` from `sm` and `size-11` below. Verified in a browser at
+  1280 and 390px, with no sideways scroll and no console errors.
 
 ## Motion
 
