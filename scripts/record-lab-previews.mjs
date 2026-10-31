@@ -2647,6 +2647,41 @@ const LABS = {
       await wait(1500);
     },
   },
+  "browser-toolbar": {
+    focus: [0, 0, 538, 336],
+    /*
+     * Back twice, so the arrows echo, forward twice to the page it opens on,
+     * then reload through its stop. A star on and off leaves the frame it
+     * opens on, so the clip loops. Hovers stay under the tooltip's 500ms.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = async (name) => {
+        const r = await page.locator(`[data-tool="${name}"]`).boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const press = async (name, hold = 130) => {
+        await m.move(...(await at(name)));
+        await wait(260);
+        await m.down();
+        await wait(hold);
+        await m.up();
+        await wait(420);
+      };
+      await wait(400);
+      await press("back");
+      await press("back");
+      await press("forward");
+      await press("forward");
+      await press("reload", 200);
+      await m.move(500, 300);
+      await wait(1300);
+      await press("star");
+      await press("star");
+      await m.move(500, 300);
+      await wait(500);
+    },
+  },
   "haptic-menu": {
     // a band of the stage at the card's 8:5, since the stage is taller
     focus: [0, 32, 538, 336],
