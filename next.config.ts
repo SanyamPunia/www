@@ -73,11 +73,16 @@ const nextConfig: NextConfig = {
         ["/labs", "/lab"],
         ["/blog", "/blogs"],
         ["/works", "/work"],
-      ].map(([from, to]) => ({
-        source: `${from}/:path*`,
-        destination: `${to}/:path*`,
-        permanent: true,
-      })),
+      ].flatMap(([from, to]) => [
+        // the bare path on its own, or `/:path*` sends it to `/lab/` and a
+        // second hop strips the slash
+        { source: from, destination: to, permanent: true },
+        {
+          source: `${from}/:path+`,
+          destination: `${to}/:path+`,
+          permanent: true,
+        },
+      ]),
     ];
   },
 };
