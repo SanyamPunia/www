@@ -1272,6 +1272,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Hover reload, then press it. Press back quickly a few times.",
   },
+  {
+    slug: "tab-strip",
+    title: "Tab Strip",
+    description: [
+      "a browser's tab strip. close a few tabs in a row and the next close button slides under the pointer each time, so the hand never moves.",
+      "key insight: the tabs hold their width while a pointer is closing them, and only grow to fill the strip once it leaves, the way chrome does it.",
+    ],
+    createdAt: "2026-11-02",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/tab-strip/index.tsx",
+    flush: true,
+    hint: "Drag a tab, or close a few in a row without moving.",
+  },
 ];
 
 /**
@@ -1421,6 +1435,7 @@ export const IMPLEMENTED_LABS = [
   "sheet-detents",
   "haptic-menu",
   "browser-toolbar",
+  "tab-strip",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

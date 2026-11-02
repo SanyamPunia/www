@@ -575,6 +575,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/browser-toolbar").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "tab-strip": dynamic(
+    () => import("@/components/labs/tab-strip").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
