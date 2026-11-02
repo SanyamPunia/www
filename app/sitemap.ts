@@ -35,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITE_URL, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/work`, changeFrequency: "monthly", priority: 0.8 },
     {
-      url: `${SITE_URL}/blogs`,
+      url: `${SITE_URL}/blog`,
       lastModified: newest(blogs.map((blog) => blog.date)),
       changeFrequency: "weekly",
       priority: 0.8,
@@ -61,7 +61,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     })),
     ...blogs.map((blog) => ({
-      url: `${SITE_URL}/blogs/${blog.slug}`,
+      url: `${SITE_URL}/blog/${blog.slug}`,
       lastModified: new Date(blog.date),
       changeFrequency: "monthly" as const,
       priority: 0.6,

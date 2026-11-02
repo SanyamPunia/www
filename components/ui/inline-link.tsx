@@ -42,7 +42,7 @@ const ROUTE_TONE: Record<string, { text: string; rule: string; wash: string }> =
       rule: "after:bg-link-work/45 group-hover:after:bg-link-work",
       wash: "before:bg-link-work/12",
     },
-    "/blogs": {
+    "/blog": {
       text: "text-link-blogs",
       rule: "after:bg-link-blogs/45 group-hover:after:bg-link-blogs",
       wash: "before:bg-link-blogs/12",

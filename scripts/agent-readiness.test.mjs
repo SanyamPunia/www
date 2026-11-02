@@ -36,7 +36,7 @@ const TRUST = [
 const PAGES = [
   "/",
   "/work",
-  "/blogs",
+  "/blog",
   "/lab",
   "/icons",
   "/about",
@@ -277,7 +277,7 @@ test("the pages that already worked still do", async () => {
     assert.equal(page.status, 200, `${path} should still render`);
   }
 
-  for (const path of ["/index.md", "/work.md", "/blogs.md", "/lab.md"]) {
+  for (const path of ["/index.md", "/work.md", "/blog.md", "/lab.md"]) {
     const doc = await get(path);
     assert.equal(doc.status, 200, `${path} should still render`);
     assert.match(doc.type, /text\/markdown/);

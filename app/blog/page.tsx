@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "Blogs",
   description: DESCRIPTION,
   alternates: {
-    canonical: "/blogs",
-    types: { "text/markdown": "/blogs.md" },
+    canonical: "/blog",
+    types: { "text/markdown": "/blog.md" },
   },
 };
 
@@ -30,7 +30,7 @@ export default function BlogsPage() {
         {/* mirrors `blogs` above, in the same order the index renders */}
         <JsonLd
           schema={collectionSchema({
-            path: "/blogs",
+            path: "/blog",
             name: "Blogs",
             description: DESCRIPTION,
             items: blogs,

@@ -15,7 +15,7 @@ import { EMAIL, links, type Segment, socials } from "./site";
  * is the home page's, so a link inside a sentence is written once and reads as a
  * pill, a plain underlined link or a markdown link depending on who renders it.
  *
- * **No internal link in this copy points at `/work`, `/blogs` or `/lab`.**
+ * **No internal link in this copy points at `/work`, `/blog` or `/lab`.**
  * `InlineLink` derives a hue for those three from the href, and CLAUDE.md scopes
  * that exception to the home page's own paragraph. Navigation to them belongs in
  * the footer, which is where it is.
@@ -356,7 +356,7 @@ export const siteRoutes: SiteRoute[] = [
     title: "Work",
     note: "companies and side projects, newest first",
   },
-  { href: "/blogs", title: "Blogs", note: "the writing index" },
+  { href: "/blog", title: "Blogs", note: "the writing index" },
   { href: "/lab", title: "Lab", note: "the UI experiment index" },
   {
     href: "/icons",

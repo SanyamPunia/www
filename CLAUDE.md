@@ -12,7 +12,7 @@
 
 The personal site, rebuilt light. Next.js App Router. The home page is a
 single vertically centered column on white. MDX blog posts live under
-`app/blogs/`, interactive experiments under `app/lab/`.
+`app/blog/`, interactive experiments under `app/lab/`.
 
 This project replaces the previous dark version of the same site. It is
 intended to be force-pushed over `github.com/SanyamPunia/www`.
@@ -84,7 +84,7 @@ token here first.
 | `success` | `#2d7a53` | a task the reader completed, see below |
 | `selection` | `#34d399` | text selection highlight, see below |
 | `link-work` | `#2f6f6a` | the home page's `/work` link, see Inline links |
-| `link-blogs` | `#4a5b96` | the home page's `/blogs` link |
+| `link-blogs` | `#4a5b96` | the home page's `/blog` link |
 | `link-lab` | `#7a4f78` | the home page's `/lab` link |
 | `inverse-bg` | `#0a0a0a` | dark ground, see below |
 | `inverse-fill` | `#111111` | raised tile on a dark ground |
@@ -216,7 +216,7 @@ recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
 first choice for the secondary tone and fails at 3.94.
 
 **There are two shadow tokens, declared beside the colours in `@theme`.**
-`--shadow-stage` is the demo stage in `app/blogs/details-you-can-measure/`,
+`--shadow-stage` is the demo stage in `app/blog/details-you-can-measure/`,
 see that post's section. `--shadow-frame` draws a container's edge as a
 shadow instead of a ring, a 1px spread plus two short casts. `CodeBlock` uses it
 for every code fence, and so do the figures in
@@ -244,7 +244,7 @@ deliberately replaced.
   reads clean.
 
   The exception is the three internal links in the home page's copy, `/work`,
-  `/blogs` and `/lab`, which take a tone each. It bends the rule for the reason
+  `/blog` and `/lab`, which take a tone each. It bends the rule for the reason
   the rule exists: every other link in that paragraph carries a favicon pill
   beside it, so those three words were the only ones with nothing at all saying
   they were links until the underline swept in on load. See Inline links below.
@@ -395,7 +395,7 @@ plus `aspect-[62/40]` is the tuned shape in every engine. Measured in Chrome and
 Playwright's WebKit: 38.6 by 24.9px before and after, so the desktop look did not
 move.
 
-**`text-lead` is the page title, and only that.** `/work`, `/blogs` and every
+**`text-lead` is the page title, and only that.** `/work`, `/blog` and every
 post open with a real `<h1>` at `text-lead`, followed by a `text-body`
 `text-secondary` line, grouped at `gap-2` so the two read as one block. No
 weight change, nothing on this site is bold, the step is size and tone.
@@ -532,7 +532,7 @@ shapes off a single rule: **a link whose host has a mark becomes a pill, a link
 without one stays underlined text.** Call sites pass nothing extra, the shape
 is derived from the href.
 
-**A markless link to `/work`, `/blogs` or `/lab` also takes a tone**, derived
+**A markless link to `/work`, `/blog` or `/lab` also takes a tone**, derived
 from the href the same way the shape is. The word carries the hue and the rule
 under it carries it at 45%, going to full on hover. This is the one place the
 "no accent colour on text or links" override bends, and the reason is that those
@@ -670,7 +670,7 @@ and 2097 characters of visible text.
   with no entry in `lib/pages.ts` throws at module scope, so it is a build error
   rather than an empty page, which is the call `IMPLEMENTED_LABS` makes for the
   labs.
-- **No prose link to `/work`, `/blogs` or `/lab`.** `InlineLink` derives a hue
+- **No prose link to `/work`, `/blog` or `/lab`.** `InlineLink` derives a hue
   for those three from the href, and that exception is scoped to the home page's
   own paragraph. Navigation to them is `PageNav` at the foot of the page
   instead, which is also the only way out of these three.
@@ -754,7 +754,7 @@ A crossfade between routes, via React's `<ViewTransition>`.
 
 ## Blogs
 
-`app/blogs/page.tsx` is the index. A post is a directory under it holding three
+`app/blog/page.tsx` is the index. A post is a directory under it holding three
 files:
 
 - `meta.json`, `{ title, description, date, readTime }`. **`date` is ISO
@@ -1521,7 +1521,7 @@ section or pair.
 - **A demo mounts as `<Name />` alone on a line, with every knob inside the
   component.** `lib/markdown.ts` only recognises that shape, so a prop on the
   mount line would leak into the markdown variant as a stray tag. Verified on
-  `/blogs/details-you-can-measure.md`: thirteen notes, no stray tags.
+  `/blog/details-you-can-measure.md`: thirteen notes, no stray tags.
 - **A stage shows one thing, and it tells the reader what to do.** `Frame` is a
   lit surface holding the subject and a flat row at its foot, under a hairline. A
   raised tray stacked its shadows on the stage's own and was taken out. The row shows `hint`, then
@@ -1583,7 +1583,7 @@ section or pair.
 
 ### The signature player
 
-`app/blogs/turning-a-signature-into-two-pen-strokes/` is the post that came out
+`app/blog/turning-a-signature-into-two-pen-strokes/` is the post that came out
 of the signature. The post is about the asset, since the file is what had to be
 rebuilt: the player is its demo, and it earns its place by making the two strokes
 and the pen lift between them visible. `timeline.ts` is the timing,
@@ -4324,7 +4324,7 @@ button, the canvas and the frame loop.
   - **The heart's hue is inline `style`**, since it is not a token and no class
     can name it. Off, the span inherits the button's tone and steps with it.
   - **`INK` is exported for one reader**, the contrast demo in
-    `app/blogs/details-you-can-measure/`, which converts it and reports its
+    `app/blog/details-you-can-measure/`, which converts it and reports its
     ratio. Nothing else may paint with it.
   - **The heart fills while it is on**, as `HeartIcon` fading in over
     `HeartOutlineIcon` rather than one glyph swapping, so the fill arrives on
@@ -12775,7 +12775,7 @@ reveal.
 - **Reduced motion is handled in the stylesheet.** These are raw keyframes, so
   `MotionProvider`'s `reducedMotion` does not govern them, the same as
   `disc-spin`.
-- **`app/blogs/turning-a-signature-into-two-pen-strokes/` is the post about this
+- **`app/blog/turning-a-signature-into-two-pen-strokes/` is the post about this
   file**, and its demo plays the same asset on a transport, restating these
   durations to do it. See The signature player above.
 
@@ -13287,7 +13287,7 @@ indexes, `BlogPosting` per post, `SoftwareSourceCode` per experiment,
   last edited, so stamping `datePublished` there would assert "never edited
   since" as fact.
 - **`BlogPosting` carries `image`, the post's generated card at
-  `/og/blogs/<slug>`.** Every post has one, since `blogMetadata` points
+  `/og/blog/<slug>`.** Every post has one, since `blogMetadata` points
   `og:image` at the same route, and a parser that finds the markup without the
   head still gets the picture.
 - **The root layout's `twitter` block sets the card type and nothing else.** It
@@ -13318,7 +13318,7 @@ promising it would be a claim the ordering cannot support. `MoreLabs` filters on
 Every page is also served as markdown, for anything reading the site rather than
 looking at it. Three ways in:
 
-- **`.md` on the page's own path.** `/blogs/a-post.md`, `/lab/event-stacking.md`,
+- **`.md` on the page's own path.** `/blog/a-post.md`, `/lab/event-stacking.md`,
   `/work.md`, and `/index.md` for the home page.
 - **`Accept: text/markdown` at the page's own path.** `proxy.ts` rewrites it.
 - **`/llms.txt`**, the index, and **`/llms-full.txt`**, every document in one
@@ -13474,7 +13474,7 @@ markdown pipeline cannot quietly break them.
   filter belongs in the code rather than in someone's memory.
 - **No invented timestamps.** The old sitemap stamped `new Date()` on the four
   static routes, so every crawl saw them claim they had changed that second.
-  `lastModified` is omitted where nothing real backs it, and `/blogs` and
+  `lastModified` is omitted where nothing real backs it, and `/blog` and
   `/lab` borrow the newest date from the content they list. `/about`, `/contact`
   and `/privacy` are mapped off `staticPages` and get none for the same reason:
   their copy is in `lib/pages.ts` and nothing records when it last changed.
@@ -13552,7 +13552,7 @@ package, no provider component and no per-route call.
   and `app/agents.md/` sit beside it. See Markdown variants above.
 - `app/og/` generated social cards. `card.tsx` is the one card, the site URL
   then a title, a description and a meta row over `_assets/background.png`.
-  `blogs/[slug]/route.tsx`, `lab/[slug]/route.tsx` and `icons/route.tsx` feed
+  `blog/[slug]/route.tsx`, `lab/[slug]/route.tsx` and `icons/route.tsx` feed
   it, and `blogMetadata` in `lib/blogs.ts`, the lab page's `generateMetadata`
   and `app/icons/page.tsx` point `og:image` at them. `art` is an optional
   picture between the URL and the title, which only the icons card uses: a

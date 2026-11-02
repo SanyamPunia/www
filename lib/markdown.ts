@@ -48,8 +48,8 @@ export function markdownRoutes(): MarkdownRoute[] {
   return [
     [HOME],
     ["work"],
-    ["blogs"],
-    ...getAllBlogs().map((blog) => ["blogs", blog.slug]),
+    ["blog"],
+    ...getAllBlogs().map((blog) => ["blog", blog.slug]),
     ["icons"],
     ["lab"],
     // gated the same way `sitemap.ts` gates them: a registry entry with no
@@ -69,7 +69,7 @@ export function markdownFor(route: MarkdownRoute): string | null {
   if (route.length === 1) {
     if (first === HOME) return home();
     if (first === "work") return work();
-    if (first === "blogs") return blogIndex();
+    if (first === "blog") return blogIndex();
     if (first === "lab") return labIndex();
     if (first === "icons") return icons();
 
@@ -80,7 +80,7 @@ export function markdownFor(route: MarkdownRoute): string | null {
   }
 
   if (route.length === 2) {
-    if (first === "blogs") return blogPost(second);
+    if (first === "blog") return blogPost(second);
     if (first === "lab") return labDetail(second);
   }
 
@@ -201,7 +201,7 @@ export function llmsIndex(): string {
       .join("\n"),
     "## Blogs",
     getAllBlogs()
-      .map((blog) => entry(blog.title, `/blogs/${blog.slug}`, blog.description))
+      .map((blog) => entry(blog.title, `/blog/${blog.slug}`, blog.description))
       .join("\n"),
     "## Lab",
     labsRegistry
@@ -393,12 +393,12 @@ function staticPage(page: StaticPage): string {
 
 function blogIndex(): string {
   return doc(
-    frontmatter({ title: "Blogs", url: url("/blogs") }),
+    frontmatter({ title: "Blogs", url: url("/blog") }),
     "# Blogs",
     getAllBlogs()
       .map(
         (blog) =>
-          `- [${blog.title}](${url(`/blogs/${blog.slug}`)}), ${blog.date}, ${blog.readTime}\n  ${blog.description}`,
+          `- [${blog.title}](${url(`/blog/${blog.slug}`)}), ${blog.date}, ${blog.readTime}\n  ${blog.description}`,
       )
       .join("\n"),
   );
@@ -411,7 +411,7 @@ function blogPost(slug: string): string | null {
   return doc(
     frontmatter({
       title: meta.title,
-      url: url(`/blogs/${slug}`),
+      url: url(`/blog/${slug}`),
       date: meta.date,
       readTime: meta.readTime,
       description: meta.description,
@@ -440,7 +440,7 @@ function blogPost(slug: string): string | null {
  * of the examples the posts exist to show.
  */
 function mdxBody(slug: string): string {
-  const file = path.join(process.cwd(), "app", "blogs", slug, "page.mdx");
+  const file = path.join(process.cwd(), "app", "blog", slug, "page.mdx");
   if (!fs.existsSync(file)) return "";
 
   let fenced = false;

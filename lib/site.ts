@@ -101,7 +101,7 @@ export const paragraphs: Paragraph[] = [
       ", and led engineering as founding engineer at ",
       { text: "Bitscale", href: links.bitscale },
       ". I ",
-      { text: "write", href: "/blogs" },
+      { text: "write", href: "/blog" },
       " about what I learn, publish small ",
       { text: "dev tools", href: links.uniqueForge },
       ", and keep a ",

@@ -7,7 +7,7 @@ export const SITE = "sanyam.sh";
 export const PAGES: readonly string[] = [
   "",
   "/work",
-  "/blogs",
+  "/blog",
   "/lab",
   "/icons",
   "/about",

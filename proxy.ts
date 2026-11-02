@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 /*
  * Content negotiation for the markdown variants.
  *
- * `/blogs/a-post.md` is a rewrite in `next.config.ts` and needs nothing here.
+ * `/blog/a-post.md` is a rewrite in `next.config.ts` and needs nothing here.
  * This is the second half: a client that asks for `text/markdown` at the page's
  * own URL gets the markdown instead of the page.
  *

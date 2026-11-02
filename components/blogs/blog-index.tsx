@@ -24,7 +24,7 @@ export function BlogIndex({
       {blogs.map((blog, index) => (
         <li key={blog.slug}>
           <Link
-            href={`/blogs/${blog.slug}`}
+            href={`/blog/${blog.slug}`}
             className="group relative flex items-center gap-3 rounded-full px-4 py-2 transition-colors duration-200 hover:bg-fill active:bg-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15"
           >
             {/*

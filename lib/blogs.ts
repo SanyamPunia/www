@@ -12,10 +12,10 @@ export interface BlogMeta {
   readTime: string;
 }
 
-const BLOGS_DIR = path.join(process.cwd(), "app", "blogs");
+const BLOGS_DIR = path.join(process.cwd(), "app", "blog");
 
 /**
- * Every post, newest first. A post is a directory under `app/blogs` holding a
+ * Every post, newest first. A post is a directory under `app/blog` holding a
  * `meta.json`, a `page.mdx` of pure content, and a `page.tsx` that wraps it in
  * `BlogPost`. Anything without a `meta.json` is skipped, so a work in progress
  * can sit in the tree without appearing on the index.
@@ -56,7 +56,7 @@ export function getAllBlogs(): BlogMeta[] {
  * and silently shipped with no social image at all, while every other route
  * had one. Naming the image here is what stops the next post repeating it.
  *
- * The image is the post's own card, rendered by `app/og/blogs/[slug]` with the
+ * The image is the post's own card, rendered by `app/og/blog/[slug]` with the
  * title and description over the shared background. The alt is the title,
  * since that is what the card says.
  */
@@ -65,8 +65,8 @@ export function blogMetadata(meta: BlogMeta): Metadata {
     title: meta.title,
     description: meta.description,
     alternates: {
-      canonical: `/blogs/${meta.slug}`,
-      types: { "text/markdown": `/blogs/${meta.slug}.md` },
+      canonical: `/blog/${meta.slug}`,
+      types: { "text/markdown": `/blog/${meta.slug}.md` },
     },
     openGraph: {
       title: meta.title,
@@ -74,7 +74,7 @@ export function blogMetadata(meta: BlogMeta): Metadata {
       type: "article",
       images: [
         {
-          url: `/og/blogs/${meta.slug}`,
+          url: `/og/blog/${meta.slug}`,
           width: 1200,
           height: 630,
           alt: meta.title,

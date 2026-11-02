@@ -216,7 +216,7 @@ export function PostRail({ toc = true }: { toc?: boolean }): React.ReactNode {
       transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
     >
       <div className="flex flex-col gap-8">
-        <BackLink href="/blogs">Blogs</BackLink>
+        <BackLink href="/blog">Blogs</BackLink>
 
         {/* one entry is not a table of contents, it is a heading already on
             screen. The rail still renders, because the back link is not

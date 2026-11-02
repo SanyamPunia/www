@@ -84,7 +84,7 @@ export default function NotFound() {
                 work
               </InlineLink>
               ,{" "}
-              <InlineLink href="/blogs" drawAt={drawAt(2)}>
+              <InlineLink href="/blog" drawAt={drawAt(2)}>
                 blogs
               </InlineLink>{" "}
               or{" "}

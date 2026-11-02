@@ -47,7 +47,7 @@ export function BlogPost({
                 exactly one back link is on screen at any width. The variant is
                 shared for that reason, see `--breakpoint-rail`. */}
             <div className="rail:hidden">
-              <BackLink href="/blogs">Blogs</BackLink>
+              <BackLink href="/blog">Blogs</BackLink>
             </div>
 
             <div className="flex flex-col gap-2">

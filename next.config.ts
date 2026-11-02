@@ -71,7 +71,7 @@ const nextConfig: NextConfig = {
       // the plural or singular a visitor guesses wrong, with anything under it
       ...[
         ["/labs", "/lab"],
-        ["/blog", "/blogs"],
+        ["/blogs", "/blog"],
         ["/works", "/work"],
       ].flatMap(([from, to]) => [
         // the bare path on its own, or `/:path*` sends it to `/lab/` and a

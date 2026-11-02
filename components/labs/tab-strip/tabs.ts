@@ -24,7 +24,7 @@ export interface Page {
 export const PAGES: readonly Page[] = [
   { title: "Sanyam Punia", path: "", Icon: UserIcon },
   { title: "Work", path: "/work", Icon: FolderIcon },
-  { title: "Blogs", path: "/blogs", Icon: NoteIcon },
+  { title: "Blogs", path: "/blog", Icon: NoteIcon },
   { title: "Lab", path: "/lab", Icon: SquaresFourIcon },
   { title: "Icons", path: "/icons", Icon: PaletteIcon },
   { title: "About", path: "/about", Icon: InfoIcon },

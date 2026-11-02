@@ -21,7 +21,7 @@ import { InlineLink } from "@/components/ui/inline-link";
  * The type scale has nothing between the page title and body copy, and nothing
  * on this site is bold, so a heading cannot separate itself from prose by size
  * or weight. It separates by space and rule instead. The rule is the same
- * device the `/work` and `/blogs` rows use, so structure reads consistently
+ * device the `/work` and `/blog` rows use, so structure reads consistently
  * across the site rather than being invented for prose.
  */
 function Section({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
