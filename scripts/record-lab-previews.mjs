@@ -2647,6 +2647,73 @@ const LABS = {
       await wait(1500);
     },
   },
+  "tab-strip": {
+    focus: [0, 0, 538, 336],
+    /*
+     * Three closes in a row with the pointer parked on one close button, so
+     * each next tab slides its own under it. The pointer leaves and the tabs
+     * grow back to fill the strip, then three reopens put every tab back where
+     * it was, each spinning before its icon arrives. A press on Blogs brings it
+     * to the front, it is dragged two places right and back, and a rest on
+     * Lab opens its hover card, so the clip loops.
+     * Presses jump on and off their target, so no tooltip opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const centre = async (sel) => {
+        const r = await page.locator(sel).first().boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const tap = async (xy) => {
+        await m.move(...xy);
+        await m.down();
+        await wait(70);
+        await m.up();
+      };
+      await wait(400);
+      const tab = await centre("[data-tab]:nth-child(2)");
+      await m.move(tab[0] - 20, tab[1]);
+      await wait(350);
+      const close = await centre("[data-tab]:nth-child(2) [data-close]");
+      await m.move(...close);
+      await wait(350);
+      for (let i = 0; i < 3; i++) {
+        await m.down();
+        await wait(70);
+        await m.up();
+        await wait(450);
+      }
+      await m.move(close[0], close[1] + 200, 12);
+      await wait(800);
+      const reopen = await centre("[data-reopen]");
+      for (let i = 0; i < 3; i++) {
+        await tap(reopen);
+        await m.move(reopen[0], reopen[1] + 120);
+        await wait(450);
+      }
+      const blogs = await centre('[aria-label="Blogs"]');
+      await tap(blogs);
+      await wait(300);
+      // Blogs is dragged two places right and back, so the order ends as it began
+      const w = (await page.locator("[data-tab]").first().boundingBox()).width;
+      await m.down();
+      await m.move(blogs[0] + w * 2, blogs[1], 24);
+      await wait(250);
+      await m.up();
+      await wait(450);
+      await m.down();
+      await m.move(blogs[0], blogs[1], 24);
+      await wait(250);
+      await m.up();
+      await wait(400);
+      // a rest on Lab opens its hover card
+      const lab = await centre('[aria-label="Lab"]');
+      await m.move(lab[0], lab[1], 10);
+      await wait(1100);
+      await m.move(270, 320);
+      await wait(600);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
