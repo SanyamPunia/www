@@ -68,6 +68,16 @@ const nextConfig: NextConfig = {
         destination: "/files/sanyam_cv.pdf",
         permanent: false,
       },
+      // the plural or singular a visitor guesses wrong, with anything under it
+      ...[
+        ["/labs", "/lab"],
+        ["/blog", "/blogs"],
+        ["/works", "/work"],
+      ].map(([from, to]) => ({
+        source: `${from}/:path*`,
+        destination: `${to}/:path*`,
+        permanent: true,
+      })),
     ];
   },
 };
