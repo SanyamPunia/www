@@ -12623,6 +12623,83 @@ and the bar.
   Buttons are `size-14` from `sm` and `size-11` below. Verified in a browser at
   1280 and 390px, with no sideways scroll and no console errors.
 
+### `tab-strip`
+
+A browser's tab strip over a toolbar row, the companion to `browser-toolbar`.
+`tabs.ts` is the pages and the width rule, pure apart from the icon imports,
+and `index.tsx` is the strip, the tabs and the address row.
+
+- **A close by pointer holds every tab's width until the pointer leaves the
+  strip**, which is Chrome's behaviour. The tab after the closed one slides into
+  its place at the same width, so its close button lands under a pointer that
+  has not moved, and a run of closes needs no aim. Measured: three presses at
+  one point closed Work, Blogs and Lab, with a close button under the pointer
+  before each. Leaving the strip lets the tabs grow to share it again.
+- **A keyboard close does not hold the width**, since no pointer is waiting,
+  and hands focus to the tab that took the closed one's place. Delete and
+  Backspace close the focused tab, and a middle click closes too.
+- **A tab's width is the strip's room shared out between 44px and 176px.** It
+  animates with `width`, never a scale, and its content is laid out at the
+  target width in a box pinned to the tab's left edge, inside a clip. A tab
+  opening or closing uncovers or covers its content and nothing inside moves
+  sideways. The close button sat on the tab's right edge first and slid left
+  across the title as a closing tab shrank. Under 72px a tab shows its favicon or its close
+  button, never both. Above 120px every close button shows, not only on hover.
+- **Titles fade out at their end** under a mask rather than an ellipsis. A tab
+  whose close button only shows on hover grows its right padding on hover, so
+  the title and its fade move clear of the button instead of running under it.
+- **Every icon is moved down to the x-height centre of the text in its row**,
+  since a flex row centres the line box and the eye reads lowercase by its
+  x-height. Measured with canvas metrics: 0.09em at `text-action`. Each row
+  sets the type size that em resolves against, so the plus and the reopen
+  button match the icons that sit beside text.
+- **The tab titles and the address are one type role, `text-action`, with
+  kerning off in both**, so the title of the front tab and its address read as
+  the same text. The address needs kerning off for `torph`'s character spans.
+- **The front tab merges into the toolbar row**, with a concave corner on each
+  side drawn as a square of `bg` with a circle masked out of it. Dividers hide
+  beside the front tab and beside a hovered one through selectors on the strip.
+- **Closing the front tab brings the tab to its right forward**, or the one to
+  its left at the end. A last tab holding a page closes in place: the
+  same tab turns into a new tab, the old face fading in 60ms while the new one
+  rises 3px in 100ms over it, both at once through `popLayout`, rather than one tab leaving while another arrives beside it. The page
+  goes on the reopen stack under a fresh id, so reopening it cannot collide. A last
+  new tab has no close button, since there is no window to close.
+- **Reopen restores closed tabs in reverse order at their old index.** It is a
+  button in the toolbar row because Chrome reserves the shortcut.
+- **The plus is disabled once one more tab would not fit at 44px.**
+- **A tab drags to a new place.** A press becomes a drag after 4px sideways,
+  and the tab becomes the front tab. Every tab has an `x` offset that the strip
+  owns, so the dragged one follows the hand and the others spring a tab's width
+  out of its way. The array only changes on release: `reorder` commits it with
+  `flushSync`, takes off each offset the distance its tab moved in the row, and
+  springs every offset to 0. So nothing jumps on the commit, and the keyboard
+  move (Ctrl+Shift+PageUp/PageDown, or Alt+Shift+Arrow) uses the same path.
+  Escape puts a drag back. The drag listeners are on the window, nib's rules,
+  and `data-carry` on the strip holds the grabbing cursor. Tabs keep
+  `cursor-pointer`, `gooey-chips`'s call for something pressed more than dragged.
+- **A pointer resting 500ms on a tab opens a hover card** with its title and
+  full address under it, mouse and pen only. A card already open, or closed in
+  the last 300ms, moves to the next tab at once. It hides on a press, a close,
+  the strip's `pointerleave`, and a 350ms rest on a close button, so it never
+  sits beside that button's tooltip. Hiding it the moment the pointer touched a
+  close button was a bug: a sweep across the tabs crosses every one, so the
+  card closed and played its entrance again on the next tab instead of sliding. The bar dropped `overflow-hidden` for
+  it, and the toolbar row rounds its own bottom corners instead.
+- **A reopened tab spins for 700ms before its icon arrives**, since a restored
+  tab loads its page again. Reduced motion skips the spinner.
+- **The window's three controls sit before the first tab** in macOS's red,
+  yellow and green, scoped here as the platform's own colours. They are
+  decoration and take no pointer. The room the tabs share is the strip's width
+  less its padding and every `data-fixed` child, read off the DOM, so adding
+  anything fixed to the strip needs only that attribute.
+- **The bar has `browser-toolbar`'s depth**, `RAISED` on the panel and `WELL`
+  on the address, which morphs through `torph` with kerning off.
+- **It invents no colour beyond the window controls.** Reduced motion sets
+  every width in one step.
+- It is `flush`, `aspect-8/5` with a `min-h-56` floor. Verified in a browser at
+  1280 and 390px, with no sideways scroll and no console errors.
+
 ## Motion
 
 **Every page opens on the same stagger.** `Reveal` wraps the page column and
