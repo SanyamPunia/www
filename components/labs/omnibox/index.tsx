@@ -26,6 +26,7 @@ import {
   ENTRIES,
   type Entry,
   type Hit,
+  nearby,
   postEntries,
   type Range,
   SITE,
@@ -166,11 +167,21 @@ export default function Omnibox() {
     [typed, lead, entries, history],
   );
   const empty = typed.trim() === "";
-  /** an empty bar has no default row, so Enter cannot go anywhere unasked */
-  const floor = empty ? -1 : 0;
-  const row = hi >= 0 ? rows[Math.min(hi, rows.length - 1)] : undefined;
+  /** nothing matches, so the list offers the closest pages instead */
+  const miss = !empty && rows.length === 0;
+  const near = useMemo(
+    () => (miss ? nearby(typed, entries, history) : null),
+    [miss, typed, entries, history],
+  );
+  const list = near ? near.hits : rows;
+  /**
+   * An empty bar and a miss have no default row, so Enter cannot go somewhere
+   * nobody asked for
+   */
+  const floor = empty || miss ? -1 : 0;
+  const row = hi >= 0 ? list[Math.min(hi, list.length - 1)] : undefined;
   const value =
-    row && (hi > 0 || empty) ? address(row.entry) : `${typed}${completion}`;
+    row && (hi > 0 || floor < 0) ? address(row.entry) : `${typed}${completion}`;
 
   // The selection is set after the render that changed the value, since a
   // controlled input that gets a new value puts its caret at the end
@@ -256,22 +267,22 @@ export default function Omnibox() {
     const atEnd =
       el.selectionStart === next.length && el.selectionEnd === next.length;
     setDirty(true);
-    setHi(next.trim() ? 0 : -1);
     // only a letter typed at the end completes. A deletion, a paste or an
     // edit in the middle keeps exactly what is there
-    if (kind === "insertText" && atEnd) {
-      const done = complete(next, lead, entries, history);
-      if (done) {
-        setTyped(next);
-        setCompletion(done.rest);
-        setLead(done.entry);
-        select.current = "completion";
-        return;
-      }
-    }
+    const done =
+      kind === "insertText" && atEnd
+        ? complete(next, lead, entries, history)
+        : null;
+    // row 0 is the default only when something matches, since a near miss
+    // is a guess and Enter should not take it unasked
+    const matches =
+      next.trim() !== "" &&
+      suggest(next, done?.entry ?? null, entries, history).length > 0;
+    setHi(matches ? 0 : -1);
     setTyped(next);
-    setCompletion("");
-    setLead(null);
+    setCompletion(done?.rest ?? "");
+    setLead(done?.entry ?? null);
+    if (done) select.current = "completion";
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -295,7 +306,7 @@ export default function Omnibox() {
         setCompletion("");
         setLead(null);
       }
-      setHi((i) => Math.max(floor, Math.min(i, rows.length - 2)));
+      setHi((i) => Math.max(floor, Math.min(i, list.length - 2)));
       select.current = "end";
       return;
     }
@@ -330,7 +341,7 @@ export default function Omnibox() {
         }
         const to = Math.max(
           floor,
-          Math.min(rows.length - 1, hi + (e.key === "ArrowDown" ? 1 : -1)),
+          Math.min(list.length - 1, hi + (e.key === "ArrowDown" ? 1 : -1)),
         );
         setHi(to);
         select.current = to === 0 && completion ? "completion" : "end";
@@ -360,11 +371,11 @@ export default function Omnibox() {
     }
   };
 
-  const status = open
-    ? rows.length
-      ? `${rows.length} suggestions`
-      : "No matching page"
-    : address(committed);
+  const status = !open
+    ? address(committed)
+    : near
+      ? `No page matches. ${near.close ? "Closest" : "Try"}: ${near.hits.map((h) => h.entry.title).join(", ")}`
+      : `${rows.length} ${rows.length === 1 ? "suggestion" : "suggestions"}`;
 
   return (
     <div className="flex h-[25rem] w-full select-none justify-center rounded-lg bg-linear-to-b from-surface to-fill-hover px-3 pt-10 ring-1 ring-stroke ring-inset sm:px-8 sm:pt-14">
@@ -478,9 +489,6 @@ export default function Omnibox() {
           {open && (
             <motion.div
               key="list"
-              id={listId}
-              role="listbox"
-              aria-label="Suggestions"
               initial={{ opacity: 0, y: -4 }}
               animate={{
                 opacity: 1,
@@ -491,8 +499,21 @@ export default function Omnibox() {
               className="absolute inset-x-0 top-full z-10 mt-2 overflow-hidden rounded-xl bg-bg p-1.5 outline outline-stroke"
               style={{ boxShadow: RAISED }}
             >
-              {rows.length ? (
-                rows.map((hit, i) => (
+              {near && (
+                <div className="flex flex-col gap-1 px-2.5 pt-2 pb-2.5">
+                  <p className="-translate-y-[0.085em] truncate text-body text-text-secondary leading-tight">
+                    No page matches{" "}
+                    <span className="text-text-primary normal-case">
+                      &ldquo;{typed.trim()}&rdquo;
+                    </span>
+                  </p>
+                  <p className="text-meta text-text-muted">
+                    {near.close ? "Closest pages" : "Try one of these"}
+                  </p>
+                </div>
+              )}
+              <div id={listId} role="listbox" aria-label="Suggestions">
+                {list.map((hit, i) => (
                   <Row
                     key={hit.entry.path || "home"}
                     hit={hit}
@@ -500,12 +521,8 @@ export default function Omnibox() {
                     selected={i === hi}
                     onPick={() => commit(hit.entry)}
                   />
-                ))
-              ) : (
-                <p className="flex h-10 items-center px-2.5 text-body text-text-muted">
-                  No page on sanyam.sh matches that
-                </p>
-              )}
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

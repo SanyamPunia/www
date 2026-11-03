@@ -225,3 +225,103 @@ export function suggest(
   );
   return scored.slice(0, limit).map((s) => s.hit);
 }
+
+/** Edits between two strings, counting a swap of neighbours as one */
+function distance(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) =>
+      i === 0 ? j : j === 0 ? i : 0,
+    ),
+  );
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + cost,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[a.length][b.length];
+}
+
+/** Whether every letter of `t` appears in `text`, in order */
+function within(text: string, t: string): boolean {
+  let at = 0;
+  for (const c of text) if (c === t[at]) at++;
+  return at === t.length;
+}
+
+/**
+ * How far `t` is from an entry, as a share of its own length, 0 for a near
+ * miss and above 1 for nothing alike. Each word of the title and each part of
+ * the path is a candidate, and so is the title whole, so a typo in one word
+ * and a typo in a phrase both land. Letters in order, `tbstrp` for tab strip,
+ * count as close.
+ */
+function closeness(entry: Entry, t: string): number {
+  const title = entry.title.toLowerCase();
+  const words = [title, ...title.split(/\s+/), ...entry.path.split(/[/-]/)];
+  let best = Number.POSITIVE_INFINITY;
+  for (const word of words) {
+    if (!word) continue;
+    // a typed fragment is compared with the same length of the word
+    const part = word.slice(0, Math.max(t.length, 1));
+    best = Math.min(best, distance(t, part) / t.length);
+  }
+  const squashed = title.replace(/\s+/g, "");
+  if (t.length >= 3 && within(squashed, t)) best = Math.min(best, 0.25);
+  return best;
+}
+
+/**
+ * What the list offers when nothing matches. The closest entries by typo
+ * tolerance, best first, when any is close enough to be a guess. Otherwise the
+ * main pages, since a list that is only "no" is a dead end.
+ */
+export function nearby(
+  typed: string,
+  entries: readonly Entry[],
+  history: readonly string[],
+  limit = 4,
+): { close: boolean; hits: Hit[] } {
+  const t = typed
+    .trim()
+    .toLowerCase()
+    .replace(/^\/+|^sanyam\.sh\/?/g, "");
+  const seen = new Set(history);
+  const hit = (entry: Entry): Hit => ({
+    entry,
+    title: null,
+    url: null,
+    visited: seen.has(entry.path),
+  });
+  if (t.length >= 2) {
+    const ranked = entries
+      .map((entry) => ({ entry, score: closeness(entry, t) }))
+      .filter((r) => r.score <= 0.4)
+      .sort(
+        (a, b) =>
+          a.score - b.score ||
+          recency(history, a.entry.path) - recency(history, b.entry.path) ||
+          a.entry.path.length - b.entry.path.length,
+      );
+    if (ranked.length) {
+      return {
+        close: true,
+        hits: ranked.slice(0, limit).map((r) => hit(r.entry)),
+      };
+    }
+  }
+  return {
+    close: false,
+    hits: entries
+      .filter((entry) => !entry.path.includes("/"))
+      .slice(0, limit)
+      .map(hit),
+  };
+}

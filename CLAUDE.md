@@ -12756,8 +12756,15 @@ imports, and `index.tsx` is the bar, the list and the keys.
   is bold.
 - **The list is the WAI combobox pattern.** The input keeps focus and points at
   a row with `aria-activedescendant`. A row prevents its own `pointerdown`, so a
-  click never takes focus from the input. Nothing matching is a line saying so,
-  and Enter then shakes the field.
+  click never takes focus from the input.
+- **A miss is never a dead end.** When nothing matches, the list names what was
+  typed and offers the closest pages, by typo tolerance in `nearby`: an
+  edit distance that counts a swapped pair as one edit, against each word of a
+  title, each part of a path and the title whole, plus letters in order, so
+  `tbstrp` reaches Tab Strip and `redriect` the redirect post. Nothing within
+  0.4 of the typed length falls back to the main pages under "Try one of
+  these". No row is selected, since a guess should not be taken unasked: Enter
+  shakes the field, and the arrows walk the guesses.
 - **At rest the address is the quiet form**: the host in `text-primary` and the
   path in `text-muted`, over a transparent input. A commit morphs the path
   through `torph` and runs the `accent` load line from `browser-toolbar`, with
