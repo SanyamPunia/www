@@ -2714,6 +2714,54 @@ const LABS = {
       await wait(600);
     },
   },
+  omnibox: {
+    // the top of the stage at the card's 8:5, which holds the bar and a full list
+    focus: [0, 0, 538, 336],
+    /*
+     * A click selects the address, and lab/t completes to tab-strip. Two more
+     * letters eat the completion, Backspace takes it away and a dash brings it
+     * back. The arrows walk the list and return, and Enter loads the page. A
+     * second visit types lab and goes back, so the clip loops.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const r = await page.locator("[data-lab-demo] input").boundingBox();
+      const bar = [r.x - demo.x + 60, r.y - demo.y + r.height / 2];
+      const key = async (k, after = 170) => {
+        await page.keyboard.press(k);
+        await wait(after);
+      };
+      const type = async (text) => {
+        for (const c of text) await key(c, 150);
+      };
+      const click = async () => {
+        await m.move(...bar);
+        await m.down();
+        await wait(60);
+        await m.up();
+        await m.move(bar[0] + 300, bar[1] + 260);
+        await wait(450);
+      };
+      await wait(400);
+      await click();
+      await type("lab/t");
+      await wait(500);
+      await type("ab");
+      await wait(400);
+      await key("Backspace", 500);
+      await type("-");
+      await wait(400);
+      await key("ArrowDown", 380);
+      await key("ArrowDown", 380);
+      await key("ArrowUp", 380);
+      await key("ArrowUp", 600);
+      await key("Enter", 1300);
+      await click();
+      await type("lab");
+      await wait(500);
+      await key("Enter", 1300);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
