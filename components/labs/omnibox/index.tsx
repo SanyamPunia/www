@@ -96,7 +96,7 @@ function Row({
         <Icon className="size-4" />
       </span>
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="shrink-0 text-body text-text-secondary">
+        <span className="shrink-0 -translate-y-[0.085em] text-body text-text-secondary leading-tight">
           <Marked
             text={hit.entry.title}
             range={hit.title}
@@ -107,7 +107,7 @@ function Row({
           aria-hidden="true"
           className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
         />
-        <span className="truncate text-meta text-text-muted normal-case">
+        <span className="-translate-y-[0.11em] truncate text-meta text-text-muted leading-tight normal-case">
           <Marked
             text={address(hit.entry)}
             range={hit.url}
@@ -117,7 +117,7 @@ function Row({
       </span>
       <kbd
         className={cn(
-          "shrink-0 font-mono text-meta text-text-muted transition-opacity duration-150",
+          "shrink-0 -translate-y-[0.02em] font-mono text-meta text-text-muted leading-tight transition-opacity duration-150",
           selected ? "opacity-100" : "opacity-0",
         )}
       >
@@ -331,7 +331,8 @@ export default function Omnibox() {
                 : "bg-fill",
             )}
           >
-            <span className="relative grid size-4 shrink-0 text-text-secondary">
+            {/* a flex row centres the icon on the line box, and lowercase reads at its x-height */}
+            <span className="relative grid size-4 shrink-0 translate-y-[0.155em] text-body text-text-secondary">
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.span
                   key={editing ? "search" : committed.path || "home"}
@@ -396,6 +397,8 @@ export default function Omnibox() {
                 className={cn(
                   "pointer-events-none absolute inset-0 flex items-center whitespace-nowrap",
                   TYPE,
+                  // the input sets its text a pixel lower, so focusing does not jump
+                  "translate-y-px leading-tight",
                   editing ? "opacity-0" : "opacity-100",
                 )}
               >

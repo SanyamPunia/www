@@ -12745,6 +12745,19 @@ imports, and `index.tsx` is the bar, the list and the keys.
   through `torph` and runs the `accent` load line from `browser-toolbar`, with
   the same `RAISED` and `WELL` depth. While editing the well lifts to `bg` and
   carries the project's focus ring.
+- **Every icon and line of text sits on one x-height centre, measured.** Each
+  text element takes `leading-tight`, so its box no longer depends on the
+  looser body leading below `sm`, and the offsets then hold at every width. The
+  bar's icon moves down `0.155em`, and a row's title, address and `enter` move
+  up `0.085em`, `0.11em` and `0.02em` to meet the tile's centre. The resting
+  address moves down a pixel, since the input sets its text that much lower
+  and focusing jumped.
+  - **Measure the ink, not the font metrics.** Canvas metrics put every pair
+    within 0.04px while the rendered bar was still 0.5px off at rest and 0.7px
+    off while typing, and a sample with a descender in it, such as "sany",
+    skews the centre too. The numbers above come from 4x screenshots of the
+    icon against "sa": every pair within about half a device pixel at 1280 and
+    390px.
 - The list opens in 160ms over 4px and closes in 110ms. Rows change with no
   animation, since they change on every key.
 - It is `flush`, a fixed `h-[25rem]`, and scopes no hue.
