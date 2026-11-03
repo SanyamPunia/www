@@ -894,6 +894,11 @@ files:
   These are the one place on the site with a full palette, since a token's colour
   is what says what kind of token it is, the same exception the brand marks get.
   Punctuation and comments stay grey so they recede.
+- **`/blog/feed.json` is every post as a JSON Feed 1.1**, from
+  `app/blog/feed.json/route.ts`, static, and announced on the index as an
+  `application/feed+json` alternate. It is a dotted directory, the shape
+  `app/llms.txt/` takes, and `getAllBlogs` skips it since it holds no
+  `meta.json`. The `omnibox` lab reads it for its post suggestions.
 - A missing `meta.json` hides a directory from the index, so a draft can sit
   in the tree unpublished. Its route is still live.
 - **A directory starting with `_` has no route and is not a post.** Next
@@ -12728,9 +12733,22 @@ imports, and `index.tsx` is the bar, the list and the keys.
 - **The selection is set in a layout effect after the render that changed the
   value**, from a ref saying what to select. A controlled input given a new
   value puts its caret at the end.
-- **The entries are `siteRoutes` and `labsRegistry`**, so every suggestion
-  resolves. Posts are left out: their list is read off the file system, which a
-  client component cannot reach.
+- **The entries are `siteRoutes`, `labsRegistry` and the blog's feed**, so
+  every suggestion resolves. Posts come from `/blog/feed.json`, fetched once on
+  mount, since their list is read off the file system, which the browser cannot
+  reach. Until it arrives the list is pages and labs.
+- **The session keeps a history**, the last eight pages committed, newest
+  first. A visited row shows `ClockIcon` in place of its own icon, the way a
+  browser marks history, and steps up one scoring band. Among several prefix
+  matches the most recent visit completes first, then the shortest address.
+  Shift+Delete forgets the highlighted visit. History is matched by path, never
+  by object, since the entries are rebuilt when the posts arrive.
+- **An empty bar shows the history, then the main pages, with no row
+  selected**, which is `hi` at -1. Enter there leaves the bar, so it cannot go
+  somewhere nobody asked for, and the arrows walk the list from the top.
+- **A row's title is capped at three fifths of it and the address takes the
+  rest.** Weighted shrinking cut each row's address at a different point, and a
+  long post title squeezed it to one letter.
 - **An address that starts with the typing beats a title that does**, which
   beats a word inside either. The completed entry always leads, since it is
   what Enter goes to. Among several prefix matches the shortest address
