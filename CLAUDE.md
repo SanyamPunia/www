@@ -1944,7 +1944,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents` and `haptic-menu` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu` and `omnibox` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2254,7 +2254,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Seventy-nine clips, 7.8MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Eighty-two clips, 8.1MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12699,6 +12699,61 @@ and `index.tsx` is the strip, the tabs and the address row.
   every width in one step.
 - It is `flush`, `aspect-8/5` with a `min-h-56` floor. Verified in a browser at
   1280 and 390px, with no sideways scroll and no console errors.
+
+### `omnibox`
+
+A browser's address bar over this site's own pages and labs, the third piece of
+the window after `browser-toolbar` and `tab-strip`. `suggest.ts` is the
+entries, the inline completion and the ranking, pure apart from its icon
+imports, and `index.tsx` is the bar, the list and the keys.
+
+- **The inline completion is a selection, not drawn text.** The input holds the
+  typed text plus the rest of the best match, and the rest is selected. Typing
+  its next letter replaces the selection with that letter, and `complete` keeps
+  the same entry while it still matches, so the value is unchanged and only the
+  selection shrinks. That is the completion being eaten one letter at a time.
+- **Only `insertText` at the end of the field completes.** A deletion, a paste,
+  an edit in the middle and composition text keep exactly what is there.
+- **The first Backspace or Delete takes the completion away and leaves the
+  typing.** Tab, the right arrow and End accept it. Tab with nothing to accept
+  is the browser's own and moves focus on.
+- **Row 0 is the default, and above it the address is the typed text.** The
+  arrows move down the list and the address shows each row's URL. Coming back
+  to row 0 puts the typing and its selected completion back. A pointer only
+  highlights a row, so hovering never rewrites the address.
+- **Escape puts the committed address back and selects it, and a second Escape
+  leaves the bar.** The first click selects the whole address, through a
+  prevented `pointerdown` and a `focus`, since a click that focuses an input
+  puts its caret where it landed. Later clicks place the caret.
+- **The selection is set in a layout effect after the render that changed the
+  value**, from a ref saying what to select. A controlled input given a new
+  value puts its caret at the end.
+- **The entries are `siteRoutes` and `labsRegistry`**, so every suggestion
+  resolves. Posts are left out: their list is read off the file system, which a
+  client component cannot reach.
+- **An address that starts with the typing beats a title that does**, which
+  beats a word inside either. The completed entry always leads, since it is
+  what Enter goes to. Among several prefix matches the shortest address
+  completes. Matched letters take the stronger tone, since nothing on this site
+  is bold.
+- **The list is the WAI combobox pattern.** The input keeps focus and points at
+  a row with `aria-activedescendant`. A row prevents its own `pointerdown`, so a
+  click never takes focus from the input. Nothing matching is a line saying so,
+  and Enter then shakes the field.
+- **At rest the address is the quiet form**: the host in `text-primary` and the
+  path in `text-muted`, over a transparent input. A commit morphs the path
+  through `torph` and runs the `accent` load line from `browser-toolbar`, with
+  the same `RAISED` and `WELL` depth. While editing the well lifts to `bg` and
+  carries the project's focus ring.
+- The list opens in 160ms over 4px and closes in 110ms. Rows change with no
+  animation, since they change on every key.
+- It is `flush`, a fixed `h-[25rem]`, and scopes no hue.
+- Verified in a browser at 1280 and 390px: completion, eating, Backspace, Tab,
+  the arrows, both Escapes, Enter, a click on a row and no match, with no
+  sideways scroll and no console errors.
+- Its clip types lab/t, eats two letters, takes the completion away and brings
+  it back, walks the list, loads tab-strip, then types lab and goes back, so it
+  loops. 10.0s and 74KB.
 
 ## Motion
 
