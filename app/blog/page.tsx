@@ -17,7 +17,10 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: {
     canonical: "/blog",
-    types: { "text/markdown": "/blog.md" },
+    types: {
+      "text/markdown": "/blog.md",
+      "application/feed+json": "/blog/feed.json",
+    },
   },
 };
 
