@@ -1290,7 +1290,7 @@ const ALL_LABS: LabMetadata[] = [
     slug: "omnibox",
     title: "Omnibox",
     description: [
-      "a browser's address bar over this site's own pages and labs. type and the rest of the best match appears selected after the caret, with a list of suggestions under the bar.",
+      "a browser's address bar over this site's pages, posts and labs. type and the rest of the best match appears selected after the caret, with suggestions and your history under the bar.",
       "key insight: the completion is a selection, not drawn text. typing its next letter replaces the selection with that letter, so the completion is eaten one letter at a time, and backspace removes only the completion.",
     ],
     createdAt: "2026-11-03",

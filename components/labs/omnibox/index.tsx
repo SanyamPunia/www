@@ -18,13 +18,15 @@ import {
   useState,
 } from "react";
 import { TextMorph } from "torph/react";
-import { MagnifyingGlassIcon } from "@/components/icons";
+import { ClockIcon, MagnifyingGlassIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
   address,
   complete,
+  ENTRIES,
   type Entry,
   type Hit,
+  postEntries,
   type Range,
   SITE,
   START,
@@ -37,6 +39,8 @@ const RAISED =
 const WELL =
   "inset 0 1px 3px rgb(0 0 0 / 0.13), inset 0 1px 1px rgb(0 0 0 / 0.05), 0 1px 0 rgb(255 255 255)";
 const LOAD = 0.9;
+/** how many visits the session keeps */
+const HISTORY = 8;
 const TYPE =
   "text-body [text-transform:none] [font-kerning:none] [font-variant-ligatures:none]";
 
@@ -74,7 +78,8 @@ function Row({
   selected: boolean;
   onPick: () => void;
 }) {
-  const { Icon } = hit.entry;
+  // a visited page shows a clock, the way a browser marks its history
+  const Icon = hit.visited ? ClockIcon : hit.entry.Icon;
   return (
     // The input keeps focus and points here with aria-activedescendant, so a
     // row is never focused and its keys are the input's
@@ -96,7 +101,7 @@ function Row({
         <Icon className="size-4" />
       </span>
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="shrink-0 -translate-y-[0.085em] text-body text-text-secondary leading-tight">
+        <span className="max-w-3/5 shrink-0 -translate-y-[0.085em] truncate text-body text-text-secondary leading-tight">
           <Marked
             text={hit.entry.title}
             range={hit.title}
@@ -107,7 +112,7 @@ function Row({
           aria-hidden="true"
           className="inline-block size-1 shrink-0 rounded-full bg-stroke-strong"
         />
-        <span className="-translate-y-[0.11em] truncate text-meta text-text-muted leading-tight normal-case">
+        <span className="min-w-0 flex-1 -translate-y-[0.11em] truncate text-meta text-text-muted leading-tight normal-case">
           <Marked
             text={address(hit.entry)}
             range={hit.url}
@@ -142,16 +147,30 @@ export default function Omnibox() {
   const [typed, setTyped] = useState("");
   const [completion, setCompletion] = useState("");
   const [lead, setLead] = useState<Entry | null>(null);
-  /** the row Enter goes to. Row 0 is the default, and above it the address is the typed text */
+  /**
+   * The row Enter goes to. Row 0 is the default, and the address shows the
+   * typed text there. With nothing typed no row is the default, which is -1.
+   */
   const [hi, setHi] = useState(0);
+  const [posts, setPosts] = useState<Entry[]>([]);
+  /** this session's visits, newest first, as paths */
+  const [history, setHistory] = useState<string[]>([]);
 
   const progress = useMotionValue(0);
   const barOpacity = useMotionValue(0);
 
   const open = editing && dirty;
-  const rows = useMemo(() => suggest(typed, lead), [typed, lead]);
-  const row = rows[Math.min(hi, rows.length - 1)];
-  const value = hi > 0 && row ? address(row.entry) : `${typed}${completion}`;
+  const entries = useMemo(() => [...ENTRIES, ...posts], [posts]);
+  const rows = useMemo(
+    () => suggest(typed, lead, entries, history),
+    [typed, lead, entries, history],
+  );
+  const empty = typed.trim() === "";
+  /** an empty bar has no default row, so Enter cannot go anywhere unasked */
+  const floor = empty ? -1 : 0;
+  const row = hi >= 0 ? rows[Math.min(hi, rows.length - 1)] : undefined;
+  const value =
+    row && (hi > 0 || empty) ? address(row.entry) : `${typed}${completion}`;
 
   // The selection is set after the render that changed the value, since a
   // controlled input that gets a new value puts its caret at the end
@@ -167,6 +186,18 @@ export default function Omnibox() {
   });
 
   useEffect(() => () => clearTimeout(timer.current), []);
+
+  // the posts come from the blog's feed, since the browser cannot list them
+  useEffect(() => {
+    const abort = new AbortController();
+    fetch("/blog/feed.json", { signal: abort.signal })
+      .then((res) => res.json())
+      .then((feed: { items?: { url?: string; title?: string }[] }) =>
+        setPosts(postEntries(feed.items ?? [])),
+      )
+      .catch(() => {});
+    return () => abort.abort();
+  }, []);
 
   const reset = () => {
     setTyped(address(committed));
@@ -186,6 +217,12 @@ export default function Omnibox() {
 
   const commit = (entry: Entry) => {
     setCommitted(entry);
+    setHistory((h) =>
+      [entry.path, ...h.filter((path) => path !== entry.path)].slice(
+        0,
+        HISTORY,
+      ),
+    );
     input.current?.blur();
     load();
   };
@@ -219,11 +256,11 @@ export default function Omnibox() {
     const atEnd =
       el.selectionStart === next.length && el.selectionEnd === next.length;
     setDirty(true);
-    setHi(0);
+    setHi(next.trim() ? 0 : -1);
     // only a letter typed at the end completes. A deletion, a paste or an
     // edit in the middle keeps exactly what is there
     if (kind === "insertText" && atEnd) {
-      const done = complete(next, lead);
+      const done = complete(next, lead, entries, history);
       if (done) {
         setTyped(next);
         setCompletion(done.rest);
@@ -244,6 +281,24 @@ export default function Omnibox() {
       hi === 0 &&
       el.selectionStart === typed.length &&
       el.selectionEnd === el.value.length;
+
+    // Shift+Delete forgets the highlighted visit, the way a browser does
+    if (
+      e.shiftKey &&
+      (e.key === "Delete" || e.key === "Backspace") &&
+      open &&
+      row?.visited
+    ) {
+      e.preventDefault();
+      setHistory((h) => h.filter((path) => path !== row.entry.path));
+      if (lead?.path === row.entry.path) {
+        setCompletion("");
+        setLead(null);
+      }
+      setHi((i) => Math.max(floor, Math.min(i, rows.length - 2)));
+      select.current = "end";
+      return;
+    }
 
     switch (e.key) {
       case "Backspace":
@@ -274,7 +329,7 @@ export default function Omnibox() {
           return;
         }
         const to = Math.max(
-          0,
+          floor,
           Math.min(rows.length - 1, hi + (e.key === "ArrowDown" ? 1 : -1)),
         );
         setHi(to);
@@ -288,6 +343,7 @@ export default function Omnibox() {
           return;
         }
         if (row) commit(row.entry);
+        else if (empty) el.blur();
         else shake();
         return;
       }
