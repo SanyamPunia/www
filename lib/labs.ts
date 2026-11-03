@@ -1286,6 +1286,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag a tab, or close a few in a row without moving.",
   },
+  {
+    slug: "omnibox",
+    title: "Omnibox",
+    description: [
+      "a browser's address bar over this site's own pages and labs. type and the rest of the best match appears selected after the caret, with a list of suggestions under the bar.",
+      "key insight: the completion is a selection, not drawn text. typing its next letter replaces the selection with that letter, so the completion is eaten one letter at a time, and backspace removes only the completion.",
+    ],
+    createdAt: "2026-11-03",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/omnibox/index.tsx",
+    flush: true,
+    hint: "Click the address, type lab/t, then press Tab or an arrow.",
+  },
 ];
 
 /**
@@ -1436,6 +1450,7 @@ export const IMPLEMENTED_LABS = [
   "haptic-menu",
   "browser-toolbar",
   "tab-strip",
+  "omnibox",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
