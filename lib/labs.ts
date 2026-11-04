@@ -1300,6 +1300,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Click the address, type lab/t, then press Tab or an arrow.",
   },
+  {
+    slug: "find-bar",
+    title: "Find Bar",
+    description: [
+      "a browser's find in page over a short page of prose. type and every match lights up, enter steps through them, and the scrollbar marks where each one is.",
+      "key insight: the matches are painted with the css custom highlight api, so no text is wrapped in a span. a match can cross an element, and the current one is the only drawn box, gliding from match to match.",
+      "matching ignores case and accents, so `cafe` finds café and `zoe` finds zoë. a match in the shut notebook at the foot opens it, the way a browser opens a `<details>`.",
+    ],
+    createdAt: "2026-11-04",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/find-bar/index.tsx",
+    flush: true,
+    hint: "Type a word and press Enter to step. ⌘E finds a selection.",
+  },
 ];
 
 /**
@@ -1451,6 +1466,7 @@ export const IMPLEMENTED_LABS = [
   "browser-toolbar",
   "tab-strip",
   "omnibox",
+  "find-bar",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

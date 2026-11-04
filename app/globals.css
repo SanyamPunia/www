@@ -670,6 +670,19 @@ html[data-scrub="true"] * {
   color: var(--color-text-primary);
 }
 
+/*
+ * The `find-bar` lab's matches, painted through the CSS Custom Highlight API so
+ * no text is wrapped. A highlight is registered on the document, so its rule
+ * lives here. The hues are scoped to that lab and are not tokens.
+ */
+::highlight(find-bar-match) {
+  background-color: #fde68a;
+}
+
+::highlight(find-bar-current) {
+  background-color: #fdba74;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   /* horizontal bars too, or a code block gets the browser default height */
