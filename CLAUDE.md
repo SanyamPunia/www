@@ -1949,7 +1949,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu` and `omnibox` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox` and `find-bar` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2259,7 +2259,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Eighty-two clips, 8.1MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Eighty-three clips, 8.4MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12792,6 +12792,102 @@ imports, and `index.tsx` is the bar, the list and the keys.
 - Its clip types lab/t, eats two letters, takes the completion away and brings
   it back, walks the list, loads tab-strip, then types lab and goes back, so it
   loops. 10.0s and 74KB.
+
+### `find-bar`
+
+A browser's find in page over a short page of prose, the fourth piece of the
+window after `browser-toolbar`, `tab-strip` and `omnibox`. `find.ts` is the
+matching, pure apart from the ranges it builds, `page.tsx` the prose, and
+`index.tsx` the bar, the gliding box and the rail.
+
+- **The matches are painted with the CSS Custom Highlight API**, `find-bar-match`
+  and `find-bar-current` in `globals.css`. No text is wrapped in a span, so the
+  prose never renders again and a match can cross an element: "flat white"
+  runs from a span into the text after it. A highlight is registered on the
+  document, which is why its rule lives in the one stylesheet. The registry is
+  cleared on close and on unmount.
+- **`page.tsx` is memoised with no props and must stay that way.** The ranges
+  point into its text nodes, and a re-render that replaced a node would leave
+  them pointing at nothing.
+- **Each `[data-block]` is searched as one string**, made of all its text nodes,
+  so a match may cross an element inside a paragraph and never runs from one
+  paragraph into the next. The folded string keeps a map back to the node and
+  offset of each character, since folding can change lengths.
+- **Matching ignores case and accents and treats curly quotes as straight**, so
+  `cafe` finds café, `zoe` finds Zoë and `it's` finds it’s. Runs of space
+  collapse the way the page renders them.
+- **The current match is the one drawn element**, an orange box behind the text
+  that glides from match to match on a spring. It sits before the prose in the
+  tree and the prose is `relative`, so the text paints over it.
+  - **The highlight paints over the box, so during a glide the box's two words
+    are drawn as amber boxes under it instead.** Left in the highlight, the old
+    word turned amber the instant the box left it and the new word showed amber
+    over the box until it arrived, so the orange snapped at both ends. Taken out
+    of it with nothing in their place, both words went blank for the length of
+    the glide. The stand-ins sit in a layer under the box at the words' own
+    rects, in the highlight's amber, so the orange slides off one amber word and
+    onto the other. When the box lands they go and the words return to the
+    highlight. A count of paints stops a landing from an older step doing that
+    early.
+  - **A step pops the box**, 1 to 1.2 and back over 320ms, timed to peak as the
+    box lands. It is Safari's bounce, and it is what makes the eye find the
+    match. A new query glides without it, since a pop on every key is noise.
+  - **A match's line boxes are merged per line.** `getClientRects` returns a box
+    per element, so "flat white" read as two boxes and lost the glide. Only a
+    match that wraps a line has more than one, and that one is painted by the
+    current highlight instead of the box.
+- **A new query starts on the first match at or below the top of the view**,
+  the way a browser does. Enter and Shift+Enter step and wrap, and ⌘G and
+  Shift+⌘G do the same. A step scrolls the page only when the match is under the
+  bar or near the foot, and centres it. A resize or a late font measures the
+  boxes again and scrolls nothing.
+- **A step that scrolls puts the box and the page on one spring**, a little
+  slower than a glide that does not. Scrolled with `scrollTo` while the box ran
+  its own spring, the box and the word drifted apart on a long jump. The page's
+  spring writes `scrollTop`, and a wheel, a touch, a press or a key on the page
+  stops it, so the reader can take the page back.
+- **A match in the shut notebook at the foot opens it**, the way Chrome opens a
+  `<details>` for its own find in page. It is matched like any other block.
+  - **Folded is read off `details.open`, never off empty rects.** Chrome lays out
+    a shut `<details>` and reports boxes for text inside it, which sent the
+    first build's scroll to where the text would be with nothing shown.
+  - Landing on a folded match sets `open`, and the `ResizeObserver` that the
+    open causes measures every match again and carries the step on through
+    `unfold`, so the page still glides to it and the box still pops.
+  - A remeasure never opens a fold, so shutting the notebook on the current
+    match leaves it shut. A folded match's tick sits on the summary.
+- **⌘E finds the words selected on the page**, the way a Mac browser does. It is
+  taken only when the selection is inside the page, and the browser's otherwise.
+- **The rail is the scrollbar, drawn**, since the native bar is hidden: a thumb
+  written to the node on scroll, and a tick per match at its share of the
+  scroll height, the current one darker. A press within 6px of a tick goes to
+  that match, and a press anywhere else scrolls there. It is `aria-hidden`,
+  since the keys do the same.
+- **A miss tints the field `danger` at 10%, reads "0 of 0" in `danger` and shakes
+  once**, on the way into it. Enter on a miss shakes again.
+- **⌘F, ⌘E, ⌘G and Escape are the demo's only while the pointer or the focus is
+  in it**, and the browser's everywhere else. ⌘F opens the bar, or selects the
+  field if it is open. Escape closes it, keeps the query for the next open, and
+  hands focus to the reopen button. A mouse close moves nothing.
+- **The count morphs through `torph` at 160ms**, `the-card-flinches`' number for
+  a label that changes on every key. It is `aria-hidden` and a polite live
+  region says the match.
+- **The hues are scoped**: the match amber `#fde68a`, the current orange
+  `#fdba74`, and two darker tones for the ticks. They are a browser's own find
+  colours and not tokens. `text-primary` clears 10:1 on either.
+- **Reduced motion keeps every state and drops the travel.** The box jumps, the
+  page scrolls in one step, and nothing pops or shakes. A fold still opens.
+- It is `flush`, a fixed `h-[25rem]`, and the page is a white window on a `fill`
+  stage with the `RAISED` depth the other browser labs use. The bar is
+  `rounded-[0.6rem]`, which is its field's and buttons' `rounded-lg` plus its
+  own 3.2px of padding, so the corners are concentric. Verified in a
+  browser at 1280 and 390px: stepping, the pop, the ticks, a cross-element
+  match, the accent and quote folding, the notebook opening, ⌘E, a miss, Escape
+  and ⌘F, with no sideways scroll and no console errors.
+- Its clip types light, walks it down the page and back a step, types cardamom
+  so the notebook opens, then types cafe and steps until it wraps to the first
+  match. It leaves the field and shuts the notebook out of view, so it ends on
+  the frame it opens on and loops. 12.6s and 359KB.
 
 ## Motion
 
