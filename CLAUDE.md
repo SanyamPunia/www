@@ -31,6 +31,14 @@ pnpm test:agents  # the agent-readiness checks, against a running server
 
 `pnpm check` must be green before any push.
 
+**The dev server usually runs in the author's `www` tmux session, on 3100.**
+`~/.local/bin/www` opens it with Claude Code in one pane and `pnpm dev -p 3100`
+in the other. Before starting a server, check whether 3100 is already
+listening, and use it if so: it is the author's, so do not kill it, and
+`pnpm previews` reaches it with no extra flag. Start a server of your own only
+when 3100 is down, or for a production check on 3200, and stop that one when
+done.
+
 `pnpm test:agents` is the one test suite in the repo. It drives a server that is
 already listening rather than starting one, since two Next servers cannot share
 one `.next`, and it defaults to the dev port the recorder uses:
