@@ -2762,6 +2762,61 @@ const LABS = {
       await key("Enter", 1300);
     },
   },
+  "find-bar": {
+    // the top of the stage at the card's 8:5, which holds the bar and the page
+    focus: [0, 0, 538, 336],
+    /*
+     * The bar opens on cafe. Typing light lights every match, Enter walks them
+     * down the page and Shift+Enter steps back. Typing cardamom opens the shut
+     * notebook at the foot, since its one match is folded inside it. Typing
+     * cafe again lands on the first match, a click on the page leaves the
+     * field, and the notebook is shut out of view, which is the frame the clip
+     * opens on.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const r = await page.locator("[data-lab-demo] input").boundingBox();
+      const field = [r.x - demo.x + 40, r.y - demo.y + r.height / 2];
+      const key = async (k, after = 170) => {
+        await page.keyboard.press(k);
+        await wait(after);
+      };
+      const status = () =>
+        page.locator("[data-lab-demo] [role=status]").textContent();
+      await wait(500);
+      await m.move(...field);
+      await m.down();
+      await wait(60);
+      await m.up();
+      await page.keyboard.press("ControlOrMeta+a");
+      await wait(300);
+      for (const c of "light") await key(c, 150);
+      await wait(600);
+      for (let i = 0; i < 4; i++) await key("Enter", 650);
+      await key("Shift+Enter", 800);
+      await page.keyboard.press("ControlOrMeta+a");
+      for (const c of "cardamom") await key(c, 110);
+      await wait(1400);
+      await page.keyboard.press("ControlOrMeta+a");
+      for (const c of "cafe") await key(c, 150);
+      await wait(500);
+      for (let i = 0; i < 8 && (await status()) !== "Match 1 of 6"; i++) {
+        await key("Enter", 650);
+      }
+      await wait(400);
+      await m.move(200, 300);
+      await m.down();
+      await wait(60);
+      await m.up();
+      // the notebook is far below the view, so shutting it shows nothing but
+      // the rail's thumb, and the clip ends on the page it opens on
+      await page.evaluate(() => {
+        const d = document.querySelector("[data-lab-demo] details");
+        if (d) d.open = false;
+      });
+      await wait(800);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
