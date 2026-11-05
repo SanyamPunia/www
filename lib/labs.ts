@@ -1315,6 +1315,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Type a word and press Enter to step. ⌘E finds a selection.",
   },
+  {
+    slug: "reader-mode",
+    title: "Reader Mode",
+    description: [
+      "a browser's reader mode over a cluttered news page. press the reader button and the nav, the sidebar and the adverts leave while the article settles into one clean column.",
+      "key insight: the line you were reading does not move. the toggle finds the paragraph on the reading line and how far down it the line falls, makes the change, and scrolls so that same point is back on the line. text size, width and theme keep it too.",
+    ],
+    createdAt: "2026-11-05",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/reader-mode/index.tsx",
+    flush: true,
+    hint: "Scroll down a little, then press the reader button.",
+  },
 ];
 
 /**
@@ -1467,6 +1481,7 @@ export const IMPLEMENTED_LABS = [
   "tab-strip",
   "omnibox",
   "find-bar",
+  "reader-mode",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
