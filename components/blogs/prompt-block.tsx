@@ -50,7 +50,7 @@ export function PromptBlock({ children }: { children: string }) {
           <CopyMark mark="copy" copied={copied} />
           <span aria-hidden="true">
             <TextMorph duration={160} ease="cubic-bezier(0.32, 0.72, 0, 1)">
-              {copied ? "Copied" : "Copy prompt"}
+              {copied ? "Copied" : "Copy"}
             </TextMorph>
           </span>
           <span className="sr-only">Copy prompt</span>
