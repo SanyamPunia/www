@@ -1957,7 +1957,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox` and `find-bar` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar` and `reader-mode` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2267,7 +2267,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Eighty-three clips, 8.4MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Eighty-four clips, 8.7MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -12896,6 +12896,135 @@ matching, pure apart from the ranges it builds, `page.tsx` the prose, and
   so the notebook opens, then types cafe and steps until it wraps to the first
   match. It leaves the field and shuts the notebook out of view, so it ends on
   the frame it opens on and loops. 12.6s and 359KB.
+
+### `reader-mode`
+
+A browser's reader mode over a cluttered news page, the fifth piece of the
+window after `browser-toolbar`, `tab-strip`, `omnibox` and `find-bar`.
+`article.ts` is the copy, `page.tsx` the page in both modes, and `index.tsx` the
+window, the toggle, the anchoring and the settings.
+
+- **The line being read does not move.** `change` in `index.tsx` is the only
+  path that changes layout: the toggle and all three settings call it. It takes
+  the first `[data-read]` block whose bottom is past the reading line, at 30% of
+  the view, and the share of that block the line falls at. After the change it
+  scrolls so the same point of the same block is back on the line. Measured at
+  1280px from a scroll of 520: the anchor paragraph reads 0.791, 0.790, 0.791
+  and 0.792 down its height through reader on, a size up and a wide sepia page,
+  and turning reader off puts the scroll back on 520 exactly.
+  - **At the very top nothing is being read yet**, so the top is kept rather
+    than anchored. Reader mode drops the masthead, and the title moves up.
+  - **The scroller carries `overflow-anchor: none`**, so Chrome's own scroll
+    anchoring cannot adjust the scroll in the same frame as this one.
+  - **The anchor is held on every frame of the change, not set once.** Text
+    size and width are CSS transitions, so the layout keeps moving for 480ms
+    after the change. A frame loop puts the point back on the line for that
+    long, read from `offsetTop` rather than from rects, so the glides' own
+    transforms cannot move it. A wheel, a touch, a press or a key on the page
+    ends the hold, so the reader can take the scroll back. Measured from inside
+    the press, with the probe running after the hold in each frame: the anchor
+    stays within 0.007 of its block's height through every width and size
+    change, and through the toggle both ways.
+    - **A probe has to run after the hold to measure this.** A probe whose
+      frame callback was registered first reads every frame before the hold
+      corrects it, and reports a drift of up to 0.44 that is never painted.
+  - **A short bar marks the line that held still**, 8px left of the anchor
+    block, and fades over 1.3s. The hold places it on each frame, so it rides
+    with its paragraph while the column changes. It is `--rd-muted`, the
+    theme's quiet tone.
+- **One set of nodes in both modes.** Every block reader mode keeps carries
+  `data-read` and every block it drops carries `data-clutter`. React changes
+  their classes and never remounts them, so a block can be measured before the
+  change and after it. The clutter is `hidden` in reader mode, not unmounted.
+- **Everything is on one clock**, 480ms on the drawer curve, `MOVE_MS` and
+  `MOVE_EASE` in `page.tsx`: block glides, the sheet, every colour, the ground,
+  text size, the column's width and padding, the clutter's fades and the
+  settings button arriving. Colours on their own 300ms clock reached the new
+  theme before the ground did, so the text changed first and the page after it.
+  The transitions are classes behind `motion-safe:`.
+- **Each kept block glides from where it was drawn**, FLIP through WAAPI. The
+  first rects are read with any glide in progress included, and then that glide
+  is cancelled, so a second press mid-flight starts from what is on screen. Only
+  the discrete part of a change is a FLIP: the grid becoming a column and the
+  clutter going.
+  - **Text size and width are real transitions, never a scale.** The text grows
+    and rewraps on every frame as the column widens, the way a browser window
+    being resized does. A first build snapped the wrap and slid the block, and
+    measured a jump of 32px in the paragraph's width in one frame. Now the width
+    moves at most 16px a frame and the font about 0.3px. A paragraph's height
+    still steps by one line at a time as it rewraps, which is what reflow is.
+    Only the picture, `data-scale`, scales from its old box.
+  - **The sheet's width is always set**, `100%` on the ordinary page, so a
+    change has two lengths to move between. `none` cannot be transitioned.
+  - **A block that comes from out of view rises 16px into place** with a fade,
+    since a translate from far off would fly it across the page. A block that
+    ends out of view is not animated at all.
+- **The clutter leaving is a copy.** The real nodes are `display: none` from the
+  next frame, so each clutter block in view is cloned at its rect into a layer
+  over the page and faded out over half the clock. Coming back, the real
+  clutter in view fades in over the whole clock, beside the blocks gliding back.
+- **The sheet is its own layer**, `data-sheet`, absolutely placed under the
+  sheet box with `-z-10` inside an `isolate`. Its box and its opacity glide from
+  where it was drawn to its new box on the same clock, by animating its
+  `inset`, never a scale, which would stretch its corner and its shadow. On the
+  box itself a background would snap to the new size while the text inside it
+  glided.
+- **Two levels of depth, and reader mode trades one for the other.** The
+  ordinary page is `fill`, and its clutter stands on it as raised white cards
+  (`CARD` in `page.tsx`): the most-read list and the adverts. The article text
+  sits on the grey with nothing under it. In reader mode the cards go, and the
+  article's own wrapper becomes a sheet lifted off that same grey, with
+  padding, a corner and a three-part shadow. So the clutter loses its depth
+  and the article gains it.
+- **Three settings**: four text sizes from 15px to 21px (off the type scale, the
+  standing `foil-card` gives type on a drawn page), three sheet widths capped at
+  the column, and three themes. A theme is a sheet, three inks and a lift, in
+  `THEMES` in `page.tsx`, and **it colours the sheet and nothing else**: the
+  page around it is `fill` in both modes and every theme, at the author's
+  request. It had a ground per theme for a while, which turned the whole
+  window sepia or black around a sheet that was already that colour. Paper is
+  the site's own tokens. Night is the `inverse-*` set, the sheet on
+  `inverse-fill` with a light top edge. Sepia is the one scoped set, and its
+  soft ink is 5.7:1 on its sheet. The theme reaches the page through `--rd-*`
+  custom properties on the scroller.
+  - **Every theme's `lift` is the same list of four shadows**, in the same
+    order with `inset` first, and a layer a theme does not want is
+    transparent. Night carried an extra `inset` highlight and the others did
+    not, and two shadow lists of different shapes cannot be blended: the
+    browser swapped the sheet's edge and shadow on the first frame while the
+    colours eased, so the sheet's edge changed before its colour. Measured
+    after, on every theme change both ways: the sheet, the text and the ring
+    start on the same frame and are never more than 2.7% of the way apart.
+- **The copy is short on purpose**: seven paragraphs of two sentences, three
+  most-read rows, one advert in the column and one in the sidebar. A first build
+  carried a nav, a newsletter box, a related list and a footer, and read as
+  congested.
+- **The settings button appears to the left of the reader button**, so the
+  button that was pressed does not move. On the right, it pushed the reader
+  button out from under the pointer and put the pointer on itself.
+- **The settings panel is real controls**: two buttons for size and two radio
+  groups, with real radios in labels, `pixel-reveal`'s build. Escape or a press
+  outside closes it, and Escape hands focus back to its button.
+- **Reader mode adds a reading time to the byline**, derived from the copy at
+  230 words a minute.
+- **`min-w-0` on the stage is load-bearing.** The stage is a grid item in the
+  lab slot, and the page inside it gave it a min-content width wider than a
+  phone's column, so the page scrolled sideways at 390px. Measured after: 390.
+- **Reduced motion keeps every state and the anchor, and drops the glide, the
+  fades and the transitions.** The settings button's width animation is set to
+  zero there by hand, since `MotionProvider` only stops transforms. Verified:
+  60ms after the toggle the only animations running are the button's own
+  150ms colour step.
+- It is `flush`, a fixed `h-[34rem]` (`h-[31rem]` below `sm`), taller than the
+  other browser labs at the author's request, since the page needs room to be
+  scrolled. The window has `RAISED` depth like theirs. Verified in a browser at 1280px and at 390px with touch:
+  the anchor through every setting, Escape, no sideways scroll, and no console
+  errors.
+- Its clip scrolls down to the ledger, turns reader mode on, takes the text a
+  size up and sepia, turns reader mode off on the same paragraph and scrolls
+  back to the top, so it loops. Reader mode going off is what closes the panel:
+  Escape would hand focus back to the settings button, and the focus opens its
+  tooltip over the clip. 10.7s and 234KB.
 
 ## Motion
 
