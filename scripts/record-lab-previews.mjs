@@ -2817,6 +2817,57 @@ const LABS = {
       await wait(800);
     },
   },
+  "reader-mode": {
+    // the top of the stage at the card's 8:5, which holds the bar and the page
+    focus: [0, 0, 538, 336],
+    /*
+     * A slow scroll down to the keeper's ledger, then reader mode, so the
+     * clutter leaves and the paragraph on the reading line holds still. The
+     * text goes a size up and sepia, then reader mode goes off, which closes the panel, and the page
+     * scrolls back to the top, which is the frame the clip opens on. Every
+     * press jumps on and off its button, so no tooltip opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = async (name) => {
+        const r = await page.getByRole("button", { name }).boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const press = async (name, after) => {
+        const p = await at(name);
+        await m.move(...p);
+        await m.down();
+        await wait(50);
+        await m.up();
+        await m.move(200, 260);
+        await wait(after);
+      };
+      const area = await page.locator("[data-lab-demo] section").boundingBox();
+      const cx = area.x - demo.x + area.width / 2;
+      const cy = area.y - demo.y + area.height / 2;
+      await wait(500);
+      await m.move(cx, cy);
+      for (let i = 0; i < 50; i++) {
+        await page.mouse.wheel(0, 10);
+        await wait(24);
+      }
+      await wait(600);
+      await press("Reader mode", 1500);
+      await press("Reader settings", 500);
+      await press("Larger text", 900);
+      await page.getByLabel("Sepia").check({ force: true });
+      await wait(1100);
+      // a press outside the panel closes it. Escape would hand focus back to
+      // the settings button, and focus opens its tooltip over the clip
+      await press("Reader mode", 1300);
+      await m.move(cx, cy);
+      for (let i = 0; i < 40; i++) {
+        await page.mouse.wheel(0, -16);
+        await wait(24);
+      }
+      await wait(800);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
