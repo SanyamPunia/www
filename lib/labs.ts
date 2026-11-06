@@ -1343,6 +1343,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Swipe sideways, or hold Back for your history.",
   },
+  {
+    slug: "download-shelf",
+    title: "Download Shelf",
+    description: [
+      "a browser's downloads button over a release page. press download and the file flies along an arc into the toolbar, a ring fills round the button, and the list beside it pauses, resumes and retries each one.",
+      "key insight: the ring is the batch, not one file. it counts the bytes of every download started since it was last empty, so three at once share one ring, and it closes only when the last of them does.",
+    ],
+    createdAt: "2026-11-07",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/download-shelf/index.tsx",
+    flush: true,
+    hint: "Download a few files, then open the button in the toolbar.",
+  },
 ];
 
 /**
@@ -1497,6 +1511,7 @@ export const IMPLEMENTED_LABS = [
   "find-bar",
   "reader-mode",
   "swipe-back",
+  "download-shelf",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

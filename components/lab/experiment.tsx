@@ -595,6 +595,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/swipe-back").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "download-shelf": dynamic(
+    () => import("@/components/labs/download-shelf").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
