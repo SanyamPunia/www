@@ -2941,6 +2941,55 @@ const LABS = {
       await wait(400);
     },
   },
+  "download-shelf": {
+    // the top of the stage at the card's 8:5, which holds the bar, the list
+    // and the first three files on the page
+    focus: [0, 0, 538, 336],
+    /*
+     * Three downloads, so three chips fly to the button and one ring counts
+     * them all. The list opens: the notes finish, the archive fails at 62%.
+     * A pause and a resume on the app, a retry on the archive, and the ring
+     * closes when the last one lands. Clear empties the list and a press on
+     * the button shuts it, so the clip ends on the frame it opens on and
+     * loops. Every press jumps on and off, so no tooltip opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const centre = async (locator) => {
+        const r = await locator.boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const press = async (locator, after) => {
+        await m.move(...(await centre(locator)));
+        await m.down();
+        await wait(50);
+        await m.up();
+        await m.move(270, 330);
+        await wait(after);
+      };
+      const offer = (name) => page.locator(`[data-offer="${name}"]`);
+      const shelf = page.locator("[data-downloads]");
+      await wait(500);
+      await press(offer("field-notes-2.4.dmg"), 380);
+      await press(offer("screens.zip"), 320);
+      await press(offer("release-notes.pdf"), 1000);
+      await press(shelf, 1700);
+      await press(
+        page.getByRole("button", { name: "Pause field-notes-2.4.dmg" }),
+        800,
+      );
+      await press(
+        page.getByRole("button", { name: "Resume field-notes-2.4.dmg" }),
+        300,
+      );
+      await press(
+        page.getByRole("button", { name: "Retry screens.zip" }),
+        4600,
+      );
+      await press(page.getByRole("button", { name: "Clear finished" }), 600);
+      await press(shelf, 900);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
