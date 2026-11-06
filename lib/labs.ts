@@ -1329,6 +1329,20 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Scroll down a little, then press the reader button.",
   },
+  {
+    slug: "swipe-back",
+    title: "Swipe Back",
+    description: [
+      "a browser's swipe to go back, three ways: safari slides the page, chrome holds it still behind an arrow, and android shrinks it into a card. hold back for the whole history, and follow a different link to fork it.",
+      "key insight: one number is the position in history, and each gesture is a different reading of it. the release only has to send that number to a whole page.",
+    ],
+    createdAt: "2026-11-06",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/swipe-back/index.tsx",
+    flush: true,
+    hint: "Swipe sideways, or hold Back for your history.",
+  },
 ];
 
 /**
@@ -1482,6 +1496,7 @@ export const IMPLEMENTED_LABS = [
   "omnibox",
   "find-bar",
   "reader-mode",
+  "swipe-back",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
