@@ -1957,7 +1957,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar` and `reader-mode` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode` and `swipe-back` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2267,7 +2267,7 @@ checked in as assets.
 - **`data-lab-demo` in `app/lab/[slug]/page.tsx` is the box every crop is
   measured against.** A wrapper rather than an attribute on `Demo`, since a
   `bare` entry has no frame and the recorder still has to find the same box.
-- Eighty-four clips, 8.7MB with their stills, 3.4 to 13.2 seconds each, at 60
+- Eighty-five clips, 8.9MB with their stills, 3.4 to 13.2 seconds each, at 60
   frames a second. `scribble-type` and `text-reveal` are the long ones, since a
   note takes 11s to write and the reveal clip plays five patterns.
 
@@ -13025,6 +13025,115 @@ window, the toggle, the anchoring and the settings.
   back to the top, so it loops. Reader mode going off is what closes the panel:
   Escape would hand focus back to the settings button, and the focus opens its
   tooltip over the clip. 10.7s and 234KB.
+
+### `swipe-back`
+
+A browser's swipe to go back, the sixth piece of the window after
+`browser-toolbar`, `tab-strip`, `omnibox`, `find-bar` and `reader-mode`. The
+window browses a small site of seven linked pages, and history opens four deep
+on the last. It has three back gestures, a toolbar that answers the swipe, a
+history menu on a hold, and history that forks. `pages.ts` is the site and the
+start of history, `swipe-sound.ts` the sound, and `index.tsx` the window, the
+gestures and the pages.
+
+- **One number is the position in history, in entries, and every page reads
+  it.** `pos` is a motion value. A drag, a wheel, a key, a button, the menu and
+  the release all write that number, and nothing renders while it moves.
+  `paint` turns it into each page's transform, radius, opacity and shade.
+- **The three gestures are three readings of that number**, picked by the
+  site's mode selector under the window: one pill whose label is the current
+  value, `book-opening`'s pattern. `paint` writes every property in every mode,
+  so a switch leaves nothing behind.
+  - **Safari:** a page ahead of `pos` (`d > 0`) is moved by `d` times the width,
+    so it slides at the hand's speed. A page behind is moved by `d` times 0.28
+    of the width and dimmed, so it trails. It draws no arrow, since in Safari
+    the page itself is the feedback.
+  - **Chrome:** the page holds still under the hand, and an arrow bubble rides
+    beside the hand at its height. Past the arm line the bubble keeps
+    stretching into a pill, up to 20px. A release swaps the page by a
+    crossfade on the same spring.
+  - **Android predictive back:** the page leaving shrinks into a card (scale to
+    0.9, a 26px corner, a lifted shadow) and follows the hand a little, then
+    flies off, since its travel is `0.1d + 0.9d³` of the width. The page under
+    it grows from 0.95 as it is uncovered. The rule is symmetric, so forward
+    is the same card coming back in.
+- **The toolbar answers the swipe.** The button the swipe stands for presses
+  down in step with the hand, through a layer `paint` writes. The address
+  swaps to the destination path on the detent, on a 120ms fade, and back if
+  the hand returns. A continuous crossfade came first, and drew two paths that
+  share `/harbour/` at half strength over each other, which read as neither.
+  A committed swipe already showed the new address, so `addrKey` remounts the
+  `torph` and the address lands without a second morph. A button or a key
+  still morphs it.
+- **Holding Back or Forward for 450ms opens that way's history**, as Chrome
+  and Safari do. So does a right click, the ContextMenu key, Shift+F10 or
+  Alt+Down. The hand can slide onto an entry and let go to pick it, through a
+  window `pointerup` and `elementFromPoint`. A pick is one spring through
+  every page between, and each page it passes ticks. Opened from the keyboard,
+  focus goes to the first entry. The arrows walk it, and Escape hands focus
+  back to the button. A pick from the keyboard focuses the new page, since the
+  button may now be disabled.
+  - **The buttons are `touch-none`.** A finger sliding from the button to the
+    menu read as a scroll, and the browser cancelled the pointer before the
+    lift.
+  - **A hold's swallowed click is cleared on the next press.** A hold that
+    ends over the menu never clicks its button, so the flag waited, and the
+    next plain click on that button did nothing.
+  - **Each button's tooltip is controlled and stays shut while its menu is
+    open.** The recorded clip showed the label over its own menu.
+- **History forks.** Each page links to one or two others. Following a link
+  drops every entry ahead of the current one and pushes a new entry, so
+  Forward turns off, as in a real browser. An entry's key is per visit, so a
+  page visited twice is two entries, and a new entry starts at its top.
+  `follow` sets the state and a layout effect starts the slide once the new
+  layer exists.
+- **Every entry stays mounted, so each keeps its own scroll.** One that is not
+  in view is `visibility: hidden` and `inert`, which keeps its `scrollTop`.
+  Every entry before the last starts scrolled to its foot, where its links
+  are, since that is where a reader would have left it.
+- **One swipe reaches one page either way.** Past that, and past either end of
+  history, the position is rubber-banded with the UIScrollView curve.
+- **The swipe arms at 0.32 of a page and lets go under 0.26**, with a detent
+  and a buzz. The gap is hysteresis. Arming is what commits on release. A
+  flick faster than 1.1 pages a second toward a page commits as well. Anything
+  else springs back.
+- **A trackpad swipe is wheel events, with no start and no end.** The first
+  event of a run picks its axis. A vertical run scrolls the page natively, and
+  a sideways run is the swipe, kept from the browser's own back gesture by
+  `preventDefault` on a non-passive listener and `overscroll-behavior-x: none`
+  on the stage. A run ends 140ms after its last event. Its velocity is read at
+  that last event, or every release would read as still.
+  - **A run ends only when its own timer fires, and that was a bug.** The gap
+    was measured on the next event. A stalled frame delivered that event before
+    the old timer, so a new run began, and then the old timer fired and ended
+    the new swipe a few events in. Measured: the first swipe after load sprang
+    back every time, at 56px of a 498px page.
+- **A mouse or a finger drags the page.** A press becomes a swipe past 6px, if
+  it is 1.2 times more sideways than vertical. A drag ends in a click on what
+  it started on, so a click right after a drag is swallowed.
+- **`touch-pan-y` is on each page's scroller as well as on the viewport.**
+  `touch-action` only counts up to the nearest scroll container. With it on
+  the viewport alone, the browser kept the sideways pan and sent a
+  `pointercancel`, and a finger could not swipe at all.
+- **A press during the slide catches the page where it is.**
+- **The buttons, ⌘[ and ⌘], Alt and the arrows, and the links run the same
+  slide**, from a kick of 2.5 pages a second. The keys only work while the
+  pointer or the focus is in the demo.
+- **The pictures' hues are scoped**, one pair a page, so the pages tell apart
+  mid-slide and the menu's dots name them. They are not tokens.
+- **Reduced motion keeps every state and drops the travel.** A release, a
+  button or a pick lands on its page in one step. A drag still follows the
+  hand.
+- It is `flush`, a fixed `h-[32rem]`, with the window's `RAISED` depth. The
+  pages are `select-none`, since a drag across them is the gesture.
+- Verified in a browser at 1280px, and at 390px with touch: each mode mid-drag
+  and committed, the address swap and the button press, a held Forward picked
+  by sliding, a right click pick, the keyboard menu with Escape, a fork that
+  drops Forward, a touch hold and slide, with no sideways scroll and no console
+  errors.
+- Its clip goes back once in each gesture, holds Forward and slides onto the
+  last page so the window runs through every page between, and switches back
+  to Safari, so it loops. 12.3s and 253KB.
 
 ## Motion
 
