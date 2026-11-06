@@ -1957,7 +1957,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode` and `swipe-back` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back` and `download-shelf` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -13134,6 +13134,80 @@ gestures and the pages.
 - Its clip goes back once in each gesture, holds Forward and slides onto the
   last page so the window runs through every page between, and switches back
   to Safari, so it loops. 12.3s and 253KB.
+
+### `download-shelf`
+
+A browser's downloads button over a release page, the seventh piece of the
+window after `browser-toolbar`, `tab-strip`, `omnibox`, `find-bar`,
+`reader-mode` and `swipe-back`. `downloads.ts` is the files, the simulated
+transfer and the arc, pure and DOM-free, `download-sound.ts` the sound, and
+`index.tsx` the window, the button, the list and one frame loop.
+
+- **Nothing is downloaded.** A transfer is a number the loop moves at a rate
+  that wanders on two sines. Every transfer takes 1.4s to 5.2s whatever its
+  size, `duration`, so a big file is still watchable.
+- **The ring is the batch, not one file.** It counts the bytes of every
+  download started since it was last empty, so three at once share one ring,
+  and it closes only when the last of them stops. A paused download keeps the
+  batch open. A download started after the batch closed starts a new one.
+  - When the last one finishes, the ring closes in `success` and the arrow
+    turns `success`, held 1.4s and then gone. That is the token's meaning, a
+    task done.
+  - When one failed, the ring goes and a `danger` dot stays on the button
+    until the list is opened, since opening it is reading the failure.
+- **A pressed download flies to the button as a chip**, from the icon in the
+  pressed button, on a quadratic arc in 620ms. The window clips, so the arc's
+  control point sits just under the button: the chip rises most of the way
+  first and then sweeps across under the top edge. It shrinks to 0.45 and
+  fades over its last 18%. The chips are state, positioned by the loop
+  through refs, so a flight renders twice and never per frame.
+- **The landing drops the arrow 3px and back** with a tuck, the way
+  `browser-toolbar`'s share arrow sinks into its tray. Nothing scales, per
+  Local overrides.
+- **Nothing renders while bytes move.** The ring's dash, each row's bar and
+  each running or paused row's line are written to the nodes by `paint`, and
+  a line only when its text changes. React hears about a download when it
+  starts, pauses, resumes, finishes or fails. `paint` also runs after every
+  render, so a list that opens mid-transfer is right on its first frame.
+- **A row's line is keyed by its status**, so a span the loop wrote into is
+  remounted rather than handed back to React with text React did not put
+  there.
+- **The time left is worked from a smoothed rate**, a 0.6s time constant, or
+  the seconds jump with the wander.
+- **The first copy of `screens.zip` fails at 62%, once a session**, and retry
+  continues from there. A failure on every copy read as a broken file.
+- **A second copy of a file is `screens (1).zip`**, the way a browser names
+  it, by `unique`.
+- **The list is a dialog, not a menu**, since its rows hold several controls
+  each. A press outside it or Escape from anywhere on the page closes it.
+  Escape hands focus back to the button only when focus was in the list or on
+  the button. Opened from the keyboard, focus goes to its first control.
+  - **A row's controls go with the row**, so after a cancel, a remove or a
+    clear, focus moves to the dialog itself, which is `tabIndex={-1}`.
+    Without that, focus fell to `body` and Escape no longer reached the list.
+- **Each row's actions are icon buttons with tooltips**: pause, resume, retry,
+  show in folder, and cancel or remove. Show in folder swaps the line to "in
+  your downloads folder" for 1.6s. Clear finished removes the done and failed
+  rows, and is disabled while there are none. None of them confirm, since a
+  download in a demo has nothing to lose.
+- **File names and sizes keep their casing** through `[text-transform:none]`,
+  and the copy in those lines is written lowercase so only the units carry
+  capitals, `drop-zone`'s call.
+- **The sound is synthesised**: a tuck when a chip lands, two notes up on a
+  finish, two down on a failure. No mute control, since every sound answers a
+  press.
+- **It invents no colour**: the ring and bars are `text-primary`, a paused bar
+  `text-muted`, and the two states are `success` and `danger`.
+- **Reduced motion keeps every state and drops the travel.** No chip flies and
+  the arrow does not drop. The ring and the bars still fill, since they are
+  information.
+- It is `flush`, a fixed `h-[28rem]`, with the window's `RAISED` depth.
+  Verified in a browser at 1280px and at 390px with touch: three downloads at
+  once, a pause and resume, a failure and its retry, a duplicate name, clear,
+  Escape and the keyboard path, with no sideways scroll and no console errors.
+- Its clip downloads three files, opens the list, pauses and resumes the app,
+  retries the archive, waits for the ring to close, clears the list and shuts
+  it, so it ends on the frame it opens on and loops. 11.9s and 101KB.
 
 ## Motion
 
