@@ -2868,6 +2868,79 @@ const LABS = {
       await wait(800);
     },
   },
+  "swipe-back": {
+    // the top of the stage at the card's 8:5, which holds the bar and the page
+    focus: [0, 0, 538, 336],
+    /*
+     * One page back in each gesture: a Safari trackpad swipe, then a Chrome
+     * drag with its arrow, then an Android drag that shrinks the page into a
+     * card. A hold on Forward opens the history and the hand lets go on the
+     * last page, so the window slides through every page between. A last
+     * press on the mode pill puts it back on Safari, so the clip ends on the
+     * frame it opens on and loops. The pill is under the crop and its presses
+     * jump on and off, so no tooltip opens.
+     */
+    async run({ page, m }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const centre = async (locator) => {
+        const r = await locator.boundingBox();
+        return [r.x - demo.x + r.width / 2, r.y - demo.y + r.height / 2];
+      };
+      const area = await centre(page.locator("[data-lab-demo] section").last());
+      const pill = await centre(page.getByRole("button", { name: /^Gesture/ }));
+      const mode = async () => {
+        await m.move(...pill);
+        await m.down();
+        await wait(60);
+        await m.up();
+        await m.move(area[0], area[1]);
+        await wait(500);
+      };
+      const drag = async (after) => {
+        const [x, y] = [area[0] - 170, area[1] + 20];
+        await m.move(x, y);
+        await m.down();
+        for (let i = 1; i <= 24; i++) {
+          const t = 1 - (1 - i / 24) ** 2;
+          await m.move(x + 240 * t, y - 30 * t);
+          await wait(16);
+        }
+        await wait(260);
+        await m.up();
+        await wait(after);
+      };
+      await m.move(area[0], area[1]);
+      await wait(500);
+      for (let i = 0; i < 22; i++) {
+        await page.mouse.wheel(-12, 0);
+        await wait(16);
+      }
+      await wait(1100);
+      await mode();
+      await drag(1000);
+      await mode();
+      await drag(1100);
+      const fwd = await centre(page.getByRole("button", { name: "Forward" }));
+      await m.move(...fwd);
+      await m.down();
+      await wait(700);
+      const last = await centre(page.locator("[role=menuitem]").last());
+      for (let i = 1; i <= 14; i++) {
+        const t = i / 14;
+        await m.move(
+          fwd[0] + (last[0] - fwd[0]) * t,
+          fwd[1] + (last[1] - fwd[1]) * t,
+        );
+        await wait(16);
+      }
+      await wait(240);
+      await m.up();
+      await m.move(area[0], area[1] + 40);
+      await wait(1700);
+      await mode();
+      await wait(400);
+    },
+  },
   "browser-toolbar": {
     focus: [0, 0, 538, 336],
     /*
