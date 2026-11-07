@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import type React from "react";
+import { useEffect, useState } from "react";
 import { CheckIcon, CopyIcon, HashIcon } from "@/components/icons";
 
 /**
@@ -20,6 +21,11 @@ import { CheckIcon, CopyIcon, HashIcon } from "@/components/icons";
  *
  * Reduced motion keeps the fade and drops the scale, since `useReducedMotion`
  * is read here rather than left to `MotionProvider`.
+ *
+ * **The hidden glyph starts at 0.5 in both modes.** The server cannot know the
+ * motion setting, so reading it in the first render put `scale(0.5)` in the
+ * HTML and `none` in the client, a hydration mismatch on every post. The
+ * setting is applied after mount instead, while the hidden glyph is invisible.
  */
 
 const MARKS = {
@@ -42,8 +48,10 @@ export function CopyMark({
   copied: boolean;
 }): React.ReactNode {
   const reduce = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const Idle = MARKS[mark];
-  const from = reduce ? 1 : 0.5;
+  const from = reduce && mounted ? 1 : 0.5;
 
   return (
     <span aria-hidden="true" className="relative grid size-3.75 select-none">

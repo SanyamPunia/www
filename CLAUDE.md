@@ -1019,6 +1019,10 @@ for one section instead of the whole post.
   between hand-drawn polylines came first, at 280ms, and the author found it
   slow and soft for an answer to a press. Reduced motion is read in the
   component and keeps the fade without the scale.
+- **`CopyMark` applies reduced motion after mount.** The hidden glyph starts at
+  0.5 on the server and the first client render alike, and only then moves to
+  1 under the setting, while it is invisible. Reading the setting in the first
+  render was a hydration mismatch on every post.
 - The anchor holds its box whether or not it is visible, so revealing it never
   shifts the leader rule beside it. It sits before that rule, since a control
   past the rule's end reads as belonging to the next thing down.
