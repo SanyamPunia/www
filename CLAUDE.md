@@ -1414,6 +1414,73 @@ last line credits and links. It was cut down to this at the author's request.
 - **The title says "with reduced motion on"** so the phrase a reader searches
   is in it, at 60 characters with the site's suffix.
 
+### `the-stutter-came-from-a-screen-nobody-could-see`
+
+A case study from a product page: a scroll transition that hitched
+in Safari, for some people only. Three causes nobody could see, each with a
+small fix. `demos.tsx` holds `Flight`, `Restyle` and `Network`, one per cause.
+
+- **It opens on context and closes on a summary**, at the author's request,
+  since a first version read as information with no start or end. The intro
+  names a product page, never the company, at the author's request, and the
+  symptom. Each section is the cause, a figure and the
+  fix, and the post ends on the results table and three takeaways. The source notes are `articles/01-motion-and-smoothness.md`
+  in the landing repo, section 4.
+- **The figures are pictures, not instruments**, also at the author's request.
+  An earlier set carried frame charts, axes, millisecond readouts and a log of
+  `<style>` tags, and read as too technical to make the point. Now each figure
+  shows one thing happening, has one control, the site's mode pill reading
+  "before the fix" or "after the fix", and one caption line, red while it
+  describes the bug. None shows a number, an axis or code.
+- **Each figure runs on its own while it is on screen**, so a reader who
+  touches nothing still sees the point. They are tall and use the full
+  `min(100vw-2rem,54rem)` breakout, so the post passes `toc={false}`.
+- **`Flight` is the scene.** A small card flies down onto a laptop and grows to
+  fit its screen. The screen is there from the start, dim, the way the real one
+  sat under the card at low opacity. Before the fix its title changes on the
+  way down, flashing red, and the card freezes for `STALL` on each change and
+  then jumps on, which is what a stalled main thread looks like. After the fix
+  the card glides and the titles change once the screen has formed.
+  - **The card starts small and above the laptop, and that is the whole
+    design.** A first build drew it at the screen's size, so it covered the
+    screen for the entire flight and the changes it was meant to show were
+    hidden from the reader too.
+  - One clock drives it, `drawnAt` holds the card still during a stall, and
+    only a change in the number of titles renders.
+  - **The card wears a red edge for exactly as long as it is frozen**, read
+    off the same `drawnAt`. A 160ms freeze is easy to miss in motion and
+    invisible in a still frame, and the edge flashes with the title's red, so
+    the cause and the effect show together.
+  - Below `sm` the laptop takes 80% of the stage and the screen's type has a
+    floor, or its title is 8px.
+- **`Restyle` is a small page whose headline word changes.** With
+  `mode="popLayout"` the whole page flashes red on each change, and the flash
+  is driven by the real `<style>` tag `useStyleTags` sees land in
+  `document.head`, so it is the event and not a timer. In one grid cell only
+  the word flashes. The word sits on its own line, so the long title cannot
+  rewrap the page.
+  - **The word's box is one line tall and clips top and bottom.** With
+    `popLayout` the leaving word can sit in the flow for a frame before Motion
+    pins it, which stacked the two words, dropped the new one a line and rose
+    the old one over "now hiring". The clip is `clip-path: inset(0 -100vw)`
+    and never `overflow-hidden`, since a leaving word can be wider than the box
+    and would be cut off sideways.
+- **`Network` is two lanes**: the card's flight on top, the analytics block
+  below, so an overlap reads straight down. A `Lane` slider from
+  `components/lab/controls.tsx` sets the connection, labelled fast, average or
+  slow rather than in ms. Before the fix the block lands one delay after the
+  first scroll and turns red, with the flight, while they overlap. After it the
+  block waits for scrolling to rest, so no connection reaches the flight.
+  - **A dashed guide marks what starts the load, and a dotted line labelled
+    "downloading" runs from it to the block.** Without them the slider moved
+    a block for no visible reason. The label hides on a short wait, which has
+    no room for it, and the block's own label moves to its left near the end
+    of the track, or it runs out of the stage.
+- **Reduced motion keeps every state and drops the travel.** `Flight` shows
+  its finished scene and runs nothing. No figure branches `initial` on
+  `useReducedMotion`, which would be a hydration mismatch, since the server
+  cannot know the setting.
+
 ### `unslopping-a-site-with-dither-grain-ascii-and-line-screens`
 
 One mock hero four times, each with one treatment on its art: ordered dither,
