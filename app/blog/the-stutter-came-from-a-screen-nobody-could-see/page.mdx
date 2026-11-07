@@ -1,0 +1,91 @@
+import { Flight, Network, Restyle } from "./demos";
+
+I was working on a product page that opens on a video card. Scroll, and the
+card flies down and lands on a laptop screen. It glided in Chrome and hitched
+in Safari, but only for some people.
+
+You could not see any of the three causes on the page, and each one took a
+small fix.
+
+## 1. a title changing under the card
+
+The laptop screen rolls through five job titles. It started rolling while the
+card still covered it, so each title change stalled the page, and the card hid
+the change itself.
+
+<Flight />
+
+I made the roll wait until the screen is visible.
+
+```tsx
+const near = useInView(ref, { margin: "200px" });
+const [shown, setShown] = useState(false);
+useMotionValueEvent(screenOpacity, "change", (v) => setShown(v >= 0.9));
+const playing = near && shown; // was: near
+```
+
+## 2. a word change that rechecks the page
+
+The roll used `AnimatePresence mode="popLayout"`. For every word that leaves,
+it adds a `<style>` tag to the page. In Safari, a new stylesheet makes the
+browser recheck all 5,300 elements on the page.
+
+<Restyle />
+
+The titles already share one grid cell, so I deleted the mode.
+
+```tsx
+<span className="inline-grid">
+  <AnimatePresence initial={false}>
+    <motion.span key={role} className="[grid-area:1/1]">
+      {role}
+    </motion.span>
+  </AnimatePresence>
+</span>
+```
+
+## 3. analytics on the first scroll
+
+Analytics loaded on the first scroll, which is when the card starts to fly. It
+froze the page for up to 350ms. On a fast connection the freeze fell inside the
+flight, and on a slow one it came after, so only some people saw it.
+
+<Network />
+
+Now it loads once scrolling has stopped for a second.
+
+```ts
+let lastScroll = 0;
+addEventListener("scroll", () => (lastScroll = performance.now()), {
+  passive: true,
+});
+
+const start = () => {
+  const wait = lastScroll + 1000 - performance.now();
+  if (wait > 0) setTimeout(start, wait);
+  else void load();
+};
+setTimeout(start, 3000);
+```
+
+## what changed
+
+The same scroll in Safari, before and after the three fixes:
+
+| | slowest frame | frames over 33ms |
+| --- | --- | --- |
+| before | 109 to 121ms | 18 |
+| after | 39 to 48ms | 3 to 8 |
+
+The blur and the 3D tilt looked like the problem, but removing them changed
+nothing.
+
+## the short version
+
+- Anything that changes while you scroll can stall the scroll, even if you
+  cannot see it.
+- In Safari, adding a stylesheet makes the browser recheck the whole page.
+- Load heavy scripts after scrolling stops.
+
+I found all three in Safari's performance timeline on the production build.
+The dev server adds work of its own, so profile the build.

@@ -1,0 +1,6 @@
+{
+  "title": "the stutter came from a screen nobody could see",
+  "description": "A scroll animation stalled in Safari every 350ms. The causes were an animation hidden under a card, a stylesheet per popLayout exit, and analytics that loaded on the first scroll.",
+  "date": "2026-11-07",
+  "readTime": "2 min read"
+}
