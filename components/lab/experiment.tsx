@@ -603,6 +603,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/condensation").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "morphing-toolbar": dynamic(
+    () => import("@/components/labs/morphing-toolbar").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf` and `condensation` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf`, `condensation` and `morphing-toolbar` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2040,7 +2040,8 @@ experiment is a directory under `components/labs/`.
   leaves cramped. The hint row breaks out with it, so the caption still lines
   up with the demo, and a flush 8:5 stage grows to 864 by 540 with it. On a
   phone the figure is 358px, 3px past the column on each side, the same as the
-  blog's. `condensation` uses it.
+  blog's. `condensation` and `morphing-toolbar` use
+  it.
   - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
     own size, and writes its gesture against the column's 538 by 336 and
     scales it, so the same moves land on the bigger stage.
@@ -13378,6 +13379,89 @@ stage, the gesture and the frame loop.
 - Its clip waits out the fog-in, makes three wipes, breathes the pane back
   over with Space and moves off the stage, so it ends on the fogged pane it
   opens on and loops. 8.3s and 73KB.
+
+### `morphing-toolbar`
+
+A board to sketch on with one dark toolbar at its foot. Pick a tool and the bar
+morphs into that tool's options: colours and a width for the pen, kinds and a
+fill for shapes, a size and a weight for text, a size and Clear for the
+eraser. The tool's own glyph flies across to become the way back, and Escape
+steps back. `canvas.ts` is what is drawn and how to hit it, pure apart from the
+context it is handed, `toolbar.tsx` the dock and its morph, `glyphs.tsx` the
+bar's line glyphs, and `index.tsx` the board: each tool's gesture, the text
+editor, history and the keys.
+
+- **It came from a standalone HTML study the author shared**, one
+  `index.html` of plain DOM code. The morph, the springs and the canvas model
+  are ported unchanged. The page around them was replaced with the lab's
+  stage, and its title and caption went to the registry's `hint`.
+- **Every view is mounted the whole time and only the top of a stack shows.**
+  `nav.stack` is the stack, `main` at the bottom, and a change of view is
+  three things on one frame: the bar's width springs to the new view's own
+  width, the old view leaves and the new one arrives sideways with a blur in
+  the direction the stack moved, and anything the two share flies across.
+- **The morph runs in a layout effect**, after React has shown the new view
+  and hidden the old one and before the paint. Both views keep their layout
+  at `opacity: 0`, so the rects the flight needs are both readable there.
+  `inert` is set in the same effect rather than as a prop, since an `inert`
+  prop blurs the focused button before the effect can see it, and the effect
+  hands keyboard focus to the new view's first control.
+- **A shared button carries `data-share`**, and the same key in the old view
+  is where its copy starts. The copy is a clone driven by WAAPI on a spring
+  sampled into `linear()`, with both real buttons hidden for its length, so
+  React never sees it.
+- **The copy is laid over the board, `[data-board]`, and never over the dock,
+  and that was a bug.** The dock is centred, so its left edge moves as the bar
+  widens and carried the clone with it. Measured: the pen glyph landed at
+  404px against its chip's 443. Over the board it lands on 443.
+- **A row of choices has one background that slides to the chosen one**, or a
+  ring that does for the swatches, `Glide` in `toolbar.tsx`. It jumps rather
+  than slides when its view has just come in, since the view itself is
+  arriving, and a container query that resizes the buttons re-syncs it.
+- **The glyphs are the subject's artwork rather than UI icons**, the standing
+  `browser-toolbar` gives its own. The site's set is filled and has no select
+  arrow, pen, shapes, text or rectangle, so mixing the two would put two
+  drawing styles on one bar.
+- **The bar is the narrow use of the `inverse-*` set**: one dark object on a
+  light board. Its chips, glider and separators are white at low alpha over
+  `inverse-fill`, the rule for shading a dark surface, and its focus mark is
+  an `inverse-text` outline, stronger than the declared ring, which would be
+  near black on near black.
+- **Nothing scales on press**, per Local overrides. The reference shrinks a
+  glyph and grows a slider thumb and a swatch on hover, and those came out.
+  Press is a background step.
+- **The pen's six hues are scoped** in `COLORS`, since a pen's colours are
+  what it draws with. `ink` is the site's own `text-primary`, read off the
+  token at mount, since a canvas fill cannot take a `var()`. The selection box
+  and the text editor's outline are `text-muted` and the confirm's Clear is
+  `danger` with its text pinned white.
+- **Clear confirms in the bar.** The eraser's Clear swaps the bar for
+  "Clear the whole canvas?" with Cancel and Clear, which is the shared
+  confirm rule in the shape the reference gives it, and it does nothing on an
+  empty board. Undo brings a cleared board back.
+- **The text editor is a textarea over the board**, sized to its own text as
+  measured in the canvas's font, so what is typed lands where it was typed.
+  It carries `textTransform: none`, since the canvas draws the casing typed.
+  A press on the bar while it is open is prevented, so it keeps its focus
+  while the bar restyles it.
+- **The open editor is mirrored in the `live` ref and cleared synchronously**,
+  so a commit cannot run twice. It pushed the text inside a `setEdit` updater
+  first, which React may call twice.
+- **The keys are the demo's while the pointer is over it or the focus is in
+  it**, and the page's everywhere else: V, P, S, T and E pick a tool, ⌘Z and
+  ⇧⌘Z undo and redo, Delete removes the selection and Escape steps back.
+- **The bar fits a phone.** Every button is `size-10` below the `@md`
+  container size and `size-11` from it, and the swatch slots and the width
+  track narrow too. Measured on a 352px stage: 321px for the pen view, the
+  widest.
+- **Reduced motion keeps every view and drops the travel.** The width lands
+  in one step, nothing flies, and the dock does not rise on arrival.
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-78` floor, so 864 by
+  540 on a wide screen, on `fill` with a dot grid in `stroke-strong`. Verified at 1280 and 390px, by mouse and touch,
+  with no sideways scroll and no console errors.
+- Its clip draws with the pen, opens its options for a red stroke, draws a
+  rectangle, clears the board through the confirm, and presses `P` then
+  Escape, so it ends on the frame it opens on and loops. 10.2s and 58KB.
 
 ## Motion
 

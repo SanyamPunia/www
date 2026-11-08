@@ -1380,6 +1380,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Drag to wipe. Shift for a palm, Space to breathe.",
   },
+  {
+    slug: "morphing-toolbar",
+    title: "Morphing Toolbar",
+    description: [
+      "a drawing toolbar that becomes each tool's options: pick the pen and the bar morphs into its colours and width, and its glyph flies over to become back.",
+      "key insight: every view is mounted the whole time and only the top of a stack shows. a change of view springs the bar to the new view's width, slides the two views a few pixels, and flies whatever they share across as a clone.",
+      "escape steps back, v, p, s, t and e pick a tool, and shift squares a shape or snaps a line.",
+    ],
+    createdAt: "2026-11-08",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-toolbar/toolbar.tsx",
+    flush: true,
+    wide: true,
+    hint: "Pick a tool and draw. Esc steps back.",
+  },
 ];
 
 /**
@@ -1536,6 +1552,7 @@ export const IMPLEMENTED_LABS = [
   "swipe-back",
   "download-shelf",
   "condensation",
+  "morphing-toolbar",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

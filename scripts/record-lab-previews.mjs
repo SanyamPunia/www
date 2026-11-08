@@ -3360,6 +3360,94 @@ const LABS = {
       await wait(900);
     },
   },
+  "morphing-toolbar": {
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    /*
+     * A stroke with the pen the board opens on, then Pen to open its options
+     * and red for a second stroke, Escape, Shapes for a rectangle, Escape,
+     * and the eraser's Clear through its confirm. `P` then Escape puts the pen
+     * back in front, so the clip ends on the frame it opens on and loops.
+     * Every press jumps on and off its button, so no tooltip opens.
+     */
+    async run({ page }) {
+      const board = await page.locator("[data-board]").boundingBox();
+      // the gesture is written against the column's 538 by 336 and scaled
+      const at = (x, y) => [
+        board.x + (x * board.width) / 538,
+        board.y + (y * board.height) / 336,
+      ];
+      const press = async (label) => {
+        const b = await page
+          .locator(`[data-on="true"] button[aria-label="${label}"]`)
+          .first()
+          .boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(...at(500, 40));
+      };
+      const pressText = async (text) => {
+        const b = await page
+          .locator(`[data-on="true"] button:text-is("${text}")`)
+          .first()
+          .boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(...at(500, 40));
+      };
+      const stroke = async (points) => {
+        await page.mouse.move(...at(...points[0]));
+        await page.mouse.down();
+        for (const p of points.slice(1)) {
+          await page.mouse.move(...at(...p), { steps: 14 });
+        }
+        await page.mouse.up();
+      };
+      await wait(500);
+      await stroke([
+        [70, 90],
+        [130, 60],
+        [190, 110],
+        [250, 70],
+      ]);
+      await wait(300);
+      await press("Pen");
+      await wait(700);
+      await press("Red");
+      await wait(400);
+      await stroke([
+        [80, 150],
+        [180, 140],
+        [260, 160],
+      ]);
+      await wait(300);
+      await page.keyboard.press("Escape");
+      await wait(600);
+      await press("Shapes");
+      await wait(700);
+      await stroke([
+        [320, 60],
+        [450, 150],
+      ]);
+      await wait(300);
+      await page.keyboard.press("Escape");
+      await wait(600);
+      await press("Eraser");
+      await wait(700);
+      await pressText("Clear");
+      await wait(900);
+      await pressText("Clear");
+      await wait(800);
+      await page.keyboard.press("p");
+      await wait(600);
+      await page.keyboard.press("Escape");
+      await wait(800);
+    },
+  },
 };
 
 function crop(rect, bounds) {
