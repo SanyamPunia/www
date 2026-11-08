@@ -257,10 +257,10 @@ export function EventsDemo() {
             ))
           : log.map((e) => (
               <li key={e.id} className="flex gap-4 py-0.75">
-                <span className="w-12 shrink-0 text-right text-text-muted">
+                <span className="w-18 shrink-0 text-right text-text-muted">
                   +{e.at}ms
                 </span>
-                <span className="w-24 shrink-0 text-text-secondary">
+                <span className="w-28 shrink-0 text-text-secondary">
                   {e.name}
                 </span>
                 <span className="text-text-primary">{e.value}</span>
