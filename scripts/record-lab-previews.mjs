@@ -3679,13 +3679,28 @@ async function record(page, slug, lab, tmp) {
     );
   });
 
+  /*
+   * `design` is the size a gesture's hand-written coordinates were written
+   * against, for a `wide` lab whose gesture predates it: a number scales both
+   * axes by the demo's width over it, and `[w, h]` scales each axis on its own,
+   * for a demo whose height did not grow with its width. Only what goes through
+   * `m` with a literal is scaled. A gesture that measures a box off the page
+   * already has real pixels and moves the mouse itself.
+   */
+  const [kx, ky] =
+    typeof lab.design === "number"
+      ? [box.width / lab.design, box.width / lab.design]
+      : Array.isArray(lab.design)
+        ? [box.width / lab.design[0], box.height / lab.design[1]]
+        : [1, 1];
   const m = {
-    abs: (x, y) => [box.x + x, box.y + y],
-    move: (x, y, steps = 1) => page.mouse.move(box.x + x, box.y + y, { steps }),
+    abs: (x, y) => [box.x + x * kx, box.y + y * ky],
+    move: (x, y, steps = 1) =>
+      page.mouse.move(box.x + x * kx, box.y + y * ky, { steps }),
     down: () => page.mouse.down(),
     up: () => page.mouse.up(),
     click: async (x, y) => {
-      await page.mouse.move(box.x + x, box.y + y, { steps: 6 });
+      await page.mouse.move(box.x + x * kx, box.y + y * ky, { steps: 6 });
       await page.mouse.down();
       await page.waitForTimeout(60);
       await page.mouse.up();

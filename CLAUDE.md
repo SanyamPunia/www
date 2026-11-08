@@ -2045,6 +2045,13 @@ experiment is a directory under `components/labs/`.
   - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
     own size, and writes its gesture against the column's 538 by 336 and
     scales it, so the same moves land on the bigger stage.
+  - **`design` on a recorder entry does that scaling for `m`.** A number
+    scales both axes by the demo's width over it, and `[w, h]` scales each
+    axis on its own, for a demo whose height did not grow with its width, which
+    is `event-stacking`'s calendar. Only literal coordinates through `m` are
+    scaled: a gesture that measures a box off the page already has real pixels
+    and moves the mouse itself, which is why `point-cloud` measures its button
+    and `cube-orbit` its Run control.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
