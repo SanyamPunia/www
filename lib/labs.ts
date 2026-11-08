@@ -51,6 +51,13 @@ export interface LabMetadata {
    */
   flush?: boolean;
   /**
+   * Break the demo out of the prose column to the blog posts' wide figure,
+   * `min(100vw - 2rem, 54rem)`, with its hint row under it. For a lab whose
+   * whole surface is a space to work in, a board or a pane, which a 538px
+   * column leaves cramped. A flush 8:5 stage then grows to 540px tall with it.
+   */
+  wide?: boolean;
+  /**
    * One line naming the gesture the experiment answers to, shown beside the
    * source links rather than inside the demo.
    *
@@ -1370,6 +1377,7 @@ const ALL_LABS: LabMetadata[] = [
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/condensation/shader.ts",
     flush: true,
+    wide: true,
     hint: "Drag to wipe. Shift for a palm, Space to breathe.",
   },
 ];

@@ -3309,9 +3309,8 @@ const LABS = {
     },
   },
   condensation: {
-    // the stage is the card's own 8:5, so the clip is the stage and not the
-    // strip of controls under it
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
     /*
      * Three wipes across the middle of the glass, then Space held over the
      * stage, which breathes the pane back over, and the pointer leaves so the
@@ -3326,7 +3325,11 @@ const LABS = {
     },
     async run({ page }) {
       const demo = await page.locator("[data-lab-demo]").boundingBox();
-      const at = (x, y) => [demo.x + x, demo.y + y];
+      // the gesture is written against the column's 538 by 336 and scaled
+      const at = (x, y) => [
+        demo.x + (x * demo.width) / 538,
+        demo.y + (y * demo.height) / 336,
+      ];
       const wipe = async (path) => {
         await page.mouse.move(...at(...path[0]));
         await page.mouse.down();

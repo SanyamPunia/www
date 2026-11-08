@@ -107,7 +107,16 @@ export default async function LabDetailPage({
               this frame, and the browser captures the frame on the first commit,
               when a reveal still holds it at opacity 0, so the card morphed
               into nothing and the page went white. */}
-          <div className="flex flex-col gap-2">
+          {/* a `wide` lab breaks out of the column to the blog posts' wide
+              figure, centred on the column, and takes its hint row with it so
+              the caption still lines up with the demo it describes */}
+          <div
+            className={cn(
+              "flex flex-col gap-2",
+              lab.wide &&
+                "-translate-x-1/2 relative left-1/2 w-[min(100vw-2rem,54rem)]",
+            )}
+          >
             {/* `data-lab-demo` is the box `scripts/record-lab-previews.mjs`
                 crops its recording to. A wrapper rather than an attribute on
                 `Demo`, since a `bare` entry has no frame and the recorder still

@@ -2033,6 +2033,17 @@ experiment is a directory under `components/labs/`.
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
   a control.
+- **`wide: true` breaks the demo out of the prose column**, to the blog
+  posts' wide figure, `relative left-1/2 w-[min(100vw-2rem,54rem)]
+  -translate-x-1/2`, at the author's request. It is for a lab whose whole
+  surface is a space to work in, a board or a pane, which a 538px column
+  leaves cramped. The hint row breaks out with it, so the caption still lines
+  up with the demo, and a flush 8:5 stage grows to 864 by 540 with it. On a
+  phone the figure is 358px, 3px past the column on each side, the same as the
+  blog's. `condensation` uses it.
+  - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
+    own size, and writes its gesture against the column's 538 by 336 and
+    scales it, so the same moves land on the bigger stage.
 - Five experiments carry a local `styles.css`. That is the one place the
   one-stylesheet rule bends, they are self-contained demos whose CSS is not
   part of the design system. Four of them still take their colours from tokens
@@ -13359,13 +13370,14 @@ stage, the gesture and the frame loop.
   travel.
 - **It scopes no hue.** The colour is the photograph's. The haze in the shader
   is a light blue grey tint on the fog, and it is not a token.
-- It is `flush`, `aspect-8/5` with a `min-h-78` floor, on `inverse-bg` while
-  the photograph loads, and the stage takes the frame's four corners. Verified
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-78` floor, so 864 by
+  540 on a wide screen, on `inverse-bg` while the photograph loads, and the
+  stage takes the frame's four corners. Verified
   at 1280 and 390px, by mouse and with reduced motion, with no sideways scroll
   and no console errors.
 - Its clip waits out the fog-in, makes three wipes, breathes the pane back
   over with Space and moves off the stage, so it ends on the fogged pane it
-  opens on and loops. 8.3s and 118KB.
+  opens on and loops. 8.3s and 73KB.
 
 ## Motion
 
