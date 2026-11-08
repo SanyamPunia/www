@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back` and `download-shelf` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf` and `condensation` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -13279,6 +13279,93 @@ transfer and the arc, pure and DOM-free, `download-sound.ts` the sound, and
 - Its clip downloads three files, opens the list, pauses and resumes the app,
   retries the archive, waits for the ring to close, clears the list and shuts
   it, so it ends on the frame it opens on and loops. 11.9s and 101KB.
+
+### `condensation`
+
+A fogged window over a snowy street at night. Drag across the glass to wipe the
+condensation off. The wipe leaves a wet film and pushes water into drops that
+run down the pane. The fog grows back on its own, and holding Space over the
+glass breathes it back over at once. `shader.ts` is the three WebGL 2
+programs, `drops.ts` the running drops, pure and DOM-free, and `index.tsx` the
+stage, the gesture and the frame loop.
+
+- **It came from a standalone HTML study the author shared**, one `index.html`
+  with the shaders and the gesture in a script tag and the photograph as a
+  base64 JPEG in `scene.js`. The shaders are ported unchanged. The page
+  around them was replaced with the lab's own stage, and the overlay title
+  and hint went to the registry's `hint`.
+- **There are no controls under the stage, at the author's request.** It
+  shipped with a humidity lane and a held "hold to breathe" pill, and both
+  came out. Humidity is fixed at `HUMIDITY`, 0.55, which was the lane's
+  default, and Space over the stage is the one way to breathe.
+- **The photograph is `public/assets/condensation/street.webp`**, 1376 by 768
+  and 225KB, decoded out of that `scene.js` and re-encoded at quality 82. The
+  base64 copy was 380KB. It is the one image the lab fetches, from this
+  origin.
+- **The glass is a texture the GPU keeps between frames.** `FIELD` reads last
+  frame's field and writes this frame's into the other of two half-resolution
+  targets: red is fog and green is the wet film. A wipe is a list of up to 48
+  segments a frame, stamped in as a capsule with a ragged edge, a wet rim and
+  a film. So every stroke stays on the glass until the fog grows back over
+  it, and nothing on the CPU remembers a stroke.
+- **Without `EXT_color_buffer_float` the field is 8 bits a channel**, so a
+  refog smaller than one step rounds to nothing. The loop banks the refog and
+  the drying until each is worth 3/255, and `quant` on the glass says which
+  case it is in.
+- **`COMPOSITE` draws the frame from the field and two copies of the street.**
+  `BLUR` makes the soft copy once at load, four separable passes at a third of
+  the size. Fogged glass is the soft copy under two scales of beads. Clear
+  glass is the sharp copy bent by the wet film's streaks and by the slope of
+  the fog's edge, which draws the lip. Each running drop is a small inverted
+  lens over the sharp copy.
+- **A resize keeps every wipe.** `resizeField` runs the old field through the
+  field pass into the new targets with nothing added, which rescales it.
+  Clearing the new targets to fog was the study's own behaviour.
+- **The drops are bodies, not a texture.** A wipe pushes water ahead of the
+  brush, and each unit of it is a drop left under the stroke. A drop over 3.3px
+  runs, stalls now and then, wanders, and paints its own wet trail back into
+  the field as a segment. Two that touch merge with their combined area. The
+  cap is 40.
+- **The glass fogs over the first time it is seen**, over 2.4s, through a
+  floor the field pass raises from a noise seed, so it fogs in patches. The
+  clock starts on the first visible frame, since the loop only runs while the
+  stage is on screen.
+- **The brush is a fingertip, 24px, or the flat of a hand, 64px, with Shift.**
+  A fast stroke presses lighter and clears a narrower band. The cursor is a
+  drawn ring the size of the brush, which is one more place the shared
+  `cursor-pointer` rule is off, `cursor-none` on the subtree for
+  `tether-button`'s reason. The ring is mouse only.
+- **Space breathes only while the pointer is over the stage or a wipe is in
+  progress**, and is the page's everywhere else. The breath is a growing patch
+  of fog round the pointer, or round the middle when there is no pointer.
+- **`min-w-0` on the root is load-bearing.** `aspect-8/5` with `min-h-78`
+  transfers the minimum height through the ratio, so the stage asks for a
+  399px minimum width. The root is a grid item in the lab slot, so it grew to
+  that and widened a 390px phone page to 420.
+- **`touch-none` covers the stage**, so a finger wipes and does not scroll the
+  page. That is the trade `region-comment` makes.
+- **There is no keyboard path.** The stage is `role="img"` with a label, and
+  Space needs the pointer over the stage. The keyboard path left with the
+  controls.
+- **A context that cannot run WebGL 2 shows the photograph under a CSS blur**
+  with a note, and nothing wipes. A lost context stops the loop, and a
+  restored one compiles again and starts on a fogged pane.
+- **The loop runs while the stage is on screen**, since the fog grows back on
+  its own, and stops off it through an `IntersectionObserver`. Measured: 0
+  frames requested in a second with the stage scrolled off.
+- **Reduced motion keeps the wipe and drops the travel.** No drops, no intro,
+  the pane starts fogged, the breath is at full size at once, and the grain
+  holds still. The fog still grows back, since that is a state and not
+  travel.
+- **It scopes no hue.** The colour is the photograph's. The haze in the shader
+  is a light blue grey tint on the fog, and it is not a token.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, on `inverse-bg` while
+  the photograph loads, and the stage takes the frame's four corners. Verified
+  at 1280 and 390px, by mouse and with reduced motion, with no sideways scroll
+  and no console errors.
+- Its clip waits out the fog-in, makes three wipes, breathes the pane back
+  over with Space and moves off the stage, so it ends on the fogged pane it
+  opens on and loops. 8.3s and 118KB.
 
 ## Motion
 
