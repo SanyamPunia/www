@@ -282,6 +282,7 @@ const ALL_LABS: LabMetadata[] = [
     reference: "https://x.com/artntek/status/2090533166696014035",
     hint: "Hold a stack to take it whole, or move one with the arrow keys.",
     bare: true,
+    wide: true,
   },
   {
     slug: "stamp-collection",
@@ -361,6 +362,7 @@ const ALL_LABS: LabMetadata[] = [
     reference: "https://x.com/okazz_/status/2092923357931176017",
     hint: "Press the stage to aim a drop, or tab in and use the arrows.",
     flush: true,
+    wide: true,
   },
   {
     slug: "sticker-peel",
@@ -573,6 +575,7 @@ const ALL_LABS: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/ember-burst/index.tsx",
     flush: true,
     hint: "Tap the wick to strike it, hold it to blaze, and drag it to draw.",
+    wide: true,
   },
   {
     slug: "gooey-chips",
@@ -636,6 +639,7 @@ const ALL_LABS: LabMetadata[] = [
     reference: "https://x.com/TheMathFlow/status/2101154346583154801",
     flush: true,
     hint: "Turn the dial. Press the cube to unfold it, then point at a ring.",
+    wide: true,
   },
   {
     slug: "foil-card",
@@ -730,6 +734,7 @@ const ALL_LABS: LabMetadata[] = [
     reference: "https://x.com/nonzeroexitcode/status/2103203539174436892",
     flush: true,
     hint: "Drag across the poster to mark it, then leave a comment.",
+    wide: true,
   },
   {
     slug: "forecast-list",
@@ -793,6 +798,7 @@ const ALL_LABS: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/point-cloud/shapes.ts",
     flush: true,
     hint: "Move over the dots to scatter them. Press to reshape.",
+    wide: true,
   },
   {
     slug: "fingerprint-ink",
@@ -1007,6 +1013,7 @@ const ALL_LABS: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/home-hub/pose.ts",
     flush: true,
     hint: "Drag the table, or press a hub to bring it to the front.",
+    wide: true,
   },
   {
     slug: "text-reveal",
@@ -1037,6 +1044,7 @@ const ALL_LABS: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/loupe/optics.ts",
     bare: true,
     hint: "Drag the glass over the map. Pinch or use the corner to raise it.",
+    wide: true,
   },
   {
     slug: "drop-zone",
@@ -1234,6 +1242,7 @@ const ALL_LABS: LabMetadata[] = [
     reference: "https://x.com/archivess_19/status/2114003008011079780",
     flush: true,
     hint: "Press and hold a bubble to pop it. Drag to pop a row.",
+    wide: true,
   },
   {
     slug: "sheet-detents",
@@ -1335,6 +1344,7 @@ const ALL_LABS: LabMetadata[] = [
       "https://github.com/SanyamPunia/www/blob/main/components/labs/reader-mode/index.tsx",
     flush: true,
     hint: "Scroll down a little, then press the reader button.",
+    wide: true,
   },
   {
     slug: "swipe-back",

@@ -2040,8 +2040,14 @@ experiment is a directory under `components/labs/`.
   leaves cramped. The hint row breaks out with it, so the caption still lines
   up with the demo, and a flush 8:5 stage grows to 864 by 540 with it. On a
   phone the figure is 358px, 3px past the column on each side, the same as the
-  blog's. `condensation`, `morphing-toolbar`, `live-activities` and
-  `specimen-stack` use it.
+  blog's. `condensation`, `morphing-toolbar`, `live-activities`,
+  `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
+  `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`
+  and `event-stacking` use it.
+  - **The ten older ones were chosen by looking at every lab's still**, for a
+    surface to work in that the column shrinks: a map, a canvas, a scene, a
+    page with a sidebar or a calendar. Single objects and components were
+    left alone, since a wider frame only adds empty space round them.
   - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
     own size, and writes its gesture against the column's 538 by 336 and
     scales it, so the same moves land on the bigger stage.
@@ -3072,6 +3078,9 @@ Smaller things, all of them things that were wrong first:
   is 73.6px and "10:00 AM" was 0.72px from fitting, measured at 52.25px in a
   51.53px box. A title losing its tail is what `truncate` is for. A time losing
   one character is a bug, so the padding gives way instead.
+- **It is `wide`**, 864 by 363 against the column's 538 by 363, since the four
+  day columns are cramped in the column. The calendar keeps its height. Its clip
+  was recorded again at that size, 3.4s and 22KB.
 
 ### `stamp-collection`
 
@@ -4209,6 +4218,8 @@ panel of numbers under it.
   splash is thrown in another ink. A real cluster of this many colours is many
   splats layered over hours, and at any rate a demo can run at, that layering
   never happens.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 5.9s and 41KB.
 
 ### `sticker-peel`
 
@@ -6418,6 +6429,8 @@ what makes the difference visible rather than asserted.
   and 49px, a cold tap throws 18 and a 1.6s hold reaches 107 aloft, the panel is
   three columns and one, it is `inert` while shut, Enter taps and holds, the
   arrows move the wick and it comes back, and no console errors.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 7.4s and 95KB.
 
 ### `gooey-chips`
 
@@ -7834,6 +7847,8 @@ the net and giving the cube up. This is both, and it costs one number.
   step and reset the dial, pointing at a ring dims 50 of the 54 stickers and
   writes its line, swapping the sequence leaves none of them dimmed and no filter
   on the stage, a run ends solved with the arc full, and no console errors.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 7.3s and 101KB.
 
 ### `foil-card`
 
@@ -8884,6 +8899,8 @@ DOM-free, and `index.tsx` the drawing, the composer and the pills.
 - Verified in a browser at 1280 and 390px: a drag opens the composer, a stray
   press keeps typed text, Enter posts and focuses the pill, a pill reopens its
   comment, no sideways scroll, and no console errors.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 6.9s and 37KB.
 
 ### `forecast-list`
 
@@ -9162,7 +9179,7 @@ the pointer and the loop.
   scatter, and a morph lands in one step.** No loop runs: 1 frame a second.
 - It is `flush` and `aspect-8/5`, the preview card's shape, with a `min-h-78`
   floor so a 390px phone gets a 250px stage rather than 220.
-- **Its clip is 572KB, the largest in the set by almost three times.**
+- **Its clip is 442KB, the largest in the set.**
   Thousands of dots moving on every frame is the worst input there is for an
   inter-frame codec, `foil-card`'s problem at a larger scale. It loads only on
   a hover, so it costs nothing until someone points at the row. It runs a
@@ -9170,6 +9187,8 @@ the pointer and the loop.
   so it loops.
 - Verified in a browser at 1280 and 390px: all four shapes and the morphs
   between them, no sideways scroll, and no console errors.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 8.4s and 442KB.
 
 ### `fingerprint-ink`
 
@@ -10945,7 +10964,10 @@ the opening.
 - Its clip has a `prep` that waits out the first opening, so the poster is
   the seated arc. It replays the opening, drags the table one seat, and
   presses the hub right of the front, so it ends on the clock it opened on
-  and loops. 10.2s and 163KB.
+  and loops. 10.2s and 149KB.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 10.2s and
+  149KB.
 
 ### `text-reveal`
 
@@ -11111,7 +11133,9 @@ is the gesture and the frame loop.
 - Its clip picks the glass up off the note and carries it across the station
   and the sound onto the title block, raises it two steps and lowers it again,
   and carries it home, so the clip loops. `prep` waits out the first arrival,
-  so the poster is the glass at rest. 9.1s and 244KB.
+  so the poster is the glass at rest. 9.1s and 243KB.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 9.1s and 243KB.
 
 ### `drop-zone`
 
@@ -12459,7 +12483,9 @@ fingers and one frame loop.
   ring. Verified at 1280 and 390px, by mouse, touch and keyboard, with no
   sideways scroll and no console errors.
 - Its clip pops two bubbles, squeezes the dud flat, pops a row, and slides a
-  fresh sheet on, so it loops. 8.0s and 128KB.
+  fresh sheet on, so it loops. 8.0s and 108KB.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 8.0s and 108KB.
 
 ### `sheet-detents`
 
@@ -13114,7 +13140,10 @@ window, the toggle, the anchoring and the settings.
   size up and sepia, turns reader mode off on the same paragraph and scrolls
   back to the top, so it loops. Reader mode going off is what closes the panel:
   Escape would hand focus back to the settings button, and the focus opens its
-  tooltip over the clip. 10.7s and 234KB.
+  tooltip over the clip. 10.7s and 249KB.
+- **It is `wide`**, 864px wide against the column's 538, since the column cramps
+  a surface this size. Its clip was recorded again at that size, 10.7s and
+  249KB.
 
 ### `swipe-back`
 

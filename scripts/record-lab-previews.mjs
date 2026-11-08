@@ -397,7 +397,9 @@ const LABS = {
   },
 
   "event-stacking": {
-    focus: [0, 0, 538, 363],
+    // a `wide` lab whose calendar keeps its height, so only x scales
+    focus: [0, 0, 864, 363],
+    design: [538, 363],
     // a drop onto an occupied cell is the interaction, so the card is carried
     // onto the pile at Thu 9:00
     async run({ m }) {
@@ -483,7 +485,9 @@ const LABS = {
   },
 
   "rain-splatter": {
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    design: 538,
     async run({ m }) {
       await wait(2000);
       await m.click(150, 280);
@@ -777,7 +781,9 @@ const LABS = {
     // the dark stage inside the frame's own padding, which is the card's 8:5
     // exactly, so the clip is that box with nothing padded or cut. The demo is
     // taller than it, since the knobs sit underneath on the frame's white.
-    focus: [19, 19, 499, 312],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    design: 538,
     // all four gestures, in the order they build on each other: a tap off
     // centre so the burst leans and the disc takes its knock, a tap back so the
     // snuff's smoke is in the clip, a hold so the blaze ramps, and a drag so
@@ -976,7 +982,9 @@ const LABS = {
   "cube-orbit": {
     // the stage is the drawing's own 8:5, 538 by 336, so the clip is the whole
     // stage and the sentence and controls under it are left out
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    design: 538,
     /*
      * A turn of the dial, a coast, a ring lit, and then a lap.
      *
@@ -1032,15 +1040,11 @@ const LABS = {
       await m.move(...at(-90, 93), 6);
       await wait(1200);
 
-      const demo = await page.locator("[data-lab-demo]").boundingBox();
       const lead = await page
         .getByRole("button", { name: "Run" })
         .boundingBox();
-      await m.move(
-        lead.x - demo.x + lead.width / 2,
-        lead.y - demo.y + lead.height / 2,
-        1,
-      );
+      // a measured box is in real pixels already, so it skips `m`'s scale
+      await page.mouse.move(lead.x + lead.width / 2, lead.y + lead.height / 2);
       await wait(60);
       await m.down();
       await m.up();
@@ -1308,7 +1312,9 @@ const LABS = {
   },
   "region-comment": {
     // the stage is the card's own 8:5, so the clip is the whole demo
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    design: 538,
     /*
      * Two regions marked and commented, the ring and then the dot grid, so
      * the clip shows the box being drawn, the composer coming up under it and
@@ -1418,7 +1424,9 @@ const LABS = {
   },
   "point-cloud": {
     // the stage is the card's own 8:5, so the clip is the whole stage
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    design: 538,
     /*
      * A sweep across the sphere so it leans and scatters, then four presses
      * that walk it through the ring, the helix and the word and back to the
@@ -1426,10 +1434,15 @@ const LABS = {
      * stage in the same breath, or the pointer parked on it scatters the foot
      * of every shape for the length of the clip.
      */
-    async run({ m }) {
-      const button = [269, 290];
+    async run({ m, page }) {
+      // the button sits a fixed distance from the stage's foot, so it is
+      // measured rather than scaled
+      const b = await page
+        .locator("[data-lab-demo] button")
+        .last()
+        .boundingBox();
       const press = async () => {
-        await m.move(...button, 1);
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
         await m.down();
         await m.up();
         await m.move(269, 360, 1);
@@ -1865,7 +1878,8 @@ const LABS = {
   },
   "home-hub": {
     // the stage is the card's own 8:5, so the clip is the whole demo
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, and the gesture is written in shares of the demo
+    focus: [0, 0, 864, 540],
     /*
      * The clip opens on the arc, which is the card's poster, then replays
      * the reveal: one hub in profile turns to face the reader while the view
@@ -2589,7 +2603,8 @@ const LABS = {
   },
   "bubble-wrap": {
     // the stage is the card's own 8:5, so the clip is the whole demo
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, and the presses read the stage's own centres
+    focus: [0, 0, 864, 540],
     /*
      * Three bubbles pressed one at a time, each held until it pops, one of
      * them a dud that hisses flat instead. Then a thumb comes down at the
@@ -2819,7 +2834,8 @@ const LABS = {
   },
   "reader-mode": {
     // the top of the stage at the card's 8:5, which holds the bar and the page
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, and the presses read their buttons off the page
+    focus: [0, 0, 864, 540],
     /*
      * A slow scroll down to the keeper's ledger, then reader mode, so the
      * clutter leaves and the paragraph on the reading line holds still. The
@@ -3191,7 +3207,8 @@ const LABS = {
   },
   loupe: {
     // the stage is the card's own 8:5, so the clip is the whole demo
-    focus: [0, 0, 538, 336],
+    // a `wide` lab, and the gesture already scales off the demo's box
+    focus: [0, 0, 864, 540],
     /*
      * The glass is picked up off the note it rests on and carried down
      * across the station and the sound to the title block, where it is
