@@ -1357,6 +1357,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Download a few files, then open the button in the toolbar.",
   },
+  {
+    slug: "condensation",
+    title: "Condensation",
+    description: [
+      "a fogged window over a snowy street at night: drag across the glass to wipe the condensation off, and it fogs back over at the rate the humidity sets.",
+      "key insight: the fog is a texture the gpu keeps between frames, red for fog and green for the wet film a wipe leaves. a stroke is a list of segments stamped into it, so the glass remembers every wipe and the composite only has to read it.",
+      "the street is one photograph, blurred once at load for the fogged side, and every bead and running drop is a lens sampled from the sharp copy.",
+    ],
+    createdAt: "2026-11-08",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/condensation/shader.ts",
+    flush: true,
+    hint: "Drag to wipe. Shift for a palm, Space to breathe.",
+  },
 ];
 
 /**
@@ -1512,6 +1527,7 @@ export const IMPLEMENTED_LABS = [
   "reader-mode",
   "swipe-back",
   "download-shelf",
+  "condensation",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

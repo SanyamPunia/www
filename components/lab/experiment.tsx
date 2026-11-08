@@ -599,6 +599,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/download-shelf").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  condensation: dynamic(
+    () => import("@/components/labs/condensation").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
