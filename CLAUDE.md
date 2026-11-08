@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf`, `condensation`, `morphing-toolbar` and `live-activities` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf`, `condensation`, `morphing-toolbar`, `live-activities` and `specimen-stack` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2040,8 +2040,8 @@ experiment is a directory under `components/labs/`.
   leaves cramped. The hint row breaks out with it, so the caption still lines
   up with the demo, and a flush 8:5 stage grows to 864 by 540 with it. On a
   phone the figure is 358px, 3px past the column on each side, the same as the
-  blog's. `condensation`, `morphing-toolbar` and
-  `live-activities` use it.
+  blog's. `condensation`, `morphing-toolbar`, `live-activities` and
+  `specimen-stack` use it.
   - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
     own size, and writes its gesture against the column's 538 by 336 and
     scales it, so the same moves land on the bigger stage.
@@ -13545,6 +13545,81 @@ the chips and the frame loop.
   opens on and loops. Its resting point for the pointer stays inside the
   demo, since Escape is only heard while the pointer is over it. 10.0s and
   88KB.
+
+### `specimen-stack`
+
+A fan of seven mineral specimen cards. Drag sideways, scroll sideways or use
+the arrows to browse, and press the card in front to lift it out and turn it
+over to its data sheet. Press it again to turn it back, and Escape or a press
+anywhere else puts it back. `specimens.ts` is the data, `card.tsx` one card,
+`index.tsx` the fan, its springs and its gestures.
+
+- **It came from a standalone HTML study the author shared**, one
+  `index.html` with seven PNG photographs. The springs, the poses and the
+  gestures are ported unchanged. The photographs are
+  `public/assets/specimen-stack/*.webp`, 640px wide, 16 to 33KB each, against
+  1.2 to 1.3MB as PNG. The page header, the key-hint row and the dark mode
+  were dropped, and the hint went to the registry.
+- **Every card's pose is a function of one position, `pos`**, the index under
+  the centre. A drag writes it directly, and a release, a key, the wheel and
+  a press set its target and a spring carries it there. Three more springs
+  carry the lift, the flip and a pointer tilt per card. One loop writes one
+  `transform` and five custom properties per card and stops once everything
+  has settled. Measured: 0 frames requested in a second at rest.
+- **The loop stays alive while a card is still waiting to rise, and that was a
+  bug.** The intro starts 180ms after the stage is first seen, and in that gap
+  every spring is at rest at 0, so the loop stopped before the first card was
+  due and the stage stayed empty.
+- **A card is drawn once in a 260 by 390 design box and scaled to the stage.**
+  The back sheet is laid out once, so its type cannot reflow or overflow at a
+  small size. That is the standing `foil-card` gives type printed on a drawn
+  object. The card's width on screen is
+  `min(250, 0.46 of the stage, (stage height - 140) / 1.5)`, and the
+  perspective scales with it, so the fan looks the same at every size.
+- **An inspected card scales to `(stage height - 140) / card height`, and it
+  was `- 90`.** At `- 90` the card rose to 3px from the stage's top edge once
+  the lift spring overshot. 140 leaves room for the overshoot above and the
+  nav row below.
+- **It is `wide`, since the column cramps it.** The fan reaches about 1.6
+  card widths either side of the centre. Measured: a 250px card on the 864 by
+  540 stage against a 145px card in the 538px column, where the stage height
+  is the limit.
+- **The stage is light, not the reference's dark page.** The photographs are
+  specimens on a pale grey sweep, so a card reads against `fill` through its
+  shadow and hairline, and no `inverse-*` ground is needed. A card further
+  back fades toward `fill` rather than toward black, since a card further off
+  is nearer the ground behind it.
+- **The seven hues are scoped** in `specimens.ts`, for the swatch on the back
+  of each card. A specimen's colour is the specimen. They are not tokens.
+- **Formulas are lists of parts**, a string on the line and a one-item tuple
+  for a subscript, so they render as real `<sub>` elements and the
+  screen-reader text is the same list joined. Formulas, data values and
+  localities carry `normal-case`, since `SiO₂` and `BR` are data and their
+  casing is part of them. That is `notch-drop`'s call for its meta line.
+- **A sideways wheel browses and a vertical one is left to the page.** The
+  reference took both, which would trap the page's scroll over the demo.
+- **One card is in the tab order, the one in front**, and keyboard focus
+  follows it as the arrows move the fan. Enter or Space inspects and flips,
+  and Escape puts it back. The keys are the demo's while the pointer is over
+  it or the focus is in it. A click with no pointer and no key behind it is an
+  assistive technology's and counts as a press.
+- **The nav buttons are the site's caret icons with tooltips**, one step up
+  from the site's fill order, since they sit on a `fill` ground. Nothing
+  scales on press, per Local overrides.
+- **`cursor-grab` on the stage and `cursor-pointer` on the cards**, with
+  `data-carry` for the grabbing cursor once a drag has started, which is
+  `gooey-chips`' pair. `touch-pan-y`, so a vertical swipe still scrolls the
+  page.
+- **Reduced motion keeps every state and drops the travel.** Each spring lands
+  in one frame, the cards do not rise in, and there is no tilt.
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-112` floor. Verified at
+  1280 and 390px, by mouse, keyboard and touch, with no sideways scroll and no
+  console errors.
+- Its clip throws the fan with a drag, walks back past the first card with the
+  arrows, inspects it, puts it back with Escape, and presses bare stage to take
+  the keyboard's focus ring off the card, so it ends on the frame it opens on
+  and loops. The throw's length depends on the drag's speed, which is why the
+  keys walk back six cards rather than counting. 10.2s and 147KB.
 
 ## Motion
 

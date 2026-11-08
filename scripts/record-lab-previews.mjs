@@ -3448,6 +3448,57 @@ const LABS = {
       await wait(800);
     },
   },
+  "specimen-stack": {
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    /*
+     * A drag across the fan, the arrow keys back to the first card, a press on
+     * it to lift and turn it over, Escape to put it back, and a press on bare
+     * stage. So the clip ends on the frame it opens on and loops. The pointer
+     * stays on the stage for the keys, and nothing is pressed that carries a
+     * tooltip.
+     *
+     * `prep` waits out the cards rising in, so the poster is the settled fan.
+     */
+    async prep() {
+      await wait(2400);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      // the gesture is written against the column's 538 by 336 and scaled
+      const at = (x, y) => [
+        demo.x + (x * demo.width) / 538,
+        demo.y + (y * demo.height) / 336,
+      ];
+      await page.mouse.move(...at(300, 150), { steps: 8 });
+      await wait(500);
+      await page.mouse.move(...at(380, 150));
+      await page.mouse.down();
+      await page.mouse.move(...at(150, 150), { steps: 30 });
+      await page.mouse.up();
+      await wait(1300);
+      // the throw's length depends on the drag's speed, so the keys walk
+      // back past the first card, where the fan stops
+      for (let i = 0; i < 6; i++) {
+        await page.keyboard.press("ArrowLeft");
+        await wait(500);
+      }
+      await wait(600);
+      await page.mouse.move(...at(269, 148));
+      await page.mouse.down();
+      await wait(40);
+      await page.mouse.up();
+      await wait(2000);
+      await page.keyboard.press("Escape");
+      await wait(1200);
+      // a press on bare stage takes the keyboard's focus ring off the card
+      await page.mouse.move(...at(30, 30));
+      await page.mouse.down();
+      await wait(40);
+      await page.mouse.up();
+      await wait(800);
+    },
+  },
   "live-activities": {
     // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
     focus: [0, 0, 864, 540],

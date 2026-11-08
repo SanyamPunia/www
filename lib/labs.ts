@@ -1412,6 +1412,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Start an activity, then press the island.",
   },
+  {
+    slug: "specimen-stack",
+    title: "Specimen Stack",
+    description: [
+      "a fan of mineral specimen cards: drag, scroll sideways or use the arrows to browse, and press the card in front to lift it out and turn it over to its data sheet.",
+      "key insight: every card's pose is a function of one position, the index under the centre, so a drag, a throw, a key and a press all move one number and the fan follows it on a spring.",
+      "the card in front leans toward the pointer with a glare that follows it, and the card is drawn once at a fixed size and scaled, so its back never reflows.",
+    ],
+    createdAt: "2026-11-08",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/specimen-stack/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Drag or use the arrows. Press the front card to inspect.",
+  },
 ];
 
 /**
@@ -1570,6 +1586,7 @@ export const IMPLEMENTED_LABS = [
   "condensation",
   "morphing-toolbar",
   "live-activities",
+  "specimen-stack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
