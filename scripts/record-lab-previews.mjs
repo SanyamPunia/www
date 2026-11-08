@@ -3308,6 +3308,55 @@ const LABS = {
       await wait(700);
     },
   },
+  condensation: {
+    // the stage is the card's own 8:5, so the clip is the stage and not the
+    // strip of controls under it
+    focus: [0, 0, 538, 336],
+    /*
+     * Three wipes across the middle of the glass, then Space held over the
+     * stage, which breathes the pane back over, and the pointer leaves so the
+     * drawn ring fades. So the clip ends on the fogged pane it opens on and
+     * loops, give or take a drop still running.
+     *
+     * `prep` waits out the glass fogging over the first time it is seen, so
+     * the poster is the fogged pane rather than a clear street.
+     */
+    async prep() {
+      await wait(3000);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const at = (x, y) => [demo.x + x, demo.y + y];
+      const wipe = async (path) => {
+        await page.mouse.move(...at(...path[0]));
+        await page.mouse.down();
+        for (const point of path.slice(1)) {
+          await page.mouse.move(...at(...point), { steps: 28 });
+        }
+        await page.mouse.up();
+      };
+      await page.mouse.move(...at(260, 150), { steps: 10 });
+      await wait(400);
+      await wipe([
+        [140, 110],
+        [400, 120],
+        [170, 170],
+        [390, 190],
+      ]);
+      await wait(500);
+      await wipe([
+        [200, 230],
+        [340, 240],
+      ]);
+      await wait(1400);
+      await page.mouse.move(...at(270, 170), { steps: 12 });
+      await page.keyboard.down("Space");
+      await wait(2600);
+      await page.keyboard.up("Space");
+      await page.mouse.move(...at(270, 360), { steps: 12 });
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
