@@ -1396,6 +1396,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Pick a tool and draw. Esc steps back.",
   },
+  {
+    slug: "live-activities",
+    title: "Live Activities",
+    description: [
+      "a phone's dynamic island running live activities: a timer, a song, a call, a charger and the silent switch, each as its own shape on springs.",
+      "key insight: the island is two black shapes under one gooey svg filter, so a second running activity pinches off the first into a bubble rather than appearing beside it.",
+      "press the island to expand it, the bubble to swap the two, and escape to close. the number keys start each activity.",
+    ],
+    createdAt: "2026-11-08",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/live-activities/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Start an activity, then press the island.",
+  },
 ];
 
 /**
@@ -1553,6 +1569,7 @@ export const IMPLEMENTED_LABS = [
   "download-shelf",
   "condensation",
   "morphing-toolbar",
+  "live-activities",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

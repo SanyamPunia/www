@@ -3448,6 +3448,54 @@ const LABS = {
       await wait(800);
     },
   },
+  "live-activities": {
+    // a `wide` lab, so the stage is 864 by 540, the card's own 8:5
+    focus: [0, 0, 864, 540],
+    /*
+     * The song the phone opens on, expanded and closed again, then the timer
+     * so the song pinches off into the bubble, the bubble pressed to swap
+     * back, a call rung and declined, and the timer chip again to cancel it.
+     * So the clip ends on the compact song it opens on and loops. Every
+     * press jumps on and off its target, and `away` stays inside the demo,
+     * since Escape is only heard while the pointer is over it.
+     *
+     * `prep` waits for the song to start, so the poster is the compact
+     * island rather than the idle one.
+     */
+    async prep() {
+      await wait(1600);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const away = [demo.x + demo.width - 20, demo.y + 20];
+      const tap = async (selector) => {
+        const b = await page.locator(selector).first().boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(...away);
+      };
+      await page.mouse.move(...away);
+      await wait(500);
+      await tap("[data-island] > button");
+      await wait(1400);
+      await page.keyboard.press("Escape");
+      await wait(800);
+      await tap('fieldset button:has-text("Timer")');
+      await wait(1300);
+      await tap('button[aria-label^="Switch to"]');
+      await wait(1300);
+      await page.keyboard.press("Escape");
+      await wait(700);
+      await tap('fieldset button:has-text("Incoming call")');
+      await wait(1500);
+      await tap('[data-view="incoming"] button[aria-label="Decline call"]');
+      await wait(900);
+      await tap('fieldset button:has-text("Timer")');
+      await wait(1200);
+    },
+  },
 };
 
 function crop(rect, bounds) {

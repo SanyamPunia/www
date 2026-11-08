@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf`, `condensation` and `morphing-toolbar` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `download-shelf`, `condensation`, `morphing-toolbar` and `live-activities` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2040,8 +2040,8 @@ experiment is a directory under `components/labs/`.
   leaves cramped. The hint row breaks out with it, so the caption still lines
   up with the demo, and a flush 8:5 stage grows to 864 by 540 with it. On a
   phone the figure is 358px, 3px past the column on each side, the same as the
-  blog's. `condensation` and `morphing-toolbar` use
-  it.
+  blog's. `condensation`, `morphing-toolbar` and
+  `live-activities` use it.
   - **A wide lab's recorder entry crops to `[0, 0, 864, 540]`**, the demo's
     own size, and writes its gesture against the column's 538 by 336 and
     scales it, so the same moves land on the bigger stage.
@@ -13462,6 +13462,89 @@ editor, history and the keys.
 - Its clip draws with the pen, opens its options for a red stroke, draws a
   rectangle, clears the board through the confirm, and presses `P` then
   Escape, so it ends on the frame it opens on and loops. 10.2s and 58KB.
+
+### `live-activities`
+
+A phone's Dynamic Island running live activities: a timer, a song, a call, a
+charger plugged in and the silent switch. The island is one black shape on
+springs, and a second running activity pinches off it into a bubble. Press the
+island to expand it, press anywhere off it or Escape to close it, and press the
+bubble to swap the two. `scene.ts` is the model and a hand-stepped spring, pure
+and DOM-free, `glyphs.tsx` the phone's own glyphs, and `index.tsx` the phone,
+the chips and the frame loop.
+
+- **It came from a standalone HTML study the author shared**, one `index.html`
+  with an album cover and a wallpaper. The island's sizes, its springs, the
+  gooey filter and the views' timings are ported unchanged. The images are
+  `public/assets/live-activities/`, WebP at 512px and 640px wide, 166KB
+  against 4.3MB of PNG.
+- **The island is two black shapes under one SVG filter**, a blur into an
+  alpha crush, `gooey-chips`'s trick. The main shape and the bubble are both
+  drawn there, so a bubble leaving the island grows a neck and snaps off. The
+  island's content and the bubble's are drawn over the filter at the same box,
+  since the crush destroys any edge worth reading.
+- **`compute` in `scene.ts` is the whole state machine.** It takes the running
+  activities and returns the view to show, the size to spring to and the
+  activity for the bubble. A ringing call wins, then a transient like the
+  charger, then an expanded activity, then a call ahead of the rest. Each
+  situation has a size in `SIZE`, in the phone's own pixels.
+- **Five springs and one loop.** Width, height and corner for the island, and
+  size and gap for the bubble. Growing uses a stiffer, bouncier spring and
+  shrinking a smoother one, which is the reference's call. The loop writes the
+  island's box, the bubble's and the status bar's opacity to the nodes, and
+  stops once every spring is within a tenth of a pixel. Measured: 0 frames
+  requested by the lab at rest.
+- **The clocks write their text straight to the nodes**, through
+  `data-bind`, on a 200ms interval that runs only while an activity is going
+  and the stage is on screen. The timer's ring is a dash offset on the same
+  tick.
+- **The status bar fades for anything wider than the idle island and for the
+  bubble.** The reference faded it only past 300px, which left the time under
+  a compact island and the battery under the bubble.
+- **The phone is its top 440px, scaled to the stage and faded out at its
+  foot**, since everything the island does happens there. It is drawn at its
+  own 417 by 876 and scaled as one element, with 6px of room for the bezel's
+  outer rings, which paint outside its box.
+- **The chips sit beside the phone from 672px of stage and wrap under it
+  below**, measured on the stage itself. Beside the phone each shows its
+  number key. Measured: 864 by 540 as `wide`, 538 by 579 at the column, and
+  358 by 467 on a 390px phone with no sideways scroll.
+- **It is `wide`, since the column cramps it.** At 538px the chips have to
+  stack under the phone, which makes the demo 579px tall with the action at
+  its top. At 864px the phone and the chips sit side by side in an 8:5 stage.
+- **The island is a real button laid over it while it is not expanded.** The
+  reference made the island a `div` with a button role holding buttons. Here
+  the expanded views' controls are real buttons, and the overlay goes away when
+  they show.
+- **A keyboard action hands focus to what the island now offers**: Enter on
+  the island focuses the expanded view's first control, and Escape hands it
+  back to the island. A mouse press moves nothing.
+- **The keys are the demo's while the pointer is over it or the focus is in
+  it**: 1 to 5 start each activity and Escape closes the island.
+- **The hardware is the `inverse-*` set**, the narrow use `notch-drop` makes.
+  The island's grey controls are white at alpha over it, and press is white at
+  15% over a control's fill rather than a scale.
+- **The platform's system colours are scoped** in `TONE`: orange for a timer,
+  green for a call, red for silent, and the song's tint. They are what the
+  island says its state in. They are not tokens.
+- **The phone's screen keeps its casing**, through `normal-case` on the
+  device, since a contact's name and a song title are data.
+- **The equaliser, the call's ring and the bell's shake are WAAPI**, so no
+  keyframe was added to `globals.css`. The bars run only while their view
+  shows and the song plays.
+- **Music starts 700ms after the phone is first seen**, so the island is doing
+  something before anyone touches it.
+- **Reduced motion keeps every state and drops the travel.** The island lands
+  on its size in one step, the views swap with no transition, and nothing
+  pulses, shakes or bounces.
+- It is `flush` and `wide` on `fill`. Verified at 1280 and 390px, by mouse,
+  touch, keyboard and with reduced motion, with no console errors.
+- Its clip expands the song and closes it, starts the timer so the song
+  pinches off into the bubble, swaps back through the bubble, rings and
+  declines a call, and cancels the timer, so it ends on the compact song it
+  opens on and loops. Its resting point for the pointer stays inside the
+  demo, since Escape is only heard while the pointer is over it. 10.0s and
+  88KB.
 
 ## Motion
 
