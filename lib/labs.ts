@@ -1399,7 +1399,7 @@ const ALL_LABS: LabMetadata[] = [
       "escape steps back, v, p, s, t and e pick a tool, and shift squares a shape or snaps a line.",
     ],
     createdAt: "2026-11-08",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-toolbar/toolbar.tsx",
     flush: true,
