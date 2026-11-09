@@ -595,10 +595,6 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/swipe-back").then(ready),
     { ssr: false, loading: Placeholder },
   ),
-  "download-shelf": dynamic(
-    () => import("@/components/labs/download-shelf").then(ready),
-    { ssr: false, loading: Placeholder },
-  ),
   condensation: dynamic(
     () => import("@/components/labs/condensation").then(ready),
     { ssr: false, loading: Placeholder },
