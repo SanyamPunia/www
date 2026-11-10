@@ -1401,7 +1401,7 @@ const ALL_LABS: LabMetadata[] = [
       "press the island to expand it, the bubble to swap the two, and escape to close. the number keys start each activity.",
     ],
     createdAt: "2026-11-08",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/live-activities/index.tsx",
     flush: true,
