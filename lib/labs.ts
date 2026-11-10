@@ -1417,7 +1417,7 @@ const ALL_LABS: LabMetadata[] = [
       "the card in front leans toward the pointer with a glare that follows it, and the card is drawn once at a fixed size and scaled, so its back never reflows.",
     ],
     createdAt: "2026-11-08",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/specimen-stack/index.tsx",
     flush: true,
