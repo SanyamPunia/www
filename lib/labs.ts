@@ -1393,22 +1393,6 @@ const ALL_LABS: LabMetadata[] = [
     hint: "Pick a tool and draw. Esc steps back.",
   },
   {
-    slug: "live-activities",
-    title: "Live Activities",
-    description: [
-      "a phone's dynamic island running live activities: a timer, a song, a call, a charger and the silent switch, each as its own shape on springs.",
-      "key insight: the island is two black shapes under one gooey svg filter, so a second running activity pinches off the first into a bubble rather than appearing beside it.",
-      "press the island to expand it, the bubble to swap the two, and escape to close. the number keys start each activity.",
-    ],
-    createdAt: "2026-11-08",
-    live: true,
-    source:
-      "https://github.com/SanyamPunia/www/blob/main/components/labs/live-activities/index.tsx",
-    flush: true,
-    wide: true,
-    hint: "Start an activity, then press the island.",
-  },
-  {
     slug: "specimen-stack",
     title: "Specimen Stack",
     description: [
@@ -1423,6 +1407,22 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     wide: true,
     hint: "Drag or use the arrows. Press the front card to inspect.",
+  },
+  {
+    slug: "live-activities",
+    title: "Live Activities",
+    description: [
+      "a phone's dynamic island running live activities: a timer, a song, a call, a charger and the silent switch, each as its own shape on springs.",
+      "key insight: the island is two black shapes under one gooey svg filter, so a second running activity pinches off the first into a bubble rather than appearing beside it.",
+      "press the island to expand it, the bubble to swap the two, and escape to close. the number keys start each activity.",
+    ],
+    createdAt: "2026-11-08",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/live-activities/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Start an activity, then press the island.",
   },
 ];
 
