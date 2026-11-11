@@ -1384,7 +1384,7 @@ const ALL_LABS: LabMetadata[] = [
       "key insight: every view is mounted the whole time and only the top of a stack shows. a change of view springs the bar to the new view's width, slides the two views a few pixels, and flies whatever they share across as a clone.",
       "escape steps back, v, p, s, t and e pick a tool, and shift squares a shape or snaps a line.",
     ],
-    createdAt: "2026-11-08",
+    createdAt: "2026-11-09",
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/morphing-toolbar/toolbar.tsx",
@@ -1400,7 +1400,7 @@ const ALL_LABS: LabMetadata[] = [
       "key insight: every card's pose is a function of one position, the index under the centre, so a drag, a throw, a key and a press all move one number and the fan follows it on a spring.",
       "the card in front leans toward the pointer with a glare that follows it, and the card is drawn once at a fixed size and scaled, so its back never reflows.",
     ],
-    createdAt: "2026-11-08",
+    createdAt: "2026-11-10",
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/specimen-stack/index.tsx",
@@ -1416,7 +1416,7 @@ const ALL_LABS: LabMetadata[] = [
       "key insight: the island is two black shapes under one gooey svg filter, so a second running activity pinches off the first into a bubble rather than appearing beside it.",
       "press the island to expand it, the bubble to swap the two, and escape to close. the number keys start each activity.",
     ],
-    createdAt: "2026-11-08",
+    createdAt: "2026-11-11",
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/live-activities/index.tsx",
