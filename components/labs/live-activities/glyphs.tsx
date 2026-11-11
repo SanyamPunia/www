@@ -1,4 +1,6 @@
+import { motion } from "motion/react";
 import type React from "react";
+import { useId } from "react";
 
 /*
  * The phone's own glyphs, from the reference: status bar, lock screen, call,
@@ -88,7 +90,51 @@ export const NextGlyph = (p: Props) => (
   </svg>
 );
 
-export const MicGlyph = (p: Props) => (
+/**
+ * The system's slash, drawn in from the top-left rather than switched on. A
+ * wider stroke in the mask cuts the glyph under it, so the slash reads with a
+ * gap on each side, as the platform's own slashed symbols do.
+ */
+function Slash({
+  on,
+  width,
+  children,
+}: {
+  on: boolean;
+  width: number;
+  children: React.ReactNode;
+}) {
+  const id = useId().replace(/:/g, "");
+  const draw = { pathLength: on ? 1 : 0, opacity: on ? 1 : 0 };
+  const t = {
+    pathLength: { type: "spring", duration: 0.45, bounce: 0.15 },
+    opacity: { duration: 0.08 },
+  } as const;
+  return (
+    <>
+      <mask id={id}>
+        <rect width="24" height="24" fill="white" />
+        <motion.path
+          d="M3 3l18 18"
+          stroke="black"
+          strokeWidth={width * 2.4}
+          initial={false}
+          animate={draw}
+          transition={t}
+        />
+      </mask>
+      <g mask={`url(#${id})`}>{children}</g>
+      <motion.path
+        d="M3 3l18 18"
+        initial={false}
+        animate={draw}
+        transition={t}
+      />
+    </>
+  );
+}
+
+export const MicGlyph = ({ slashed, ...p }: Props & { slashed: boolean }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -99,8 +145,10 @@ export const MicGlyph = (p: Props) => (
     focusable="false"
     {...p}
   >
-    <rect x="9" y="3" width="6" height="11" rx="3" />
-    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+    <Slash on={slashed} width={2.2}>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+    </Slash>
   </svg>
 );
 
@@ -116,9 +164,10 @@ export const BellGlyph = ({ slashed, ...p }: Props & { slashed: boolean }) => (
     focusable="false"
     {...p}
   >
-    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-    {slashed && <path d="M3 3l18 18" />}
+    <Slash on={slashed} width={2.4}>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </Slash>
   </svg>
 );
 

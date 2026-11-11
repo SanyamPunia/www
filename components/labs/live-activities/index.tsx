@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
+import { roll } from "./digits";
 import {
   BatteryGlyph,
   BellGlyph,
@@ -38,6 +39,7 @@ import {
   Spring,
   type Transient,
 } from "./scene";
+import { SwapIcon, SwapText } from "./swap";
 
 /*
  * A phone's Dynamic Island running live activities: a timer, a song, a call,
@@ -193,7 +195,7 @@ function Circle({
       type="button"
       {...props}
       className={cn(
-        "relative flex shrink-0 cursor-pointer items-center justify-center rounded-full",
+        "relative flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-[background-color,color] duration-200",
         "before:absolute before:inset-0 before:rounded-full before:transition-colors before:duration-150 active:before:bg-inverse-text/15",
         "focus-visible:outline-2 focus-visible:outline-inverse-text/70 focus-visible:outline-offset-2 focus-visible:outline-solid",
         className,
@@ -231,6 +233,7 @@ function Ring({ size = 21, bind }: { size?: number; bind: string }) {
         strokeLinecap="round"
         strokeDasharray="59.7"
         strokeDashoffset="0"
+        style={{ transition: "stroke-dashoffset 0.2s linear" }}
       />
     </svg>
   );
@@ -429,7 +432,9 @@ export default function LiveActivities() {
     if (acts.includes("timer")) {
       const t = r.timer;
       const left = t.running ? Math.max(0, (t.endAt - now) / 1000) : t.left;
-      for (const el of bind("timer")) el.textContent = clock(Math.ceil(left));
+      for (const el of bind("timer")) {
+        roll(el as HTMLElement, clock(Math.ceil(left)), true, !r.reduce);
+      }
       for (const el of bind("ring")) {
         el.setAttribute("stroke-dashoffset", String(59.7 * (1 - left / TIMER)));
       }
@@ -459,7 +464,12 @@ export default function LiveActivities() {
     }
     if (acts.includes("call")) {
       for (const el of bind("call")) {
-        el.textContent = clock((now - r.callStart) / 1000);
+        roll(
+          el as HTMLElement,
+          clock((now - r.callStart) / 1000),
+          false,
+          !r.reduce,
+        );
       }
     }
   }, [kick, say]);
@@ -1007,6 +1017,7 @@ export default function LiveActivities() {
                       background: state.silent
                         ? TONE.red
                         : "rgb(255 255 255 / 0.2)",
+                      transition: "background-color 0.2s ease",
                     }}
                   >
                     <span ref={bell} className="flex">
@@ -1016,12 +1027,14 @@ export default function LiveActivities() {
                       />
                     </span>
                   </span>
-                  <span
+                  <SwapText
+                    text={state.silent ? "Silent" : "Ring"}
                     className="font-semibold text-[15px]"
-                    style={{ color: state.silent ? TONE.red : undefined }}
-                  >
-                    {state.silent ? "Silent" : "Ring"}
-                  </span>
+                    style={{
+                      color: state.silent ? TONE.red : undefined,
+                      transition: "color 0.2s ease",
+                    }}
+                  />
                 </div>
 
                 <div
@@ -1035,11 +1048,13 @@ export default function LiveActivities() {
                     onClick={timerPause}
                     style={{ background: TONE.orangeWash, color: TONE.orange }}
                   >
-                    {timerRunning ? (
-                      <PauseGlyph style={{ width: 18, height: 18 }} />
-                    ) : (
-                      <PlayGlyph style={{ width: 18, height: 18 }} />
-                    )}
+                    <SwapIcon id={timerRunning ? "pause" : "play"}>
+                      {timerRunning ? (
+                        <PauseGlyph style={{ width: 18, height: 18 }} />
+                      ) : (
+                        <PlayGlyph style={{ width: 18, height: 18 }} />
+                      )}
+                    </SwapIcon>
                   </Circle>
                   <Circle
                     aria-label="Cancel timer"
@@ -1101,7 +1116,10 @@ export default function LiveActivities() {
                       <b
                         data-bind="mbar"
                         className="block h-full origin-left rounded-[3px] bg-inverse-text"
-                        style={{ transform: "scaleX(0)" }}
+                        style={{
+                          transform: "scaleX(0)",
+                          transition: reduce ? "none" : "transform 0.2s linear",
+                        }}
                       />
                     </span>
                     <span data-bind="mrem" className="w-[34px] text-right">
@@ -1120,11 +1138,13 @@ export default function LiveActivities() {
                       aria-label={playing ? "Pause" : "Play"}
                       onClick={musicPlay}
                     >
-                      {playing ? (
-                        <PauseGlyph style={{ width: 28, height: 28 }} />
-                      ) : (
-                        <PlayGlyph style={{ width: 28, height: 28 }} />
-                      )}
+                      <SwapIcon id={playing ? "pause" : "play"}>
+                        {playing ? (
+                          <PauseGlyph style={{ width: 28, height: 28 }} />
+                        ) : (
+                          <PlayGlyph style={{ width: 28, height: 28 }} />
+                        )}
+                      </SwapIcon>
                     </Circle>
                     <Circle
                       aria-label="Next"
@@ -1211,7 +1231,10 @@ export default function LiveActivities() {
                         : "bg-inverse-text/20"
                     }
                   >
-                    <MicGlyph style={{ width: 18, height: 18 }} />
+                    <MicGlyph
+                      slashed={muted}
+                      style={{ width: 18, height: 18 }}
+                    />
                   </Circle>
                   <Circle
                     aria-label="End call"
@@ -1244,23 +1267,25 @@ export default function LiveActivities() {
                 onClick={pressBubble}
                 className="absolute hidden cursor-pointer items-center justify-center overflow-hidden text-inverse-text focus-visible:outline-2 focus-visible:outline-inverse-text/70 focus-visible:outline-offset-2 focus-visible:outline-solid"
               >
-                {shape.bubble === "timer" && <Ring size={20} bind="ring" />}
-                {shape.bubble === "music" && (
-                  // biome-ignore lint/performance/noImgElement: album art already on disk inside a scaled drawing
-                  <img
-                    src="/assets/live-activities/album.webp"
-                    alt=""
-                    draggable={false}
-                    width={21}
-                    height={21}
-                    className="select-none rounded-full object-cover"
-                  />
-                )}
-                {shape.bubble === "call" && (
-                  <PhoneGlyph
-                    style={{ width: 17, height: 17, color: TONE.green }}
-                  />
-                )}
+                <SwapIcon id={shape.bubble ?? "none"}>
+                  {shape.bubble === "timer" && <Ring size={20} bind="ring" />}
+                  {shape.bubble === "music" && (
+                    // biome-ignore lint/performance/noImgElement: album art already on disk inside a scaled drawing
+                    <img
+                      src="/assets/live-activities/album.webp"
+                      alt=""
+                      draggable={false}
+                      width={21}
+                      height={21}
+                      className="select-none rounded-full object-cover"
+                    />
+                  )}
+                  {shape.bubble === "call" && (
+                    <PhoneGlyph
+                      style={{ width: 17, height: 17, color: TONE.green }}
+                    />
+                  )}
+                </SwapIcon>
               </button>
 
               {/* the camera lens, under the island's glass */}
