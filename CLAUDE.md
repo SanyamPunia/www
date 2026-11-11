@@ -13432,7 +13432,8 @@ charger plugged in and the silent switch. The island is one black shape on
 springs, and a second running activity pinches off it into a bubble. Press the
 island to expand it, press anywhere off it or Escape to close it, and press the
 bubble to swap the two. `scene.ts` is the model and a hand-stepped spring, pure
-and DOM-free, `glyphs.tsx` the phone's own glyphs, and `index.tsx` the phone,
+and DOM-free, `glyphs.tsx` the phone's own glyphs, `swap.tsx` the replace
+transition, `digits.ts` the rolling clock digits, and `index.tsx` the phone,
 the chips and the frame loop.
 
 - **It came from a standalone HTML study the author shared**, one `index.html`
@@ -13459,7 +13460,26 @@ the chips and the frame loop.
 - **The clocks write their text straight to the nodes**, through
   `data-bind`, on a 200ms interval that runs only while an activity is going
   and the stage is on screen. The timer's ring is a dash offset on the same
-  tick.
+  tick. The ring and the song's bar ease over 0.2s linear between ticks, so
+  they move rather than step five times a second.
+- **The timer and the call clock roll their digits**, the platform's numeric
+  text. `roll` in `digits.ts` gives each character a cell and rolls only the
+  cells that changed: a countdown rolls down and a count up rolls up. A change
+  in length, such as 10:00 to 9:59, rewrites the cells with no motion. The
+  cells are `aria-hidden` under one `sr-only` copy of the value, since a screen
+  reader reads the cells apart. The song's times do not roll, as on the phone.
+- **A glyph or a word that changes in place uses the replace transition** in
+  `swap.tsx`: the old one shrinks and blurs out while the new one grows in on
+  a spring, both in one grid cell, so the slot is never empty. It covers play
+  and pause on the timer and the song, the bubble's glyph when the bubble
+  changes activity, and Silent and Ring. A crossfade, not a morph, for the
+  reason the signature player's transport gives: a triangle and two bars are
+  not one shape.
+- **Mute and silent draw a slash in** rather than switching it on. `Slash` in
+  `glyphs.tsx` draws the stroke from the top-left on a spring and cuts the
+  glyph under it through a mask with a wider stroke, so the slash has a gap
+  on each side, as the system's slashed symbols do. The mute button's fill and
+  the silent pill's red ease over 0.2s.
 - **The status bar fades for anything wider than the idle island and for the
   bubble.** The reference faded it only past 300px, which left the time under
   a compact island and the battery under the bubble.
