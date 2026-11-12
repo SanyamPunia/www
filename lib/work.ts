@@ -83,6 +83,13 @@ const projects: Project[] = [
     href: "https://morphrig.dev",
   },
   {
+    title: "bobine",
+    slug: "bobine",
+    image: "/projects/bobine.webp",
+    category: "package",
+    href: "https://bobine.fyi",
+  },
+  {
     title: "easeful",
     slug: "easeful",
     image: "/projects/easeful.webp",
