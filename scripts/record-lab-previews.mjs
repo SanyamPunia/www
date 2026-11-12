@@ -3515,6 +3515,53 @@ const LABS = {
       await wait(1200);
     },
   },
+  "notification-stack": {
+    // the stage is taller than 8:5, since the open list has to fit, so the
+    // clip is the whole stage, padded in white either side
+    focus: [0, 0, 538, 576],
+    /*
+     * A tap opens the stack, a card is swiped away, the group is cleared
+     * through its × and "Clear", and the reset brings the stack back, so the
+     * clip ends on the closed stack it opens on and loops. Every press jumps
+     * on and off its target, so the reset's tooltip never opens.
+     *
+     * `prep` waits out the cards rising in, so the poster is the settled
+     * stack.
+     */
+    async prep() {
+      await wait(1400);
+    },
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const away = [demo.x + 20, demo.y + demo.height - 20];
+      const press = async (selector) => {
+        const b = await page.locator(selector).first().boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await page.mouse.move(...away);
+      };
+      await page.mouse.move(...away);
+      await wait(700);
+      await press("[role=option]");
+      await wait(1300);
+      const card = await page.locator("[role=option]").nth(2).boundingBox();
+      const y = card.y + card.height / 2;
+      await page.mouse.move(card.x + card.width * 0.65, y);
+      await page.mouse.down();
+      await page.mouse.move(card.x + card.width * 0.05, y, { steps: 14 });
+      await page.mouse.up();
+      await page.mouse.move(...away);
+      await wait(1300);
+      await press('button[aria-label="Clear all notifications"]');
+      await wait(700);
+      await press('button[aria-label="Confirm clear all"]');
+      await wait(1700);
+      await press('button[aria-label="Bring the notifications back"]');
+      await wait(1500);
+    },
+  },
 };
 
 function crop(rect, bounds) {
