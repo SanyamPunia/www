@@ -32,6 +32,7 @@ export const links = {
   envt: "https://www.npmjs.com/package/envt",
   easeful: "https://easeful.sanyam.sh",
   morphrig: "https://morphrig.dev",
+  bobine: "https://bobine.fyi",
 } as const;
 
 /**
@@ -113,11 +114,13 @@ export const paragraphs: Paragraph[] = [
     id: "packages",
     tone: "secondary",
     segments: [
-      "I wrote ",
+      "I built ",
+      { text: "bobine", href: links.bobine },
+      ", drop-in video and audio players for React, and ",
       { text: "easeful", href: links.easeful },
-      ", which gives a Radix or Base UI component its enter and exit animation from one attribute and ships no JavaScript. ",
+      ", enter and exit animations for Radix and Base UI from a single attribute. I also wrote ",
       { text: "Morphrig", href: links.morphrig },
-      " is a ten-part explainer on how icon morphing actually works.",
+      ", a ten-part explainer on how icon morphing works.",
     ],
   },
   {

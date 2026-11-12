@@ -48,8 +48,9 @@ Sanyam Punia is a full-stack web developer from Bangalore, India.
 
 ### Packages and projects
 
+- **bobine**: Drop-in video and audio players for React. Swap a video element for VideoPlayer and keep every native prop. Installed through the shadcn CLI, so the source lives in your repo.
 - **easeful**: Enter and exit animations for components that already have open and closed state. One attribute, and no JavaScript in the browser. Radix UI, Base UI and the native dialog and popover elements.
-- **Morphrig**: How icon morphing actually works, in ten parts, ending with enough to go and build it yourself.
+- **Morphrig**: How icon morphing works, in ten parts, ending with enough to go and build it yourself.
 - **envt**: Type-safe client-side environment variables with runtime validation, supporting \`NEXT_PUBLIC_\`, \`PUBLIC_\`, \`VITE_\`, and \`REACT_APP_\` prefixes (npm package)
 - **unique-forge**: Type-safe nanoid alternative to generate secure IDs, with sync/async/cryptographically-secure variants and prefix/suffix support (npm package)
 - **rbac-ui**: Resource-based access control framework for modern frontend apps with tree-based permission evaluation and React bindings like \`AccessProvider\`, \`useAccess\`, \`AccessGate\`, \`useGuard\` (npm package, co-created with aviral)

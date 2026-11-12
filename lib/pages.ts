@@ -115,10 +115,12 @@ const about: StaticPage = {
           id: "packages",
           segments: [
             "I write and maintain small packages. ",
+            { text: "bobine", href: links.bobine },
+            " is a pair of drop-in video and audio players for React that keep every native prop. ",
             { text: "easeful", href: links.easeful },
             " gives a Radix or Base UI component its enter and exit animation from one attribute and ships no JavaScript to the browser. ",
             { text: "Morphrig", href: links.morphrig },
-            " is a ten-part explainer on how icon morphing actually works. ",
+            " is a ten-part explainer on how icon morphing works. ",
             { text: "envt", href: links.envt },
             " validates client-side environment variables at runtime, and ",
             { text: "unique-forge", href: links.uniqueForge },
