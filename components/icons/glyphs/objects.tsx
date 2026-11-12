@@ -120,6 +120,17 @@ export function EnvelopeIcon(props: IconProps) {
   );
 }
 
+export function ChatIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M6 4L18 4A3 3 0 0 1 21 7L21 13A3 3 0 0 1 18 16L11.5 16L7 20L7 16L6 16A3 3 0 0 1 3 13L3 7A3 3 0 0 1 6 4Z"
+        {...SOLID}
+      />
+    </Svg>
+  );
+}
+
 export function FlagIcon(props: IconProps) {
   return (
     <Svg {...props}>
