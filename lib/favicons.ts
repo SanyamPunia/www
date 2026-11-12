@@ -45,6 +45,12 @@ const FAVICONS: Record<string, Favicon> = {
     width: 16,
     height: 16,
   },
+  // the site's own blob mark, an SVG for easeful's reason
+  "bobine.fyi": {
+    src: "/assets/favicons/bobine.svg",
+    width: 16,
+    height: 16,
+  },
   "soundcloud.com": {
     src: "/assets/favicons/soundcloud.svg",
     width: 36,
