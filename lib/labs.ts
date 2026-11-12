@@ -1424,6 +1424,21 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Start an activity, then press the island.",
   },
+  {
+    slug: "notification-stack",
+    title: "Notification Stack",
+    description: [
+      "a group of phone notifications that behaves the way ios's does: a stack with two cards peeking, a tap to open it, and a swipe left to clear a card.",
+      "key insight: every card's pose is a function of its index, whether the group is open and how far it has been pulled, so a tap, a swipe and a clear all change one input and a spring per property carries the rest.",
+      "a card fades as it is pulled, and clearing the group sinks every card back from the bottom up and waits for the last before the list closes.",
+    ],
+    createdAt: "2026-11-13",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/notification-stack/index.tsx",
+    flush: true,
+    hint: "Tap the stack to open it. Swipe a card left to clear it.",
+  },
 ];
 
 /**
@@ -1582,6 +1597,7 @@ export const IMPLEMENTED_LABS = [
   "morphing-toolbar",
   "live-activities",
   "specimen-stack",
+  "notification-stack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
