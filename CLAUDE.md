@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities` and `specimen-stack` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack` and `notification-stack` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2149,6 +2149,9 @@ experiment is a directory under `components/labs/`.
   section.
   `haptic-menu` scopes the inks of its six drawn photos, since a photo's
   colours are the photo. See its own section.
+  `notification-stack` scopes one tile gradient per app, since an app's
+  colour is what tells six tiles built from the same square apart. See its
+  own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -13602,6 +13605,84 @@ anywhere else puts it back. `specimens.ts` is the data, `card.tsx` one card,
   the keyboard's focus ring off the card, so it ends on the frame it opens on
   and loops. The throw's length depends on the drag's speed, which is why the
   keys walk back six cards rather than counting. 10.2s and 147KB.
+
+### `notification-stack`
+
+A group of six phone notifications that behaves the way iOS's does. Closed, it
+is the front card with two narrower cards peeking under it. A tap opens it into
+a list under a header with "Show less" and a clear control. A swipe left clears
+a card.
+`notifications.ts` is the copy and the tile hues, `card.tsx` one card,
+`index.tsx` the group, its springs and its gestures.
+
+- **It came from a standalone HTML study the author shared**, one `index.html`
+  on a dark page with a pile that fanned out on hover. The author asked for it
+  to be iOS native, so the fan, the pointer lean, the glare and the tilted pile
+  went, and only the card and the spring loop are left of the study.
+- **A card is laid out the way iOS lays one out**: the app icon as a squircle
+  with a 22.37% corner, a semibold title with the time at its right, and up to
+  two lines of body in the primary ink, in sentence case through `normal-case`.
+  There is no app name on the tile, since iOS dropped it, and the name is in
+  the card's `aria-label` instead.
+- **The card is solid, not iOS's frosted material.** A translucent card on a
+  pile shows the text of the cards under it through its own, and the author
+  asked for it opaque.
+- **`ChatIcon` was added to the icon set for it**, a solid speech bubble on the
+  landscape keyline, since the set had nothing for Messages.
+- **Every card's pose is a function of its index, whether the group is open,
+  and how far it has been swiped**, and `slot` is that function. A spring per
+  property carries a card there, and one loop writes a `transform` and two
+  custom properties per card and stops once everything has settled.
+- **The closed group is the front card and two peeking 9px each, at 0.94 and
+  0.88**, greyed through `--shade`, a `fill-active` layer in the card. Cards
+  past the third are hidden, and only the front one takes a press.
+- **The open group is one list of the card's full size under a header**, and
+  the card's scale is set by the tallest the open list gets, so a card is the
+  same size open and closed. That is what sets the stage at `h-180`.
+- **A swipe is a slide that fades.** A card pulled left fades with the pull,
+  to a quarter at 80% of its width, and past a third of the card or a flick
+  it carries on 140 design px from where it was let go and fades out. A
+  shorter pull springs back and its fade comes back with it. It moves
+  sideways only, with no tilt, and a card pulled right gives a fifth of the
+  pull. An Options and Clear reveal with a mute menu was built and taken out
+  at the author's request, as more than the demo needed.
+- **A swiped card leaves the layout the moment it is let go.** It moves from
+  `order` to `leaving`, so the cards under it close up while it fades rather
+  than after, and it leaves the DOM once it has faded. Waiting for the fade
+  first made the close-up start late and all at once. Measured: the next card
+  is moving 60ms after the release, with the swiped one still at 0.32.
+- **The open list hangs from a fixed top edge**, the one a full group has, so
+  a card that leaves only pulls the cards under it up. Re-centring the list
+  moved the cards above the gap down at the same moment, which read as a jump.
+- **"No notifications" fades and rises in after a clear ends**, so the clear
+  ends on it rather than cutting to it.
+- **The header's × grows into "Clear" and a second press clears the group**,
+  which is iOS's own confirm and the shared confirm rule in that shape.
+  - **The × tweens its width and never uses `layout`.** A layout animation
+    resizes with a scale, so it scaled the label with it, and this header sits
+    inside a `scale(k)` the loop writes, which Motion's projection cannot see.
+  - **A clear sinks every card back where it is and fades it, from the bottom
+    of the list up**, 40ms apart, to 0.92 and 10 design px higher. The cards
+    stay in the list until the last has gone, so nothing closes up under a
+    clear that is still running, and the header fades with them. Sliding the
+    cards off one after another was the first build and read as six swipes. Its accessible name is "Clear all notifications",
+  then "Confirm clear all", so it never shares a name with a card's Clear.
+- **A group of one closes**, since iOS does not show a group header over one
+  card.
+- **The list takes no pointer, and the cards do**, for the reason `home-hub`
+  documents: an element over the cards in the same layer takes their presses.
+- **The group is a listbox.** It is one tab stop. The arrow keys open it and
+  move the highlight through `aria-activedescendant`, Delete clears the
+  highlighted card, and Escape closes the group. R brings the cards back.
+- **The reset is an icon button with a tooltip in the top right corner**, shown
+  once a card is gone. It does not confirm, since a demo notification has
+  nothing to lose.
+- **Reduced motion keeps every state and drops the travel.** Each spring lands
+  in one frame and a cleared card leaves at once.
+- It is `flush` on `bg-fill`, a fixed `h-180`, with its own inset ring.
+- **It is a draft (`live: false`) and has no preview clip yet.** Its card on
+  the index is a plain `fill` box until `pnpm previews notification-stack`
+  records one, which needs a gesture entry in `scripts/record-lab-previews.mjs`.
 
 ## Motion
 
