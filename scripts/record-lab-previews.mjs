@@ -3562,6 +3562,37 @@ const LABS = {
       await wait(1500);
     },
   },
+  "squash-sphere": {
+    // the stage is the card's own 8:5, so the clip is the whole demo
+    focus: [0, 0, 538, 336],
+    /*
+     * A slow drag across the ball, which turns it round and leaves it round.
+     * Then a run of hard flicks, one after another, which builds the spin up
+     * until it squashes, and a wait while it coasts back to its own slow turn
+     * and springs back round.
+     */
+    async run({ m }) {
+      const y = 160;
+      await wait(500);
+      await m.move(200, y);
+      await m.down();
+      for (let k = 1; k <= 30; k++) {
+        await m.move(200 + k * 4, y);
+        await wait(16);
+      }
+      await m.up();
+      await wait(700);
+      // kept going hard, since the squash only answers a spin that is sustained
+      for (let f = 0; f < 30; f++) {
+        await m.move(150, y);
+        await m.down();
+        for (let k = 1; k <= 6; k++) await m.move(150 + k * 50, y);
+        await m.up();
+        await wait(10);
+      }
+      await wait(2200);
+    },
+  },
 };
 
 function crop(rect, bounds) {
