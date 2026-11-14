@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack` and `notification-stack` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack` and `squash-sphere` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -13683,6 +13683,64 @@ a card.
 - **It is a draft (`live: false`) and has no preview clip yet.** Its card on
   the index is a plain `fill` box until `pnpm previews notification-stack`
   records one, which needs a gesture entry in `scripts/record-lab-previews.mjs`.
+
+### `squash-sphere`
+
+A ball of dots that spins about its upright axis, after the post ring in the
+cruitical landing page's "See what candidates can do" section
+(`PostSphere.tsx`). Drag it or scroll sideways and it turns under the hand. Let
+go and it coasts back to its own slow turn. Spun fast, it flattens at the poles,
+widens at the equator and softens, then springs back round. `sphere.ts` is the
+numbers, pure and DOM-free, and `index.tsx` the hand and the paint.
+
+- **The squash reads how far the ball turned this frame, not which input turned
+  it**, which is the reference's rule. A drag, a throw, a swipe and a key all
+  squash it the same way. The speed is smoothed, rising on a 0.45s time constant
+  and falling on 0.2s, so one flick barely registers and only a spin kept going
+  builds it up. It maps to 0 to 1 between 10 and 32 radians a second on a square, so an ordinary drag stays round and only a
+  hard spin flattens it fully, and followed on a spring at a 0.5 damping ratio, so the
+  ball stands briefly taller than round as it lets go. At full it is 26% shorter,
+  12% wider and blurred 2.5px. Measured on a hard throw: the blur peaks at about
+  300ms after the release and is gone by 800ms.
+- **A spinning body really does this**, which is why the ring became a ball: the
+  equator is pushed out and the poles come in.
+- **The squash is applied in the projection, never as a CSS scale on the
+  canvas**, so the dots stay round and the silhouette ellipse and the floor
+  shadow change shape with it. Only the blur is a CSS filter, written when it
+  changes.
+- **The dots are a Fibonacci sphere, 720 of them**, seen 0.32 rad from above.
+  One stripe of dots near a meridian is drawn darker and larger, since an even
+  field of dots shows that it turns but not how fast. It stays visible round
+  the back: its dots barely shrink with depth, and it is drawn at 55% over the
+  front dots, which would otherwise cover it, so it is never lost mid-turn. Each pass is ten alpha
+  bands, so a frame is about twenty fills.
+- **A drag maps a pixel to a pixel at the ball's front**, `dx / r` radians. A
+  hand still for 60ms before letting go throws nothing. A throw slows toward the
+  rest spin at the reference's 0.94 a frame.
+- **A sideways wheel turns it and an upright one is the page's.** The wheel is
+  held from the browser so it is not also a swipe back through history.
+- **It ticks with the landing page's own sound**: Cuelume's mechanical `select`
+  detent, subtle, at 0.35 volume, every 15 degrees of turn and never closer
+  than 50ms. Like the reference, it only ticks while the reader is turning it:
+  a drag, a swipe, a key, or a throw still running above 1.5 times the rest
+  spin. The ball's own slow turn is silent. `cuelume` is pinned at 0.2.8, the
+  landing page's version, and is loaded on the first touch. It synthesises its
+  sounds and fetches nothing, so `/privacy` stays true.
+- **A transparent button over the stage is the keyboard's path.** The arrows add
+  5 radians a second each, 12.5 with Shift, capped at 36, so it takes several
+  presses to squash it.
+- It invents no colour: dots in `text-secondary`, the stripe in `text-primary`,
+  the silhouette in `stroke-strong`, read off the tokens at mount.
+- `cursor-grab` with `data-carry`, one more place the shared `cursor-pointer`
+  rule is off, and `touch-pan-y`, so a vertical swipe still scrolls the page.
+- **The loop runs while the stage is on screen**, since the ball turns at rest.
+  **Reduced motion drops the rest spin, the coast and the squash.** A drag still
+  turns it and an arrow steps it 0.4 rad, and the loop stops once the hand does.
+- It is `flush`, `aspect-8/5` with a `min-h-78` floor, with its own inset ring.
+  Verified at 1280 and 390px with no sideways scroll and no console errors.
+- Its clip drags the ball slowly so it turns round, then flicks it hard thirty
+  times in a row, since one flick no longer squashes it, and waits while it
+  coasts back and springs round, so it ends on a round ball. 8.0s and 188KB.
 
 ## Motion
 
