@@ -1439,6 +1439,21 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Tap the stack to open it. Swipe a card left to clear it.",
   },
+  {
+    slug: "squash-sphere",
+    title: "Squash Sphere",
+    description: [
+      "a ball of dots you spin by dragging or scrolling sideways, which flattens at the poles the faster it turns and springs back round as it slows.",
+      "key insight: the squash reads how far the ball actually turned each frame rather than which input turned it, so a drag, a throw, a swipe and a key all squash it the same way, on a spring that overshoots a little on the way back.",
+      "after the post ring on the cruitical landing page, moved onto a sphere, where a spinning body really does widen at its equator.",
+    ],
+    createdAt: "2026-11-14",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/squash-sphere/index.tsx",
+    flush: true,
+    hint: "Drag the ball or scroll sideways. Spin it fast.",
+  },
 ];
 
 /**
@@ -1598,6 +1613,7 @@ export const IMPLEMENTED_LABS = [
   "live-activities",
   "specimen-stack",
   "notification-stack",
+  "squash-sphere",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

@@ -615,6 +615,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/notification-stack").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "squash-sphere": dynamic(
+    () => import("@/components/labs/squash-sphere").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
