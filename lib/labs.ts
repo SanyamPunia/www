@@ -1477,7 +1477,7 @@ const ALL_LABS: LabMetadata[] = [
       "a two-finger swipe back, after dia: swipe and the arrow takes you back a page, hold at the threshold and it opens your history to scrub through.",
       "key insight: a web page gets no lift event, so the armed arrow tells a swipe from a hold by the trackpad's momentum tail. the highlight never moves, the panel does, and a row passes only after a 44px push.",
     ],
-    createdAt: "2026-11-15",
+    createdAt: "2026-11-16",
     live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/history-scrub/index.tsx",
