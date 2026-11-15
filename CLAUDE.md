@@ -2028,7 +2028,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack` and `squash-sphere` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere` and `scrub-chart` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2042,8 +2042,8 @@ experiment is a directory under `components/labs/`.
   phone the figure is 358px, 3px past the column on each side, the same as the
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
-  `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`
-  and `event-stacking` use it.
+  `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
+  `event-stacking` and `scrub-chart` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -13741,6 +13741,98 @@ numbers, pure and DOM-free, and `index.tsx` the hand and the paint.
 - Its clip drags the ball slowly so it turns round, then flicks it hard thirty
   times in a row, since one flick no longer squashes it, and waits while it
   coasts back and springs round, so it ends on a round ball. 8.0s and 188KB.
+
+### `scrub-chart`
+
+A month of made-up balances as a line you scrub. Point at the chart, or press
+and drag on a touch screen, and a crosshair snaps to the nearest day, the big
+number morphs to that day's value, and the dithered fill under the line stops
+at the crosshair while the line past it goes quiet. Let go and it runs home to
+the latest day. `chart.ts` is the data, the curve and its height at any x,
+pure and DOM-free, `dither.ts` the screen under the line, `themes.ts` the
+colour pairs, and `index.tsx` the hand and the paint.
+
+- **The crosshair's place is one number, `pos.x`, eased toward the snapped
+  day.** The snap picks a day, `nearest`, and the loop glides to its x on a
+  35ms time constant through `approach`, so a snap is quick but never a
+  teleport. Leaving runs home on 0.12s. The clip rect, the crosshair, the dot
+  and the date chip all read that one number, so the fill and the dot cannot
+  disagree with the line.
+- **The dot rides the drawn curve between days.** The curve is a monotone
+  cubic (Fritsch-Carlson), with its control points at a third of each
+  segment's width, so x is linear in t inside a segment and `yAt` is the same
+  Hermite cubic the path draws. A plain Catmull-Rom would dip under a low the
+  data never reached.
+- **A theme is a line and a dither in one hue, picked together.** `themes.ts`
+  holds five, pine, harbour, iris, ember and graphite, each a dark matte line
+  and a bright dither from the same hue. Every line clears 7:1 on white, and
+  the dither is decoration at 70% alpha, so it clears no contrast floor. They
+  are scoped here and not tokens. The picker is a centred row of swatches under
+  the chart, each split diagonally into its two colours, as real radios inside
+  labels (`pixel-reveal`'s build), with the selection a `stroke-strong` ring
+  and the focus an outline outside it. A pick repaints the dither once, and the
+  line and the dot ease to the new colour over 200ms.
+- **The fill under the line is an ordered dither, not a gradient**, at the
+  author's request. `dither.ts` paints a canvas under the SVG: every cell of a
+  3px grid holds a 2px dot or nothing, by comparing the ink it wants with its
+  place in an 8x8 Bayer matrix. The ink falls from 0.62 at the line to nothing
+  at the foot, so the fade is a falling density of dots, the way a one-bit
+  screen draws a gradient. Up to the crosshair the dots are the theme's dither
+  colour, emerald by default. Past it the screen stays, at a third of the density in `text-muted`, so
+  the quiet half keeps its texture.
+- **Moving the crosshair stirs the screen, a little.** The loop reads the
+  crosshair's speed as a wake, 0 at rest and 1 at 900px/s, rising on 120ms and
+  dying on 0.3s, and the wake lifts the density by up to 0.3 in a gaussian 40px
+  either side of the crosshair. The loop keeps running until the wake has
+  died, then stops: measured, 0 frames requested in a second at rest.
+  - **The Bayer matrix never moves.** A first build shifted it every frame
+    during a fast scrub, so the screen sparkled, and the author found it too
+    much movement to look at. With the matrix fixed, a dot only comes or goes
+    where the ink it wants crosses its threshold.
+- **The line up to the crosshair is a clipped copy** over a muted copy of the
+  whole line, `text-muted` at 40%. The clip rect starts 8px left of the plot,
+  so its width is `x + 8`: written as `x` it stopped the line 8px short of the
+  dot.
+- **The big number morphs through `torph`**, by `useTextMorph`'s imperative
+  `update`, so a new day writes the text without a render. 160ms rather than
+  the site's 200, `the-card-flinches`' number, since a scrub changes the day
+  faster than that and a morph still running as the next starts is a smear.
+  It was `live-activities`' rolling digits first, and the author asked for
+  torph, so `roll` went back to that lab's own `digits.ts`. The morph reads
+  reduced motion itself.
+- **The number, the change and the range are written once per day crossed**,
+  never per frame, and the readout is the change from the first day, with an
+  arrow icon and the date range. It invents no colour: a rise and a fall are
+  the arrow, not a tone, since `success` means done and `danger` means wrong.
+- **A mouse or a pen scrubs on hover and a finger scrubs while it is down.**
+  The chart is `touch-pan-y`, so a vertical swipe still scrolls the page and
+  cancels the scrub. A touch `pointerleave` is the lift and is ignored.
+- **A crossed day ticks**, Cuelume's mechanical `select` at 0.25 volume and
+  never closer than 28ms, and a finger feels a 4ms buzz. It is silent until the
+  page has had a press, since an audio context cannot start on a hover.
+- **The chart is a `role="slider"` over its days.** The arrows step a day, the
+  page keys a week, Home and End go to the ends, and Escape or a blur goes back
+  to the latest day. `aria-valuenow` and `aria-valuetext` are written to the
+  node, so a scrub renders nothing.
+- **Nothing renders while it moves.** The only state is the geometry, set on a
+  resize, which puts the crosshair straight on its day with no glide.
+- **Reduced motion keeps every state and drops the travel**: the crosshair
+  jumps to its day, the number changes with no morph, and the screen is never
+  stirred, since the loop that reads the wake does not run.
+- **It is `flush` and `wide`, 864 by 540, and the chart runs to both edges of
+  the stage**, at the author's request, while the header and the theme row keep
+  the stage's padding. The chart cancels that padding with a negative margin,
+  the line starts on the left edge, and the plot keeps 8px on the right so the
+  resting dot and its ring are not cut by the stage's clip. Its focus ring is
+  inset for the same reason.
+- The stage is `aspect-8/5` with a `min-h-78` floor from `sm` and `min-h-110`
+  below it, on `bg` with its own inset ring. The theme row takes height from
+  the chart, and at 250px a phone's chart was 80px tall. Verified at 1280 and
+  390px, by mouse, keyboard and touch, with no sideways scroll and no console
+  errors.
+- Its clip sweeps the chart to its first day and leaves, picks the iris theme
+  and scrubs again, then puts pine back, so it ends on the resting chart it
+  opens on and loops. 6.7s and 94KB.
 
 ## Motion
 
