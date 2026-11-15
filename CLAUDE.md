@@ -421,8 +421,9 @@ paragraph genuinely is the content, not a description of content.
 replaced Phosphor, so no icon package is installed. The set is rounded and
 filled, after a reference the author shared, and `/icons` shows all of it. See
 The icon sheet below. Social brand marks live beside the set in
-`components/icons/`, one file per mark. GitHub, X and LinkedIn come from
-[svgl.app](https://svgl.app), with the source route named in a comment. Gmail,
+`components/icons/`, one file per mark. GitHub, X, LinkedIn, Figma, Linear,
+YouTube and Notion come from [svgl.app](https://svgl.app), with the source
+route named in a comment. Gmail,
 Pageo and Medium are the site's own copies, since svgl has none of them.
 
 **The construction rules are in `components/icons/icon.tsx`, and every icon
@@ -1973,7 +1974,9 @@ experiment is a directory under `components/labs/`.
   experiment gets the column's full width. It is for a demo that draws its own
   container: the frame's hairline then sits a padding-width outside the
   experiment's own edge, and the two nested boxes read as chrome around chrome.
-  `tab-overview`, `venetian-blind` and `loupe` use it. The blind draws no edge
+  `tab-overview`, `venetian-blind`, `loupe` and `history-scrub` use it. The
+  history scrub draws its own ground with no hairline, at the author's
+  request, so a frame round it was a border it was meant not to have. The blind draws no edge
   at all: its slats run the full width, so the blind is its own edge. The
   loupe's map is the whole lab and draws its own border and paper margin, so a
   frame round it was a box round a sheet that already has edges.
@@ -2152,6 +2155,9 @@ experiment is a directory under `components/labs/`.
   `notification-stack` scopes one tile gradient per app, since an app's
   colour is what tells six tiles built from the same square apart. See its
   own section.
+  `history-scrub` scopes one deep matte tone per visit, for the wash behind
+  the page's icon and that icon's shadow, since a hue is what tells seven
+  pages built from the same parts apart. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -13833,6 +13839,174 @@ colour pairs, and `index.tsx` the hand and the paint.
 - Its clip sweeps the chart to its first day and leaves, picks the iris theme
   and scrubs again, then puts pine back, so it ends on the resting chart it
   opens on and loops. 6.7s and 94KB.
+
+### `history-scrub`
+
+Dia's two-finger history gesture, and nothing round it, at the author's
+request: no window and no toolbar. A sideways swipe grows an arrow out of the
+edge, arms it with a detent, and opens it into the history panel. The hand
+stays down and slides up or down to move the highlight a row at a time, and
+letting go goes there. `scrub.ts` is the numbers, the geometry and the lift
+test, pure and DOM-free. `history.ts` is the seven visits, `scrub-sound.ts`
+the sound, and `index.tsx` the stage, the input and the paint.
+
+- **It came from a screen recording of Dia the author shared.** The disc
+  slides in from behind the edge with a dim chevron, brightens and grows a
+  little at the arm, stretches into a blurred pill, and opens into the panel
+  with the selected row level with the arrow. A commit shrinks the panel to a
+  blurred pill that fades. Those stages are what `paint` draws.
+- **The highlight never moves. The panel does.** `panelRect` places the panel
+  so the row at `pos` sits on the stage's middle line, which is the arrow's
+  line, and the highlight is drawn on that line. Back lists the older visits
+  with the nearest at the bottom, and Forward the newer ones with the nearest
+  at the top, so both read oldest first.
+- **A row passes only after a 44px push.** Below that the list gives 0.3 of
+  a row on a straight line and holds, so the scrub is stepped and not a
+  scroll. At the detent the leftover travel carries over and `pos` springs to
+  the row from wherever the list was drawn, so the snap does not jump. A fast
+  push that covers several rows in one event passes each of them.
+- **Against either end the list gives half as much, on the same line, and
+  the travel is capped at half a row's push.** The first build rubber-banded
+  on a second curve and banked up to three rows of travel there, so a hand
+  that hit the end and turned back saw nothing move until all of it was
+  unwound, then a jump and a spring back. It also pulsed the highlight's scale
+  on every row, which flickered on a fast run through several. Both are gone:
+  traced frame by frame, a fast push into the end now moves one way and holds,
+  and turning back moves at once.
+- **Only passing a row snaps. A rest never does.** The list holds wherever
+  the hand left it inside its row, at the author's request. The first build
+  settled the list back to the row's centre whenever a wheel run went quiet,
+  which read as the list taking the row back from the hand, and against an
+  end it pulled the list back to centre a moment after every push.
+- **A lift lands about 480ms after the last event**: the 140ms gap, then
+  the 320ms fill. It was 650ms of fill, and fingers that drift as they lift
+  trail tiny deltas that restarted it each time, so a lift on the right row
+  sometimes took over a second. Events under `TRICKLE`, 1.5px, are now
+  ignored in an open panel, so the run goes quiet and the fill runs.
+- **Moving back against the pull closes the panel**, at the author's
+  request: 40px of sideways travel against it dismisses without going
+  anywhere, by wheel or by drag. The panel shrinks 12% over 260ms on a plain
+  ease-out and fades out on the same value, the fade done at 60% of it, about
+  110ms in and near 0.93 scale, so the shrink is felt but never seen to
+  finish. A sharper ease-out first emptied the opacity in 50ms, which read as
+  a cut. It first folded back into the arrow and slid
+  out behind the edge, which the author found overdone, and then only faded,
+  which lost the sense of it going. A commit closes with a fade, an 8% shrink and a
+  light blur, so going somewhere and going nowhere read apart.
+- **The panel and the disc are glass**, at the author's request: a sheen of
+  `bg` from 58% to 30% over `backdrop-blur-md` and `backdrop-saturate-150`,
+  so the page's icon and title show through as soft shapes, with a bright
+  inset edge, a top highlight and a faint dark hairline so the edge reads on
+  the light ground. The edge is a translucent inset outline, which is the
+  one place the frontend rules allow one: over an arbitrary fill. The
+  highlighted row is `text-primary` at 6%, a tint in the glass rather than
+  an opaque block. A first pass at 72% to 48% with a heavier blur hid the
+  icon behind it completely and read as frosted plastic. Only an event that is more sideways than
+  vertical counts, and travel toward the page takes it back, so the wobble of
+  a vertical scrub never adds up to a dismissal.
+- **A drag closes from where the hand left it.** A release does not settle
+  the list onto its row first, which slid the panel while it faded.
+- **The list follows the fingers**, as natural scrolling does: fingers down
+  move it down, which brings the older row onto the highlight.
+- **A web page gets no lift event, and that is the whole difficulty.** Dia is
+  native and reads the trackpad's phases. A page gets wheel deltas, and
+  resting fingers send the same nothing as lifted ones. The armed arrow is
+  where the lab decides between the two:
+  - **A plain swipe goes back with the arrow alone**, as in any browser. A
+    swipe lifted on the move leaves the trackpad's momentum tail, and once the
+    arrow is `OVERSHOOT`, 60px, past the arm and `isTail` reads `TAIL`, 8,
+    events that each shrink by a steady share, it goes back a page at once.
+    The panel never opens, so a quick swipe never flashes the whole history.
+  - **A hold opens the panel.** An armed arrow that goes quiet for 140ms with
+    no tail is a hand holding still, and so is 16px of mostly vertical travel.
+    A panel that goes quiet fills its highlight over 320ms and commits, since
+    a slow lift sends no tail either. **A panel that just opened settles
+    first**, at the author's request: no fill starts until it has been open
+    for `SETTLE`, 1s, so it can be read before it counts down. A hold and
+    lift with no movement lands about 1.3s after the panel opens. It starts on the page one step away, so
+    that case still lands where a swipe would. Any scrub stops the fill.
+  - **The tail test is strict because a loose one failed.** The first build
+    read five shrinking deltas as a lift, and a hand slowing to hold passed
+    it, so every hold went back a page and the panel never opened. Eight
+    events, a ratio that stays within 0.15 across them, and the overshoot are
+    what a slowing hand does not do: it slows for a few uneven frames near the
+    threshold and stops. A build in between skipped the decision and opened
+    the panel at every arm, which flashed the history on every quick swipe.
+  - **The sound never builds its audio context on a wheel event.** Building
+    it on the first detent froze the page for 166ms, past the 140ms quiet
+    gap, so the lab read the freeze as a hold and opened the panel on a plain
+    swipe. A wheel event cannot unlock audio anyway, so `burst` only plays on
+    a context a press or a key already built.
+  - **Swipes follow each other.** A swipe that lands while the last one's run
+    is still going starts a new gesture if it turns round or speeds up, which
+    a tail never does, and a gesture still closing gives way to it. Each close
+    clears only the gesture it belongs to. Before this, a back and then a
+    forward swipe in quick succession lost the second one.
+  - **In an open panel only scrubbing and backing off count.** The swipe
+    running on toward the page and a lift's trailing events do not restart
+    the fill.
+  - Filtering that tail out of the open panel was tried next and removed. A
+    push that eases off decays the same way, so the filter ate the end of
+    every push and a 65px push never passed a row. A lift mid-scrub can carry
+    the list one row on, which is rare, since a stepped list is stopped on a
+    row before the hand lifts.
+- **Each gesture is owned by the input that opened it**, `by` on the
+  gesture, and only that input moves or commits it. A wheel run under a held
+  mouse, keys during a drag and a press during a wheel panel are all ignored.
+- **A drag never outlives itself.** The press is captured from
+  `pointerdown`, so a release outside the stage still lands, and a press
+  that never passed the slop is not left behind. A cancel, a lost capture, a
+  context menu, Escape, a window blur or a hidden tab drops the drag and
+  closes the gesture without going anywhere. Verified with ten scenarios in
+  Chrome, each from a fresh load.
+- **A wheel panel always ends.** An earlier build started the fill only when
+  a run went quiet inside the panel, so a pull that rested into the panel and
+  lifted with no further movement left it open for good. The run that arms
+  now carries its own quiet timer into the panel.
+- **A mouse or a finger presses and drags**, and has a real release, so it
+  guesses nothing. A press becomes a pull past 6px if it is 1.2 times more
+  sideways than vertical. A release on the armed arrow goes back a page, and
+  an armed drag that holds still for 220ms or moves 16px up or down opens the
+  panel, where the release commits the row. The stage is `touch-pan-y`, and a non-passive
+  `touchmove` cancels the page scroll once a pull has started.
+- **Alt and an arrow open the panel from the keyboard.** The held Alt stands
+  in for the resting fingers, so the arrows move the highlight and letting go
+  of Alt commits. Escape closes without going anywhere, and Enter commits.
+  The stage is `role="application"` so a screen reader passes the keys
+  through, and a polite live region names each row and each arrival.
+- **The haptics are sound**, since no web API reaches the Force Touch motor:
+  a firmer click on the arm, a light tick per row and a swish on a commit,
+  with `vibrate` on a phone that has a motor. A wheel event is not a user
+  activation, so a trackpad alone stays silent until the first press or key
+  on the stage.
+- **Rows and the highlight are sized in px from `scrub.ts`, never `h-9`.**
+  `--spacing` is 0.2rem here, so `h-9` is 28.8px, and rows drawn at that
+  height drifted off the arithmetic that places the panel by a row in five.
+- **The morph is values, never `layout`**: the box's translate, width,
+  height and radius are mixed from the disc's rect to the panel's by `open`.
+  The rows come in through a blur that clears as `open` lands.
+- **Reduced motion keeps every state and drops the travel.** The panel opens
+  and closes in one step and the list lands on its row. The disc still follows
+  the hand.
+- **The look, at the author's request: depth and colour on a subtle ground.**
+  The stage is `bare` and draws its own `rounded-lg` `surface` ground with no
+  hairline, lit by a sheen of `bg` from the top. Each visit is a real site,
+  with its svgl mark in `components/icons/`: the page shows it on a raised
+  white tile, and the panel's rows show it on a small white chip, as a
+  favicon. The marks sit on white because GitHub, X and Notion are black and
+  vanish on a dark ground, and a brand mark is never tinted.
+- **Each visit carries a deep matte hue**, scoped in `history.ts`. It washes
+  the ground behind the icon at 13% and tints the icon's shadow, and the wash
+  crossfades with the page. The black marks take a chromatic ink, navy,
+  slate or umber, since a near-black wash read as a grey smudge.
+- It is a fixed `h-140`, which keeps a six-row panel whose bottom row is
+  selected inside the stage. Verified at 1280px by wheel, drag and keys, and
+  at 390px by touch, with no sideways scroll and no console errors. The wheel
+  thresholds were tuned against synthetic events and want a pass on a real
+  trackpad.
+- Its clip pulls from the left, slides up into the panel, pushes one row to
+  YouTube and rests until it commits, then does the same from the right to
+  X, so it ends on the page it opens on and loops. 5.5s and 47KB.
 
 ## Motion
 
