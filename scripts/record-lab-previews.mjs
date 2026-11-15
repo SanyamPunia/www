@@ -3593,6 +3593,48 @@ const LABS = {
       await wait(2200);
     },
   },
+  "scrub-chart": {
+    // a `wide` lab: the clip is the whole 8:5 stage, and the gesture is
+    // written against the column's 538 and scaled
+    focus: [0, 0, 864, 540],
+    design: 538,
+    /*
+     * The pointer comes in from the right and sweeps the chart to its first
+     * day so the number morphs down the month, then leaves so the crosshair
+     * glides home. It picks the iris theme and scrubs again, then puts the
+     * pine theme back and leaves, so the clip ends on the resting chart it
+     * opens on. Each swatch press jumps on and off it.
+     */
+    async run({ page, m }) {
+      const y = 200;
+      const pick = async (slug) => {
+        const b = await page
+          .locator(`label:has(input[value=${slug}])`)
+          .boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+        await m.move(600, y);
+      };
+      await m.move(600, y);
+      await wait(500);
+      await m.move(500, y, 6);
+      await m.move(40, y, 60);
+      await wait(400);
+      await m.move(600, y, 6);
+      await wait(900);
+      await pick("iris");
+      await wait(500);
+      await m.move(480, y, 6);
+      await m.move(180, y, 30);
+      await wait(500);
+      await m.move(600, y, 6);
+      await wait(900);
+      await pick("pine");
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {
