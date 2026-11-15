@@ -619,6 +619,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/squash-sphere").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "scrub-chart": dynamic(
+    () => import("@/components/labs/scrub-chart").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

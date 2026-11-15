@@ -1454,6 +1454,22 @@ const ALL_LABS: LabMetadata[] = [
     flush: true,
     hint: "Drag the ball or scroll sideways. Spin it fast.",
   },
+  {
+    slug: "scrub-chart",
+    title: "Scrub Chart",
+    description: [
+      "a month of balances as a line you scrub: a crosshair that snaps to each day, a big number that morphs to its value, a dithered fill under the line that stops at the crosshair, and five colour themes.",
+      "key insight: the crosshair's place is one number eased toward the snapped day, and the clip, the dot and the date chip all read it, so the fill and the dot glide between days while the number morphs once per day crossed.",
+      "the fill is an emerald ordered bayer dither, and moving the crosshair stirs it a little: the dots thicken round the crosshair by how fast it moves and settle when it stops.",
+    ],
+    createdAt: "2026-11-15",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scrub-chart/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Point at the chart, or press and drag. The arrows step a day.",
+  },
 ];
 
 /**
@@ -1614,6 +1630,7 @@ export const IMPLEMENTED_LABS = [
   "specimen-stack",
   "notification-stack",
   "squash-sphere",
+  "scrub-chart",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
