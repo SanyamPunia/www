@@ -16,12 +16,13 @@ import {
   DETENT,
   DISARM,
   DISC,
-  DWELL,
   discRect,
   GAP,
   give,
   HOLD,
   isTail,
+  LAND,
+  LINGER,
   listFor,
   mix,
   NUDGE,
@@ -30,7 +31,6 @@ import {
   PULL,
   panelRect,
   ROW,
-  SETTLE,
   type Side,
   TRICKLE,
 } from "./scrub";
@@ -82,8 +82,8 @@ interface Gesture {
   sizes: number[];
   /** sideways travel back against the pull, once the panel is open */
   retreat: number;
-  /** when the panel opened, so its first fill can wait for it to settle */
-  openedAt: number;
+  /** whether the panel has been scrubbed since it opened */
+  moved: boolean;
   /** vertical travel toward the next row */
   acc: number;
   /**
@@ -109,7 +109,6 @@ export default function HistoryScrub() {
   const rows = useRef<HTMLDivElement>(null);
   const chevron = useRef<HTMLDivElement>(null);
   const highlight = useRef<HTMLDivElement>(null);
-  const fill = useRef<HTMLDivElement>(null);
   const paintRef = useRef<() => void>(() => {});
 
   const [index, setIndex] = useState<number>(HISTORY.length - 1);
@@ -126,7 +125,6 @@ export default function HistoryScrub() {
   const pos = useMotionValue(0);
   const off = useMotionValue(0);
   const close = useMotionValue(0);
-  const dwell = useMotionValue(0);
   const fade = useMotionValue(0);
 
   useEffect(() => {
@@ -135,7 +133,7 @@ export default function HistoryScrub() {
     let width = el.clientWidth || 1;
     let cy = (el.clientHeight || 1) / 2;
     let g: Gesture | null = null;
-    let dwelling: { stop: () => void } | null = null;
+    let landing: { stop: () => void } | null = null;
     let holding = 0;
 
     const to = (
@@ -191,8 +189,6 @@ export default function HistoryScrub() {
         h.style.transform = `translateY(${cy - ROW / 2 - r.y - 1}px)`;
         h.style.opacity = `${clamp01((o - 0.5) * 2)}`;
       }
-      const f = fill.current;
-      if (f) f.style.transform = `scaleX(${dwell.get()})`;
       const ch = chevron.current;
       if (ch) {
         ch.style.transform = `translate(${disc.x}px, ${disc.y}px) scale(${scale})`;
@@ -200,7 +196,7 @@ export default function HistoryScrub() {
       }
     };
     paintRef.current = paint;
-    const unsubs = [pull, arm, open, pos, off, close, dwell, fade].map((mv) =>
+    const unsubs = [pull, arm, open, pos, off, close, fade].map((mv) =>
       mv.on("change", paint),
     );
 
@@ -213,10 +209,10 @@ export default function HistoryScrub() {
 
     const clear = () => {
       g = null;
-      dwelling?.stop();
-      dwelling = null;
+      landing?.stop();
+      landing = null;
       window.clearTimeout(holding);
-      for (const mv of [pull, arm, open, pos, off, close, dwell, fade]) {
+      for (const mv of [pull, arm, open, pos, off, close, fade]) {
         mv.stop();
         mv.set(0);
       }
@@ -240,7 +236,7 @@ export default function HistoryScrub() {
         rise: 0,
         sizes: [],
         retreat: 0,
-        openedAt: 0,
+        moved: false,
         acc: 0,
         by,
       };
@@ -253,10 +249,9 @@ export default function HistoryScrub() {
 
     const say = (s: string) => setSaid(s);
 
-    const stopDwell = () => {
-      dwelling?.stop();
-      dwelling = null;
-      if (dwell.get() !== 0) dwell.set(0);
+    const cancelLand = () => {
+      landing?.stop();
+      landing = null;
     };
 
     /** the detent: the arrow clicks and brightens, and lets go a little lower */
@@ -278,7 +273,6 @@ export default function HistoryScrub() {
       if (g?.phase !== "armed") return;
       window.clearTimeout(holding);
       g.phase = "panel";
-      g.openedAt = performance.now();
       to(open, 1, OPEN);
       const e = HISTORY[g.from + g.sel];
       if (e) say(`${e.title}, ${g.sel + 1} of ${g.count}`);
@@ -344,6 +338,7 @@ export default function HistoryScrub() {
     /** vertical travel in px, positive when the list moves down */
     const moveY = (px: number) => {
       if (g?.phase !== "panel") return;
+      g.moved = true;
       g.acc += px;
       // the list moving down brings the row above onto the highlight. A fast
       // push can cover more than one row in a single event, and passes each
@@ -367,7 +362,7 @@ export default function HistoryScrub() {
     const navigate = (target: number) => {
       if (!g) return;
       g.phase = "closing";
-      stopDwell();
+      cancelLand();
       setDir(target < indexRef.current ? "back" : "forward");
       indexRef.current = target;
       setIndex(target);
@@ -393,7 +388,7 @@ export default function HistoryScrub() {
      */
     const dismiss = () => {
       if (!g || g.phase === "closing") return;
-      stopDwell();
+      cancelLand();
       window.clearTimeout(holding);
       const wasOpen = g.phase === "panel";
       g.phase = "closing";
@@ -426,30 +421,18 @@ export default function HistoryScrub() {
       else if (g.phase === "panel") navigate(g.from + g.sel);
     };
 
-    /** fill the highlight, then commit. A resting trackpad's only way out */
-    const startDwell = () => {
-      stopDwell();
-      // a panel that just opened settles first, so a rest in its first
-      // second waits out the rest of that second before it starts to fill
-      const wait = g ? Math.max(0, g.openedAt + SETTLE - performance.now()) : 0;
-      if (reduce) {
-        const t = window.setTimeout(lift, wait + DWELL);
-        dwelling = { stop: () => window.clearTimeout(t) };
-        return;
-      }
-      dwelling = animate(dwell, 1, {
-        duration: DWELL / 1000,
-        delay: wait / 1000,
-        ease: "linear",
-        onComplete: lift,
-      });
+    /** commit where the hand left the panel, once it has stayed still */
+    const scheduleLand = () => {
+      cancelLand();
+      const t = window.setTimeout(lift, g?.moved ? LAND : LINGER);
+      landing = { stop: () => window.clearTimeout(t) };
     };
 
     /*
      * A trackpad swipe is wheel events with no start and no end, and no lift.
      * The first event of a run picks its axis. A run ends when its own timer
-     * fires, as in `swipe-back`, and a quiet panel then fills its highlight
-     * and commits, since resting fingers and lifted ones send the same nothing
+     * fires, as in `swipe-back`, and a quiet panel then commits where it is,
+     * since resting fingers and lifted ones send the same nothing
      */
     let run: {
       axis: "x" | "y";
@@ -464,15 +447,15 @@ export default function HistoryScrub() {
       if (!g) return;
       if (g.phase === "pull") dismiss();
       // an armed arrow that goes quiet with no tail is a hand holding still.
-      // It may have lifted slowly instead, so the panel starts filling at once
-      // and still lands one page back
+      // It may have lifted slowly instead, so the panel still commits on its
+      // own, one page back, if nothing moves
       else if (g.phase === "armed") {
         openPanel();
-        startDwell();
+        scheduleLand();
       }
       // the list stays where the hand left it inside its row. Only passing a
       // row snaps, so a rest against an end does not spring back to centre
-      else if (g.phase === "panel") startDwell();
+      else if (g.phase === "panel") scheduleLand();
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -482,7 +465,7 @@ export default function HistoryScrub() {
       const dy = e.deltaY * unit;
       // in an open panel only scrubbing and backing off mean anything. A
       // lift's trickle, and the swipe still running on toward the page after
-      // the detent, leave the run to go quiet and the fill to run
+      // the detent, leave the run to go quiet and the panel to commit
       if (g?.by === "wheel" && g.phase === "panel") {
         const toward = g.side === "back" ? -dx : dx;
         const sideways = Math.abs(dx) > Math.abs(dy);
@@ -533,7 +516,7 @@ export default function HistoryScrub() {
       if (!g && r.axis === "y") return;
       e.preventDefault();
       if (g?.by !== "wheel") return;
-      stopDwell();
+      cancelLand();
       g.sizes.push(Math.hypot(dx, dy));
       if (g.sizes.length > 12) g.sizes.shift();
       if (g.phase === "pull" || g.phase === "armed") {
@@ -676,7 +659,7 @@ export default function HistoryScrub() {
       if (g?.by !== "keys" || g.phase !== "panel") return;
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
-        stopDwell();
+        cancelLand();
         step(e.key === "ArrowUp" ? -1 : 1);
       } else if (e.key === "Enter") {
         e.preventDefault();
@@ -715,7 +698,7 @@ export default function HistoryScrub() {
       ro.disconnect();
       if (run) window.clearTimeout(run.timer);
       window.clearTimeout(holding);
-      dwelling?.stop();
+      landing?.stop();
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointermove", onMove);
@@ -730,7 +713,7 @@ export default function HistoryScrub() {
       el.removeEventListener("keyup", onKeyUp);
       el.removeEventListener("blur", onBlur);
     };
-  }, [reduce, pull, arm, open, pos, off, close, dwell, fade]);
+  }, [reduce, pull, arm, open, pos, off, close, fade]);
 
   // the box mounts with the gesture, so its first frame is painted here
   useLayoutEffect(() => {
@@ -843,13 +826,7 @@ export default function HistoryScrub() {
               ref={highlight}
               className="absolute top-0 overflow-hidden rounded-lg bg-text-primary/6"
               style={{ left: PAD, right: PAD, height: ROW }}
-            >
-              <div
-                ref={fill}
-                className="absolute inset-0 origin-left bg-text-primary/6"
-                style={{ transform: "scaleX(0)" }}
-              />
-            </div>
+            ></div>
             <div
               ref={rows}
               className="absolute"

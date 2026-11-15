@@ -39,17 +39,18 @@ export const GIVE = 0.3;
 
 /** a wheel run that goes quiet this long has lifted or is resting */
 export const GAP = 140;
-/** a resting panel commits after this long, shown by the highlight filling */
-export const DWELL = 320;
 /**
- * The panel holds this long after it opens before any fill starts, so it can
- * be read before it starts counting down
+ * A panel commits on the hand going still, the nearest a page gets to the
+ * fingers lifting, and with nothing drawn for it. After a scrub, `LAND` more
+ * past the quiet gap. A panel that opened on a hold and has not moved waits
+ * `LINGER`, so a resting hand has time to start scrubbing
  */
-export const SETTLE = 1000;
+export const LAND = 120;
+export const LINGER = 700;
 /**
  * px under which a wheel event in an open panel is ignored. Fingers that drift
- * as they lift trail tiny deltas for a while, and each one used to restart the
- * fill, so a lift on the right row sometimes took over a second to land
+ * as they lift trail tiny deltas for a while, and each one would restart the
+ * wait, so a lift on the right row could take over a second to land
  */
 export const TRICKLE = 1.5;
 
