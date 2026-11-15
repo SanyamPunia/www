@@ -3635,6 +3635,33 @@ const LABS = {
       await wait(900);
     },
   },
+  "history-scrub": {
+    // the top of the stage at the card's 8:5: the panel opens round the
+    // middle line and rises above it, and only the history dots fall outside
+    focus: [0, 0, 538, 336],
+    /*
+     * A trackpad pull from the left arms the arrow, and a slide up opens it
+     * into the panel. One push up the list lands on YouTube, and the rest
+     * fills the highlight and commits. A pull from the right opens Forward,
+     * one push down lands on X, and it commits, so the clip ends on
+     * the page it opens on and loops.
+     */
+    async run({ page, m }) {
+      const swipe = async (dx, dy, n) => {
+        for (let i = 0; i < n; i++) await page.mouse.wheel(dx, dy);
+      };
+      await m.move(269, 280);
+      await wait(600);
+      await swipe(-12, 0, 14);
+      await wait(60);
+      await swipe(0, -5, 14);
+      await wait(1500);
+      await swipe(12, 0, 14);
+      await wait(60);
+      await swipe(0, 5, 14);
+      await wait(1500);
+    },
+  },
 };
 
 function crop(rect, bounds) {
