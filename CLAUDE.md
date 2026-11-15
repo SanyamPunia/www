@@ -13878,11 +13878,11 @@ the sound, and `index.tsx` the stage, the input and the paint.
   settled the list back to the row's centre whenever a wheel run went quiet,
   which read as the list taking the row back from the hand, and against an
   end it pulled the list back to centre a moment after every push.
-- **A lift lands about 480ms after the last event**: the 140ms gap, then
-  the 320ms fill. It was 650ms of fill, and fingers that drift as they lift
-  trail tiny deltas that restarted it each time, so a lift on the right row
-  sometimes took over a second. Events under `TRICKLE`, 1.5px, are now
-  ignored in an open panel, so the run goes quiet and the fill runs.
+- **A lift after a scrub lands about 260ms after the last event**: the
+  140ms gap, then `LAND`, 120ms. Fingers that drift as they lift trail tiny
+  deltas, and each one restarted the wait, so a lift on the right row
+  sometimes took over a second. Events under `TRICKLE`, 1.5px, are ignored in
+  an open panel, so the run goes quiet and the panel commits.
 - **Moving back against the pull closes the panel**, at the author's
   request: 40px of sideways travel against it dismisses without going
   anywhere, by wheel or by drag. The panel shrinks 12% over 260ms on a plain
@@ -13919,12 +13919,17 @@ the sound, and `index.tsx` the stage, the input and the paint.
     The panel never opens, so a quick swipe never flashes the whole history.
   - **A hold opens the panel.** An armed arrow that goes quiet for 140ms with
     no tail is a hand holding still, and so is 16px of mostly vertical travel.
-    A panel that goes quiet fills its highlight over 320ms and commits, since
-    a slow lift sends no tail either. **A panel that just opened settles
-    first**, at the author's request: no fill starts until it has been open
-    for `SETTLE`, 1s, so it can be read before it counts down. A hold and
-    lift with no movement lands about 1.3s after the panel opens. It starts on the page one step away, so
-    that case still lands where a swipe would. Any scrub stops the fill.
+    **A panel commits where the hand leaves it, with nothing drawn**, at the
+    author's request: the gesture is the whole interaction, so wherever the
+    hand lands is where it goes. Going still stands in for lifting, since a
+    slow lift sends no tail either. After a scrub that is `LAND` past the
+    quiet gap. A panel that opened on a hold and has not moved waits
+    `LINGER`, 700ms, so a resting hand has time to start scrubbing. It starts
+    on the page one step away, so a hold and lift lands where a swipe would.
+    Any scrub cancels the wait.
+  - **There was a visible timer, and it came out.** The highlight filled
+    over 320ms before a commit, after a 1s settle once the panel opened. The
+    author found it a mechanism the gesture did not need.
   - **The tail test is strict because a loose one failed.** The first build
     read five shrinking deltas as a lift, and a hand slowing to hold passed
     it, so every hold went back a page and the panel never opened. Eight
@@ -13944,7 +13949,7 @@ the sound, and `index.tsx` the stage, the input and the paint.
     forward swipe in quick succession lost the second one.
   - **In an open panel only scrubbing and backing off count.** The swipe
     running on toward the page and a lift's trailing events do not restart
-    the fill.
+    the wait.
   - Filtering that tail out of the open panel was tried next and removed. A
     push that eases off decays the same way, so the filter ate the end of
     every push and a 65px push never passed a row. A lift mid-scrub can carry
@@ -13959,7 +13964,7 @@ the sound, and `index.tsx` the stage, the input and the paint.
   context menu, Escape, a window blur or a hidden tab drops the drag and
   closes the gesture without going anywhere. Verified with ten scenarios in
   Chrome, each from a fresh load.
-- **A wheel panel always ends.** An earlier build started the fill only when
+- **A wheel panel always ends.** An earlier build started the wait only when
   a run went quiet inside the panel, so a pull that rested into the panel and
   lifted with no further movement left it open for good. The run that arms
   now carries its own quiet timer into the panel.
@@ -14006,7 +14011,7 @@ the sound, and `index.tsx` the stage, the input and the paint.
   trackpad.
 - Its clip pulls from the left, slides up into the panel, pushes one row to
   YouTube and rests until it commits, then does the same from the right to
-  X, so it ends on the page it opens on and loops. 5.5s and 47KB.
+  X, so it ends on the page it opens on and loops. 5.5s and 45KB.
 
 ## Motion
 
