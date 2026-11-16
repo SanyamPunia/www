@@ -1,0 +1,6 @@
+{
+  "title": "safari would not scroll the page",
+  "description": "Desktop Safari ignored the wheel and trackpad on one page. The cause was overscroll-behavior: none on the root plus a wheel listener that could cancel. Either alone was fine.",
+  "date": "2026-11-17",
+  "readTime": "5 min read"
+}

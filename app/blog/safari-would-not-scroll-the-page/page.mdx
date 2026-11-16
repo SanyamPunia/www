@@ -1,0 +1,114 @@
+import { Bisect, Inputs, Pair, Paths, Query, Scroll } from "./demos";
+
+On a Mac, Safari would not scroll one of our product pages with a mouse wheel
+or a trackpad. Chrome scrolled it, Safari on a phone scrolled it, and the
+console showed no errors.
+
+<Scroll />
+
+## two rules that were fine alone
+
+The global stylesheet turned off the rubber-band bounce and pull-to-refresh.
+
+```css
+html,
+body {
+  overscroll-behavior: none;
+}
+```
+
+A walkthrough in the hero steps through product screens, one per swipe. To
+hold the page still while it steps, it cancels wheel events. The listener
+looked roughly like this.
+
+```ts
+window.addEventListener("wheel", onWheel, { passive: false });
+
+function onWheel(e: WheelEvent) {
+  if (!stepping) return;
+  e.preventDefault();
+  step(Math.sign(e.deltaY));
+}
+```
+
+With both on the page, desktop Safari stops scrolling. Either one alone is
+fine.
+
+<Pair />
+
+## why the listener matters
+
+A passive listener hears about a wheel event but cannot cancel it, so the
+browser scrolls without waiting. `passive: false` makes the browser wait for
+the handler to return first. Here the handler only returned, and Safari
+dropped the scroll anyway.
+
+<Paths />
+
+Phones never had the bug. A finger fires touch events and no wheel events, so
+the listener never ran. I did not trace the bug into WebKit's source.
+
+## how I found it
+
+Playwright's WebKit build had the same bug, so I could test changes from a
+script. The check looked something like this.
+
+```ts
+const browser = await webkit.launch();
+const page = await browser.newPage();
+await page.goto(url);
+await page.mouse.move(400, 400);
+await page.mouse.wheel(0, 800);
+await page.waitForTimeout(300);
+console.log(await page.evaluate(() => scrollY)); // 0 in WebKit
+```
+
+The page scrolled with JavaScript off, and it scrolled on `staging` before the
+change. The page has four React islands. I blocked each island's script in
+turn, and only the hero broke the scroll.
+
+<Bisect />
+
+A passive listener fixed it, but the walkthrough has to cancel. I tried CSS
+changes on the root, and only `overscroll-behavior: auto` helped. Each fix
+worked alone, so the bug needed both causes at once.
+
+## the fix
+
+The no-bounce rule is for touch screens. I kept it there and gave mice and
+trackpads the browser default back.
+
+```css
+html,
+body {
+  overscroll-behavior: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html {
+    overscroll-behavior: auto;
+  }
+}
+```
+
+<Inputs />
+
+The query matches a precise pointer that can hover, which means a mouse or a
+trackpad. A width query gets tablets and narrow desktop windows wrong.
+
+<Query />
+
+On a Mac the page bounces at the top and bottom again. Nothing else changed.
+
+## a panel that holds the wheel
+
+With the pointer on the walkthrough's Insights panel, the wheel scrolls the
+panel and the page stays still. Move the pointer off the panel and the page
+scrolls. Chrome does the same, so this one is not the bug.
+
+## the short version
+
+- A page-wide rule for phones broke wheel scrolling in desktop Safari, next to a wheel listener that can cancel.
+- An empty console does not prove there is no bug. Engine bugs fail without an error.
+- When two separate fixes each work, look for two causes that fail only together.
+- Scope behaviour by input type with `(hover: hover) and (pointer: fine)`, not by screen width.
