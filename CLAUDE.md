@@ -1482,6 +1482,46 @@ small fix. `demos.tsx` holds `Flight`, `Restyle` and `Network`, one per cause.
   `useReducedMotion`, which would be a hydration mismatch, since the server
   cannot know the setting.
 
+### `safari-would-not-scroll-the-page`
+
+Desktop Safari ignored the wheel and trackpad on a product page. The cause was
+`overscroll-behavior: none` on the root together with a non-passive `window`
+wheel listener. The source notes are `articles/02-desktop-safari-would-not-scroll.md`
+in the landing repo. Like the stutter post, the intro names a product page and
+not the company.
+
+- **Figures carry the depth, the prose stays short.** The author asked for
+  depth after a short first version, then for less prose and more pictures.
+  Each section is a few sentences and a figure.
+- **Nothing in it goes past the source notes.** The notes do not trace the bug
+  into WebKit's source, and the post says so. The listener and Playwright
+  snippets are labelled as approximate. The island names in `Bisect` are the
+  four `client:` islands on the landing repo's `work-trial.astro`.
+- **`demos.tsx` holds six figures.** `useSwipes` drives one picture: four
+  swipes up on a loop, `stuck` keeps the page still and flashes red, `bounce`
+  lets the last swipe pull past the end and spring back. `Mac` is a window over
+  a trackpad and `Phone` a phone with a finger on the screen, both around one
+  `Page`.
+  - `Scroll` is the bug behind the stutter post's mode pill.
+  - `Pair` has one pill per cause, and the page only sticks with both on. With
+    only the no-bounce rule on, the page scrolls and stops dead at the end,
+    which is what that rule does.
+  - `Paths` is the one diagram: a dot travels from the input to the scroll,
+    through the wheel listener only when the listener can cancel. A passive
+    listener gets a faint ghost dot, since it is told and not waited for.
+    Touch skips the listener, because it fires no wheel event.
+  - `Bisect` has a pill for JavaScript and one per island. The page sticks
+    until JavaScript or the hero is off.
+  - `Inputs` is a phone beside a Mac. The phone scrolls without bounce both
+    ways, and the Mac is stuck until the fix is on.
+  - `Query` is static: four device cards with whether each can hover and has a
+    fine pointer, and what the root gets. Only the two that match both are
+    filled.
+- `runner()` owns one loop's animations and timers, and stops them all when the
+  loop is replaced.
+- The figures break out to 54rem, so the post passes `toc={false}`. Reduced
+  motion runs nothing and shows the page where it would end up.
+
 ### `unslopping-a-site-with-dither-grain-ascii-and-line-screens`
 
 One mock hero four times, each with one treatment on its art: ordered dither,
