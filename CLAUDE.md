@@ -2071,7 +2071,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere` and `scrub-chart` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart` and `card-pack` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2086,7 +2086,7 @@ experiment is a directory under `components/labs/`.
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
   `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
-  `event-stacking` and `scrub-chart` use it.
+  `event-stacking`, `scrub-chart` and `card-pack` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -2198,6 +2198,9 @@ experiment is a directory under `components/labs/`.
   `history-scrub` scopes one deep matte tone per visit, for the wash behind
   the page's icon and that icon's shadow, since a hue is what tells seven
   pages built from the same parts apart. See its own section.
+  `card-pack` scopes the foil of its pack, the card stock, one ground and ink
+  per study and its holo spectrum, since a printed wrapper and a printed card
+  are the objects. See its own section.
   `tab-overview` keeps its values in its own stylesheet and the others in a
   `const` beside their own data, which is the better of the two: prefer it. The
   signature player's two stroke hues are the same exception outside the lab, and
@@ -14052,6 +14055,265 @@ the sound, and `index.tsx` the stage, the input and the paint.
 - Its clip pulls from the left, slides up into the panel, pushes one row to
   YouTube and rests until it commits, then does the same from the right to
   X, so it ends on the page it opens on and loops. 5.5s and 45KB.
+
+### `card-pack`
+
+A sealed foil pack of five cards. A drag across the top peels the strip off
+along a perforation, the cards rise out, the pack drops away, and the cards
+fan out face down. A tap turns a card over. It came from the card reveals on
+design showcase sites (Inspora's digital card packs, and Revolut's and
+Plasma's card animations on 60fps.design). `pack.ts` is the geometry and the
+tear, pure and DOM-free. `strip.ts` is the strip in WebGL 2 and the foil
+flecks. `cards.ts` is the ten studies, the deal and the scoped hues.
+`card.tsx` is one card and its flip,
+`texture.ts` the grain, and `index.tsx` the hand and the order of the phases.
+
+- **The strip is WebGL and the rest of the pack is DOM**, at the author's
+  request after a DOM strip that turned flat in its own plane read as a
+  stiff stick. The strip is a 120 by 10 mesh over the pack's top 50px. The
+  vertex shader peels the part behind the tear front round a cylinder
+  standing on the front, turns it up in the pack's plane over the first
+  40px so it bends off the seam rather than shearing, tumbles it about its
+  length once it is free, and carries it off. The fragment shader paints the
+  same foil as the DOM skin, cuts the serrated top and the torn bottom,
+  prints the perforation where the strip still holds, lights it from the
+  pointer, and paints the underside as the silver film.
+- **The strip paints the skin's own layers, so it continues the body with
+  no seam.** At first the shader approximated the skin with its own noise
+  and a point light, and the strip read as a different material: the
+  specular streaks stopped at the perforation, the creases differed, and
+  the light rested in a different place. Now the shader composites the
+  skin's layers in the skin's order with its blend modes: the 170 degree
+  print, the vertical shade and the pillow, interpolated in premultiplied
+  colour as CSS does, then the crease and grain noise as `soft-light` and
+  `overlay`, then the glow as `soft-light` and the two streak bands as
+  `screen`, placed in px along the 100 degree gradient line as CSS measures
+  them. The crease and grain are the same SVG data URIs as the skin's,
+  rasterised to textures at twice their tile size, and mid grey until they
+  load, which is no change under either mode. Both start from one resting
+  light, `LIGHT`, at (70, 90). The strip's own 3D shading multiplies on top
+  and is 1 on the flat, and its glint scales with how far it has bent.
+  The corner fold lines start under the perforation, where the strip no
+  longer covers their tops.
+- **The bend is gentle, and a tight one was tried first.** A 7px curl that
+  rolled past upright as the hand rose turned the strip into a tube, seen
+  end-on as a dark sliver. The curl is now 0.12 to 0.62 rad on a 34 to 64px
+  radius, and the lift is mostly the in-plane turn, up to 46 degrees, the way
+  a hand pulls a strip up and away. The perspective is a 2000px eye.
+- **The strip never leaves the stage, which is clipped.** Its turn is capped
+  so its outer top corner stays 12px under the stage's top edge: turned by
+  a, that corner rises `reach sin a + pivotY cos a` above the line it turns
+  about. The room allowed is less the perspective's growth, since the bow
+  brings the far end up to 120px toward the eye and the shader draws it
+  larger about the pack's centre. A first cap that used only the turn line
+  let the top corner reach the edge, and the strip was cut there. Checked
+  by pixel on 30 frames per width of a hard upward haul and the flight that
+  follows: nothing in the band inside the edge.
+- **A free strip relaxes its bow flat in 0.25s, and the cap counts the
+  flip.** The flip turns the bowed end about the strip's length, which
+  swings it up by its depth times the sine of the flip, up to about 70px,
+  and that carried the strip's corner past the top edge mid-toss.
+- **The empty pack sinks 24px further, shrinks to 92% and fades as the
+  cards leave it.** It used to fall 440px, out through the bottom edge,
+  where it was cut. Checked by pixel on 120 frames over two runs at each width, all
+  four edges: nothing in the band inside them.
+- **The fading pack is `pointer-events-none` once the cards fan.** It fades
+  where it is now, over the cards, and on a phone it took every press meant
+  for them, so no card turned over.
+- **A torn strip is tossed aside, not thrown off.** It hops 26px, flips onto
+  its silver back and lands flat 150px down, as far to the side as the
+  stage has room for. Where the stage is too narrow for it to land clear of
+  the pack, which is a phone's, it fades as it comes down rather than
+  landing on the pack's face.
+- **A strip that has torn its full length is marked free, and every vertex
+  goes with it.** A vertex counts as torn when it is behind the front, and
+  at the end of the tear the front sits exactly on the strip's far edge, so
+  that column had a distance of 0 and stayed on the pack. The strip flew off
+  with its last column pinned and stretched back to the wrapper like a
+  string. `u_free` also gives the whole strip the full in-plane turn, which
+  otherwise eases in over the first 40px behind the front, and the flight
+  starts at 0.12s, once the tear has run out.
+- **Lighting is clamped both ways.** The print is a dark violet, so a face
+  turned from the light went to black, and with the light low across a flat
+  strip a face turned toward it flared to a saturated blue. The diffuse
+  ratio is held between 0.5 and 1.35 of flat.
+- **The cleanup deletes the GL objects and never loses the context.** React
+  runs an effect twice in development, and `loseContext` on the first
+  cleanup left the same canvas unable to compile anything on the second, so
+  the strip silently fell back to flat. Where WebGL 2 is missing the strip
+  is a flat DOM piece that fades when the tear finishes.
+- **The tear's numbers are a plain object, not motion values.** A drag
+  writes them, gsap tweens them, and one frame loop hands them to the
+  shader. The loop runs only while a hand is down, a tween is running or a
+  fleck is alive.
+- **The finish is one gsap timeline**: the last of the tear runs out in
+  120ms, then the strip is tossed and lands over 0.75s, the cards set off
+  at 0.3s and settle about 2.1s later, and the strip goes with the pack as
+  it fades. A drop back below `FINISH` is `elastic.out(1, 0.5)` over 0.7s,
+  so a strip let go early settles onto the pack with a little give.
+- **The reveal is one continuous movement per card**, at the author's
+  request, after the `choreograph` skill.
+  - **It was two animations, and that was the seam.** The cards rose and
+    stopped, then a second animation fanned them, so however the timings
+    were tuned each card braked to a stop at the top and set off again in a
+    new direction. Tuning the curves and springs could not hide it.
+  - **Each card now travels one curve**, a quadratic from inside the pack,
+    up through the top of its rise and over into its place in the fan. One
+    progress value drives the curve and everything else on the card, the
+    turn, the depth, the fade and the light, so nothing starts or stops
+    apart. The journey is sampled into 36 keyframes joined straight, since
+    the easing is already in the samples.
+  - **The progress starts and ends at rest**: an ease in-out cubic on
+    `t^0.85`, a little quicker off the mark than it is to settle. A first
+    cut of this keyframed y in two segments on its own curves, and the
+    card launched at about 300px/s in one frame and its speed rose and fell
+    three times on the way. Measured per frame in the browser now: every
+    card starts at about 3px/s, rises once and falls once, the outer card
+    peaking near 430px/s, and the largest frame-to-frame change is about
+    45px/s, which is frame-time jitter. The middle card, which has no
+    sideways travel, slows to about 60px/s at the top of its arc without
+    stopping.
+  - **The turn, the depth and the light hold through the first 30% and
+    ease in from rest.** The cards leave on gaps that shrink, 70, 50, 40
+    and 30ms, over a 1.8s journey.
+  - **One stacking order from the pack to the fan**, `rankOf`: the middle
+    card is the top of the deck, then its neighbours, left before right,
+    then the outer pair. It sets the stacking, the order the cards leave in
+    and how high each rises, so the fan opens from the middle outward. The
+    stacking used to follow the deal while the cards were in flight, the
+    rightmost card on top, and switch to middle-on-top once the fan
+    settled, so the cards visibly swapped over at the end. A card under the
+    pointer comes to the front, by a hovered index rather than an animated
+    `zIndex`.
+  - **The journeys are memoised per pack and stage width**, and the phase
+    changes along the way only switch stacking and interactivity, so a
+    render never hands motion new keyframes mid-flight. Once a journey
+    ends, the card's target becomes its plain resting values, so a hover
+    returns to rest instead of replaying the journey.
+  - **The pack's sink, shrink and fade are one keyframed movement** on the
+    same clock, and the cards come above it halfway through, once it has
+    faded, so they are never seen through it.
+- **An opened pack shows its mouth, not a block.** The strip takes both
+  layers off along the same line, so above the tear there is nothing but
+  the table. `mouthClip` is the back panel's inside face from its torn edge,
+  10px above the front's since the pack is laid back, down behind the front,
+  held inside the drawn-in sides, with a light line on the edge. It first
+  filled the whole strip's area, serrated top and all, which read as a grey
+  block standing behind the strip, and then poked out past the sides. The
+  cards rest with their tops 6px under the back's edge.
+- **Each tooth the tear passes throws flecks and jolts the pack.** Flecks are
+  WebGL points, square scraps in the film's silver or the print's violet,
+  under gravity and drag. The jolt is a spring on the pack's rotation, half a
+  degree per tooth, and a bigger one when the strip comes off.
+- **The tear runs one way.** Progress only grows during a drag, and the edge
+  nearer the first press is where it starts.
+- **The pack is a filled foil wrapper, in layers**: the print, a pillow of
+  shading lit down the middle and falling off to both edges and the foot,
+  creases and grain from SVG turbulence in `texture.ts`, embossed ridges on
+  both seals with the pinch they pull into the foil beside them, crease
+  lines at the four corners, embossed type, and a broad glow plus a hard
+  specular streak placed by the pointer. It tips toward the pointer up to 7
+  and 10 degrees and casts a two-part shadow and a contact shadow on the
+  stage. Its inside, seen through the tear, is the silver film, darker
+  further in.
+- **A card is built as a printed trading card.** Corners are 9px, 3mm on a
+  63mm card. Three layers of cut edge sit between the faces, 1.2px either
+  side of the middle, so a turned card shows a rim of stock. The back is
+  printed to a 7px border of bare stock in a rosette of fine ellipses, the
+  way a banknote's ground is, with the mark stamped at its heart.
+- **The face is full-art, at the author's request**: the photograph is the
+  card, and the type is cut to what a collector reads first. The name and a
+  one-line caption sit at the foot on the photo's own backdrop, the number
+  and the rarity diamonds small at the head, and a printed keyline runs
+  inside the edge. The first face put the photo in a window on white stock
+  with a divider, the rarity word, "series one" and a "holo foil" label
+  under it, which made the meta louder than the picture.
+  - **The photo sits at the card's full width and fades into the ground.**
+    The photos are square and the card is tall, and filling the height
+    enlarged them 1.4 times and cut the objects at the sides. So the photo
+    takes the upper part, scaled 1.08 about its centre, and a mask fades
+    its foot into the card's ground.
+  - **Each ground is sampled off the foot of its photo**, so the fade has
+    no seam. The generated backdrops came out close to the asked-for
+    colours and not on them.
+  - **The type follows the ground**: dark on the nine pale cards and white
+    on dusk's indigo, by luminance, with the dark card's depth fade halved,
+    since the light stage over indigo read as a grey wash.
+- **Each card holds a photograph, as `specimen-stack`'s do**, at the
+  author's request, after layered vector scenes could not give the cards
+  the depth the specimen photographs have. The ten are one natural object
+  each on a seamless paper backdrop in the card's own ground colour, lit
+  from the upper left with the shadow to the lower right, which is the
+  scene's key light. The author generated them in ChatGPT from one shared
+  style prompt, the ember first and the other nine in the same chat as
+  "same style" follow-ups, so the set reads as one series. They are
+  `public/assets/card-pack/<name>.webp`, 640px square at quality 82, 10 to
+  27KB each and 171KB for the set, against 1.7 to 1.9MB as PNG. The
+  window shows the ground colour while a photo loads.
+- **The holo card carries a foil film over its whole face**: a spectrum
+  band sliding against the pointer, a fine diagonal line pattern and flecks,
+  all stronger as the card tips. On a pale card it is a colour dodge. On a
+  dark one the dodge blew the indigo out to a pastel wash and lost the
+  photograph, so a dark card takes it as a gentler screen.
+- **Depth is taken from `specimen-stack`.** Each card has its lift shadow,
+  deeper as `--l` rises, an edge light, a glare placed by `--gx`, `--gy` and
+  `--ga`, a tilt toward the pointer on a spring, and a fade by `--dim`. In
+  the fan the middle card is nearest and the outer cards fade 0.12 a step,
+  under a 1400px perspective, and each catches a resting light where its
+  turn puts it. A hovered card comes forward 40px and loses its fade.
+- **Depth against `specimen-stack`, `live-activities` and
+  `morphing-toolbar`, at the author's request.** Compared side by side, the
+  pack was a flat rectangle facing the eye under no particular light. Five
+  changes followed:
+  - **One key light, up and to the left.** Every shadow falls down and to
+    the right of what casts it: the pack's two-part shadow and its floor
+    shadow, a dark contact line where it meets the table, each card's lift
+    shadow and the fan's floor shadow. The cards' resting glare and the
+    strip's light start there too, until a pointer moves them.
+  - **The sealed pack rests turned toward the light**, 13 degrees about its
+    upright and laid back 7, under a 1200px perspective, with the pointer
+    tip added on top. It squares up to the eye when the strip comes off,
+    so the cards rise straight out of it.
+  - **Its sides draw in.** `sideInset` bows each side in by up to 5px
+    between the seals, which stay at full width, so the outline reads as a
+    filled pillow and not a card. The rim is stroked along the drawn-in
+    sides, lit on the left and shaded on the right, since an inset shadow
+    on the skin is cut off by the body's clip.
+  - **The foil has range.** The pillow is lit on the left and falls to
+    half black on the right, the foot is darker, the creases are stronger,
+    and the specular streak is a hard white band with a second fainter one,
+    where it was a faint wash. The strip's shader uses the same stops.
+  - **The fan has more depth**: each card turns in 14 degrees a step, sits
+    52px further back, and the whole fan is laid back 6 degrees.
+- **The cards' container is not `transform-3d`**, and it was. A preserved
+  3D context sorts that box, which is at z 0, in front of the cards set
+  back behind it, so it took their clicks and only the middle card flipped.
+- **It is `wide` and drawn at the wide stage's size**, at the author's
+  request. The pack is 250 by 344 and a card 176 by 252, with every length
+  inside in design px. The scene is drawn for 640 by 540 and scales by
+  whichever side runs short, and the pointer maths divides by the same
+  scale. The strip's canvas reaches 280px past the pack so the strip stays
+  on it in flight, and is sized to the device pixels at that scale.
+- **The keyboard path is the strip's own button.** Enter or Space tears it
+  across in 0.55s, and focus moves to the first card once the fan settles.
+  The cards are buttons with `aria-pressed`, labelled with their name,
+  rarity and holo once turned. "New pack" from the keyboard focuses the new
+  pack's strip.
+- **Reduced motion keeps the drag**, since it is direct manipulation. A
+  finished tear fades the strip and the cards fade straight into the fan,
+  with no flight, flecks, jolts, rise or spring. A flip snaps.
+- **Scoped hues**: the pack's foil and film, the card stock and its edge,
+  each study's ground and ink, and the holo spectrum. See the scoped-colour
+  list above.
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-112` floor, with its
+  own inset ring. Verified at 1280 and 390px by drag, by keyboard, and
+  through a new pack, with every card taking its own click, no sideways
+  scroll and no console errors.
+- Its clip tears the strip most of the way across and lets go, so the tear
+  finishes on its own. It then turns two cards and the holo, and draws a new
+  pack, so it ends on a sealed pack and loops. It waits 2.7s after the
+  tear before turning cards, since the fan settles about 2.5s after the
+  strip comes off. 8.9s and 115KB.
 
 ## Motion
 
