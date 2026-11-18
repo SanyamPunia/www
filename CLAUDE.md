@@ -14285,6 +14285,26 @@ flecks. `cards.ts` is the ten studies, the deal and the scoped hues.
     where it was a faint wash. The strip's shader uses the same stops.
   - **The fan has more depth**: each card turns in 14 degrees a step, sits
     52px further back, and the whole fan is laid back 6 degrees.
+- **Every highlight is a reflection, so it moves with the surface, not
+  with the pointer**, at the author's request. Both shines used to sit
+  under the pointer and jump with every move, and a card's glare switched
+  on and off at full strength as the pointer crossed its edge.
+  - **The pack's highlight is placed off its tilt**, 7px across and 9px
+    down for each degree the pack tips from rest, for the skin's glow and
+    streak and the strip's light alike, so it rides the tilt's spring. The
+    tilt spring is softer, 120 and 20, since a reflection drifts as a pack
+    is turned in the hand. Measured with the pointer jumped from one edge
+    of the pack to the other: the highlight travels about 127px over 50
+    frames, at most 9px in one, where it used to cross in a single frame.
+  - **A card's glare blends from its resting light to the hand's**, by
+    `--hk`, a presence spring at 120 and 22 that swells as the hand
+    arrives and dies away where it is when it leaves. The hand's glare,
+    the holo band and the tilt share one spring at 170 and 20, so the
+    glare can never move ahead of the card, and the lift shadow deepens
+    with the same presence. Measured: the glare comes up over about 15
+    frames, at most 0.07 a frame, and slides at most 3.5% of the card in
+    one. The springs write their variables to the node from change
+    listeners, so a hover never renders.
 - **The cards' container is not `transform-3d`**, and it was. A preserved
   3D context sorts that box, which is at z 0, in front of the cards set
   back behind it, so it took their clicks and only the middle card flipped.
