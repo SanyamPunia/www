@@ -1493,7 +1493,7 @@ const ALL_LABS: LabMetadata[] = [
       "the tear only runs one way, throws foil flecks at each tooth, and a let-go past most of the way finishes on a gsap timeline. one card in each pack is holo.",
     ],
     createdAt: "2026-11-18",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/card-pack/index.tsx",
     flush: true,
