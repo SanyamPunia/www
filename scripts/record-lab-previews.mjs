@@ -3662,6 +3662,57 @@ const LABS = {
       await wait(1500);
     },
   },
+  "card-pack": {
+    // a `wide` lab: the clip is the whole 8:5 stage, and the gesture is
+    // written against the column's 538 and scaled
+    focus: [0, 0, 864, 540],
+    design: 538,
+    /*
+     * The hand takes the strip at the pack's left edge and tears it most of
+     * the way across, lifting as it goes, and lets go so the tear finishes on
+     * its own. The cards rise and fan, two of them are turned over, the holo
+     * last of all wherever it fell, and a new pack is drawn so the clip ends on
+     * a sealed pack and loops. The new pack press jumps on and off it.
+     */
+    async run({ page, m }) {
+      const y = 82;
+      await wait(500);
+      await m.move(200, y + 40, 8);
+      await m.move(200, y, 6);
+      await m.down();
+      for (let k = 1; k <= 40; k++) {
+        await m.move(200 + k * 3.2, y - k * 0.6);
+        await wait(16);
+      }
+      await m.up();
+      // the reveal is unhurried, and the fan settles about 2.5s after the
+      // strip comes off
+      await wait(2700);
+      const fan = (k) => [269 + k * 73, 172 + k * k * 6];
+      for (const k of [-1, 1]) {
+        await m.click(...fan(k));
+        await wait(500);
+      }
+      const holo = await page
+        .locator('[data-lab-demo] button[aria-pressed="false"]')
+        .evaluateAll((cards) =>
+          cards.findIndex((c) => c.querySelector(".mix-blend-multiply")),
+        );
+      if (holo >= 0) {
+        await page
+          .locator('[data-lab-demo] button[aria-pressed="false"]')
+          .nth(holo)
+          .evaluate((c) => c.click());
+      }
+      await wait(1400);
+      await m.move(519, 17, 1);
+      await m.down();
+      await wait(50);
+      await m.up();
+      await m.move(470, 320, 1);
+      await wait(1300);
+    },
+  },
 };
 
 function crop(rect, bounds) {
