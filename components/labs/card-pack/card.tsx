@@ -1,7 +1,11 @@
 "use client";
 
-import { motion, useSpring } from "motion/react";
-import { type PointerEvent as ReactPointerEvent, useRef } from "react";
+import { type MotionValue, motion, useSpring } from "motion/react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useEffect,
+  useRef,
+} from "react";
 import { cn } from "@/lib/utils";
 import { type Dealt, PACK, type Rarity, STOCK } from "./cards";
 import { CH, CR, CW } from "./pack";
@@ -78,6 +82,20 @@ function Dim({ amount = 1 }: { amount?: number }) {
   );
 }
 
+/*
+ * The glare's place and strength. At rest it is the light the card catches
+ * at its place in the fan, `--gx`, `--gy` and `--ga`, which its wrapper sets.
+ * Under a hand it is `--hx` and `--hy`, which follow the card's tilt on the
+ * tilt's own spring, and `--hk` blends from one to the other on a spring of
+ * its own. So the glare never jumps to the pointer or switches on: it slides
+ * as the card turns and swells as the hand arrives, the way a reflection off
+ * a turning card does.
+ */
+const GX =
+  "(var(--gx, 50) * (1 - var(--hk, 0)) + var(--hx, 50) * var(--hk, 0))";
+const GY =
+  "(var(--gy, 30) * (1 - var(--hk, 0)) + var(--hy, 30) * var(--hk, 0))";
+
 /** a light that follows the tilt: a soft glow and a raking band */
 function Glare() {
   return (
@@ -85,9 +103,8 @@ function Glare() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 rounded-[inherit] mix-blend-overlay"
       style={{
-        opacity: "var(--ga, 0)",
-        background:
-          "radial-gradient(circle at calc(var(--gx, 50) * 1%) calc(var(--gy, 30) * 1%), rgb(255 255 255 / 0.8) 0%, rgb(255 255 255 / 0) 55%), linear-gradient(calc(110deg + var(--gx, 50) * 0.6deg), rgb(255 255 255 / 0) 35%, rgb(255 255 255 / 0.22) 50%, rgb(255 255 255 / 0) 65%)",
+        opacity: "calc(var(--ga, 0) + (1 - var(--ga, 0)) * var(--hk, 0))",
+        background: `radial-gradient(circle at calc(${GX} * 1%) calc(${GY} * 1%), rgb(255 255 255 / 0.8) 0%, rgb(255 255 255 / 0) 55%), linear-gradient(calc(110deg + ${GX} * 0.6deg), rgb(255 255 255 / 0) 35%, rgb(255 255 255 / 0.22) 50%, rgb(255 255 255 / 0) 65%)`,
       }}
     />
   );
@@ -414,7 +431,15 @@ function Face({ card }: { card: Dealt }) {
 /** how far a card tips toward the pointer, in degrees */
 const TIP = 9;
 
-const TILT = { stiffness: 260, damping: 22 };
+/**
+ * The tilt, and the reflection that rides on it, share one spring, so the
+ * glare can never move ahead of the card. Softer than it was, since a stiff
+ * spring tracked the pointer near enough 1:1 and read as a sticker.
+ */
+const TILT = { stiffness: 170, damping: 20 };
+
+/** how quickly the hand's light swells in and dies away */
+const PRESENCE = { stiffness: 120, damping: 22 };
 
 export function Card({
   card,
@@ -434,6 +459,32 @@ export function Card({
   const node = useRef<HTMLButtonElement>(null);
   const rx = useSpring(0, TILT);
   const ry = useSpring(0, TILT);
+  const hx = useSpring(50, TILT);
+  const hy = useSpring(30, TILT);
+  const holoAt = useSpring(50, TILT);
+  const presence = useSpring(0, PRESENCE);
+
+  // the springs write the glare's variables straight to the node, so a hover
+  // never renders. The lift shadow deepens with the same presence
+  useEffect(() => {
+    const el = node.current;
+    if (!el) return;
+    const write = (name: string, value: MotionValue<number>, unit = "") => {
+      const set = (v: number) => el.style.setProperty(name, `${v}${unit}`);
+      set(value.get());
+      return value.on("change", set);
+    };
+    const offs = [
+      write("--hx", hx),
+      write("--hy", hy),
+      write("--hk", presence),
+      write("--l", presence),
+      write("--holo", holoAt, "%"),
+    ];
+    return () => {
+      for (const off of offs) off();
+    };
+  }, [holoAt, hx, hy, presence]);
 
   const point = (e: ReactPointerEvent<HTMLButtonElement>) => {
     const el = node.current;
@@ -441,12 +492,11 @@ export function Card({
     const b = el.getBoundingClientRect();
     const u = (e.clientX - b.left) / b.width;
     const v = (e.clientY - b.top) / b.height;
-    el.style.setProperty("--gx", `${u * 100}`);
-    el.style.setProperty("--gy", `${v * 100}`);
-    el.style.setProperty("--ga", "1");
-    el.style.setProperty("--l", "1");
+    presence.set(1);
+    hx.set(u * 100);
+    hy.set(v * 100);
     // the band runs the other way to the pointer, the way a reflection does
-    if (card.holo) el.style.setProperty("--holo", `${(1 - u) * 100}%`);
+    holoAt.set((1 - u) * 100);
     if (reduce) return;
     // a flipped card is seen from behind, so its tilt runs the other way
     const side = flipped ? -1 : 1;
@@ -454,15 +504,10 @@ export function Card({
     ry.set((u - 0.5) * TIP * 2 * side);
   };
 
+  // the hand's light dies away where it is, and the card settles back to the
+  // light it catches at its place in the fan
   const leave = () => {
-    const el = node.current;
-    // the hand's light goes, and the card falls back to the light it catches
-    // at its place in the fan, which its wrapper sets
-    if (el) {
-      for (const v of ["--gx", "--gy", "--ga", "--l"]) {
-        el.style.removeProperty(v);
-      }
-    }
+    presence.set(0);
     rx.set(0);
     ry.set(0);
   };

@@ -104,6 +104,9 @@ const CARDS_OUT = 26 + CH / 2 - DESIGN_H / 2;
  */
 const LIGHT = [70, 90] as const;
 
+/** how far the highlight slides, in px, for each degree the pack tips */
+const GLINT = { x: 7, y: 9 };
+
 /** how near the strip may come to the stage's clipped edge, in px */
 const EDGE = 12;
 
@@ -258,8 +261,10 @@ function Scene({
 
   // the sealed pack tips toward the pointer, the way a held pack is turned
   // to catch the light, and jolts a little at each tooth the tear passes
-  const tipX = useSpring(REST.x, { stiffness: 220, damping: 20 });
-  const tipY = useSpring(REST.y, { stiffness: 220, damping: 20 });
+  // soft, since the highlight rides on it and a reflection drifts as a pack
+  // is turned in the hand rather than following the pointer
+  const tipX = useSpring(REST.x, { stiffness: 120, damping: 20 });
+  const tipY = useSpring(REST.y, { stiffness: 120, damping: 20 });
   const jolt = useMotionValue(0);
 
   const frame = useCallback(() => {
@@ -332,6 +337,30 @@ function Scene({
     last.current = performance.now() / 1000;
     raf.current = requestAnimationFrame(frame);
   }, [frame]);
+
+  // the pack's highlight is the key light's reflection, so it moves when the
+  // pack turns and not when the pointer does: it is placed off the tilt, on
+  // the tilt's spring, for the skin and the strip alike. It used to sit
+  // under the pointer and jump with every move
+  useEffect(() => {
+    const place = () => {
+      const dx = tipX.get() - REST.x;
+      const dy = tipY.get() - REST.y;
+      const gx = LIGHT[0] + dy * GLINT.x;
+      const gy = LIGHT[1] - dx * GLINT.y;
+      front.current?.style.setProperty("--gx", `${gx}px`);
+      front.current?.style.setProperty("--gy", `${gy}px`);
+      light.current = [gx, gy];
+      wake();
+    };
+    place();
+    const offX = tipX.on("change", place);
+    const offY = tipY.on("change", place);
+    return () => {
+      offX();
+      offY();
+    };
+  }, [tipX, tipY, wake]);
 
   useEffect(() => {
     const c = canvas.current;
@@ -475,7 +504,6 @@ function Scene({
     }
     t.p = next;
     t.lift = liftOf(next, g.y - at.y);
-    light.current = [at.x, at.y];
     wake();
     if (next >= 1) finish();
   };
@@ -531,10 +559,6 @@ function Scene({
     const b = node.getBoundingClientRect();
     const u = (e.clientX - b.left) / b.width;
     const v = (e.clientY - b.top) / b.height;
-    node.style.setProperty("--gx", `${u * W}px`);
-    node.style.setProperty("--gy", `${v * H}px`);
-    light.current = [u * W, v * H];
-    wake();
     if (reduce || grip.current || done.current) return;
     tipX.set(REST.x + (0.5 - v) * PACK_TIP.x * 2);
     tipY.set(REST.y + (u - 0.5) * PACK_TIP.y * 2);
