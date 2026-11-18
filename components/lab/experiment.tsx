@@ -627,6 +627,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/history-scrub").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "card-pack": dynamic(
+    () => import("@/components/labs/card-pack").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */

@@ -1484,6 +1484,22 @@ const ALL_LABS: LabMetadata[] = [
     bare: true,
     hint: "Two-finger swipe or drag sideways, then slide up or down.",
   },
+  {
+    slug: "card-pack",
+    title: "Card Pack",
+    description: [
+      "a sealed pack of five cards. drag across the top to tear the strip off, the cards rise out and fan face down, and a tap turns one over.",
+      "key insight: the strip is a webgl mesh peeled round a cylinder standing on the tear's front, so it bends off the seam, shows its silver underside as it turns, and is lit from the pointer.",
+      "the tear only runs one way, throws foil flecks at each tooth, and a let-go past most of the way finishes on a gsap timeline. one card in each pack is holo.",
+    ],
+    createdAt: "2026-11-18",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/card-pack/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Drag across the top to tear it open. Tap a card to flip it.",
+  },
 ];
 
 /**
@@ -1646,6 +1662,7 @@ export const IMPLEMENTED_LABS = [
   "squash-sphere",
   "scrub-chart",
   "history-scrub",
+  "card-pack",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
