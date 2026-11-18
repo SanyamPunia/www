@@ -57,7 +57,7 @@ See Agent readiness below for what it covers.
 |---|---|
 | Package manager | `pnpm` |
 | Icon library | The site's own set in `components/icons/`, see Icons below. No icon package is installed |
-| Motion library | `motion` (imported from `motion/react`), **not** `framer-motion`. `gsap` is installed for exactly one lab, `custom-cursor`, see its section. Nothing else imports it, and a component never mixes the two. |
+| Motion library | `motion` (imported from `motion/react`), **not** `framer-motion`. `gsap` is also installed. Use it where it fits better, for example a timeline that sequences several values, as in `custom-cursor` and `card-pack`. |
 | Color system | A fixed **light** theme. Semantic tokens only, see below. |
 | Type scale | Named tokens `text-lead` / `text-body` / `text-action` / `text-meta` |
 | Default radius | `rounded-full` pills and avatars, `rounded-lg` cards, `rounded-md` inputs |
@@ -12453,9 +12453,9 @@ under the sheet, `bubble-sound.ts` the sound, and `index.tsx` the stage, the
 fingers and one frame loop.
 
 - **It is WebGL 2 and not GSAP.** The look is per-pixel light through curved
-  film, which only a fragment shader can draw at this size, and `gsap` is
-  scoped to `custom-cursor`. Nothing here is a tween: the motion comes from
-  the physics and one `requestAnimationFrame` loop.
+  film, which only a fragment shader can draw at this size. Nothing here is a
+  tween: the motion comes from the physics and one `requestAnimationFrame`
+  loop.
 - **A pop is a pressure, not a timer.** A dome is
   `h = H (1 - r²/a²)^0.62` with a fixed amount of air in it. A fingertip is a
   sphere coming down at a dome height every `PRESS` (0.12s), and the film's
