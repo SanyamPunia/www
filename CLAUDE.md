@@ -2071,7 +2071,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart` and `card-pack` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack` and `scroll-disintegrate` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2086,7 +2086,7 @@ experiment is a directory under `components/labs/`.
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
   `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
-  `event-stacking`, `scrub-chart` and `card-pack` use it.
+  `event-stacking`, `scrub-chart`, `card-pack` and `scroll-disintegrate` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -14334,6 +14334,81 @@ flecks. `cards.ts` is the ten studies, the deal and the scoped hues.
   pack, so it ends on a sealed pack and loops. It waits 2.7s after the
   tear before turning cards, since the fan settles about 2.5s after the
   strip comes off. 8.9s and 115KB.
+
+### `scroll-disintegrate`
+
+A headline that breaks into grains as it scrolls out at the head of its
+stage, and comes back together as it scrolls in from the foot. `passage.ts`
+is the copy, the layout, the atlas and the cells. `grains.ts` is the shader
+and the GL setup, and `index.tsx` is the stage, the scroll and the frame loop.
+
+- **It came from a gallery idea, not a reference.** The scroll-driven text
+  disintegration effects on recent.design were the prompt. The passage is one
+  sentence, written for the lab and cut into five pieces.
+- **The grains are the text, and there is no second copy.** The passage is
+  drawn once to a 2D canvas at device pixels, and every cell of it with any
+  ink becomes one WebGL point the size of that cell. A point samples its own
+  cell through `gl_PointCoord`, with `NEAREST` filtering, so at rest the
+  points tile the atlas texel for texel and read as plain text. Nothing
+  crossfades from a crisp copy to a particle copy.
+  - **The cell is a whole number of device pixels**, `round(2 * dpr)`, and
+    each piece's shift is rounded to a device pixel, so a grain at rest never
+    straddles a pixel boundary.
+  - **Only inked cells become points.** The atlas is read back once per
+    layout and a cell with no alpha above 3 is skipped.
+- **A piece's trip is one signed number.** Below 0 it is still scattered under
+  its place and assembling, 0 is the crisp band, above 0 it is leaving. The
+  band runs from a piece's middle at 76% of the stage's height up to 32%, so
+  about two pieces are crisp at once, and a piece is fully scattered at 110%,
+  just under the foot. `tripFor` in `passage.ts` is the whole curve.
+- **Each grain leaves after a delay that runs along its line**, 0.55 of the
+  trip across the widest line plus 0.2 of noise, and travels for the last
+  0.25. So a line breaks up from its first letter to its last, and assembles
+  in the same reading order. The wind is up and to the right on the way out,
+  so the way in is from below and to the left. A grain cools toward
+  `text-muted` and shrinks as it flies, so dust reads lighter than ink.
+- **The page scrolls natively under the canvas, and the canvas draws an eased
+  copy of the scroll.** `approach` from `lib/lerp.ts` at a 0.12s time constant,
+  so a mouse wheel's 100px notch is one glide rather than a jump in every
+  grain. This differs from `reading-depth`, which glides the page itself.
+  Here nothing else on the stage is visible, so easing only the drawing is
+  enough and every input (wheel, thumb, keys, scrollbar) stays the
+  browser's own. The loop stops once the drawn scroll reaches the real one.
+- **The layout is the canvas's, and the DOM follows it.** Each piece is
+  wrapped with `measureText` at the stage's width, lowercased the way the site
+  displays it, and the DOM renders those same lines at the same places in
+  `text-transparent`. That copy sets the scroll height and keeps the text in
+  the page. A `sr-only` paragraph carries the whole sentence for a screen
+  reader, since the pieces are fragments of one sentence.
+- **The atlas waits for the font.** `document.fonts.load` with the exact font
+  string comes before the draw, since the atlas is drawn once and a fallback
+  face would stay in it until the next resize.
+- **The type is off the scale on purpose**, the standing `foil-card` and
+  `reading-depth` give type drawn on a stage: 6.8% of the stage's width,
+  between 24px and 58px, weight 600, a 1.08 leading and -0.035em tracking.
+  24px is the floor because at 26px the third piece wrapped its last word
+  onto a line of its own at 390px.
+- **Both shaders declare `highp`.** A `mediump` fragment shader failed to link,
+  since `uCell` is shared with the vertex shader and a uniform's precision has
+  to match in both. The lab then showed its fallback with no error on the
+  page, only in the console.
+- **A context that will not compile shows the DOM copy in `text-primary`**, so
+  the passage still reads and scrolls with no effect. A lost context stops
+  the loop, and a restored one compiles and loads the atlas again.
+- **Reduced motion keeps the trip and drops the travel.** No grain moves or
+  shrinks, and a piece fades as a whole on the same trip, so the crisp band
+  still reads as the place to look. The drawn scroll follows the real one
+  with no easing.
+- It invents no colour. The ink is `text-primary` and the dust `text-muted`,
+  read off the root's custom properties and normalised through a 2D context.
+- It is `flush` and `wide` on `bg-fill`, `aspect-8/5` with a `min-h-78`
+  floor, the same stage as `voice-orb`. The focus ring is a layer over the
+  passage, `pull-refresh`'s call. Verified at 1280 and 390px and under
+  reduced motion, with no console errors from the lab.
+- Its clip wheels slowly down the whole passage, then more quickly back to the
+  top, so every piece comes back together and it ends on the frame it opens
+  on and loops. Its steps are a share of the scroll height, since the
+  passage's length follows the stage's width. 9.9s and 392KB.
 
 ## Motion
 
