@@ -3713,6 +3713,36 @@ const LABS = {
       await wait(1300);
     },
   },
+  "scroll-disintegrate": {
+    // a `wide` lab: the clip is the whole 8:5 stage, and the gesture is
+    // written against the column's 538 and scaled
+    focus: [0, 0, 864, 540],
+    design: 538,
+    /*
+     * A slow wheel down the whole passage, so each line breaks up at the head
+     * as the next one assembles at the foot, then a quicker wheel back to the
+     * top, so every line comes back together and the clip ends on the frame
+     * it opens on and loops. The steps are a share of the scroll, since the
+     * passage's length follows the stage's width.
+     */
+    async run({ page, m }) {
+      const max = await page
+        .locator("[data-lab-demo] section")
+        .evaluate((s) => s.scrollHeight - s.clientHeight);
+      await m.move(269, 168);
+      await wait(700);
+      for (let i = 0; i < 100; i++) {
+        await page.mouse.wheel(0, max / 100);
+        await wait(24);
+      }
+      await wait(600);
+      for (let i = 0; i < 55; i++) {
+        await page.mouse.wheel(0, -max / 55);
+        await wait(24);
+      }
+      await wait(900);
+    },
+  },
 };
 
 function crop(rect, bounds) {

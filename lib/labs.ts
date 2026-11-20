@@ -1500,6 +1500,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Drag across the top to tear it open. Tap a card to flip it.",
   },
+  {
+    slug: "scroll-disintegrate",
+    title: "Scroll Disintegrate",
+    description: [
+      "a headline that breaks into grains as it scrolls out at the top, and comes back together as it scrolls in from the bottom.",
+      "key insight: the text is drawn once to an atlas and every inked 2px cell becomes a webgl point that samples its own cell through `gl_PointCoord`, so at rest the grains tile the atlas exactly and are the text, with no crisp copy to swap out.",
+      "each grain leaves after a delay that runs along its line, so a line goes from its first letter to its last. the canvas draws an eased copy of the native scroll, so a wheel notch is a glide.",
+    ],
+    createdAt: "2026-11-20",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/scroll-disintegrate/index.tsx",
+    flush: true,
+    wide: true,
+    hint: "Scroll the passage down, then back up.",
+  },
 ];
 
 /**
@@ -1663,6 +1679,7 @@ export const IMPLEMENTED_LABS = [
   "scrub-chart",
   "history-scrub",
   "card-pack",
+  "scroll-disintegrate",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

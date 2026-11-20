@@ -631,6 +631,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/card-pack").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "scroll-disintegrate": dynamic(
+    () => import("@/components/labs/scroll-disintegrate").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
