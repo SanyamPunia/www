@@ -1509,7 +1509,7 @@ const ALL_LABS: LabMetadata[] = [
       "each grain leaves after a delay that runs along its line, so a line goes from its first letter to its last. the canvas draws an eased copy of the native scroll, so a wheel notch is a glide.",
     ],
     createdAt: "2026-11-20",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/scroll-disintegrate/index.tsx",
     flush: true,
