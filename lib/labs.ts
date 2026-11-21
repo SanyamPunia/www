@@ -1516,6 +1516,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Scroll the passage down, then back up.",
   },
+  {
+    slug: "dither-input",
+    title: "Dither Input",
+    description: [
+      "a text field whose glow is a dithered gradient. the light gathers at the caret and follows it as you type, each keystroke sends a small pulse out, and enter sends a large one.",
+      "key insight: the bayer threshold is read from each cell's place on the screen, never from the light, so the glow slides through a still grid of pixels instead of the pattern crawling with it.",
+      "each pixel dithers between the two nearest stops of a five-stop ramp that runs warm to cool across the field, so every soft edge is flat colours stepping and never a blend.",
+    ],
+    createdAt: "2026-11-21",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/dither-input/glow.ts",
+    flush: true,
+    wide: true,
+    hint: "Click the field and type. Press Enter to send a pulse.",
+  },
 ];
 
 /**
@@ -1680,6 +1696,7 @@ export const IMPLEMENTED_LABS = [
   "history-scrub",
   "card-pack",
   "scroll-disintegrate",
+  "dither-input",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

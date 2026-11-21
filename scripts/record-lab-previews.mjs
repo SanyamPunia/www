@@ -3743,6 +3743,33 @@ const LABS = {
       await wait(900);
     },
   },
+  "dither-input": {
+    // a `wide` lab: the clip is the whole 8:5 stage, and the gesture is
+    // written against the column's 538 and scaled
+    focus: [0, 0, 864, 540],
+    design: 538,
+    /*
+     * A press on the stage focuses the field, so the halo widens and the lamp
+     * finds the caret. A line is typed at a reading pace, each key sending a
+     * small pulse, and Enter sends a large one. The line is cleared and the
+     * field blurred, so the clip ends on the resting field it opens on and
+     * loops.
+     */
+    async run({ page, m }) {
+      await wait(700);
+      await m.click(269, 60);
+      await wait(700);
+      await page.keyboard.type("light follows the caret", { delay: 95 });
+      await wait(250);
+      await page.keyboard.press("Enter");
+      await wait(1300);
+      await page.keyboard.press("ControlOrMeta+A");
+      await page.keyboard.press("Backspace");
+      await wait(300);
+      await page.evaluate(() => document.activeElement?.blur());
+      await wait(1800);
+    },
+  },
 };
 
 function crop(rect, bounds) {
