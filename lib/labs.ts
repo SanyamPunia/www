@@ -1525,7 +1525,7 @@ const ALL_LABS: LabMetadata[] = [
       "each pixel dithers between the two nearest stops of a five-stop ramp that runs warm to cool across the field, so every soft edge is flat colours stepping and never a blend.",
     ],
     createdAt: "2026-11-21",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/dither-input/glow.ts",
     flush: true,
