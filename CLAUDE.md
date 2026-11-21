@@ -217,6 +217,11 @@ in the light tokens to sit it against.
   is a new colour and the crossing is the two sets the site already has. This is
   still not dark mode: nothing outside that one demo changes, and the page around
   it stays white. See its own section.
+- `components/labs/dither-input/` is a glow on a dark ground, which is
+  `ember-burst`'s case: a light drawn on `bg` has nothing to be brighter
+  than. The whole stage inverts. The glow's ground is `inverse-bg` and its
+  ramps are scoped hues, see the list below, and the field is `inverse-fill`
+  with an `inverse-stroke` edge.
 
 The values are the previous dark build's, so the two versions of the site stay
 recognisably related. `inverse-text` is 18.97:1 on `inverse-bg` and
@@ -2071,7 +2076,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack` and `scroll-disintegrate` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack`, `scroll-disintegrate` and `dither-input` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2086,7 +2091,7 @@ experiment is a directory under `components/labs/`.
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
   `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
-  `event-stacking`, `scrub-chart`, `card-pack` and `scroll-disintegrate` use it.
+  `event-stacking`, `scrub-chart`, `card-pack`, `scroll-disintegrate` and `dither-input` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -2198,6 +2203,9 @@ experiment is a directory under `components/labs/`.
   `history-scrub` scopes one deep matte tone per visit, for the wash behind
   the page's icon and that icon's shadow, since a hue is what tells seven
   pages built from the same parts apart. See its own section.
+  `dither-input` scopes two four-stop ramps for its glow, warm and cool,
+  since the gradient is the subject: the lab is a glow and nothing else. See
+  its own section.
   `card-pack` scopes the foil of its pack, the card stock, one ground and ink
   per study and its holo spectrum, since a printed wrapper and a printed card
   are the objects. See its own section.
@@ -14409,6 +14417,97 @@ and the GL setup, and `index.tsx` is the stage, the scroll and the frame loop.
   top, so every piece comes back together and it ends on the frame it opens
   on and loops. Its steps are a share of the scroll height, since the
   passage's length follows the stage's width. 9.9s and 392KB.
+
+### `dither-input`
+
+A text field whose glow is a dithered gradient. The light is a halo round the field
+that gathers at the caret and follows it as you type. Each keystroke sends a
+small pulse out from the caret, and Enter sends a large one. `glow.ts` is the
+shader and the GL setup, and `index.tsx` is the field, the caret's position
+and the frame loop.
+
+- **It began as a free dithered light field**, at the author's request, and
+  became an input at the author's next request. The dither and the loop
+  carried over. The field and the caret are what changed. It was then 1-bit,
+  ink and ground only, and the author asked for gradients.
+- **Each pixel dithers between the two nearest stops of a five-stop ramp.**
+  The ramp is the ground and then four tones, dim to bright. The light picks
+  a level between two stops and the Bayer threshold picks one of the two, so
+  every soft edge is flat colours stepping and never a blend. Nothing is
+  mixed in alpha.
+- **The ramp's hue shifts across the field.** Each stop is mixed between a
+  warm set on the left (indigo, violet, pink, peach) and a cool set on the
+  right (navy, blue, cyan, ice), with a slow sway along the height, so the
+  glow is a gradient in hue as well as in brightness. The two sets are
+  `WARM_RAMP` and `COOL_RAMP` in `index.tsx`.
+- **The threshold is fixed to the screen, and only the light moves.** Each
+  cell reads its threshold from its own place on the stage, so the glow
+  slides through a still grid of pixels. A threshold that moved with the light
+  would make the pattern crawl.
+- **The 8x8 Bayer matrix is built by recursion**, `bayer2` applied at three
+  scales, so the shader has no table. The light is sampled once per cell, at
+  its centre, so a cell is one value and one colour.
+- **A cell is 3 css px, rounded to whole device pixels**, so every edge is
+  sharp at any pixel ratio. The canvas is `image-rendering: pixelated` as
+  well.
+- **The halo is the field's rounded-rect distance**, measured off the input's
+  own box and corner radius, so the shader and the DOM agree on where the
+  field is. The light runs on under the field, which the input covers, so
+  the text always sits on a solid ground. The first build masked the inside
+  to ground, and at the rounded corners whole 3px cells of ground poked out
+  past the curve as a dark notch, since a cell takes one value from its
+  centre. The light is a faint ambient that
+  breathes while the field has focus, a lamp on the caret, and the pulses,
+  put through one curve: `1 - exp(-pow(light, 1.4) * 2.0)`. The power is a
+  toe, so the dim edges fall to ground rather than to a grey of sparse
+  pixels. The free field before it had no toe at first, and the whole stage
+  read as grey noise.
+- **The caret is measured, not read.** A page cannot ask an input where its
+  caret is drawn, so the text before `selectionEnd` is measured with the
+  field's own computed font, lowercased the way the site displays it, and
+  moved by `scrollLeft` so a long line still lands on the caret. It is
+  measured again on every input and every `select` event, which covers arrows,
+  clicks and selections. The lamp glides to it on `approach` at 0.08s.
+- **Typing has energy.** Each pulse adds to it, capped at 1.4, and it cools at
+  a 0.5s time constant, so a burst of typing brightens the halo and a pause
+  lets it settle. A keystroke's pulse is 0.45, a deletion's 0.3 and Enter's
+  1.6. A ring's speed and width grow with its strength. Six slots, and a
+  seventh pulse takes the oldest. Enter only pulses: it does not clear the
+  field.
+- **Every length in the shader is css px at the wide stage**, scaled by `fit`,
+  the stage's short side over 480 and clamped to 0.45 to 1. Without it the
+  glow flooded the 390px stage.
+- **The loop stops once the field is blurred and everything has settled**:
+  no focus, no energy, no live pulse and the lamp at rest. Energy and focus
+  snap to 0 below 0.005, or the loop ran on for seconds on a value nobody can
+  see. Measured: 0 frames requested in 1.5s, from 4s after a blur that
+  followed an Enter. It also stops off screen through an
+  `IntersectionObserver`.
+- **A press anywhere on the stage focuses the field**, so the stage reads as
+  one control. The field's focus state is the glow, plus a border step to
+  `inverse-text-secondary`. The site's focus ring is `text-primary` at 15%,
+  which is invisible on `inverse-bg`, so the field does not use it.
+- **The field is a raw `<input>`**, since the site has no input primitive.
+  `text-body` with a matching `placeholder:text-body`, `h-12`, and
+  `transition-all duration-200`. The site has no `size` prop for inputs, and
+  the height is the lab's own.
+- **Reduced motion draws one frame per change and no loop.** Focus and the
+  caret's lamp jump to where they are going, nothing breathes and no pulse is
+  sent. The glow still answers focus and the caret, since that is the
+  field's state and not decoration.
+- **A context that will not compile leaves the plain field**, with a 4px
+  `inverse-stroke` spread on focus in place of the glow. A lost context stops
+  the loop, and a restored one compiles again.
+- **The shader's distance function names its size argument `size`.** It was
+  `half`, which is a reserved word in GLSL ES, and the shader failed to
+  compile with only a console error to say so.
+- **Scoped hues**: the two ramps. See the scoped-colour list above.
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-78` floor. Verified at
+  1280 and 390px and under reduced motion, through focus, typing, Enter and
+  blur, with no console errors. The gradient was checked at 1280px.
+- Its clip focuses the field, types a line at a reading pace, presses Enter,
+  then clears the line and blurs, so it ends on the resting field it opens on
+  and loops. 7.5s and 138KB.
 
 ## Motion
 
