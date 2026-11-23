@@ -1541,7 +1541,7 @@ const ALL_LABS: LabMetadata[] = [
       "the well is a real fluid simulation on the gpu, and each texel carries the mixture's `k/s` times its weight, so advection does the mixing and streaks marble before they blend.",
     ],
     createdAt: "2026-11-23",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/paint-mixer/fluid.ts",
     flush: true,
