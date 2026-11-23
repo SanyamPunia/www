@@ -2076,7 +2076,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack`, `scroll-disintegrate` and `dither-input` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input` and `paint-mixer` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2091,7 +2091,7 @@ experiment is a directory under `components/labs/`.
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
   `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
-  `event-stacking`, `scrub-chart`, `card-pack`, `scroll-disintegrate` and `dither-input` use it.
+  `event-stacking`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input` and `paint-mixer` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -2203,6 +2203,8 @@ experiment is a directory under `components/labs/`.
   `history-scrub` scopes one deep matte tone per visit, for the wash behind
   the page's icon and that icon's shadow, since a hue is what tells seven
   pages built from the same parts apart. See its own section.
+  `paint-mixer` scopes its six pigments and the dish's porcelain, since a
+  pigment's colour is the pigment. See its own section.
   `dither-input` scopes two four-stop ramps for its glow, warm and cool,
   since the gradient is the subject: the lab is a glow and nothing else. See
   its own section.
@@ -14508,6 +14510,139 @@ and the frame loop.
 - Its clip focuses the field, types a line at a reading pace, presses Enter,
   then clears the line and blurs, so it ends on the resting field it opens on
   and loops. 7.5s and 138KB.
+
+### `paint-mixer`
+
+A colour picker that works like a paint well. Tap a pigment to throw a drop
+in, or drag it into the well and let go, then stir with the pointer. The
+mixture under the ring at the centre is the colour picked, with a name and its
+hex. `pigments.ts` is the paint model and the namer, `fluid.ts` the simulation
+and the drawing, `paint-sound.ts` the plop, and `index.tsx` the gestures and
+the frame loop.
+
+- **Paint mixes by single-constant Kubelka-Munk**, the textbook model for
+  opaque paint. Each channel's reflectance becomes `K/S = (1 - R)^2 / 2R` on
+  linear light, a mixture's K/S is the weighted mean, and it goes back through
+  `R = 1 + K/S - sqrt((K/S)^2 + 2 K/S)`. Blue and yellow make green, where
+  averaging RGB makes grey. Measured: one drop of each reads `#34694d`, deep
+  green.
+- **A pigment's weight is its amount times its tinting strength**, 0.7 for
+  white up to 1.8 for blue, so a drop of blue moves a well of white a long way,
+  as on a real palette.
+- **The well is stable fluids on the GPU.** Velocity runs at 128 square and
+  paint at 512 square in half float targets. A step is curl, vorticity,
+  divergence, 22 pressure iterations, the gradient taken out, then velocity
+  and paint advected. It needs WebGL 2 and `EXT_color_buffer_float`.
+- **A paint texel holds K/S times weight in rgb and the weight in alpha.**
+  Advection averages both, so the mixture wherever two paints meet is rgb over
+  alpha with no extra pass, and alpha is how much paint is there. Velocity
+  dissipates in about a second and paint never does, so streaks marble and
+  then blur into one colour.
+- **The well is a circle in the square grid.** A neighbour outside it is a
+  wall: velocity reflects, pressure copies the centre, and a back trace that
+  leaves the circle is pulled onto its rim, so paint stays in.
+- **The paint's edge at the wall is drawn by the display, not the grid.** The
+  circle cuts the 512 square paint grid into whole texels, so paint pressed
+  against the wall showed a stepped, jagged ring. Every read in the display
+  is pulled to a radius three texels inside the wall, which carries the
+  paint's colour and height out to the edge, and the paint fades into the
+  porcelain over a pixel and a half of screen.
+- **Velocity is capped at 0.75 wells a second in the splat, and that was a
+  bug.** Uncapped, a hard stir piled velocity up, and semi-Lagrangian
+  advection copied one paint over the rest: one blue drop filled the well and
+  the yellow was gone. Curl is 4 for the same reason.
+- **The paint is lit as a wet surface.** Its height is its alpha, its normal
+  comes from the height's gradient two texels out, and a gloss rides the
+  ridges. One texel out, the half float's steps read as speckle on the flat
+  top of a drop. The dish, its lip, its bowl and its shadow are the same
+  shader, from one height profile.
+- **A drop lands with a shoulder**, `exp(-r^2)` on the squared distance, where
+  a push fades out as a plain gaussian. A plain gaussian drop read as a blur.
+- **The readout is one pixel.** A pass averages the paint inside the ring
+  into a 1x1 RGBA8 target, runs it through Kubelka-Munk and reads it back,
+  every fourth frame. Under 12% cover it reads as an empty well.
+- **The name comes from OKLCH**: greys and browns first, then a tone word
+  from lightness and a hue band. It morphs through `torph`, and the hex is
+  written to its node, since it changes on every readout.
+- **The readout is a paint chip**, after an `interface-craft` critique of the
+  first card. That card put the name and the hex at one size under a flat
+  block, wrapped its recipe line mid-item ("1 / umber"), and held swirl and
+  rinse, which act on the well, inside the readout.
+  - **The name and the hex are printed on the paint**, in whichever of
+    `text-primary` and `inverse-text` has the higher contrast on it, written
+    to the swatch as `data-ink` in the same write as its colour. The name is
+    `text-lead`, the one large thing on the panel.
+  - **The copy control sits in the chip's corner** with a tooltip, and fades
+    out on an empty well.
+  - **The recipe is shares, not counts**: a bar sorted largest first and a
+    legend of whole percents that sum to 100 by largest remainder. Each item
+    is `whitespace-nowrap`, so the legend wraps between items and never
+    inside one. Counts grew longer with every drop. The total is the one
+    count left, beside "in the well".
+  - It is what is in the well, not what is under the ring.
+- **Nothing on the right appears or leaves in one frame**, at the author's
+  request.
+  - **The panel enters the first time it is seen**: the six pigments, then
+    the tools, then the chip, each rising 6px as it fades in, 50ms apart.
+  - **A legend row rises in when its pigment first lands**, and a bar segment
+    grows from a width of nothing. The name and the drop count morph through
+    `torph`, including to and from the empty state, and the hex fades rather
+    than blanking.
+  - **A rinse drains the chip with the well.** The chip goes to porcelain over
+    the drain's own 0.6s, the bar shrinks and the rows leave last first, and
+    readouts are skipped while the well drains, since a read part way down put
+    the colour back on the chip for a frame.
+  - **The legend holds two lines open**, so the card does not jump as it
+    empties or fills. On a phone it can run to three.
+- **Swirl and rinse sit under the pigments**, since what acts on the well
+  belongs with what goes into it, one step up the fills for the `fill`
+  stage.
+- **Two drops fall in the first time the well is seen**, yellow and blue, so
+  the demo opens on paint. Under reduced motion they are placed.
+- **A tapped drop is thrown, and the flight is drawn in depth**, at the
+  author's request after a flat arc read as a sticker sliding. The ground
+  point runs straight and the height is a parabola, sampled into 33 WAAPI
+  keyframes, so the drop is fastest as it comes down. It grows as it rises
+  toward the eye, stretches along its own screen velocity, and its shadow
+  crosses the stage under it, shrinking and darkening as the drop comes down.
+  On landing it flattens and fades into the paint.
+- **Every effect element's animation fills forwards, and that was a bug.**
+  They are placed by their animation alone, and between an animation ending
+  and its `onfinish` the browser can paint a frame with no transform, so the
+  drop, its shadow, the ring and the droplets each flashed at the stage's top
+  left corner.
+- **A landing spreads rather than appearing**, which was the other half of the
+  same note. The paint is deposited over 460ms in a disc that widens from a
+  third of a drop to all of it, scaled so the total is one drop. A ring of
+  light leaves the point and four droplets hop out and land as small dabs.
+  - **The spread pushes outward with one radial field, `uRadial` in the
+    splat.** Six separate pushes round the edge came first and pulled every
+    drop into a six-lobed flower.
+- **No force starts at full strength**, since the mixing read as sudden. A
+  swirl is a force that rises and falls over 1.5s on `sin^2`, the stirring
+  hand's speed is smoothed on a 70ms time constant, and velocity decays at
+  1.1 a second, so motion eases out too.
+- A drag shows a ghost and drops where it is let go inside the well, with the
+  same spread, ring and droplets, and anywhere else cancels. Enter on a dab
+  throws one.
+- **Swirl is the keyboard's and the phone's way to mix.** Rinse drains the
+  paint over 0.6s and does not confirm, since a demo mix is cheap to remake.
+- **The loop runs for 4.5s after the last touch**, while a hand is down, a
+  drop is in the air or a rinse drains, and stops off screen.
+- `touch-none` covers the well, so a finger stirs and does not scroll. That is
+  the trade `region-comment` makes.
+- **Without WebGL 2 the well is a flat disc of the whole recipe mixed at
+  once**, from the same model on the CPU, with a note saying so.
+- **Reduced motion keeps every state and drops the travel**: no throw, no
+  spread, ring or droplets, and an instant rinse. A stir is direct manipulation and is unchanged.
+- **Scoped hues**: the six pigments and the porcelain. See the scoped-colour
+  list above.
+- It is `flush` and `wide`, `sm:aspect-8/5`, on `bg-fill` with its own inset
+  ring. Verified at 1280 and 390px, by mouse, touch and keyboard, with no
+  sideways scroll and no console errors.
+- Its clip drags magenta into the well, stirs, taps white in and swirls. It
+  does not loop exactly, since the opening drops cannot be put back. 10.3s
+  and 151KB.
 
 ## Motion
 
