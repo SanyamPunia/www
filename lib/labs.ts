@@ -1532,6 +1532,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Click the field and type. Press Enter to send a pulse.",
   },
+  {
+    slug: "paint-mixer",
+    title: "Paint Mixer",
+    description: [
+      "a colour picker that works like a paint well. drop pigments in, stir with the pointer, and the mixture under the ring at the centre is the colour picked.",
+      "key insight: paint mixes by kubelka-munk, so each channel is mixed as absorption over scattering and turned back into reflectance. blue and yellow make green, where averaging rgb makes grey.",
+      "the well is a real fluid simulation on the gpu, and each texel carries the mixture's `k/s` times its weight, so advection does the mixing and streaks marble before they blend.",
+    ],
+    createdAt: "2026-11-23",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/paint-mixer/fluid.ts",
+    flush: true,
+    wide: true,
+    hint: "Tap or drag a pigment into the well, then stir it.",
+  },
 ];
 
 /**
@@ -1697,6 +1713,7 @@ export const IMPLEMENTED_LABS = [
   "card-pack",
   "scroll-disintegrate",
   "dither-input",
+  "paint-mixer",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];
