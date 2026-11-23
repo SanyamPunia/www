@@ -1524,6 +1524,13 @@ not the company.
     filled.
 - `runner()` owns one loop's animations and timers, and stops them all when the
   loop is replaced.
+- **The mode pill's ring is the same colour as its fill in every state.** When
+  on, its hover was `text-primary` at 85% under a solid near-black ring, and
+  the ring, a box-shadow outside `transition-colors`, snapped while the fill
+  eased, so a dark outline showed round a lighter pill on every hover. The
+  hover and press are opaque `color-mix` steps of the same tokens, the ring
+  takes them too, and the pill transitions `box-shadow` with its colours. The
+  stutter post's pill is the same class string and has the same fix.
 - The figures break out to 54rem, so the post passes `toc={false}`. Reduced
   motion runs nothing and shows the page where it would end up.
 
