@@ -49,10 +49,17 @@ const STAGE =
   "@container relative w-full overflow-hidden rounded-xl bg-fill ring-1 ring-stroke ring-inset";
 
 const PILL =
-  "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-bg px-3.5 py-2 text-action text-text-secondary ring-1 ring-stroke transition-colors duration-200 hover:bg-fill-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 active:bg-fill-active";
+  "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-bg px-3.5 py-2 text-action text-text-secondary ring-1 ring-stroke transition-[color,background-color,box-shadow] duration-200 hover:bg-fill-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary/15 focus-visible:ring-offset-2 active:bg-fill-active";
 
+/**
+ * The pill when it is on. Its ring is the same colour as its fill in every
+ * state, and both are opaque mixes that move on one transition. The hover was
+ * `text-primary` at 85% under a solid near-black ring, and the ring, a
+ * box-shadow, snapped while the fill eased, so a dark outline showed round a
+ * lighter pill through every hover.
+ */
 const PILL_ON =
-  "bg-text-primary text-bg ring-text-primary hover:bg-text-primary/85 hover:text-bg active:bg-text-primary/75";
+  "bg-text-primary text-bg ring-text-primary hover:bg-[color-mix(in_oklab,var(--color-text-primary)_85%,var(--color-bg))] hover:text-bg hover:ring-[color-mix(in_oklab,var(--color-text-primary)_85%,var(--color-bg))] active:bg-[color-mix(in_oklab,var(--color-text-primary)_75%,var(--color-bg))] active:ring-[color-mix(in_oklab,var(--color-text-primary)_75%,var(--color-bg))]";
 
 const MORPH = {
   duration: 160,
