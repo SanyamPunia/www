@@ -3770,6 +3770,83 @@ const LABS = {
       await wait(1800);
     },
   },
+  "paint-mixer": {
+    // a `wide` lab: the clip is the whole 8:5 stage
+    focus: [0, 0, 864, 540],
+    design: 538,
+    // the first two drops fall in when the well is first seen, so the poster
+    // is paint in the dish rather than an empty one
+    prep: async () => {
+      await wait(2200);
+    },
+    /*
+     * Magenta is dragged from its dab into the well and let go, the paint is
+     * stirred round the centre ring, white is tapped in, and the well is
+     * swirled, so the readout walks through the mixes. The boxes are read off
+     * the page, so the gesture follows the layout.
+     */
+    async run({ page }) {
+      const well = await page.locator("[data-lab-demo] canvas").boundingBox();
+      const dab = (name) =>
+        page
+          .locator(
+            `[data-lab-demo] button[aria-label^="Drop ${name}"] [data-dab]`,
+          )
+          .boundingBox();
+      const at = (u, v) => [well.x + well.width * u, well.y + well.height * v];
+      await wait(500);
+      const mag = await dab("Quinacridone");
+      await page.mouse.move(mag.x + mag.width / 2, mag.y + mag.height / 2, {
+        steps: 8,
+      });
+      await page.mouse.down();
+      const [tx, ty] = at(0.62, 0.38);
+      await page.mouse.move(tx, ty, { steps: 28 });
+      await wait(120);
+      await page.mouse.up();
+      await wait(800);
+      const [sx, sy] = at(0.5, 0.33);
+      await page.mouse.move(sx, sy, { steps: 10 });
+      await page.mouse.down();
+      for (let i = 0; i <= 90; i++) {
+        const a = -Math.PI / 2 + (i / 90) * Math.PI * 4;
+        const [x, y] = at(0.5 + 0.17 * Math.cos(a), 0.5 + 0.17 * Math.sin(a));
+        await page.mouse.move(x, y);
+        await wait(16);
+      }
+      await page.mouse.up();
+      await wait(700);
+      const white = await dab("Titanium");
+      await page.mouse.move(
+        white.x + white.width / 2,
+        white.y + white.height / 2,
+        {
+          steps: 10,
+        },
+      );
+      await page.mouse.down();
+      await wait(60);
+      await page.mouse.up();
+      await wait(1100);
+      const swirl = await page
+        .locator("[data-lab-demo] button", { hasText: "Swirl" })
+        .boundingBox();
+      await page.mouse.move(
+        swirl.x + swirl.width / 2,
+        swirl.y + swirl.height / 2,
+        {
+          steps: 10,
+        },
+      );
+      await page.mouse.down();
+      await wait(60);
+      await page.mouse.up();
+      await page.mouse.move(well.x - 40, well.y + well.height / 2, {
+        steps: 8,
+      });
+      await wait(2600);
+    },
+  },
 };
 
 function crop(rect, bounds) {
