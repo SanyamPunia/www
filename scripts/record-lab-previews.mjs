@@ -3847,6 +3847,50 @@ const LABS = {
       await wait(2600);
     },
   },
+  "dither-morph": {
+    // a `wide` lab: the clip is the whole 8:5 stage
+    focus: [0, 0, 864, 540],
+    design: 538,
+    // the pixels pour into the square when the stage is first seen, so the
+    // poster is the settled square rather than the pour
+    prep: async () => {
+      await wait(2600);
+    },
+    /*
+     * The pointer drifts through the square, then heart, star and ring are
+     * picked in turn and the square last, so the clip ends on the frame it
+     * opens on and loops. The pills are read off the page, so the gesture
+     * follows the layout.
+     */
+    async run({ page }) {
+      const stage = await page.locator("[data-lab-demo] canvas").boundingBox();
+      const pill = (name) =>
+        page.locator("[data-lab-demo] label", { hasText: name }).boundingBox();
+      const press = async (name) => {
+        const b = await pill(name);
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, {
+          steps: 8,
+        });
+        await page.mouse.down();
+        await wait(50);
+        await page.mouse.up();
+      };
+      await wait(500);
+      for (let i = 0; i <= 40; i++) {
+        await page.mouse.move(
+          stage.x + stage.width * (0.38 + 0.24 * (i / 40)),
+          stage.y + stage.height * (0.3 + 0.06 * Math.sin(i / 6)),
+        );
+        await wait(16);
+      }
+      for (const name of ["Heart", "Star", "Ring", "Square"]) {
+        await press(name);
+        await wait(1500);
+      }
+      await page.mouse.move(stage.x + 4, stage.y + 4, { steps: 4 });
+      await wait(700);
+    },
+  },
 };
 
 function crop(rect, bounds) {
