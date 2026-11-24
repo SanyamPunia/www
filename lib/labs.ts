@@ -1557,7 +1557,7 @@ const ALL_LABS: LabMetadata[] = [
       "pixels and cells are paired in clockwise order and set off in that order, so the stream starts at the top and runs round. the pointer pushes pixels aside.",
     ],
     createdAt: "2026-11-24",
-    live: false,
+    live: true,
     source:
       "https://github.com/SanyamPunia/www/blob/main/components/labs/dither-morph/shapes.ts",
     flush: true,
