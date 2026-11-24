@@ -1548,6 +1548,22 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Tap or drag a pigment into the well, then stir it.",
   },
+  {
+    slug: "dither-morph",
+    title: "Dither Morph",
+    description: [
+      "a fixed set of dithered pixels that rests as a rounded square and takes on any shape you pick. the pixels leave one after another and stream into the new shape.",
+      "key insight: every shape is lit, dithered and ranked onto one grid, and each takes the same number of top cells, so a morph moves the same pixels and never adds or drops one.",
+      "pixels and cells are paired in clockwise order and set off in that order, so the stream starts at the top and runs round. the pointer pushes pixels aside.",
+    ],
+    createdAt: "2026-11-24",
+    live: false,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/dither-morph/shapes.ts",
+    flush: true,
+    wide: true,
+    hint: "Pick a shape. Move the pointer through the pixels.",
+  },
 ];
 
 /**
@@ -1714,6 +1730,7 @@ export const IMPLEMENTED_LABS = [
   "scroll-disintegrate",
   "dither-input",
   "paint-mixer",
+  "dither-morph",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

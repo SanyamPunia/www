@@ -643,6 +643,10 @@ const EXPERIMENTS: Record<ImplementedLab, React.ComponentType> = {
     () => import("@/components/labs/paint-mixer").then(ready),
     { ssr: false, loading: Placeholder },
   ),
+  "dither-morph": dynamic(
+    () => import("@/components/labs/dither-morph").then(ready),
+    { ssr: false, loading: Placeholder },
+  ),
 };
 
 /** how long the frame takes to reach the lab's own height, and the lab to fade in */
