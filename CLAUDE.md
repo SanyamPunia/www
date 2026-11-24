@@ -2083,7 +2083,7 @@ experiment is a directory under `components/labs/`.
   `radial-menu`, `flip-clock`, `wrapped-pattern`, `book-shelf`, `shelf-drop`,
   `crack-button`, `stem-picker`, `pixel-reveal`, `ember-burst`,
   `notice-stack`, `tide-card`, `cube-orbit`, `foil-card`, `heart-flipbook`,
-  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input` and `paint-mixer` use it. `ember-burst`, `cube-orbit` and
+  `arc-menu`, `gust-flag`, `region-comment`, `forecast-list`, `photo-stack`, `invite-flap`, `point-cloud`, `fingerprint-ink`, `weather-morph`, `bento-focus`, `sketch-book`, `ambient-card`, `highlight-wave`, `abacus`, `scratch-card`, `scribble-type`, `smooth-caret`, `voice-orb`, `scrub-number`, `dot-island`, `home-hub`, `text-reveal`, `drop-zone`, `hold-confirm`, `swipe-row`, `pull-refresh`, `reading-depth`, `wheel-picker`, `volume-slider`, `zoom-dial`, `zipper-pouch`, `tear-calendar`, `overengineered-button`, `plucked-strings`, `bubble-wrap`, `sheet-detents`, `haptic-menu`, `omnibox`, `find-bar`, `reader-mode`, `swipe-back`, `condensation`, `morphing-toolbar`, `live-activities`, `specimen-stack`, `notification-stack`, `squash-sphere`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input`, `paint-mixer` and `dither-morph` use it. `ember-burst`, `cube-orbit` and
   `heart-flipbook` are the three entries where `flush` governs part of the
   frame rather than all of it: the stage runs to all four of its edges and the
   strip beneath carries its own padding, since a range track or a row of pills running into a hairline is not
@@ -2098,7 +2098,7 @@ experiment is a directory under `components/labs/`.
   blog's. `condensation`, `morphing-toolbar`, `live-activities`,
   `specimen-stack`, `loupe`, `rain-splatter`, `bubble-wrap`, `point-cloud`,
   `ember-burst`, `region-comment`, `home-hub`, `cube-orbit`, `reader-mode`,
-  `event-stacking`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input` and `paint-mixer` use it.
+  `event-stacking`, `scrub-chart`, `card-pack`, `scroll-disintegrate`, `dither-input`, `paint-mixer` and `dither-morph` use it.
   - **The ten older ones were chosen by looking at every lab's still**, for a
     surface to work in that the column shrinks: a map, a canvas, a scene, a
     page with a sidebar or a calendar. Single objects and components were
@@ -2215,6 +2215,9 @@ experiment is a directory under `components/labs/`.
   `dither-input` scopes two four-stop ramps for its glow, warm and cool,
   since the gradient is the subject: the lab is a glow and nothing else. See
   its own section.
+  `dither-morph` scopes two four-stop ramps per shape, since the author asked
+  for a gradient dither with its own gradient on each shape, and the ramp is
+  what shades it. See its own section.
   `card-pack` scopes the foil of its pack, the card stock, one ground and ink
   per study and its holo spectrum, since a printed wrapper and a printed card
   are the objects. See its own section.
@@ -14650,6 +14653,85 @@ the frame loop.
 - Its clip drags magenta into the well, stirs, taps white in and swirls. It
   does not loop exactly, since the opening drops cannot be put back. 10.3s
   and 151KB.
+
+### `dither-morph`
+
+A fixed set of dithered pixels that rests as a rounded square and takes on any
+shape picked below it: square, circle, ring, heart, star and bolt. The pixels
+leave one after another and stream into the new shape, and the pointer pushes
+them aside. `shapes.ts` lights and dithers each shape onto the grid,
+`swarm.ts` moves the pixels, and `index.tsx` is the stage, the picker and the
+frame loop. It is a draft (`live: false`).
+
+- **Every shape is drawn by the same pixels.** Each shape is ranked onto one
+  grid, and each takes the first `n` cells of its own ranking, so a morph only
+  moves pixels and never adds or drops one. `n` is 0.8 of an average shape's
+  cells. A shape with fewer cells than `n` stacks the rest on its best cells
+  from the top, so the thin bolt does not set the count for the full square.
+  The first build took `n` from the smallest shape, and the square's face was
+  nearly empty at 807 pixels.
+- **The dither is a gradient, at the author's request.** Each cell steps
+  between the two stops either side of its light on a four-stop ramp, dark to
+  pale, and the same Bayer threshold that picks the cells picks which stop, so
+  the tones dither as the ink does. The rim is always the darkest stop.
+- **Each shape has its own gradient, at the author's request**: two
+  four-stop ramps on its `SHAPES` entry, mixed from the shape's left to its
+  right. The square is violet to blue, the circle red to magenta, the ring
+  teal to blue, the heart rose to coral, the star gold to amber and the bolt
+  indigo to cyan. The hue band is read from where a pixel is in the shape's
+  box and dithered by the threshold, so it steps rather than stripes and
+  slides through the pixels as they fly. The first build read it across the
+  whole stage, and every shape sat in the middle third.
+- **A pixel takes its new stop and its new shape's colours as it sets off**,
+  so the colour change travels round with the stream.
+- **The ramps are mixed in OKLab** into eight bands, six shapes of 32
+  colours. Mixed in sRGB, two pale stops of different hue met in a grey. A
+  frame buckets the pixels by colour with a counting sort and fills one path
+  per colour in use.
+- **A shape is an SVG path in a 100 box**, rasterised onto the grid with
+  `Path2D`, so the picker's icon and the dithered shape are the same path.
+  The ring uses `evenodd` for its hole.
+- **Each shape is lit as a slab with a rounded bevel.** A two-pass chamfer
+  gives every cell its distance to the edge, the height rises over the bevel
+  and is flat on top, and a cell's ink is how far its surface faces away from
+  a light up and to the left. A faint fall across the top keeps the flat face
+  from being one grey. The rim is always inked, so the outline holds.
+- **The Bayer threshold is read from the stage's grid, not the shape's**, so
+  every shape dithers against one pattern and a settled pixel lands on the
+  same lattice whatever shape it is in.
+- **Shapes are scaled toward one area**, 0.46 of the box, never below 0.7 and
+  never above full size, so the square does not swamp the star.
+- **Pixels and cells are paired in clockwise order** round their own centres,
+  and the pairing is turned by 9% of the ring, so a pixel goes to the same
+  side of the next shape and the whole shape twists as it changes. Start
+  times follow the same order over 0.55s, so the stream sets off at the top
+  and runs round. This is the "following" motion the author asked for.
+- **Each pixel is a spring** at stiffness 120 and 0.68 of critical damping,
+  with a sideways pull at the start of its flight that fades over 0.32s, so
+  paths curve. A pixel that is still and within 0.3 device px of its cell is
+  snapped onto it, so a settled shape is a clean grid.
+- **The pixels pour in from all over the stage** the first time it is seen.
+- **The pointer pushes pixels within 44px aside**, and they spring back when
+  it leaves. A pixel held off its cell at rest does not count as moving, so
+  the loop stops under a still pointer too.
+- **The picker is real radios** in a `fieldset`, so the arrow keys walk it. A
+  click on the stage moves on to the next shape. Below `sm` the pills are
+  their icons alone, with the names kept for screen readers.
+- **The loop stops once every pixel is on its cell**, and off screen through an
+  `IntersectionObserver`. Measured: 0 frames requested in 1s at rest.
+- **Reduced motion places every pixel at once**: no pour, no stream and no
+  push.
+- **Scoped hues**: each shape's two ramps, on its entry in `shapes.ts`. See
+  the scoped-colour list above.
+- **The stage is `fill` with an inset `stroke` ring**, `paint-mixer`'s ground,
+  at the author's request. On `bg` the lab had no visible container. A cell is 4 css px on a wide stage and 3 below
+  520px, rounded to whole device pixels.
+- It is `flush` and `wide`, `aspect-8/5` with a `min-h-78` floor. Verified at
+  1280 and 390px, by mouse and keyboard and under reduced motion, with no
+  console errors.
+- Its clip drifts the pointer through the square, then picks heart, star, ring
+  and the square again, so it ends on the frame it opens on and loops. 9.4s
+  and 404KB, larger than most since every pixel moves.
 
 ## Motion
 
