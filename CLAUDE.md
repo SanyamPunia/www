@@ -1649,9 +1649,62 @@ deploy queue every panel shows, and `figure.tsx` is the shared layout:
   grey frame. The author asked for it there specifically. The page and the
   code blocks keep the light site scrollbar from `globals.css`.
 
+### `small-motions-i-keep-noticing`
+
+Eleven small motions from other products, each with a demo built on the shared
+`Frame`. `menus.tsx` holds the sidebar toggle, the menu bar and its toolbar
+tooltips, the window buttons and the dropdown. `controls.tsx` holds the switch,
+the progress bar, the label scrub and the copy icon. `surfaces.tsx` holds the
+checked item, the caret and the sheet.
+
+- **The product claims are written from knowledge, not checked against the
+  products.** The Linear one came from the author. Check the rest before
+  publishing.
+- **The dropdown and the checked item carry a mode `Cycle`**, so the reader can
+  compare the motion against the version without it.
+- **The caret is measured, not read**, `smooth-caret`'s method in one line: the
+  text before the selection in the field's computed font and casing, less
+  `scrollLeft`.
+- **The sheet reads the page's scale, corner, lift and scrim off the sheet's own
+  `y`**, so a drag moves the page at every point.
+- **The checked item is a real checkbox** in its label, with `relative` on the
+  label for `sr-only`'s reason.
+- **The switch's sizes are px constants set inline**, never `w-16` and `h-8`.
+  With `--spacing` at 0.2rem those are 51.2px and 25.6px, which made the thumb
+  an oval and pushed it past the track's end when on.
+- **The dropdown measures each panel's height off a hidden copy of its
+  content**, so a panel is never taller than what is in it. The copies are
+  watched by the same `ResizeObserver`, since a late font changes them.
+- **One spacing system for every demo.** A card is `rounded-lg p-5` with
+  `gap-4` between blocks. A bar of buttons is `p-1 gap-1` with `h-8` items at
+  `px-3`, and its corner is `rounded-[0.5rem]`, which is the items'
+  `rounded-md` plus the `p-1`, so the corners nest. A pill bar is
+  `rounded-full` throughout. Icon tiles are `size-8 rounded-md`. All demo text
+  is `text-body`, with `text-meta` for secondary lines.
+- **The demos carry a short `hint` and no `after` line**, at the author's
+  request: the prose already says what the reader saw.
+- **The sheet's layout effect must not jump a sheet that is animating.** It
+  runs when `open` flips, and `y.jump` there cut every close off on its first
+  frame. Closing is a tween on the drawer curve, and a share target shows its
+  tick for 520ms before the sheet leaves.
+- **Depth in the player and the to-do card uses the frame's own layers.** The
+  progress track is a `WELL`, its fill is lit from the top, and the knob and
+  the play button are `KNOB`. The cover casts a shadow and carries a sheen. An
+  empty checkbox is cut into the card and a checked one is a `KNOB`. Play
+  advances the bar a quarter second at a time and pauses while a hand holds it.
+- **The last reminder's exit and the empty state share one curve**, so the card
+  holds its height on every frame.
+- **Every text button here carries `pb-[0.16em]`**, the frame's own x-height
+  correction. Measured on the menu bar's "view": its ink sits 0.5px from its
+  button's centre.
+- **The menu bar and the toolbar sit `gap-44` apart**, so the tallest open
+  menu ends above the toolbar.
+- **The sheet's photos and share targets, and the episode cover, are scoped
+  hues**, since a photo's colours are the photo and an app's tile names it.
+
 ### `details-you-can-measure`
 
-Thirteen details and a list, each with the number that settled it. The post is this site's notes and the other projects' notes read back. `frame.tsx` holds the
+Thirteen details and a list, each with the number that settled it. The post is this site's notes and the other projects' notes read back. `components/blogs/frame.tsx` holds the
 parts every demo is built from and the demos are colocated, one file per
 section or pair.
 
@@ -1690,7 +1743,8 @@ section or pair.
   - **Every `after` line has to agree with what the demo measures.** Two first
     drafts did not: 8px is 261ms against 512ms for the lane on one spring, and
     216ms on the stiffer spring, as Motion reports the finish.
-  - It moves to `components/blogs/` the day a second post wants it.
+  - It lives in `components/blogs/frame.tsx`, moved there when
+    `small-motions-i-keep-noticing` became its second caller.
 - **The press demo keeps its loupes**, now round lenses tied to their pills, since
   the smear is too small to see at size. Each draws the label once at device resolution, resamples it through a
   0.98 transform, then magnifies the first glyph twelve times with smoothing off. The pills are
