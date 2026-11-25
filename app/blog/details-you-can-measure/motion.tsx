@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Cycle,
+  Frame,
+  Morph,
+  Pill,
+  Ping,
+  RAISED,
+} from "@/components/blogs/frame";
 import { ArrowsClockwiseIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import { Cycle, Frame, Morph, Pill, Ping, RAISED } from "./frame";
 
 /*
  * What a reduced motion setting takes away, on one object: a sync notice whose

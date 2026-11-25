@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTextMorph } from "torph/react";
-import { cn } from "@/lib/utils";
 import {
   KNOB as BALL,
   Caption,
@@ -12,7 +11,8 @@ import {
   Ping,
   Readout,
   WELL,
-} from "./frame";
+} from "@/components/blogs/frame";
+import { cn } from "@/lib/utils";
 
 /*
  * Two knobs that drag the same way and cost a different amount. One puts the

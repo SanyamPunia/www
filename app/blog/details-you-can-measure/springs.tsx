@@ -2,7 +2,6 @@
 
 import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 import {
   KNOB as BALL,
   Caption,
@@ -16,7 +15,8 @@ import {
   RAISED,
   Readout,
   WELL,
-} from "./frame";
+} from "@/components/blogs/frame";
+import { cn } from "@/lib/utils";
 
 /*
  * Two demos about time: a spring that takes about as long for 8px as for a

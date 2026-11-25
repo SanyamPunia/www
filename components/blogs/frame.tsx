@@ -32,11 +32,11 @@ export function Morph({ children }: { children: string }) {
 }
 
 /*
- * The parts every demo in this post is built from. Depth comes from three
+ * The parts every demo stage is built from. Depth comes from three
  * surfaces: a lit stage, objects raised off it, and slots recessed into it.
  * Shading is black and white at low alpha, the rule `document-pocket` sets.
  *
- * Colocated because only this post uses them.
+ * Shared by `details-you-can-measure` and `small-motions-i-keep-noticing`.
  */
 
 /** an object standing on the stage: an edge, a contact line, a cast and an ambient shadow */

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 import {
   Caption,
   Cycle,
@@ -13,7 +12,8 @@ import {
   Ping,
   RAISED,
   Readout,
-} from "./frame";
+} from "@/components/blogs/frame";
+import { cn } from "@/lib/utils";
 
 /*
  * Four small demos about type: digits that hold still, lines that wrap

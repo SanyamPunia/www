@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CursorIcon } from "@/components/icons";
-import { cn } from "@/lib/utils";
 import {
   Caption,
   Frame,
@@ -12,7 +10,9 @@ import {
   RAISED,
   Readout,
   WELL,
-} from "./frame";
+} from "@/components/blogs/frame";
+import { CursorIcon } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
 /*
  * Two demos about the pointer: a hover that tests a box which moves, and the

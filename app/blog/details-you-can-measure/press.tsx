@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 import {
   bodyFont,
   Caption,
@@ -16,7 +15,8 @@ import {
   RAISED,
   Readout,
   token,
-} from "./frame";
+} from "@/components/blogs/frame";
+import { cn } from "@/lib/utils";
 
 /*
  * Two demos about what a press looks like: the step it takes, and how long
