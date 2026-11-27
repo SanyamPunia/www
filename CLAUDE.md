@@ -2272,6 +2272,9 @@ experiment is a directory under `components/labs/`.
   `dither-morph` scopes two four-stop ramps per shape, since the author asked
   for a gradient dither with its own gradient on each shape, and the ramp is
   what shades it. See its own section.
+  `ink-hop` scopes a light and a deep stop per icon, since the author asked
+  for a different colour on each fill, and a gloss needs both ends of its
+  gradient. See its own section.
   `card-pack` scopes the foil of its pack, the card stock, one ground and ink
   per study and its holo spectrum, since a printed wrapper and a printed card
   are the objects. See its own section.
@@ -14786,6 +14789,77 @@ frame loop. It is a draft (`live: false`).
 - Its clip drifts the pointer through the square, then picks heart, star, ring
   and the square again, so it ends on the frame it opens on and loops. 9.4s
   and 404KB, larger than most since every pixel moves.
+
+### `ink-hop`
+
+A row of five outline icons in a pill, where one holds the fill. Pick another
+and the filled shape is thrown out of its icon, morphs into the new icon's
+shape in the air, and lands in the new outline as its fill. `glyphs.ts` holds
+the five shapes, from the solid glyphs in `components/icons/glyphs/nature.tsx`,
+`morph.ts` samples and pairs them, `body.ts` is the physics, and `index.tsx`
+is the bar and the frame loop. It is a draft (`live: false`).
+
+- **Nothing runs on a timeline, at the author's request.** The first two
+  builds tweened the flight and played the landing as keyframes on a spring,
+  and the settle read as hardcoded: the same squash and the same bounce on
+  every landing, started from numbers picked by hand. Now every moving value
+  is thrown under gravity or held by a damped spring, and an event changes a
+  target or adds an impulse, never a value. Family's write-up
+  ([benji.org/family-values](https://benji.org/family-values)) gives the
+  intent this follows: things persist and travel between states rather than
+  being recreated. It gives no numbers.
+- **The flight is a throw.** `plan` picks a time from the distance (0.42 to
+  0.66s) and a height (0.45 of it, 26 to 70px), and gravity is whatever brings
+  that height down in that time. Slow at the top and fast at both ends comes
+  from the gravity, not from an ease. Each step re-aims the velocity at the
+  target with the time left, which holds the shape on its parabola and, after
+  a retarget, steers it onto the new one over about 60ms instead of turning it
+  on the spot.
+- **The landing is the speed it arrives with.** Falling speed becomes squash
+  velocity (`IMPACT`) and sideways speed becomes tip (`SKID`), so a long hop
+  lands harder than a short one, and the settle is whatever that impact
+  leaves: on the longest hop a squash to 0.89, a tip to 16.6 degrees, a swing
+  back to -3 and rest about 0.8s later. Take-off is the same in reverse: the
+  launch speed stretches the shape (`KICK`) and pushes the old icon down
+  (`RECOIL`).
+- **Lean and stretch are springs chasing the path**, so they trail it. The
+  lean target is 0.3 of the path's angle, capped at 16 degrees, and the stretch
+  target follows the vertical speed, capped at 0.08. Squash rings about twice
+  (k 520, c 14), the lean is heavier (k 260, c 15).
+- **The sim runs at a fixed 1/240s step** inside `requestAnimationFrame`, so
+  the springs behave the same at any frame rate, and the loop stops once
+  everything is at rest. It writes transforms straight to the elements, with
+  no React render per frame.
+- **Every transform pivots at `50% 85%`**, on the flyer and the icons alike,
+  so the hand-off at either end puts the same transform on the same point.
+  The flyer is two layers: the path and lean on a wrapper, the squash on the
+  svg inside it.
+- **The morph is done by hand, with no plugin.** Each path is sampled into 160
+  points at equal arc length and turned to run the same way round, then the
+  target is re-indexed so its points pair with the source's at the least total
+  travel. A morph is then a straight lerp, smoothstepped from 0.15 to 0.8 of
+  the flight. Without the pairing the shape twists on the way over.
+- **Every shape is one closed path**, since the morph pairs one outline with
+  another. The crown is its body without the base line, moved 1.5 down to sit
+  centred, and the clover (four leaves) was dropped for that reason.
+- **Each fill has its own colour and a gloss, at the author's request.**
+  `glyphs.ts` scopes a `light` and a `deep` per icon (rose, yellow, orange,
+  sky, violet). `gloss.tsx` draws the fill as a top-to-bottom gradient between
+  them, carried into the edge by the stroke, a soft white highlight on the
+  upper left clipped to the shape, and a drop shadow tinted with `deep`. The
+  flyer draws the same three layers with refs, and its colours blend from the
+  old icon's to the new icon's with the morph, through `color-mix` in oklch so
+  a change of hue passes through colour rather than grey. The highlight sets
+  `stroke="none"`: the icon's `svg` carries `stroke="currentColor"`, and the
+  ellipse inherited it as a dark arc.
+- **Both hand-offs commit with `flushSync`**, so the outline is never seen
+  empty with nothing over it, or filled with the shape still on top. The
+  landed fill sets its own colour (`text-text-primary` on the path), since it
+  inherited the button's `transition-colors` and landed gray.
+- The icons are toggle buttons with `aria-pressed`. Reduced motion swaps the
+  fill with no hop. `py-16` leaves room for the arc inside the frame. Verified
+  at 1280px with a per-frame trace of a long hop and a mid-air retarget, with
+  no console errors.
 
 ## Motion
 
