@@ -1564,6 +1564,19 @@ const ALL_LABS: LabMetadata[] = [
     wide: true,
     hint: "Pick a shape. Move the pointer through the pixels.",
   },
+  {
+    slug: "ink-hop",
+    title: "Ink Hop",
+    description: [
+      "a row of outline icons where one holds the fill. pick another and the filled shape lifts out, morphs into the new icon on an arc and lands in its outline.",
+      "key insight: both shapes are sampled into the same number of points at equal arc length and paired at the least total travel, so the morph is a straight lerp that does not twist.",
+    ],
+    createdAt: "2026-11-27",
+    live: true,
+    source:
+      "https://github.com/SanyamPunia/www/blob/main/components/labs/ink-hop/index.tsx",
+    hint: "Pick an icon. Pick another while the drop is in the air.",
+  },
 ];
 
 /**
@@ -1731,6 +1744,7 @@ export const IMPLEMENTED_LABS = [
   "dither-input",
   "paint-mixer",
   "dither-morph",
+  "ink-hop",
 ] as const;
 
 export type ImplementedLab = (typeof IMPLEMENTED_LABS)[number];

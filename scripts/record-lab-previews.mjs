@@ -3891,6 +3891,52 @@ const LABS = {
       await wait(700);
     },
   },
+  "ink-hop": {
+    // the bar and the air above it, where the longest hop peaks
+    focus: [118, 0, 302, 189],
+    zoom: 2,
+    /*
+     * A short hop to the star, a long one to the crown, a hop towards the
+     * flame retargeted to the diamond in mid-air, and the heart last, so the
+     * clip ends on the frame it opens on and loops. The pointer leaves the bar
+     * after each pick, so no hover background is left on a button.
+     */
+    async run({ page }) {
+      const demo = await page.locator("[data-lab-demo]").boundingBox();
+      const press = async (name) => {
+        const b = await page
+          .locator(`[data-lab-demo] button[aria-label="${name}"]`)
+          .boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, {
+          steps: 8,
+        });
+        await page.mouse.down();
+        await wait(40);
+        await page.mouse.up();
+      };
+      const away = () =>
+        page.mouse.move(demo.x + demo.width / 2, demo.y + demo.height - 6, {
+          steps: 6,
+        });
+      await wait(500);
+      for (const [name, rest] of [
+        ["Star", 1100],
+        ["Crown", 1300],
+      ]) {
+        await press(name);
+        await away();
+        await wait(rest);
+      }
+      await press("Flame");
+      await wait(160);
+      await press("Diamond");
+      await away();
+      await wait(1300);
+      await press("Heart");
+      await away();
+      await wait(1400);
+    },
+  },
 };
 
 function crop(rect, bounds) {
